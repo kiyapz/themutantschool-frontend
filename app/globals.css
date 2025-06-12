@@ -1,0 +1,304 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
+@import url('https://fonts.cdnfonts.com/css/xirod');
+
+                
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #010101;
+  --blackcolor:#000000;
+  --primary: #9159D1;
+  --primary-dark: #6523D9;
+  --primary-light: #844CDC;
+  --secondary: #4A00BC;
+  --accent: #131313;
+  --error: #d93025;
+  --warning: #fbbc05;
+  --success: #34a853;
+  --info: #CDE98D;
+  --border: #e0e0e0;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --text: #888888;
+  --text-light: #6A6A6A;
+  --button-color:#676767;
+  --button-border-color: #525252;
+  --button-hover-color: #4A4A4A;
+  --link-color:#868686;
+
+
+}
+
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0px 1000px var(--accent) inset !important;
+  -webkit-text-fill-color: white !important;
+}
+
+
+.ibm-plex-mono-thin {
+  font-family: "IBM Plex Mono", monospace;
+  
+}
+
+.Xirod {
+  font-family: 'Xirod', sans-serif;
+}
+
+@font-face {
+  font-family: 'Xirod';
+  src: url('/fonts/xirod.woff') format('woff');
+  font-weight: normal;
+  font-style: normal;
+}
+
+
+
+
+
+body {
+  background: var(--foreground);
+  color: var(--background);
+  font-family: "DM Sans", sans-serif;
+  font-weight: 400;
+}
+
+.flexcenter {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.px {
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.py {
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+.btn {
+  background: linear-gradient(to right, var(--primary),var(--secondary)); 
+
+}
+
+.btn:hover {
+  background: linear-gradient(to right, var(--primary-light),var(--secondary));
+}
+
+.evolution-button {
+  position: relative;
+  background: var(--text-light);
+  padding: 1px;
+  clip-path: polygon(
+    20px 0%,         /* top-left cut */
+    100% 0%,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,  /* bottom-right cut */
+    0% 100%,
+    0% 20px
+  );
+}
+
+.evolution-button-inner {
+  background: var(--foreground);
+  color: white;
+  padding: 1.25rem;
+  clip-path: polygon(
+    20px 0%,         /* top-left cut */
+    100% 0%,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,  /* bottom-right cut */
+    0% 100%,
+    0% 20px
+  );
+}
+
+.margintopbootom {
+  margin-top: 40px;
+  margin-bottom: 40px;
+}
+
+.cut-box {
+  position: relative;
+  /* background: transparent; */
+  clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
+  /* background: var(--text-light); */
+  padding: 1px; 
+}
+
+.cut-box-inner {
+  background: var(--foreground);
+  clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
+  padding: 1.25rem;
+  color: white;
+}
+
+.cut-box2 {
+  position: relative;
+  /* width: full; */
+  /* background: ; */
+  clip-path: polygon(0 0, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  padding: 1px;
+  
+}
+
+.cut-box-inner2 {
+  background: var(--foreground);
+  clip-path: polygon(0 0, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  padding: 1.25rem;
+  color: white;
+  
+}
+
+/* First Box - Bottom Right Cut */
+.cut-box3 {
+  background: var(--text-light);
+  padding: 1px;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    20px 100%,     /* cut starts 20px from the left at the bottom */
+    0 calc(100% - 20px)  /* then up 20px on the left */
+  );
+}
+
+.cut-box-inner3 {
+  background: var(--foreground);
+  height: 31.05px;
+   width: 118.05px;
+  padding: 1.25rem;
+  color: white;
+  clip-path: polygon(
+    0 0,
+    100% 0,
+    100% 100%,
+    20px 100%,
+    0 calc(100% - 20px)
+  );
+}
+
+/* Second Box - Top Left Cut */
+.cut-box4 {
+  
+  
+  background: var(--text-light);
+  padding: 1px;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% 100%,
+    0 100%
+  );
+}
+
+.cut-box-inner4 {
+  height: 31.05px;
+  width: 118.05px;
+  background: var(--foreground);
+  padding: 1.25rem;
+  color: white;
+  clip-path: polygon(
+    0 0,
+    calc(100% - 20px) 0,
+    100% 20px,
+    100% 100%,
+    0 100%
+  );
+}
+
+.mt-mutantlogin {
+  margin-top:1%;
+}
+
+
+@media (max-width: 1024px) {
+  .mt-mutantlogin {
+    margin-top:10%;
+  }
+
+  .herosection-mb {
+    margin-top: 10%;
+  }
+}
+
+
+@media (max-width: 640px) {
+  .px {
+    padding-left: 5px;
+    padding-right: 5px;
+  }
+  
+  .py {
+    padding-top: 5px;
+    padding-bottom: 5px;
+  }
+
+  .mt-mutantlogin {
+    margin-top:5% !important;
+  }
+
+  .cut-box,
+.cut-box2 {
+  position: relative;
+  /* background: var(--text-light); */
+  padding: 1px;
+  border-radius: 10px; 
+  clip-path: none;
+}
+
+.cut-box-inner,
+.cut-box-inner2 {
+  background: var(--foreground);
+  padding: 1.25rem;
+  color: white;
+  border-radius: 10px;
+  clip-path: none;
+}
+
+.radiobtn {
+  width: 28px;
+  height: 28px;
+  border: 2px solid var(--button-border-color);
+  border-radius: 50%;
+  background: transparent;
+  
+}
+
+.px-radio {
+  padding: 1.25rem;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+.cut-box-inner3,.cut-box-inner4 {
+  height: 100%;
+  width: 100%;
+  padding: 1.25rem;
+  clip-path: none;
+  
+}
+
+.cut-box4 ,.cut-box3 {
+  margin-bottom: 10px;
+  width: 100%;
+}
+
+.cut-box2 {
+width: 100%;
+  background: var(--text-light);
+  padding: 1px;
+  clip-path: none;
+}
+}
