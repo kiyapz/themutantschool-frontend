@@ -27,12 +27,12 @@ export default function RootLayout({ children }) {
                 <div>
         <GloblaxcontexProvider>
         <div className="" >
-          <div  className="block h-[15vh]  sm:hidden">
+          <div  className="block h-[10vh]  top-0 left-0 flex items-center justify-center w-full  sm:hidden">
             {/* <AuthNavBar /> */}
             <Navbar />
           </div>
           
-          <div className="hidden sm:block ">
+          <div className="hidden sm:block  top-0 left-0 w-full h-[10vh] z-50">
           <div className="hidden sm:block  h-[10vh] flexcenter ">
             <Authnav />
           </div>

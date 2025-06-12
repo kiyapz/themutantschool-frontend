@@ -25,15 +25,15 @@ export default function Login() {
 
                             <div className="flex w-full h-full  flex-col justify-around gap-4">
                                 <div className="flex flex-col gap-4">
-                                    <input type="email" placeholder="Email" className="w-full px p-2 rounded-[10px] h-[75.16px]  !bg-[var(--accent)] " />
+                                    <input type="email" placeholder="Email" className="h-[70.31px] font-[400] text-[17px] leading-[57px] rounded-[8px] w-full px p-2 sm:rounded-[10px] sm:h-[75.16px]  !bg-[var(--accent)] " />
                                     
-                                    <PasswordInput />
+                                    <PasswordInput placeholder='Password' />
                                     <div className="grid grid-cols-[1.5fr_1fr] xl:grid-cols-3 h-[75.16px] gap-3 xl:gap-4 w-full   ">
-                                       <div className="h-8 w-full xl:col-span-2 h-full flex items-center justify-between px   rounded-[8px] rounded-[8px] btn cursor-pointer ">
+                                       <div className="h-[60.5px] w-full xl:col-span-2  flex items-center justify-between px    rounded-[8px] btn cursor-pointer ">
                                            <p className="font-[600] text-[15px] leading-[57px] text-[var(--background)] ">Enter the Lab</p>
                                            <Image src={'/images/Arrow.png'} alt="arrow" width={18} height={15} />
                                        </div>
-                                       <div className="h-8 w-full   border-[1px] rounded-[8px] flex items-center justify-between px  border-[var(--primary)] h-full cursor-pointer" >
+                                       <div className="h-[60.5px] w-full   border-[1px] rounded-[8px] flex items-center justify-between px  border-[var(--primary)]  cursor-pointer" >
                                             <Image src={'/images/google.png'} alt="arrow" width={28.75} height={28.36} />
                                              <p className="font-[600] xl:text-[20px] text-[15px] leading-[57px] text-[var(--background)] ">Google</p>
                                        </div>
@@ -41,11 +41,11 @@ export default function Login() {
                                  
                                  </div>
 
-                                    <Link href='/ForgotPassword'><p className="text-center text-[var(--text-light)] text-[14px] font-[500] leading-[40px] ">Forgot Password?</p></Link>
+                                    <Link href='/ForgotPassword'><p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[40px] ">Forgot Password?</p></Link>
 
                                  <div>
                                     
-                                    <div className="h-8 w-full flexcenter font-[600] text-[14px] leading-[40px] text-[var(--background)]  border-[1px] px rounded-[8px] border-[var(--primary)] h-[75.16px] "> 
+                                    <div className="h-[60.5px] w-full flexcenter font-[600] text-[12px] sm:text-[14px] leading-[40px] text-[var(--background)]  border-[1px] px rounded-[8px] border-[var(--primary)] sm:h-[75.16px] "> 
                                         <p>New here? <Link href='/Register'><span className="text-[var(--primary)] ">Begin Your Transformation</span></Link> </p>
                                     </div>
                                  </div>

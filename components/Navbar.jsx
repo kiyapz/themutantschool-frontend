@@ -20,8 +20,8 @@ export default function Navbar() {
     };
 
     return (
-        <div className="w-full flexcenter h-[70px] relative">
-            <div className="max-w-[350px] sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8">
+        <div className="w-full flexcenter  h-[70px] relative">
+            <div className="max-w-[350px] px sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8">
                 <div className="flex items-center justify-between w-full">
                     {/* Logo */}
                     <div className="flex items-center">

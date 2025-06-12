@@ -83,24 +83,26 @@ const [stack,setStack] = useState('Individual Account');
     switch (registerStep) {
       case 1:
         return (
-          <div className="flex hide-scrollbar items-center justify-center w-screen min-h-screen overflow-hidden">
+          <div  className="flex items-center justify-center w-screen h-fit ">
       {/* Main container with consistent max-width */}
-      <div className="w-full max-w-[330px] hide-scrollbar px sm:max-w-[607.96px] mx-auto px-4 sm:px-0  flex flex-col  min-h-[80vh] sm:min-h-[105vh] gap-8 items-center justify-center">
+      <div className="w-full max-w-[336.13px] hide-scrollbar px sm:max-w-[607.96px] mx-auto px-4 sm:px-0  flex flex-col  h-fit md:h-[70vh] xl:min-h-[90vh] gap-8 items-center justify-between ">
         
         {/* Tab switcher with consistent width */}
-        <div className="h-[72.56px] w-full max-w-[607.96px] grid grid-cols-2 bg-[#1D1D1D] rounded-[8px]">
+        <div className=" hidden sm:block w-full">
+        <div className=" h-[60.5px] sm:h-[72.56px] w-full max-w-[607.96px] grid grid-cols-2 bg-[#1D1D1D] rounded-[8px]">
           <button 
             onClick={() => setStack('Individual Account')} 
-            className={`rounded-[15px] h-[72.56px] w-full ${stack === 'Individual Account' ? 'bg-[#464646]' : ""} text-white`}
+            className={`rounded-[15px] h-[60.5px] text-[14px] font-[600] leading-[27px] text-center sm:h-[72.56px] w-full ${stack === 'Individual Account' ? 'bg-[#464646]' : ""} text-white`}
           >
             Individual Account
           </button>
           <button 
             onClick={() => setStack('Academy')} 
-            className={`rounded-[15px] w-full h-[72.56px] ${stack === 'Academy' ? 'bg-[#464646]' : ""} text-white`}
+            className={`rounded-[15px] w-full h-[60.5px] text-[14px] font-[600] leading-[27px] text-center sm:h-[72.56px] ${stack === 'Academy' ? 'bg-[#464646]' : ""} text-white`}
           >
             Academy
           </button>
+        </div>
         </div>
 
         {/* Content section with consistent spacing */}

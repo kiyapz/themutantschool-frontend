@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-export default function PasswordInput({placeholder,value ,onchange }) {
+export default function PasswordInput({value ,onchange }) {
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePassword = () => setShowPassword((prev) => !prev);
@@ -12,8 +12,8 @@ export default function PasswordInput({placeholder,value ,onchange }) {
     <div className="relative bg-[var(--accent)]   w-full ">
       <input
         type={showPassword ? "text" : "password"}
-        placeholder={`${placeholder}`}
-        className="w-full px h-[75.16px]  text-white   rounded-[10px]"
+        placeholder='Password'
+        className="w-full px h-[70.31px] rounded-[8px] sm:h-[75.16px]  text-white   sm:rounded-[10px]"
         value={value}
         onChange={onchange}
       />
