@@ -102,23 +102,28 @@ console.log(selectedRole, "selectedRole");
     try {
       const response = await authApiUrl.post("verify", {
         email: email,
-        OTP: otpCodenew,
+        token: otpCodenew,
       });
   
       if (response.status === 200 || response.data.success === true) {
         console.log("OTP verification successful:", response.data.message);
         setSuccessmessage(response.data.message);
         setIsCompleteOtp(true);
+        setRegisterStep((prev) => prev + 1);
         return true;
       } else {
         console.log("OTP verification failed:", response.data.message);
-        setErrormessage(response.data.message || "OTP verification failed");
-        setTimeout(() => setErrormessage(""), 2000);
+        setErrormessage( "OTP verification failed");
+        setTimeout(() => setErrormessage(""), 1000);
+        setIsCompleteOtp(false)
         setIsCompleteOtp(false);
         return false;
       }
     } catch (error) {
       console.log("Error verifying OTP:", error.response?.data?.message || error.message);
+      setErrormessage("OTP verification failed");
+      setTimeout(() => setErrormessage(""), 1000);
+      setIsCompleteOtp(false)
       return false;
     }
   };
