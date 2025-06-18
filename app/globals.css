@@ -130,7 +130,7 @@ body {
 }
 
 .cut-box-inner {
-  background: var(--foreground);
+  /* background: var(--foreground); */
   clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
   padding: 1.25rem;
   color: white;
@@ -146,10 +146,10 @@ body {
 }
 
 .cut-box-inner2 {
-  background: var(--foreground);
+  /* background: var(--foreground); */
   clip-path: polygon(0 0, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
   padding: 1.25rem;
-  color: white;
+  /* color: white; */
   
 }
 

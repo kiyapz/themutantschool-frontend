@@ -1,14 +1,18 @@
 'use client'
+
 import { Globlaxcontex } from "@/context/Globlaxcontex";
-import { useContext, useRef, useState } from "react";
+import { useContext, useRef, useState, useEffect } from "react";
 
 export default function OTPInput({ length = 6, onComplete }) {
   const inputs = useRef([]);
   const [otp, setOtp] = useState(Array(length).fill(""));
-  const {isCompleteOtp, setIsCompleteOtp}=useContext(Globlaxcontex);
+  const {otpCode, setOtpCode} = useContext(Globlaxcontex)
+
+  const { setIsCompleteOtp } = useContext(Globlaxcontex);
 
   const handleChange = (e, i) => {
     const value = e.target.value.replace(/[^0-9a-zA-Z]/g, "").toUpperCase();
+
     if (value.length === 1 && i < length - 1) {
       inputs.current[i + 1]?.focus();
     }
@@ -18,8 +22,10 @@ export default function OTPInput({ length = 6, onComplete }) {
     setOtp(newOtp);
 
     const code = newOtp.join("");
+    setOtpCode(code); 
+
     if (code.length === length && !newOtp.includes("")) {
-      onComplete?.(code);
+      onComplete?.(code); // pass to parent if needed
     }
   };
 
@@ -29,7 +35,16 @@ export default function OTPInput({ length = 6, onComplete }) {
     }
   };
 
-  const isComplete = setIsCompleteOtp(otp.every(val => val.length === 1))  ;
+  
+  useEffect(() => {
+    const complete = otp.every(val => val.length === 1);
+    setIsCompleteOtp(complete);
+  }, [otp, setIsCompleteOtp]);
+
+  
+  useEffect(() => {
+    console.log("Full OTP:", otpCode);
+  }, [otpCode]);
 
   return (
     <div className="flex flex-col items-center gap-4">
@@ -46,8 +61,6 @@ export default function OTPInput({ length = 6, onComplete }) {
           />
         ))}
       </div>
-
-     
     </div>
   );
 }

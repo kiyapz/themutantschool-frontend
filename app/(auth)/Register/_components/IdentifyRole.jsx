@@ -1,6 +1,6 @@
 'use client';
 
-import { useContext, useEffect, useState } from "react";
+import { use, useContext, useEffect, useState } from "react";
 import Registerherosection from "./Registerherosection";
 import Registerbtn from "./Registerbtn";
 import RegisterInput from "./RegisterIput";
@@ -8,44 +8,117 @@ import { Globlaxcontex } from "@/context/Globlaxcontex";
 import OTPInput from "./Otpverification";
 import PasswordInput from "../../-components/PasswordInput";
 import Image from "next/image";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { RegisterformSchema } from "./ZodSchema";
-import { z } from "zod";
-import Errormessage from "@/context/Errormessage";
 import Link from "next/link";
+import authApiUrl from "@/lib/baseUrl";
+import SuccessMessage from "../../../../components/SuccessMessage";
+import { set } from "zod";
 
 export default function IdentifyRole() {
-  // const [disableBtn, setDisableBtn] = useState(true);
-  const [password, setPassword] = useState("");
-const [confirmpassword, setconfirmpassword] = useState("");
-const [stack,setStack] = useState('Individual Account');
+  
+  const [buttonDisabledtext, setButtonDisabled] = useState('continue');
+  const [isValidEmail, setIsValidEmail] = useState(true);
+
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+
 
 
 
 
   
-  const onSubmit = (data) => { console.log("Form submitted:", data); };
-  const { isCompleteOtp,registerStep, setRegisterStep ,selectedRole, setSelectedRole,errormessage,setErrormessage,setCodeName,codeName,firstName, setFirstName,lastName, setLastName,email, setEmail,setdisablebtn} = useContext(Globlaxcontex);
 
+  const {otpCode,Successmessage, setSuccessmessage,verifyOtpWithBackend, stack,setStack,password, setPassword,confirmpassword, setconfirmpassword,isCompleteOtp,registerStep, setRegisterStep ,selectedRole, setSelectedRole,errormessage,setErrormessage,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,setdisablebtn,handleContinue} = useContext(Globlaxcontex);
+
+  // codeName
+  
+  useEffect(() => {
+    setSuccessmessage(
+      <span className="flex items-center gap-2">
+        <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
+        Checking...
+      </span>
+    );
+    
+    setdisablebtn(true);
+    setErrormessage('');
+    
+
+    if (username.length < 5) {
+      setErrormessage("Username must be at least 5 characters long.");
+      setSuccessmessage('');
+      return;
+    }
+    
+  
+    const verifyAccount = async () => {
+      try {
+        const res = await authApiUrl.post("check-username", { username }); 
+    
+        const responseData = res.data;
+        console.log("Response from server:", res);
+    
+        if (res.status === 201 || res.status === 200) {
+          setErrormessage('');
+          setSuccessmessage(responseData.message || "Username is available.");
+          setTimeout(() => {
+            setSuccessmessage('');
+          }, 1000);
+          setdisablebtn(!username);
+        } else {
+          setSuccessmessage('');
+          setdisablebtn(true);
+          setErrormessage(responseData.message || "Something went wrong.");
+          setTimeout(() => {
+            setErrormessage('');
+          }, 1000);
+        }
+    
+      } catch (err) {
+        setErrormessage('');
+        setdisablebtn(true)
+        console.log("Error fetching data:", err);
+        setSuccessmessage('');
+    
+        let errorMsg = "An error occurred while verifying the account.";
+    
+        if (err?.code === 'ERR_NETWORK') {
+          errorMsg = "Network error: Please check your internet connection.";
+        } else if (err?.response?.data?.message) {
+          errorMsg = err.response.data.message;
+        }
+    
+        setErrormessage(errorMsg);
+        setTimeout(() => {
+          setErrormessage('');
+        }, 1000);
+      }
+    };
+    
+  
+    verifyAccount();
+  }, [username]);
   
   
-  
+
 
 
   useEffect(() => {
     if (registerStep === 1) {
       setdisablebtn(!selectedRole);
-    } else if (registerStep === 2) {
-      setdisablebtn(!codeName);
-    } else if (registerStep === 3) {
+    
+    }
+     else if (registerStep === 3) {
+      if (!firstName || !lastName || firstName.length < 3 || lastName.length < 3) {
+       
+        return;
+      }
       setdisablebtn(!(firstName && lastName));
     } 
     else if (registerStep === 5) {
       
-      setdisablebtn(!isCompleteOtp);
+      setIsValidEmail(!isCompleteOtp);
     } 
-  }, [registerStep, selectedRole, codeName, firstName, lastName,isCompleteOtp]);
+  }, [registerStep, selectedRole, username, firstName, lastName,isCompleteOtp]);
   
   
   useEffect(() => {
@@ -69,25 +142,112 @@ const [stack,setStack] = useState('Individual Account');
     }
     
     // Button should be disabled if any condition is not met
-    setdisablebtn(!(allFieldsFilled && passwordsMatch && isValidEmail && isValidPasswordLength));
+    setIsValidEmail(!(allFieldsFilled && passwordsMatch && isValidEmail && isValidPasswordLength));
     
 }, [email, password, confirmpassword])
   
   
+const handleEmailVerification = async () => {
+  
+  setButtonDisabled('Loading...');
+
+  try {
+    const res = await authApiUrl.post("register", {
+      email,
+      password,
+      firstName,
+      lastName,
+      username,
+      role: selectedRole,
+      
+    });
+
+    console.log("Response from server:", res);
+
+    if (res.status === 201 || res.status === 200) {
+      const responseData = res.data;
+      console.log("Data set successfully:", responseData.message);
+
+      setErrormessage('');
+      setSuccessmessage(responseData.message);
+
+      console.log('Success message:', responseData.message);
+
+
+      const { accessToken, refreshToken, data: user } = res.data;
+
+       localStorage.setItem("accessToken", accessToken);
+       localStorage.setItem("refreshToken", refreshToken);
+       localStorage.setItem("user", JSON.stringify(user));
+       localStorage.setItem("userId", user._id);
+      console.log("User data stored in localStorage:", user);
+
+      setTimeout(() => {
+        setSuccessmessage('');
+      }, 1000);
+      setButtonDisabled('Done')
+
+      setRegisterStep((prev) => prev + 1);
+    }
+  } catch (error) {
+    
+    if (error.response) {
+      setButtonDisabled('continue');
+      console.log("Error response:", error.response);
+      const errorMessage = error.response.data.message || "Something went wrong.";
+      setErrormessage(errorMessage);
+      
+    } else {
+      setButtonDisabled('continue');
+      
+      setErrormessage("Network error or unexpected issue.");
+      
+    }
+  }
+};
+
+
+useEffect(() => {
+  let interval;
+  if (timeLeft > 0) {
+    interval = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+  } else {
+    setCanResend(true);
+  }
+  return () => clearInterval(interval);
+}, [timeLeft]);
+
+const handleResend = async () => {
+
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const email = storedUser?.email;
+
+  try {
+    const res = await authApiUrl.post("resend-verification", { email : email });
+    console.log("Resend response:", res.data);
+    setTimeLeft(60);
+    setCanResend(false);
+  } catch (error) {
+    console.error("Failed to resend OTP:", error.response?.data?.message || error.message);
+  }
+};
 
 
 
-  const handleContinue = () => setRegisterStep((prev) => prev + 1);
+
+  // const handleContinue = () => setRegisterStep((prev) => prev + 1);
 
   const renderStep = () => {
     switch (registerStep) {
       case 1:
         return (
           <div  className="flex items-center justify-center w-screen h-fit ">
-      {/* Main container with consistent max-width */}
+      
       <div className="w-full max-w-[336.13px] hide-scrollbar px sm:max-w-[607.96px] mx-auto px-4 sm:px-0  flex flex-col  h-fit md:h-[70vh] xl:min-h-[90vh] gap-8 items-center justify-between ">
         
-        {/* Tab switcher with consistent width */}
+        
         <div className=" hidden sm:block w-full">
         <div className=" h-[60.5px] sm:h-[72.56px] w-full max-w-[607.96px] grid grid-cols-2 bg-[#1D1D1D] rounded-[8px]">
           <button 
@@ -105,7 +265,7 @@ const [stack,setStack] = useState('Individual Account');
         </div>
         </div>
 
-        {/* Content section with consistent spacing */}
+        
         <div className="flex flex-col gap-8 w-full max-w-[607.96px]">
           
           {/* Hero section */}
@@ -116,15 +276,15 @@ const [stack,setStack] = useState('Individual Account');
             text="Select your role in the mutant evolution"
           />
           
-          {/* Role selection cards */}
+          
           <div className="w-full ibm-plex-mono-thin flex flex-col gap-4">
             
-            {/* Student card - full width */}
+          
             <div 
               onClick={() => setSelectedRole("student")} 
               className={`w-full h-[70.31px] sm:h-[96.03px] cut-box cursor-pointer ${selectedRole === "student" ? "bg-[var(--secondary)]" : "bg-[var(--text-light)]"}`}
             >
-              <div className="cut-box-inner flex items-center sm:flex-col sm:justify-center gap-3 sm:gap-1 h-full w-full px-4">
+              <div className={`cut-box-inner flex items-center sm:flex-col sm:justify-center gap-3 sm:gap-1 h-full w-full px-4 ${selectedRole === "student" ? "bg-[#1B0932]" : "bg-[var(--foreground)]"}`}>
                 <input 
                   className="radiobtn sm:hidden" 
                   type="radio" 
@@ -146,7 +306,7 @@ const [stack,setStack] = useState('Individual Account');
               {/* Instructor card */}
               <div 
                 onClick={() => setSelectedRole("instructor")} 
-                className={`cursor-pointer px-radio flex items-center sm:justify-center sm:flex-col gap-3 sm:gap-1 h-[70.31px] sm:h-[96.03px] bg-[var(--foreground)] rounded-[5px] px-4 ${selectedRole === "instructor" ? "border-2 border-[var(--secondary)]" : "border border-[var(--text-light)]"}`}
+                className={`cursor-pointer px-radio flex items-center sm:justify-center sm:flex-col gap-3 sm:gap-1 h-[70.31px] sm:h-[96.03px]  rounded-[5px] px-4 ${selectedRole === "instructor" ? "bg-[#1B0932] border border-[var(--secondary)]" : "border border-[var(--text-light)] bg-[var(--foreground)]"}`}
               >
                 <input 
                   className="radiobtn sm:hidden" 
@@ -167,7 +327,7 @@ const [stack,setStack] = useState('Individual Account');
                 onClick={() => setSelectedRole("affiliate")} 
                 className={`h-[70.31px] sm:h-[96.03px] w-full cut-box2 cursor-pointer ${selectedRole === "affiliate" ? " bg-[var(--secondary)]" : "bg-[var(--text-light)]"}`}
               >
-                <div className="cut-box-inner2 flex items-center sm:flex-col sm:justify-center gap-3 sm:gap-1 h-full w-full px-4">
+                <div className={`cut-box-inner2 flex items-center sm:flex-col sm:justify-center gap-3 sm:gap-1 h-full w-full px-4  ${selectedRole === "affiliate" ? "bg-[#1B0932]" : "bg-[var(--foreground)]"}  `}>
                   <input 
                     className="radiobtn sm:hidden" 
                     type="radio" 
@@ -185,7 +345,7 @@ const [stack,setStack] = useState('Individual Account');
             </div>
           </div>
 
-          {/* Bottom section with consistent spacing */}
+         
           <div className="flex w-full flex-col gap-4 pb-8">
             <Registerbtn text='Continue' onClick={handleContinue} />
             <p className="text-center text-[var(--text)] font-[700] text-[14px] leading-[20px]">
@@ -205,8 +365,14 @@ const [stack,setStack] = useState('Individual Account');
               heading="Enter Your Codename"
               text="Every legend starts with a name. What’s yours?"
             />
+              
             <div className="flex flex-col px  gap-5">
-              <RegisterInput onchange={(e)=>setCodeName(e.target.value)} value={codeName} textCenter={'text-center'} placeholder="ENTER YOUR USERNAME" />
+              <RegisterInput onchange={(e)=>setCodeName(e.target.value)} value={username} textCenter={'text-start'} placeholder="ENTER YOUR USERNAME" handledelete={()=>setCodeName('')} />
+               
+              {errormessage && (
+                <p className="text-[#FF5D5D] font-[300] leading-[57px] text-[16px] text-center">{errormessage}</p>
+              )}
+              <SuccessMessage message={Successmessage} />
               <Registerbtn text='Continue' onClick={handleContinue} />
 
             </div>
@@ -223,8 +389,8 @@ const [stack,setStack] = useState('Individual Account');
               text="We need your real-world name."
             />
             <div className="flex flex-col gap-5">
-              <RegisterInput onchange={(e)=>setFirstName(e.target.value)} value={firstName} placeholder="First Name" />
-              <RegisterInput onchange={(e)=>setLastName(e.target.value)} value={lastName} placeholder="Last Name" />
+              <RegisterInput hidden='hidden' onchange={(e)=>setFirstName(e.target.value)} value={firstName} placeholder="First Name" />
+              <RegisterInput hidden='hidden' onchange={(e)=>setLastName(e.target.value)} value={lastName} placeholder="Last Name" />
               <Registerbtn text='Continue' onClick={handleContinue} />
             </div>
           
@@ -240,21 +406,20 @@ const [stack,setStack] = useState('Individual Account');
               text="Set your credentials to access The Lab."
             />
             <div className="flex flex-col gap-5">
-              {/* <form onSubmit={onsubmit} className="flex flex-col gap-5"> */}
-              <RegisterInput onchange={(e)=>setEmail(e.target.value)} value={email} type='email'  placeholder="Email Address" />
+              
+              <RegisterInput hidden={'hidden'} onchange={(e)=>setEmail(e.target.value)} value={email} type='email'  placeholder="Email Address" />
               <PasswordInput onchange={(e)=>setPassword(e.target.value)} value={password} type='password'  placeholder=' password'  />
-              {/* {registerStep === 4 && password !== confirmpassword && (<p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center">Passwords must be up to 8 characters</p>  )}
-               */}
                {registerStep === 4 && password && password.length < 8 && (
-    <p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center">
-      Password must be at least 8 characters
-    </p>
-  )}
+                   <p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center"> Password must be at least 8 characters  </p>)}
               <PasswordInput onchange={(e) => setconfirmpassword(e.target.value)} value={confirmpassword} type='password'  placeholder="Confirm Password"/>          
               {registerStep === 4 && password !== confirmpassword && (<p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center">Passwords do not match</p>  )}
-              <Registerbtn  text='Continue' />
-              
-                           {/* </form> */}
+              <button disabled={isValidEmail} onClick={handleEmailVerification} className={` text-white font-bold py-2 px-4 rounded w-full h-[57px] text-[18px] leading-[57px] ${isValidEmail ? 'bg-[#404040] cursor-not-allowed' : 'btn'}`}>
+                {buttonDisabledtext}
+              </button>
+              {errormessage && (
+                <p className="text-[#FF5D5D] font-[300] leading-[57px] text-[16px] text-center">{errormessage}</p>
+              )}
+              <SuccessMessage message={Successmessage} />
             </div>
           </div>
         );
@@ -271,23 +436,26 @@ const [stack,setStack] = useState('Individual Account');
                 <div>
                     <OTPInput />
                 </div>
-                {/* <button
-        disabled={!isCompleteOtp}
-        className={`w-40 h-10 rounded bg-blue-500 text-white font-bold transition-opacity ${
-          isCompleteOtp ? 'opacity-100' : 'opacity-50 cursor-not-allowed'
-        }`}
-        onClick={() => onComplete?.(otp.join(""))}
-      >
-        Continue
-      </button> */}
 
-      <Registerbtn  text='verify' />
-              <p className="text-center text-[var(--text)] font-[700] text-[14px] leading-[20px]">
-                Didn’t receive email?{" "}
-                <span className="text-[var(--secondary)]">Resend in 00:60</span>
-              </p>
-            </div>
-          </div>
+
+                <div className="flex flex-col gap-1">
+              
+
+                    <button onClick={verifyOtpWithBackend} className={`h-[60px] w-full rounded-[15px]  ${otpCode.length === 6 ? 'btn' :'bg-[#404040] cursor-not-allowed disabled ' }`}>Verify</button>
+                         {errormessage && (<p className="text-[#FF5D5D] font-[300] leading-[57px] text-[16px] text-center">{errormessage}</p> )}
+                          <SuccessMessage message={Successmessage} />
+
+
+               <div className="text-center text-[var(--text)] flex items-center justify-center gap-2 font-[700] text-[14px] leading-[20px]"> Didn’t receive email?
+                  <div className="text-sm"> {!canResend ? (<span className="text-[var(--secondary)]">Resend in 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</span>
+                   ) : (
+                  <button onClick={handleResend} className="text-[var(--secondary)] underline">  Resend OTP   </button>  )}
+                   </div>
+                
+              </div>
+           </div>
+        </div>
+      </div>
         );
 
       default:
@@ -313,7 +481,7 @@ const [stack,setStack] = useState('Individual Account');
                 
                 className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
               >
-                Verify
+                 continue to the lab
               </button>
 
           </div>

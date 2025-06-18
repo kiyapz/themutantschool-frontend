@@ -1,6 +1,10 @@
-export default function RegisterInput({placeholder,textCenter, value, onchange,type}) {
+export default function RegisterInput({placeholder,textCenter, value, onchange,type,handledelete,hidden}) {
     return (
-        <input placeholder={placeholder}  value={value} type={type} onChange={onchange} className={`w-full px outline-none ${textCenter} bg-[var(--accent)] text-[var(--button-color)] h-[70.31px] sm:h-[75.16px] rounded-[8px] sm:rounded-[10px] sm:font-[300] text-[17px] font-[600] sm:text-[18px] leading-[57px] `} />  
+        <div className={`w-full px outline-none ${textCenter} bg-[var(--accent)] flex items-center justify-between text-[var(--button-color)] h-[70.31px] sm:h-[75.16px] rounded-[8px] sm:rounded-[10px] sm:font-[300] text-[17px] font-[600] sm:text-[18px] leading-[57px] `}>
+        
+        <input placeholder={placeholder}  value={value} type={type} onChange={onchange} className="w-full outline-none"  />  
+          <span onClick={handledelete} className={`w-[22px] h-[22px] text-[10px] rounded-full text-red-500  flexcenter border-[1px] ${hidden} `}>x</span>
+    </div>
     )
 }
 
