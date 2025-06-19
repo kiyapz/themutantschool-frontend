@@ -1,4 +1,5 @@
 
+import { GloblaxcontexProvider } from "@/context/Globlaxcontex";
 import AuthNavBar from "../-components/AuthNavBar";
 
 
@@ -12,8 +13,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-        <AuthNavBar />
+        <GloblaxcontexProvider>
+         <AuthNavBar />
         {children}
+        </GloblaxcontexProvider>
+       
         </body>
     </html>
   )

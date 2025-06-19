@@ -1,11 +1,93 @@
 'use client';
 
 import PasswordInput from "@/app/(auth)/-components/PasswordInput.jsx";
+import authApiUrl from "@/lib/baseUrl";
 import Image from "next/image";
 import Link from "next/link";
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+
+
 
 export default function Login() {
+
+    
+    const router = useRouter();  
+
     const date = new Date();
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [errormessage, setErrormessage] = useState("");
+    const [Successmessage, setSuccessmessage] = useState("");
+    const [buttonvalue, setButtonvalue] = useState("Enter the Lab");
+
+
+    const handlelogin = async () => {
+        console.log("Clicked login...");
+        setButtonvalue(
+          <span className="flex items-center gap-2">
+            <span className="w-4 h-4 border-2 border-t-transparent border-[var(--secondary)] rounded-full animate-spin inline-block" />
+            Checking...
+          </span>
+        );
+        setErrormessage("");
+      
+        if (!email || !password) {
+          setErrormessage("Please enter your email and password.");
+          setTimeout(() => setErrormessage(""), 1000);
+          setButtonvalue("Enter the Lab");
+          return;
+        }
+      
+        try {
+          const response = await authApiUrl.post("login", {email : email,password : password });
+          console.log("Login response:", response);
+      
+          if (response.status === 200) {
+            console.log(response);
+            
+            console.log("Login successful:", response.data);
+            
+            const storedUser = JSON.parse(localStorage.getItem("user"));
+            const role = storedUser?.role || response.data.role;
+
+            console.log(response.data.message);
+            console.log("Login successful:", response.data);
+            setSuccessmessage(response.data.message);
+            setTimeout(() => setSuccessmessage(""), 1000);
+            setButtonvalue("Enter the Lab");
+            localStorage.setItem("login-accessToken", response.data.accessToken);
+            
+            if (role === "instructor") {
+              router.push("/instructor");
+            } else if (role === "student") {
+              router.push("/student");
+            } else  {
+              router.push("/affiliate");
+            }
+            
+            
+            return true;
+          } else {
+            setErrormessage(response.data.message || "Login failed.");
+            setTimeout(() => setErrormessage(""), 1000);
+            setButtonvalue("Enter the Lab");
+        
+            return false;
+          }
+        } catch (error) {
+          console.error("Login error:", error);
+          setErrormessage(error?.response?.data?.message || "Login failed. Please try again.");
+          setTimeout(() => setErrormessage(""), 1000);
+          setButtonvalue("Enter the Lab");
+        
+          return false;
+        }
+      };
+      
+
+
+
     return (
         <div className="flex py flex-col items-center  justify-between  h-[90vh]    sm:h-screen w-full">
             <div className="mt-mutantlogin grid  grid-cols-1 sm:grid-cols-2 sm:gap-4  w-full max-w-[350px] md:max-w-[900px]   px  xl:max-w-[1200px] h-fit">
@@ -25,12 +107,12 @@ export default function Login() {
 
                             <div className="flex w-full h-full  flex-col justify-around gap-4">
                                 <div className="flex flex-col gap-4">
-                                    <input type="email" placeholder="Email" className="h-[70.31px] font-[400] text-[17px] leading-[57px] rounded-[8px] w-full px p-2 sm:rounded-[10px] sm:h-[75.16px]  !bg-[var(--accent)] " />
+                                    <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Email" className="h-[70.31px] font-[400] text-[17px] leading-[57px] rounded-[8px] w-full px p-2 sm:rounded-[10px] sm:h-[75.16px]  !bg-[var(--accent)] " />
                                     
-                                    <PasswordInput placeholder='Password' />
+                                    <PasswordInput value={password} onchange={(e)=>setPassword(e.target.value)} placeholder='Password' />
                                     <div className="grid grid-cols-[1.5fr_1fr] xl:grid-cols-3 h-[75.16px] gap-3 xl:gap-4 w-full   ">
-                                       <div className="h-[60.5px] w-full xl:col-span-2  flex items-center justify-between px    rounded-[8px] btn cursor-pointer ">
-                                           <p className="font-[600] text-[15px] leading-[57px] text-[var(--background)] ">Enter the Lab</p>
+                                       <div onClick={handlelogin} className="h-[60.5px] w-full xl:col-span-2  flex items-center justify-between px    rounded-[8px] btn cursor-pointer ">
+                                           <p className="font-[600] text-[15px] leading-[57px] text-[var(--background)] ">{buttonvalue}</p>
                                            <Image src={'/images/Arrow.png'} alt="arrow" width={18} height={15} />
                                        </div>
                                        <div className="h-[60.5px] w-full   border-[1px] rounded-[8px] flex items-center justify-between px  border-[var(--primary)]  cursor-pointer" >
@@ -38,6 +120,18 @@ export default function Login() {
                                              <p className="font-[600] xl:text-[20px] text-[15px] leading-[57px] text-[var(--background)] ">Google</p>
                                        </div>
                                   </div>
+                                  { errormessage && (
+                                    <div className="text-red-500 text-center mt-2">
+                                        {errormessage}
+                                    </div>
+                                  )
+                                    }
+                                    { Successmessage && (
+                                    <div className="text-green-500 text-center mt-2">
+                                        {Successmessage}
+                                        </div>
+                                  )
+                                    }
                                  
                                  </div>
 

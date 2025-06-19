@@ -1,27 +1,180 @@
 'use client';
 
-import { useState } from "react";
-import OTPInput from "../Register/_components/Otpverification";
+import { use, useContext, useEffect, useState } from "react";
+
 import Registerherosection from "../Register/_components/Registerherosection";
 import RegisterInput from "../Register/_components/RegisterIput";
 import Registerbtn from "../Register/_components/Registerbtn";
 import { FiArrowLeft } from "react-icons/fi";
 import Image from "next/image"; // Make sure you import Image if you use it
+import { ForgotPasswordContext } from "./_components/ForgotpasswordContex";
+import OTPInput from "./_components/Otp";
+import authApiUrl from "@/lib/baseUrl";
+import { setErrorMap } from "zod";
 
 export default function Forgotpassword() {
+  const  {otpCode, setOtpCode} = useContext(  ForgotPasswordContext)
   const [registerStep, setRegisterStep] = useState(1);
+  const [disablebtn, setDisablebtn] = useState(true);
+  const [email, setEmail] = useState("");
+  const [timeLeft, setTimeLeft] = useState(60);
+  const [canResend, setCanResend] = useState(false);
+  const [password, setPassword] = useState(""); 
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [errormessage, setErrormessage] = useState("");
 
   const handleContinue = () => {
-    if (registerStep < 4) {
+    setRegisterStep((prev) => prev + 1);
+  };
+
+  useEffect(() => {
+
+    if (registerStep === 1) {
+      // Reset the email state when the step changes to 1
+      
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const isValidEmail = email ? emailRegex.test(email.trim()) : false;
+   
+    setDisablebtn(!(isValidEmail));
+
+    return;
+    }
+    
+    if (registerStep === 2) {
+      // Reset the OTP code state when the step changes to 2
+      if (otpCode.trim().length === 6) {
+        setDisablebtn(false);
+      } else {
+        setDisablebtn(true);
+      }
+      
+      return;
+    }
+    
+    
+    
+    
+}, [email,otpCode, registerStep]);
+ 
+useEffect(() => {
+  let interval;
+  if (timeLeft > 0) {
+    interval = setInterval(() => {
+      setTimeLeft(prev => prev - 1);
+    }, 1000);
+  } else {
+    setCanResend(true);
+  }
+  return () => clearInterval(interval);
+}, [timeLeft]);
+
+
+useEffect(() => {
+  console.log("Email, Password, Confirm Password:",  password, confirmPassword);
+
+ 
+  const trimmedPassword = password.trim();
+  const trimmedConfirmPassword = confirmPassword.trim();
+
+  const allFieldsFilled = trimmedPassword && trimmedConfirmPassword;
+  const isPasswordLongEnough = trimmedPassword.length >= 8;
+  const passwordsMatch = trimmedPassword === trimmedConfirmPassword;
+
+  if (trimmedPassword && !isPasswordLongEnough) {
+    setErrormessage("Password must be at least 8 characters long and contain a capital letter and symbol.");
+  } else {
+    setErrormessage(""); 
+  }
+
+  const shouldEnableButton = allFieldsFilled && passwordsMatch && isPasswordLongEnough;
+  setDisablebtn(!shouldEnableButton);
+}, [ password, confirmPassword]);
+
+
+
+
+
+
+
+  const handleResend = async () => {
+
+
+    
+  
+    try {
+      const res = await authApiUrl.post("reset-password/request", { email : email });
+      console.log("Resend response:", res.data);
+
+      if (res.status !== 200) {
+        setErrormessage(res.data.message || "Failed to resend OTP");
+        setTimeout(() => setErrormessage(""), 1000);
+        console.error("Failed to resend OTP:", res.data.message || "Unknown error");  
+        return;
+      }
+
+      setTimeLeft(60);
+      setCanResend(false);
       setRegisterStep((prev) => prev + 1);
+      setOtpCode(""); 
+    } catch (error) {
+      setErrormessage("Failed to resend OTP");
+      setTimeout(() => setErrormessage(""), 1000);
+      console.error("Failed to resend OTP:", error.response?.data?.message || error.message);
+    }
+  
+  
+  };
+
+
+  const handlesendotp = async () => {
+
+    
+  
+    try {
+      const res = await authApiUrl.post("reset-password", {email:email,newPassword:password, otp : otpCode });
+      console.log("Resend response:", res);
+
+      if (res.status !== 200) {
+        setErrormessage(res.data.message || "error check email or email token and verify");
+        setTimeout(() => setErrormessage(""), 1000);
+        console.error( res || "Unknown error");  
+        return;
+      }
+
+      if (res.status === 404) {
+        setErrormessage('user not found')
+        setTimeout(() => {
+          setErrormessage('')
+        }, 1000);
+      }
+
+      setTimeLeft(60);
+      setCanResend(false);
+      setRegisterStep((prev) => prev + 1);
+      setOtpCode(""); 
+    } catch (error) {
+      setErrormessage("email or token error recomfirm");
+      setTimeout(() => setErrormessage(""), 1000);
+      console.error("Failed to send OTP:", error.response?.data?.message || error.message);
+      setErrormessage("Failed verify user ", error.message)
     }
   };
 
-  const handleClick = () => {
-    if (registerStep > 1) {
-      setRegisterStep((prev) => prev - 1);
+  
+
+
+  
+
+  useEffect(() => {
+if (registerStep === 1) {
+      
     }
-  };
+    
+    
+    
+  }, [registerStep]);
+
+
 
   const renderStep = () => {
     switch (registerStep) {
@@ -34,10 +187,15 @@ export default function Forgotpassword() {
               text="Let’s reconnect you to the Lab."
             />
             <div className="flex flex-col gap-5">
-              <RegisterInput textCenter="text-center" placeholder="Enter Your Email Address" />
+              <RegisterInput textCenter="text-center" onchange={(e) => setEmail(e.target.value)} placeholder="Enter Your Email Address" />
+              {errormessage && (
+                <div className="text-red-500 text-[10px] text-center">{errormessage}</div>
+              )}
               <button
-              onClick={handleContinue}
-              className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
+              onClick={handleResend}
+              disabled={disablebtn}
+              
+              className={`w-full  h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px] ${disablebtn ? "bg-[#404040] cursor-not-allowed disabled" : "btn"}  `}
             >
               continue
             </button>
@@ -54,19 +212,29 @@ export default function Forgotpassword() {
               text="We’ve sent a secret code to your email. Prove your authenticity."
             />
             <div className="flex flex-col gap-10">
-              {/* <OTPInput /> */}
+              <OTPInput />
               <button
-              onClick={handleContinue}
-              className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
+              disabled={disablebtn}
+              onClick={()=>setRegisterStep((prev) => prev + 1)}
+              className={`w-full  h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px] ${disablebtn ? "bg-[#404040] cursor-not-allowed disabled" : "btn"}`}
             >
               continue
             </button>
-              <p className="text-center text-[var(--text)] font-[700] text-[14px] leading-[20px]">
-                Didn’t receive email?{" "}
-                <span className="text-[var(--secondary)]">Resend in 00:60</span>
-              </p>
+            {errormessage && (
+                <div className="text-red-500 text-[10px] text-center">{errormessage}</div>
+              )}
+              {/* <div className="text-center flex items-center justify-center gap-1 text-[var(--text)] font-[700] text-[14px] leading-[20px]"> */}
+          
+                <div className="text-center text-[var(--text)] flex items-center justify-center gap-2 font-[700] text-[14px] leading-[20px]"> Didn’t receive email?
+                  <div className="text-sm"> {!canResend ? (<span className="text-[var(--secondary)]">Resend in 00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}</span>
+                   ) : (
+                  <button onClick={handleResend} className="text-[var(--secondary)] underline">  Resend OTP   </button>  )}
+                   </div>
+                
+              </div>              
+              </div>
             </div>
-          </div>
+          // </div>/
         );
 
       case 3:
@@ -78,11 +246,12 @@ export default function Forgotpassword() {
               text="Set your new credentials.."
             />
             <div className="flex flex-col gap-5">
-              <RegisterInput placeholder="New Password" />
-              <RegisterInput placeholder="Confirm New Password" />
+              <RegisterInput onchange={(e)=>setPassword(e.target.value)} placeholder="New Password" />
+              <RegisterInput onchange={(e)=>setConfirmPassword(e.target.value)} placeholder="Confirm New Password" />
+              {errormessage && <p className="text-red-500 text-[10px] ">{errormessage}</p>}
               <button
-              onClick={handleContinue}
-              className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
+              onClick={handlesendotp}
+              className={`w-full  h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px] ${disablebtn ? "bg-[#404040] cursor-not-allowed disabled" : "btn"}`}
             >
               continue
             </button>
@@ -107,11 +276,15 @@ export default function Forgotpassword() {
               subheading="reset your PORTAL ACCESS"
               text="You’re back online. Your mission continues."
             />
+            <Link href='/login'>
             <button
+
               className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
             >
               Go Back to Login
             </button>
+            </Link>
+            
           </div>
         );
     }
@@ -121,7 +294,7 @@ export default function Forgotpassword() {
     <div className="flexcenter relative w-full h-[90vh] px">
       {/* Back Arrow */}
       <div
-        onClick={handleClick}
+         onClick={()=>setRegisterStep((prev) => prev - 1)}
         className={`absolute top-[5%] left-[5%] xl:left-[10%] h-[44px] w-[44px] flex items-center justify-center cursor-pointer
           ${registerStep === 1 || registerStep === 4   ? "opacity-40 cursor-not-allowed hidden" : "opacity-100 hover:opacity-70"}`}
       >

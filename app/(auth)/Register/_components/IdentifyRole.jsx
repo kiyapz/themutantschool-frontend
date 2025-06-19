@@ -11,10 +11,12 @@ import Image from "next/image";
 import Link from "next/link";
 import authApiUrl from "@/lib/baseUrl";
 import SuccessMessage from "../../../../components/SuccessMessage";
-import { set } from "zod";
+import { useRouter } from "next/navigation";
+
 
 export default function IdentifyRole() {
   
+ const router = useRouter(); 
   const [buttonDisabledtext, setButtonDisabled] = useState('continue');
   const [isValidEmail, setIsValidEmail] = useState(true);
 
@@ -108,8 +110,8 @@ export default function IdentifyRole() {
     
     }
      else if (registerStep === 3) {
-      if (!firstName || !lastName || firstName.length < 3 || lastName.length < 3) {
-       
+      if ( firstName.length < 2 || lastName.length < 2) {
+        setdisablebtn(true);
         return;
       }
       setdisablebtn(!(firstName && lastName));
@@ -180,7 +182,7 @@ const handleEmailVerification = async () => {
        localStorage.setItem("refreshToken", refreshToken);
        localStorage.setItem("user", JSON.stringify(user));
        localStorage.setItem("userId", user._id);
-      console.log("User data stored in localStorage:", user);
+      // console.log("User data stored in localStorage:", user);
 
       setTimeout(() => {
         setSuccessmessage('');
@@ -205,6 +207,22 @@ const handleEmailVerification = async () => {
     }
   }
 };
+
+const handleviewdashboard = () => {
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const role = storedUser?.role;
+
+
+  if (role === "instructor") {
+    router.push("/instructor");
+  } else if (role === "student") {
+    router.push("/student");
+  } else  {
+    router.push("/affiliate");
+  }
+
+};  
+
 
 
 useEffect(() => {
@@ -478,7 +496,7 @@ const handleResend = async () => {
               
             />
             <button
-                
+                onClick={handleviewdashboard}
                 className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
               >
                  continue to the lab
