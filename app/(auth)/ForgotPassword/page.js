@@ -11,6 +11,7 @@ import { ForgotPasswordContext } from "./_components/ForgotpasswordContex";
 import OTPInput from "./_components/Otp";
 import authApiUrl from "@/lib/baseUrl";
 import { setErrorMap } from "zod";
+import Link from "next/link";
 
 export default function Forgotpassword() {
   const  {otpCode, setOtpCode} = useContext(  ForgotPasswordContext)
