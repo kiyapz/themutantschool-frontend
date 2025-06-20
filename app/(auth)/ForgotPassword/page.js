@@ -1,16 +1,13 @@
 'use client';
 
-import { use, useContext, useEffect, useState } from "react";
-
+import {useContext, useEffect, useState } from "react";
 import Registerherosection from "../Register/_components/Registerherosection";
 import RegisterInput from "../Register/_components/RegisterIput";
-import Registerbtn from "../Register/_components/Registerbtn";
 import { FiArrowLeft } from "react-icons/fi";
-import Image from "next/image"; // Make sure you import Image if you use it
+import Image from "next/image";
 import { ForgotPasswordContext } from "./_components/ForgotpasswordContex";
 import OTPInput from "./_components/Otp";
 import authApiUrl from "@/lib/baseUrl";
-import { setErrorMap } from "zod";
 import Link from "next/link";
 
 export default function Forgotpassword() {
@@ -24,15 +21,11 @@ export default function Forgotpassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errormessage, setErrormessage] = useState("");
 
-  const handleContinue = () => {
-    setRegisterStep((prev) => prev + 1);
-  };
+ 
 
   useEffect(() => {
 
     if (registerStep === 1) {
-      // Reset the email state when the step changes to 1
-      
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidEmail = email ? emailRegex.test(email.trim()) : false;
    
@@ -42,7 +35,7 @@ export default function Forgotpassword() {
     }
     
     if (registerStep === 2) {
-      // Reset the OTP code state when the step changes to 2
+      setDisablebtn(true)
       if (otpCode.trim().length === 6) {
         setDisablebtn(false);
       } else {
@@ -51,9 +44,7 @@ export default function Forgotpassword() {
       
       return;
     }
-    
-    
-    
+      
     
 }, [email,otpCode, registerStep]);
  
@@ -99,10 +90,8 @@ useEffect(() => {
 
   const handleResend = async () => {
 
-
-    
-  
     try {
+      setDisablebtn(true)
       const res = await authApiUrl.post("reset-password/request", { email : email });
       console.log("Resend response:", res.data);
 
@@ -115,7 +104,9 @@ useEffect(() => {
 
       setTimeLeft(60);
       setCanResend(false);
-      setRegisterStep((prev) => prev + 1);
+      if (registerStep === 1) {
+        setRegisterStep(2); 
+      }
       setOtpCode(""); 
     } catch (error) {
       setErrormessage("Failed to resend OTP");
@@ -123,14 +114,10 @@ useEffect(() => {
       console.error("Failed to resend OTP:", error.response?.data?.message || error.message);
     }
   
-  
   };
 
 
   const handlesendotp = async () => {
-
-    
-  
     try {
       const res = await authApiUrl.post("reset-password", {email:email,newPassword:password, otp : otpCode });
       console.log("Resend response:", res);
@@ -161,21 +148,6 @@ useEffect(() => {
     }
   };
 
-  
-
-
-  
-
-  useEffect(() => {
-if (registerStep === 1) {
-      
-    }
-    
-    
-    
-  }, [registerStep]);
-
-
 
   const renderStep = () => {
     switch (registerStep) {
@@ -196,7 +168,7 @@ if (registerStep === 1) {
               onClick={handleResend}
               disabled={disablebtn}
               
-              className={`w-full  h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px] ${disablebtn ? "bg-[#404040] cursor-not-allowed disabled" : "btn"}  `}
+              className={`w-full  h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px] ${registerStep == 2 && "disabled cursor-not-allowed"}     ${disablebtn ? "bg-[#404040] cursor-not-allowed disabled" : "btn"}  `}
             >
               continue
             </button>
@@ -262,7 +234,7 @@ if (registerStep === 1) {
 
       default:
         return (
-          <div className="flexcenter flex-col gap-5 max-w-[330px] sm:max-w-[561px]">
+          <div className="flexcenter flex-col gap-5 max-w-[330px]  sm:max-w-[561px]">
             <div className="h-[130px] border w-[130px] rounded-full bg-green-300 flexcenter">
               <Image
                 src="/images/markgood.png"
@@ -277,7 +249,7 @@ if (registerStep === 1) {
               subheading="reset your PORTAL ACCESS"
               text="You’re back online. Your mission continues."
             />
-            <Link href='/login'>
+            <Link href='/Login'>
             <button
 
               className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
