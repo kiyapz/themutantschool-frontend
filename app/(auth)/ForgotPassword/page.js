@@ -9,6 +9,7 @@ import { ForgotPasswordContext } from "./_components/ForgotpasswordContex";
 import OTPInput from "./_components/Otp";
 import authApiUrl from "@/lib/baseUrl";
 import Link from "next/link";
+import PasswordInput from "../-components/PasswordInput";
 
 export default function Forgotpassword() {
   const  {otpCode, setOtpCode} = useContext(  ForgotPasswordContext)
@@ -119,34 +120,34 @@ useEffect(() => {
 
   const handlesendotp = async () => {
     try {
-      const res = await authApiUrl.post("reset-password", {email:email,newPassword:password, otp : otpCode });
-      console.log("Resend response:", res);
-
-      if (res.status !== 200) {
-        setErrormessage(res.data.message || "error check email or email token and verify");
-        setTimeout(() => setErrormessage(""), 1000);
-        console.error( res || "Unknown error");  
-        return;
-      }
-
-      if (res.status === 404) {
-        setErrormessage('user not found')
-        setTimeout(() => {
-          setErrormessage('')
-        }, 1000);
-      }
-
+      const res = await authApiUrl.post("reset-password", {
+        email,
+        newPassword: password,
+        otp: otpCode,
+      });
+  
+      // Success
+      console.log("Reset password response:", res.data);
+  
       setTimeLeft(60);
       setCanResend(false);
       setRegisterStep((prev) => prev + 1);
-      setOtpCode(""); 
+      setOtpCode("");
     } catch (error) {
-      setErrormessage("email or token error recomfirm");
-      setTimeout(() => setErrormessage(""), 1000);
-      console.error("Failed to send OTP:", error.response?.data?.message || error.message);
-      setErrormessage("Failed verify user ", error.message)
+      const status = error?.response?.status;
+      const message = error?.response?.data?.message || "Something went wrong";
+  
+      if (status === 404) {
+        setErrormessage(message); // "User not found..."
+      } else {
+        setErrormessage(message);
+      }
+  
+      console.error("Error from reset password:", message);
+      setTimeout(() => setErrormessage(""), 2000);
     }
   };
+  
 
 
   const renderStep = () => {
@@ -160,10 +161,8 @@ useEffect(() => {
               text="Let’s reconnect you to the Lab."
             />
             <div className="flex flex-col gap-5">
-              <RegisterInput textCenter="text-center" onchange={(e) => setEmail(e.target.value)} placeholder="Enter Your Email Address" />
-              {errormessage && (
-                <div className="text-red-500 text-[10px] text-center">{errormessage}</div>
-              )}
+              <RegisterInput handledelete={()=>setEmail('')} value={email} textCenter="text-center" onchange={(e) => setEmail(e.target.value)} placeholder="Enter Your Email Address" />
+              
               <button
               onClick={handleResend}
               disabled={disablebtn}
@@ -219,8 +218,9 @@ useEffect(() => {
               text="Set your new credentials.."
             />
             <div className="flex flex-col gap-5">
-              <RegisterInput onchange={(e)=>setPassword(e.target.value)} placeholder="New Password" />
-              <RegisterInput onchange={(e)=>setConfirmPassword(e.target.value)} placeholder="Confirm New Password" />
+
+              <PasswordInput onchange={(e)=>setPassword(e.target.value)} value={password} type='password'  placeholder='New password'  />
+              <PasswordInput onchange={(e)=>setConfirmPassword(e.target.value)} value={confirmPassword} type='password'  placeholder='Comfirm New password'  />
               {errormessage && <p className="text-red-500 text-[10px] ">{errormessage}</p>}
               <button
               onClick={handlesendotp}
@@ -234,7 +234,7 @@ useEffect(() => {
 
       default:
         return (
-          <div className="flexcenter flex-col gap-5 max-w-[330px]  sm:max-w-[561px]">
+          <div className="flexcenter flex-col gap-5 max-w-[330px]   sm:max-w-[561px]">
             <div className="h-[130px] border w-[130px] rounded-full bg-green-300 flexcenter">
               <Image
                 src="/images/markgood.png"
@@ -252,7 +252,7 @@ useEffect(() => {
             <Link href='/Login'>
             <button
 
-              className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
+              className="w-full btn h-[57px] max-w-[330px] sm:max-w-[561px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
             >
               Go Back to Login
             </button>

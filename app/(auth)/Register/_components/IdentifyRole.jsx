@@ -19,19 +19,12 @@ export default function IdentifyRole() {
  const router = useRouter(); 
   const [buttonDisabledtext, setButtonDisabled] = useState('continue');
   const [isValidEmail, setIsValidEmail] = useState(true);
-
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
 
-
-
-
-  
-
   const {otpCode,Successmessage, setSuccessmessage,verifyOtpWithBackend, stack,setStack,password, setPassword,confirmpassword, setconfirmpassword,isCompleteOtp,registerStep, setRegisterStep ,selectedRole, setSelectedRole,errormessage,setErrormessage,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,setdisablebtn,handleContinue} = useContext(Globlaxcontex);
 
-  // codeName
   
   useEffect(() => {
     setSuccessmessage(
@@ -45,9 +38,10 @@ export default function IdentifyRole() {
     setErrormessage('');
     
 
-    if (username.length < 5) {
-      setErrormessage("Username must be at least 5 characters long.");
+    if (username.length < 2) {
+      setErrormessage("Username must be at least 2 characters long.");
       setSuccessmessage('');
+      setdisablebtn(true)
       return;
     }
     
@@ -76,6 +70,7 @@ export default function IdentifyRole() {
         }
     
       } catch (err) {
+        setdisablebtn(true)
         setErrormessage('');
         setdisablebtn(true)
         console.log("Error fetching data:", err);
@@ -101,9 +96,6 @@ export default function IdentifyRole() {
   }, [username]);
   
   
-
-
-
   useEffect(() => {
     if (registerStep === 1) {
       setdisablebtn(!selectedRole);
@@ -254,9 +246,6 @@ const handleResend = async () => {
 
 
 
-
-  // const handleContinue = () => setRegisterStep((prev) => prev + 1);
-
   const renderStep = () => {
     switch (registerStep) {
       case 1:
@@ -386,10 +375,6 @@ const handleResend = async () => {
               
             <div className="flex flex-col px  gap-5">
               <RegisterInput onchange={(e)=>setCodeName(e.target.value)} value={username} textCenter={'text-start'} placeholder="ENTER YOUR USERNAME" handledelete={()=>setCodeName('')} />
-               
-              {errormessage && (
-                <p className="text-[#FF5D5D] font-[300] leading-[57px] text-[16px] text-center">{errormessage}</p>
-              )}
               <SuccessMessage message={Successmessage} />
               <Registerbtn text='Continue' onClick={handleContinue} />
 
@@ -407,8 +392,8 @@ const handleResend = async () => {
               text="We need your real-world name."
             />
             <div className="flex flex-col gap-5">
-              <RegisterInput hidden='hidden' onchange={(e)=>setFirstName(e.target.value)} value={firstName} placeholder="First Name" />
-              <RegisterInput hidden='hidden' onchange={(e)=>setLastName(e.target.value)} value={lastName} placeholder="Last Name" />
+              <RegisterInput handledelete={()=>setFirstName("")} hidden='hidden' onchange={(e)=>setFirstName(e.target.value)} value={firstName} placeholder="First Name" />
+              <RegisterInput handledelete={()=>setLastName("")} hidden='hidden' onchange={(e)=>setLastName(e.target.value)} value={lastName} placeholder="Last Name" />
               <Registerbtn text='Continue' onClick={handleContinue} />
             </div>
           
@@ -425,7 +410,7 @@ const handleResend = async () => {
             />
             <div className="flex flex-col gap-5">
               
-              <RegisterInput hidden={'hidden'} onchange={(e)=>setEmail(e.target.value)} value={email} type='email'  placeholder="Email Address" />
+              <RegisterInput handledelete={()=>setEmail("")} onchange={(e)=>setEmail(e.target.value)} value={email} type='email'  placeholder="Email Address" />
               <PasswordInput onchange={(e)=>setPassword(e.target.value)} value={password} type='password'  placeholder=' password'  />
                {registerStep === 4 && password && password.length < 8 && (
                    <p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center"> Password must be at least 8 characters  </p>)}

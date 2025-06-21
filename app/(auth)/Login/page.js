@@ -107,7 +107,7 @@ export default function Login() {
 
                             <div className="flex w-full h-full  flex-col justify-around gap-4">
                                 <div className="flex flex-col gap-4">
-                                    <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Email" className="h-[70.31px] font-[400] text-[17px] leading-[57px] rounded-[8px] w-full px p-2 sm:rounded-[10px] sm:h-[75.16px]  !bg-[var(--accent)] " />
+                                    <input type="email" value={email} onChange={(e)=>setEmail(e.target.value)} placeholder="Email" className="h-[70.31px] outline-none font-[400] text-[17px] leading-[57px] rounded-[8px] w-full px p-2 sm:rounded-[10px] sm:h-[75.16px]  !bg-[var(--accent)] " />
                                     
                                     <PasswordInput value={password} onchange={(e)=>setPassword(e.target.value)} placeholder='Password' />
                                     <div className="grid grid-cols-[1.5fr_1fr] xl:grid-cols-3 h-[75.16px] gap-3 xl:gap-4 w-full   ">
