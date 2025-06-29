@@ -9,7 +9,7 @@ export default function PasswordInput({value ,onchange,placeholder='passwprd' })
   const togglePassword = () => setShowPassword((prev) => !prev);
 
   return (
-    <div className="relative bg-[var(--accent)]   w-full ">
+    <div className="relative bg-[var(--accent)] rounded-[10px]  w-full ">
       <input
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}

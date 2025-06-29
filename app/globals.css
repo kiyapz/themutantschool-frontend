@@ -6,6 +6,7 @@
 @import "tailwindcss";
 
 :root {
+  --mutant-color:#7343B3;
   --background: #ffffff;
   --foreground: #010101;
   --blackcolor:#000000;
@@ -26,9 +27,24 @@
   --button-border-color: #525252;
   --button-hover-color: #4A4A4A;
   --link-color:#868686;
-
-
+  --btn-bg-color:#0C0C0C;
+--otp-color:#101010;
+--side-textcolor:#898989; 
+--sidebar-linkcolor:#AEAEAE;
+--sidebar-hovercolor:#BDE75D;
 }
+
+/* styles/globals.css */
+.scrollbar-hide {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE and Edge */
+
+  /* Webkit-based browsers */
+}
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px var(--accent) inset !important;
@@ -82,6 +98,11 @@ body {
 .btn {
   background: linear-gradient(to right, var(--primary),var(--secondary)); 
 
+}
+
+
+.btn2 {
+  background: linear-gradient(to right, #D1B959,var(--secondary)); 
 }
 
 .btn:hover {

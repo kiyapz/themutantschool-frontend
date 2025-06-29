@@ -1,8 +1,8 @@
 'use client'
 import { createContext, useState } from "react";
-import Errormessage from "../components/Errormessage";
+// import Errormessage from "../components/Errormessage";
 import authApiUrl from "@/lib/baseUrl";
-import { set } from "zod";
+// import { set } from "zod";
 
 export const Globlaxcontex = createContext()
 export const GloblaxcontexProvider = ({ children }) => {
@@ -20,6 +20,7 @@ const [disablebtn,setdisablebtn] = useState(true)
 const [isCompleteOtp, setIsCompleteOtp] = useState(false);
 const [otpCode, setOtpCode] = useState("");
 const [Successmessage, setSuccessmessage] = useState("");
+const [successValue,setsuccessvalue] = useState(false)
 // const [password, setPassword] = useState("");
 
 const [stack,setStack] = useState('Individual Account');
@@ -75,6 +76,7 @@ console.log(selectedRole, "selectedRole");
 
     setdisablebtn(true)
     setRegisterStep((prev) => prev + 1);
+    setsuccessvalue(false)
   };
 
 
@@ -138,7 +140,7 @@ console.log(selectedRole, "selectedRole");
 
   return (
     <Globlaxcontex.Provider value={{Successmessage, setSuccessmessage,registerStep, setRegisterStep,handleContinue,selectedRole, setSelectedRole,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,password, setPassword,handlesubmitform,disablebtn,setdisablebtn,confirmpassword, 
-    setconfirmpassword,isCompleteOtp, setIsCompleteOtp,stack,setStack,errormessage,setErrormessage,password, setPassword,confirmpassword, setconfirmpassword,otpCode, setOtpCode,verifyOtpWithBackend}}>
+    setconfirmpassword,isCompleteOtp, setIsCompleteOtp,successValue,setsuccessvalue,stack,setStack,errormessage,setErrormessage,password, setPassword,confirmpassword, setconfirmpassword,otpCode, setOtpCode,verifyOtpWithBackend}}>
       {children}
     </Globlaxcontex.Provider>
   );

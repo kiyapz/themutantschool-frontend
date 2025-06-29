@@ -10,9 +10,11 @@ import OTPInput from "./_components/Otp";
 import authApiUrl from "@/lib/baseUrl";
 import Link from "next/link";
 import PasswordInput from "../-components/PasswordInput";
+import { Globlaxcontex } from "@/context/Globlaxcontex";
 
 export default function Forgotpassword() {
-  const  {otpCode, setOtpCode} = useContext(  ForgotPasswordContext)
+  const {setsuccessvalue}= useContext(Globlaxcontex)
+  const  {otpCode, setOtpCode} = useContext( ForgotPasswordContext)
   const [registerStep, setRegisterStep] = useState(1);
   const [disablebtn, setDisablebtn] = useState(true);
   const [email, setEmail] = useState("");
@@ -22,16 +24,20 @@ export default function Forgotpassword() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errormessage, setErrormessage] = useState("");
 
+
+ 
  
 
   useEffect(() => {
+    setsuccessvalue(false)
 
     if (registerStep === 1) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidEmail = email ? emailRegex.test(email.trim()) : false;
    
+    setsuccessvalue(isValidEmail)
     setDisablebtn(!(isValidEmail));
-
+    
     return;
     }
     
@@ -126,7 +132,7 @@ useEffect(() => {
         otp: otpCode,
       });
   
-      // Success
+      
       console.log("Reset password response:", res.data);
   
       setTimeLeft(60);
@@ -234,7 +240,7 @@ useEffect(() => {
 
       default:
         return (
-          <div className="flexcenter flex-col gap-5 max-w-[330px]   sm:max-w-[561px]">
+          <div className="flexcenter w-full flex-col gap-5 max-w-[330px]   sm:max-w-[561px]">
             <div className="h-[130px] border w-[130px] rounded-full bg-green-300 flexcenter">
               <Image
                 src="/images/markgood.png"

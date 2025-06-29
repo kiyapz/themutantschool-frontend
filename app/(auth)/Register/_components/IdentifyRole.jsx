@@ -23,10 +23,11 @@ export default function IdentifyRole() {
   const [canResend, setCanResend] = useState(false);
 
 
-  const {otpCode,Successmessage, setSuccessmessage,verifyOtpWithBackend, stack,setStack,password, setPassword,confirmpassword, setconfirmpassword,isCompleteOtp,registerStep, setRegisterStep ,selectedRole, setSelectedRole,errormessage,setErrormessage,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,setdisablebtn,handleContinue} = useContext(Globlaxcontex);
+  const {otpCode,successValue,setsuccessvalue,Successmessage, setSuccessmessage,verifyOtpWithBackend, stack,setStack,password, setPassword,confirmpassword, setconfirmpassword,isCompleteOtp,registerStep, setRegisterStep ,selectedRole, setSelectedRole,errormessage,setErrormessage,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,setdisablebtn,handleContinue} = useContext(Globlaxcontex);
 
   
   useEffect(() => {
+    setsuccessvalue(false)
     setSuccessmessage(
       <span className="flex items-center gap-2">
         <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
@@ -56,11 +57,13 @@ export default function IdentifyRole() {
         if (res.status === 201 || res.status === 200) {
           setErrormessage('');
           setSuccessmessage(responseData.message || "Username is available.");
+          setsuccessvalue(true)
           setTimeout(() => {
             setSuccessmessage('');
           }, 1000);
           setdisablebtn(!username);
         } else {
+          setsuccessvalue(false)
           setSuccessmessage('');
           setdisablebtn(true);
           setErrormessage(responseData.message || "Something went wrong.");
@@ -70,6 +73,7 @@ export default function IdentifyRole() {
         }
     
       } catch (err) {
+        setsuccessvalue(false)
         setdisablebtn(true)
         setErrormessage('');
         setdisablebtn(true)
@@ -104,9 +108,13 @@ export default function IdentifyRole() {
      else if (registerStep === 3) {
       if ( firstName.length < 2 || lastName.length < 2) {
         setdisablebtn(true);
+        setsuccessvalue(false)
         return;
       }
+      
+
       setdisablebtn(!(firstName && lastName));
+      setsuccessvalue(true)
     } 
     else if (registerStep === 5) {
       
@@ -121,6 +129,7 @@ export default function IdentifyRole() {
     // Email validation regex
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidEmail = email ? emailRegex.test(email.trim()) : false;
+    setsuccessvalue(isValidEmail)
     
     // Password length validation (minimum 8 characters)
     const isValidPasswordLength = password && password.trim().length >= 8;
@@ -255,7 +264,7 @@ const handleResend = async () => {
       <div className="w-full max-w-[336.13px] hide-scrollbar px sm:max-w-[607.96px] mx-auto px-4 sm:px-0  flex flex-col  h-fit md:h-[70vh] xl:min-h-[90vh] gap-8 items-center justify-between ">
         
         
-        <div className=" hidden sm:block w-full">
+        {/* <div className=" hidden sm:block w-full">
         <div className=" h-[60.5px] sm:h-[72.56px] w-full max-w-[607.96px] grid grid-cols-2 bg-[#1D1D1D] rounded-[8px]">
           <button 
             onClick={() => setStack('Individual Account')} 
@@ -270,7 +279,7 @@ const handleResend = async () => {
             Academy
           </button>
         </div>
-        </div>
+        </div> */}
 
         
         <div className="flex flex-col gap-8 w-full max-w-[607.96px]">

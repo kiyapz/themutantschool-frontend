@@ -16,7 +16,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         setUser(parsedUser);
 
         if (!allowedRoles.includes(parsedUser.role)) {
-          router.push("/unauthorized"); 
+          router.push("/Login"); 
         }
       } catch (error) {
         console.error("Failed to parse user:", error);

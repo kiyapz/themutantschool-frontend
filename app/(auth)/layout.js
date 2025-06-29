@@ -1,4 +1,5 @@
 
+import { GloblaxcontexProvider } from "@/context/Globlaxcontex";
 import "../globals.css";
 
 
@@ -14,8 +15,9 @@ export default function RootLayout({ children }) {
     
         {/* <main> */}
           
-          
+           <GloblaxcontexProvider>
            {children}
+           </GloblaxcontexProvider>
         {/* </main> */}
        
       </body>

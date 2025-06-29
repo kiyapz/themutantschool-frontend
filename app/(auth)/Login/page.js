@@ -90,11 +90,11 @@ export default function Login() {
 
     return (
         <div className="flex py flex-col items-center  justify-between  h-[90vh]    sm:h-screen w-full">
-            <div className="mt-mutantlogin grid  grid-cols-1 sm:grid-cols-2 sm:gap-4  w-full max-w-[350px] md:max-w-[900px]   px  xl:max-w-[1200px] h-fit">
-                 <div style={{ backgroundImage: `url('/images/loginimg.png')` }} className="hidden sm:block bg-cover h-full   rounded-[30px] bg-center"> </div>
+            <div className="mt-mutantlogin grid  grid-cols-1 sm:grid-cols-2 sm:gap-4  w-full max-w-[350px] md:max-w-[90%]   px  xl:max-w-[1200px] h-fit">
+                 <div style={{ backgroundImage: `url('/images/loginimg.png')` }} className="hidden sm:block bg-cover h-full   rounded-r-[30px] bg-center"> </div>
 
                  <div className=" w-full flex  justify-center h-fit">
-                    <div className="  py mt-mutantlogin   flex flex-col gap-8 w-full h-full  ">
+                    <div className="  py mt-mutantlogin max-w-[500px]   flex flex-col gap-8 w-full h-full  ">
                           <h2 className="hidden sm:block  text-center Xirod text-[26px] leading-[41px] text-[var(--secondary)]  ">MUTANT</h2>
 
                           <div className="flex flex-col gap-7 h-full">
@@ -136,6 +136,7 @@ export default function Login() {
                                  </div>
 
                                     <Link href='/ForgotPassword'><p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[40px] ">Forgot Password?</p></Link>
+                                    <Link href='/academy/Register'><p className="text-[16px] text-center cursor-pointer  hover:text-[var(--text)] leading-[40px] text-white ">Register as Institution</p></Link>
 
                                  <div>
                                     
