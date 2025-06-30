@@ -4,8 +4,10 @@ import { useContext } from "react";
 import { FiEdit } from "react-icons/fi";
 import { InstructorContext } from "../_components/context/InstructorContex";
 
-export default function profile() {
+export default function Profile() {
+    
     const {profiledisplay,setprofiledisplay} = useContext(InstructorContext)
+
     return (
         <div className="h-fit w-full max-w-[1200px] flex flex-col gap-[10px] ">
            <p className="hidden sm:block text-[var(--sidebar-hovercolor)] font-[600] text-[42px] leading-[40px] ">My Profile</p>
