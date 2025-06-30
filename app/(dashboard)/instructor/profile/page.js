@@ -14,7 +14,7 @@ export default function Profile() {
            <p className="hidden sm:block text-[var(--small-textcolor)] text-[13px] font-[600] leading-[40px] ">You can update your personal details here</p>
 
            <div  style={{   background: "linear-gradient(to right, #592BC3, #952CC5)",  }} className="h-[218.12px] w-full rounded-b-[40px]   sm:hidden"></div>
-           <div style={{marginBottom:'5px',margin:'auto'}}   className="h-fit w-[95%]    relative z-20 top-[-80px] sm:top-[10px] ">
+           <div style={{marginBottom:'5px',margin:'auto'}}   className="h-fit w-[95%]    relative z-10 top-[-80px] sm:top-[10px] ">
                 <div className="grid w-full gap-3 xl:grid-cols-4">
 
                     {/* Side Bar */}
