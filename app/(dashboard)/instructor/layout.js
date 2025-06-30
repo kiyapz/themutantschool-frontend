@@ -1,4 +1,5 @@
 import ProtectedRoute from "../_components/ProtectedRoutes";
+import InstructorContextProvider from "./_components/context/InstructorContex";
 import NavBar from "./_components/NavBar";
 import Sidebar from "./_components/Sidebar";
 
@@ -10,6 +11,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ProtectedRoute allowedRoles={["instructor"]}>
+      <InstructorContextProvider>
       <div className="flex min-h-screen w-full">
         {/* Sidebar  */}
         <div className="hidden sm:block">
@@ -28,6 +30,7 @@ export default function RootLayout({ children }) {
           </main>
         </div>
       </div>
+      </InstructorContextProvider>
     </ProtectedRoute>
   );
 }

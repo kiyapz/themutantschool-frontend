@@ -32,7 +32,13 @@
 --side-textcolor:#898989; 
 --sidebar-linkcolor:#AEAEAE;
 --sidebar-hovercolor:#BDE75D;
+--small-textcolor:#616161;
+--greencolor:#247E4E;
+--purpel-btncolor:#604196;
+--coco-color:#C0C0C0;
+--black-background:#0F0F0F;
 }
+
 
 /* styles/globals.css */
 .scrollbar-hide {

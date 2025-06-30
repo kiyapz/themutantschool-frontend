@@ -4,11 +4,6 @@ import { FaArrowUp } from "react-icons/fa";
 import { FaStar } from 'react-icons/fa';
 
 import SingleValueChart from "./_components/InstructorgraphSingleValueChart";
-// import { useEffect, useState } from "react";
-// import { progress } from "framer-motion";
-
-
-
 
 const data = [{
   id:1,
@@ -138,13 +133,6 @@ const studetcourse =[{
 
 export default function instuctordashboard() {
 
-  // const [rating, setRating] = useState(5);
-  // const [hover, setHover] = useState(null);
-
-
- 
-
-  
 
 
   return (
@@ -205,7 +193,7 @@ export default function instuctordashboard() {
 
       </div>
 
-
+         <div className="border-t-[1px] border-[#4B4B4B]"></div>
 
 
        <div className="h-fit gap-5   w-full  grid xl:grid-cols-5  ">

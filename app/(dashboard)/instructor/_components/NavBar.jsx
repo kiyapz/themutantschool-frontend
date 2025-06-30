@@ -1,10 +1,14 @@
 'use client'
 
 import Image from "next/image";
-import { useState } from "react";
+import {  useState } from "react";
 import Sidebar from "./Sidebar";
+import Link from "next/link";
+import InstructorDropdown from "./InstructorDropdown";
+
 
 export default function NavBar({ onMenuClick }) {
+  
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const handleMenuClick = () => {
@@ -38,28 +42,7 @@ export default function NavBar({ onMenuClick }) {
             />
           </div>
 
-          <div className=" px flex items-center xl:justify-between gap-2 py  w-[253.29px] rounded-[12px] bg-[#1A1A1A]">
-            <div className="w-[47px] h-[47px] bg-pink-200 rounded-full"></div>
-
-            <div className="flex items-center xl:justify-between gap-2 xl:gap-5">
-              <div>
-                <p className="text-[#308672] font-medium text-[13px] leading-[20px]">
-                  Instructor
-                </p>
-                <p className="text-[#D2D2D2] font-bold leading-[20px]">
-                  Etieno Ekanem
-                </p>
-              </div>
-              <div>
-                <Image 
-                  src="/images/sidebaricons/Frame (4).png" 
-                  alt="dropdown"
-                  width={16} 
-                  height={16} 
-                />
-              </div>
-            </div>
-          </div>
+         <InstructorDropdown />
         </div>
       </div>
 
@@ -83,7 +66,7 @@ export default function NavBar({ onMenuClick }) {
         
         <div className="flex items-center">
           <div className="h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
-            <div className="w-[35px] h-[35px] bg-pink-200 rounded-full"></div>
+           <Link href='/instructor/profile'> <div className="w-[35px] h-[35px] bg-pink-200 rounded-full"></div> </Link>
           </div>
         </div>
       </div>

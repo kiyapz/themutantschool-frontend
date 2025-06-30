@@ -1,43 +1,55 @@
 import Image from "next/image";
 
-export default function Sidebarbtn({ image, text, hoverImage }) {
+export default function Sidebarbtn({ image, text, hoverImage, active = false, onClick }) {
   return (
-    <button className="flex text-[var(--sidebar-linkcolor)] hover:text-[var(--sidebar-hovercolor)] transition duration-200 items-center gap-5 cursor-pointer group">
+    <button
+      onClick={onClick}
+      className={`flex items-center gap-5 cursor-pointer group transition duration-200 ${
+        active ? "text-[var(--sidebar-hovercolor)]" : "text-[var(--sidebar-linkcolor)] hover:text-[var(--sidebar-hovercolor)]"
+      }`}
+    >
       {image && (
-        <span className="transition duration-200 relative w-[8.9px] h-[8.9px]">
+        <span className="relative w-[8.9px] h-[8.9px]">
           {/* Default image */}
-          <Image 
-            src={image} 
-            alt="icon" 
-            width={8.9} 
-            height={8.9} 
-            className="group-hover:opacity-0 transition duration-200 absolute"
+          <Image
+            src={image}
+            alt="icon"
+            width={8.9}
+            height={8.9}
+            className={`absolute transition duration-200 ${
+              hoverImage ? "group-hover:opacity-0" : ""
+            } ${active ? "opacity-0" : "opacity-100"}`}
           />
+
           {/* Hover image (if provided) */}
           {hoverImage && (
-            <Image 
-              src={hoverImage} 
-              alt="icon" 
-              width={8.9} 
-              height={8.9} 
-              className="opacity-0 group-hover:opacity-100 transition duration-200 absolute"
+            <Image
+              src={hoverImage}
+              alt="icon"
+              width={8.9}
+              height={8.9}
+              className={`absolute transition duration-200 ${
+                active ? "opacity-100" : "opacity-0 group-hover:opacity-100"
+              }`}
             />
           )}
-          {/* Fallback: Color filter if no hover image provided */}
+
+          {/* Fallback color filter */}
           {!hoverImage && (
-            <Image 
-              src={image} 
-              alt="icon" 
-              width={8.9} 
-              height={8.9} 
-              className="opacity-0 group-hover:opacity-100 brightness-75 sepia saturate-200 hue-rotate-180 transition duration-200 absolute"
+            <Image
+              src={image}
+              alt="icon"
+              width={8.9}
+              height={8.9}
+              className={`absolute transition duration-200 ${
+                active ? "opacity-100 brightness-150 sepia saturate-200 hue-rotate-10" : "opacity-0 group-hover:opacity-100"
+              }`}
             />
           )}
         </span>
       )}
-      <span className="text-[18px]  leading-[40px]">
-        {text}
-      </span>
+
+      <span className="text-[18px] leading-[40px]">{text}</span>
     </button>
   );
 }
