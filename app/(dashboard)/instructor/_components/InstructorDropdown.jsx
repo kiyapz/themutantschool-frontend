@@ -1,15 +1,16 @@
 'use client';
 
-import { useState, useRef, useEffect, useContext } from "react";
+import { useState, useRef, useEffect} from "react";
 import Image from "next/image";
-import Link from "next/link";
-import { InstructorContext } from "./context/InstructorContex";
+
+import ProfiledropDown from "../profile/_components/ProfiledropDown";
 
 export default function InstructorDropdown() {
   const [open, setOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  
   const dropdownRef = useRef();
-  const { profiledisplay, setprofiledisplay } = useContext(InstructorContext);
+  
 
   useEffect(() => {
     const handler = (e) => {
@@ -55,98 +56,9 @@ export default function InstructorDropdown() {
 
       {/* Dropdown Menu */}
       {open && (
-        <div
-          style={{ padding: '15px' }}
-          className="absolute top-full mt-2 right-0 bg-[#2B2B2B] flex flex-col gap-3 w-full rounded-md shadow-lg z-50 overflow-hidden py-2"
-        >
-          <div className="flex flex-col items-center gap-1 p-2">
-            <div className="w-[82px] h-[82px] rounded-full bg-pink-200 mb-2"></div>
-            <p className="font-[700] leading-[40px] text-[13px]">@Etienoekanem</p>
-          </div>
-
-          {/* Divider */}
-          <div className="w-full h-[1px] bg-[#404040]" />
-
-          <ul className="text-sm flex flex-col gap-3 text-white">
-
-            {/* My Profile */}
-            <li
-              onClick={() => {
-                setOpen(false);
-                setprofiledisplay("Personal Information");
-              }}
-            >
-              <Link
-                href="/instructor/profile"
-                className="block px-4 py-2 text-[#9F9F9F] hover:bg-[#3A3A3A]"
-              >
-                My Profile
-              </Link>
-            </li>
-
-            {/* Account Settings with nested menu */}
-            <li
-              onClick={() => {
-                setprofiledisplay("Account Settings");
-                setSettingsOpen(!settingsOpen);
-              }}
-              className="px-4 py-2 text-[#9F9F9F] hover:bg-[#3A3A3A] cursor-pointer flex justify-between items-center"
-            >
-              Account Settings
-              <span
-                className={`transform transition-transform duration-200 ${settingsOpen ? "rotate-90" : ""}`}
-              >
-                &gt;
-              </span>
-            </li>
-
-            {/* Nested Settings */}
-            {settingsOpen && (
-              <ul className="ml-6 text-sm text-[#888888]">
-                <li
-                  onClick={() => {
-                    setOpen(false);
-                    setSettingsOpen(false);
-                    setprofiledisplay("Notifications");
-                  }}
-                >
-                  <Link
-                    href="/instructor/profile/notification"
-                    className="block px-4 py-2 hover:bg-[#444]"
-                  >
-                    Notifications
-                  </Link>
-                </li>
-
-                <li
-                  onClick={() => {
-                    setOpen(false);
-                    setSettingsOpen(false);
-                    setprofiledisplay("Security Settings");
-                  }}
-                >
-                  <Link
-                    href="/instructor/profile/profilesetting"
-                    className="block px-4 py-2 hover:bg-[#444]"
-                  >
-                    Security Settings
-                  </Link>
-                </li>
-              </ul>
-            )}
-
-            {/* Divider */}
-            <div className="w-full h-[1px] bg-[#404040]" />
-
-            {/* Sign Out */}
-            <li
-              onClick={() => setOpen(false)}
-              className="px-4 py-2 text-[#9F9F9F] hover:bg-[#3A3A3A] cursor-pointer"
-            >
-              Sign Out
-            </li>
-          </ul>
-        </div>
+       <div>
+        <ProfiledropDown />
+       </div>
       )}
     </div>
   );

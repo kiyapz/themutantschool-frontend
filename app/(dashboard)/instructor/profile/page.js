@@ -1,13 +1,17 @@
 'use client'
 import Link from "next/link";
-import { useContext } from "react";
+import { useContext, useState } from "react";
 import { FiEdit } from "react-icons/fi";
 import { InstructorContext } from "../_components/context/InstructorContex";
+import { Editprofilebtn } from "./profilesetting/_components/Editprofilebtn";
+import { EditprofileRadiobtn } from "./profilesetting/_components/EditprofileRadiobtn";
+import ToggleButton from "./notification/_components/ToggleButton";
 
 export default function Profile() {
     
     const {profiledisplay,setprofiledisplay} = useContext(InstructorContext)
-
+    const [activeTab, setActiveTab] = useState("Personal");
+     const [openEditProfile,setEditeProfile]=useState(false)
     return (
         <div className="h-fit w-full max-w-[1200px] flex flex-col gap-[10px] ">
            <p className="hidden sm:block text-[var(--sidebar-hovercolor)] font-[600] text-[42px] leading-[40px] ">My Profile</p>
@@ -59,7 +63,7 @@ export default function Profile() {
                             </div>
 
 
-                            <button style={{paddingLeft:'8px',paddingRight:'8px'}}  className="bg-[var(--purpel-btncolor)] w-fit    flexcenter gap-1 rounded-[10px] text-[8px] sm:text-[14px] leading-[40px] font-[700]  "><span><FiEdit size={8} /></span> Edit Profile</button>
+                            <button onClick={()=>setEditeProfile(true)} style={{paddingLeft:'8px',paddingRight:'8px'}}  className="bg-[var(--purpel-btncolor)] w-fit cursor-pointer   flexcenter gap-1 rounded-[10px] text-[8px] sm:text-[14px] leading-[40px] font-[700]  "><span><FiEdit size={8} /></span> Edit Profile</button>
                          </div>
 
 
@@ -128,6 +132,145 @@ export default function Profile() {
 
                 </div>
            </div>
+
+
+           {openEditProfile && (
+  <div style={{padding:'20px'}} className="fixed inset-0 w-full h-full flex justify-center items-start sm:items-center overflow-auto bg-[rgba(0,0,0,0.9)] z-50 p-4">
+    <div style={{padding:'15px'}} className="max-w-[900px] w-full flex flex-col gap-6 bg-[#101010] shadow-lg rounded-lg my-8 p-8">
+      <p className="text-white text-xl font-semibold">Update Profile</p>
+      
+      {/* Navigation bar */}
+      <div>
+        <ul className="flex items-center gap-3 border-b border-[#4D4D4D]">
+          {["Personal", "Professional", "Social Links & Media"].map((tab) => (
+            <li
+              key={tab}
+            //   style={{padding:'3px'}}
+              onClick={() => setActiveTab(tab)}
+              className={`cursor-pointer px-4 text-[12px] sm:text-[15px] py-2 font-semibold relative
+                ${activeTab === tab ? "text-[#8D5FCA]" : "text-[#D2D2D2]"}
+                hover:text-[#8D5FCA] transition-colors duration-200
+              `}
+            >
+              {tab}
+              {activeTab === tab && (
+                <span  className="absolute left-0 -bottom-[1px] w-full h-[2px] bg-[#8D5FCA] rounded-md"></span>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* Personal Tab */}
+      {activeTab === "Personal" && (
+        <div className="h-fit flex flex-col gap-5  ">
+          <div className="w-full grid sm:grid-cols-2 gap-5">
+            <div>
+              <Editprofilebtn label='First Name' />
+              <Editprofilebtn label='Last Name'  />
+              <Editprofilebtn label='Username'  />
+              <Editprofilebtn label='Email Address'  />
+            </div>
+            <div className="flex flex-col gap-3">
+              <Editprofilebtn label='Phone Number'  />
+              {/* <Editprofilebtn label='Company' placeholder='Company' /> */}
+              <div className="grid grid-cols-2 gap-5 w-full">
+                <div className=" flex flex-col gap-3">
+                    <p className="text-[#8C8C8C] font-[600] text-[15px] leading-[40px]">Gender</p>
+                    <EditprofileRadiobtn  label='Male' />
+                </div>
+
+                <div className="self-end ">
+                <EditprofileRadiobtn label='Female'  />
+                </div>
+                
+               
+              </div>
+              {/* <Editprofilebtn label='Bio' placeholder='Bio' /> */}
+            </div>
+          </div>
+          <div className="mt-4">
+            <ToggleButton label="Display Full Name" />
+          </div>
+        </div>
+      )}
+
+      {/* Professional Tab */}
+      {activeTab === "Professional" && (
+        <>
+          <div>
+           
+
+<div className="flex flex-col gap-3">
+  <label
+    htmlFor='bio'
+    className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
+  >
+    Short Bio (About Me)
+  </label>
+  <textarea
+    style={{padding:'10px'}}
+    name='bio'
+    placeholder='bio'
+    rows={5} // You can adjust the number of rows
+    className="w-full rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white resize-none"
+  ></textarea>
+</div>
+
+
+           
+          </div>
+          <div>
+            <Editprofilebtn label="Headline" placeholder="Product Designer || Tutor" />
+            <Editprofilebtn label="Expertise Tags" placeholder="UI/UX, Management" />
+          </div>
+        </>
+      )}
+
+      {/* Social Links & Media Tab */}
+      {activeTab === "Social Links & Media" && (
+        <div className='h-fit'>
+          <div className="mb-5">
+            <Editprofilebtn label="Intro video (must be a valid youtube embed link)" placeholder="e.g youtube.com/etienoekanem" />
+          </div>
+          <div className="w-full grid sm:grid-cols-2 gap-5">
+            <div>
+              <Editprofilebtn label="Facebook" placeholder="e.g facebook.com/etienoekanem" />
+              <Editprofilebtn label="Linkedin" placeholder="e.g linkedin.com/in/etienoekanem" />
+              <Editprofilebtn label="Instagram" placeholder="e.g instagram.com/etienoekanem" />
+            </div>
+            <div className="flex flex-col gap-5 sm:block">
+              <Editprofilebtn label="X (formerly Twitter)" placeholder="e.g x.com/etienoekanem" />
+              <div className="grid grid-cols-2 sm:grid-cols-1 gap-5 ">
+              <Editprofilebtn label="YouTube" placeholder="e.g youtube.com/etien..." />
+              <Editprofilebtn label="Personal Website" placeholder="e.g themutantsschool.c..." />
+              </div>
+            
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex items-center gap-3 mt-6">
+        <button 
+          style={{padding:'10px'}}
+          onClick={() => setEditeProfile(false)} 
+          className="bg-[var(--purpel-btncolor)] px-6 py-2 cursor-pointer flex items-center justify-center gap-1 rounded-[10px] text-sm font-bold text-white hover:opacity-90 transition-opacity"
+        >
+          Update Profile
+        </button>
+        <button 
+          style={{padding:'10px'}}
+          onClick={() => setEditeProfile(false)} 
+          className="border border-[#4D4D4D] px-6 py-2 cursor-pointer flex items-center justify-center gap-1 rounded-[10px] text-sm font-bold text-[#D2D2D2] hover:bg-[#1A1A1A] transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+)}
            
         </div>
     )

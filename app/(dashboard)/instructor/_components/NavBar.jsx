@@ -5,9 +5,11 @@ import {  useState } from "react";
 import Sidebar from "./Sidebar";
 import Link from "next/link";
 import InstructorDropdown from "./InstructorDropdown";
+import ProfiledropDown from "../profile/_components/ProfiledropDown";
 
 
 export default function NavBar({ onMenuClick }) {
+    const [open, setOpen] = useState(false);
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -47,7 +49,10 @@ export default function NavBar({ onMenuClick }) {
       </div>
 
       {/* Mobile NavBar */}
-      <div className="sm:hidden w-full h-[79.88px] px flex items-center justify-between px-4">
+      <div 
+        style={{paddingLeft:'10px',paddingRight:'10px'}} 
+        className="sm:hidden z-50 fixed top-0 left-0 w-full h-[79.88px] bg-black border-b border-gray-800 backdrop-blur-sm flex items-center justify-between px-4"
+      >
         <div className="flex items-center gap-3">
           <button 
             onClick={handleMenuClick}
@@ -66,17 +71,35 @@ export default function NavBar({ onMenuClick }) {
         
         <div className="flex items-center">
           <div className="h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
-           <Link href='/instructor/profile'> <div className="w-[35px] h-[35px] bg-pink-200 rounded-full"></div> </Link>
+           {/* <Link href='/instructor/profile'>  */}
+           <div onClick={()=>setOpen(!open)} className="w-[35px] h-[35px] bg-pink-200 rounded-full cursor-pointer"></div> 
+           {/* </Link> */}
           </div>
         </div>
       </div>
 
+      {/* Add padding to body content on mobile to account for fixed navbar */}
+      <div className="sm:hidden h-[79.88px]" />
 
-      {isMobileMenuOpen && <div className="fixed top-0 left-0 z-50 bg-[rgba(0,0,0,0.8)] ">
-        <div className="w-fit bg-black">
-        <Sidebar />
+      {isMobileMenuOpen && (
+        <div className="fixed top-0 left-0 z-40 w-full h-full bg-[rgba(0,0,0,0.8)]">
+          <div className="w-fit bg-black">
+            <Sidebar />
+          </div>
         </div>
-        </div>}
+      )}
+
+      {open && (
+        <div className="w-screen fixed top-0 left-0 z-40 h-screen bg-[rgba(0,0,0,0.9)]">
+          <div className="w-[325.89px] h-full fixed right-0 top-20 bg-[#2B2B2B] z-40">
+            
+            <div className="relative w-full h-fit ">
+            <ProfiledropDown />
+            </div>
+         
+          </div>
+        </div>
+      )}
     </div>
   );
 }
