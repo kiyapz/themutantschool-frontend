@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useRef, useEffect} from "react";
+import { useState, useRef, useEffect, useContext} from "react";
 import Image from "next/image";
 
 import ProfiledropDown from "../profile/_components/ProfiledropDown";
+import { InstructorContext } from "./context/InstructorContex";
 
 export default function InstructorDropdown() {
-  const [open, setOpen] = useState(false);
+  const {openlargeProfileDropdown, setopenlargeProfileDropdown} = useContext(InstructorContext);
   const [settingsOpen, setSettingsOpen] = useState(false);
   
   const dropdownRef = useRef();
@@ -15,7 +16,7 @@ export default function InstructorDropdown() {
   useEffect(() => {
     const handler = (e) => {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setOpen(false);
+        setopenlargeProfileDropdown(false);
         setSettingsOpen(false);
       }
     };
@@ -28,7 +29,7 @@ export default function InstructorDropdown() {
       {/* Trigger Button */}
       <div
         style={{ padding: '15px' }}
-        onClick={() => setOpen(!open)}
+        onClick={() => setopenlargeProfileDropdown(!openlargeProfileDropdown)}
         className="cursor-pointer flex items-center xl:justify-between gap-2 w-full rounded-[12px] bg-[#1A1A1A] px-4 py-2"
       >
         <div className="w-[47px] h-[47px] bg-pink-200 rounded-full"></div>
@@ -48,14 +49,14 @@ export default function InstructorDropdown() {
               alt="dropdown"
               width={16}
               height={16}
-              className={`transition-transform duration-300 ${open ? "rotate-180" : ""}`}
+              className={`transition-transform duration-300 ${openlargeProfileDropdown ? "rotate-180" : ""}`}
             />
           </div>
         </div>
       </div>
 
       {/* Dropdown Menu */}
-      {open && (
+      {openlargeProfileDropdown && (
        <div>
         <ProfiledropDown />
        </div>

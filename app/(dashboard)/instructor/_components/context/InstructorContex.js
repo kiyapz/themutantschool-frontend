@@ -5,9 +5,11 @@ export const InstructorContext = createContext();
 
 export default function InstructorContextProvider({ children }) {
   const [profiledisplay, setprofiledisplay] = useState('Personal Information');
+  const [openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown] = useState(false);
+  const [openlargeProfileDropdown, setopenlargeProfileDropdown] = useState(false);
 
   return (
-    <InstructorContext.Provider value={{ profiledisplay, setprofiledisplay }}>
+    <InstructorContext.Provider value={{openlargeProfileDropdown, setopenlargeProfileDropdown, profiledisplay, setprofiledisplay,openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown }}>
       {children}
     </InstructorContext.Provider>
   );
