@@ -7,6 +7,7 @@ import { FaTag } from "react-icons/fa";
 import { FaMoneyBillWave } from "react-icons/fa";
 import { FaArrowUp } from "react-icons/fa";
 import { FaStar } from 'react-icons/fa';
+import Link from "next/link";
 
 export default function page() {
 
@@ -98,11 +99,14 @@ export default function page() {
                           <p className="text-[var(--text)] text-[13px] xl:text-[15px] leading-[40px] ">Here you see all your uploaded courses</p>
                         </div>
                         <div >
-                          <button className="bg-[#604196] flex items-center justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px]  w-[216.75px] ">
+
+                          <Link href='/instructor/myMissions/createnewmission'>
+                          <button className="bg-[#604196] flex items-center cursor-pointer justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px]  w-[216.75px] ">
                          
                           Launch New Mission
                           </button>
-              
+                          </Link>
+
                         </div>
               
                         </div>

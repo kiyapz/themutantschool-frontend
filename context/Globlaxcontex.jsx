@@ -65,13 +65,6 @@ console.log(selectedRole, "selectedRole");
   
     
   
-    // Submit on final step
-    // if (registerStep === 4) {
-    //   handlesubmitform();
-    //   return;
-    // }
-  
-    // Move to next step
 
 
     setdisablebtn(true)

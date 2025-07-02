@@ -2,10 +2,14 @@
 
 import Link from "next/link";
 import { InstructorContext } from "../../_components/context/InstructorContex";
-import { useContext } from "react";
+import { useContext, useState } from "react";
+import { set } from "zod";
+import { Editprofilebtn } from "./_components/Editprofilebtn";
+import ChangePasswordValue from "./_components/ChangePassword";
 
 export default function Profilesetting() {
-  const { profiledisplay, setprofiledisplay } = useContext(InstructorContext);
+  const { profiledisplay, setprofiledisplay ,ChangePassword,setChangePassword} = useContext(InstructorContext);
+ 
 
   return (
     <div className="h-fit w-full max-w-[1200px] flex flex-col gap-[10px] ">
@@ -127,6 +131,7 @@ export default function Profilesetting() {
               </div>
               <div>
                 <button
+                onClick={()=>setChangePassword(!ChangePassword)}
                   style={{ padding: '10px' }}
                   className="bg-[#604196] text-[11px] rounded-[8px]"
                 >
@@ -137,6 +142,17 @@ export default function Profilesetting() {
           </div>
         </div>
       </div>
+
+
+       { ChangePassword && 
+       <div className="absolute left-0 top-0 z-20 w-screen h-screen flexcenter bg-[rgba(0,0,0,0.9)] ">
+        
+
+        <ChangePasswordValue />
+        
+        </div>}
+
+
     </div>
   );
 }

@@ -39,8 +39,8 @@ export default function IdentifyRole() {
     setErrormessage('');
     
 
-    if (username.length < 2) {
-      setErrormessage("Username must be at least 2 characters long.");
+    if (username.length < 1) {
+      setErrormessage("Username must be at least 1 characters long.");
       setSuccessmessage('');
       setdisablebtn(true)
       return;
@@ -106,7 +106,7 @@ export default function IdentifyRole() {
     
     }
      else if (registerStep === 3) {
-      if ( firstName.length < 2 || lastName.length < 2) {
+      if ( firstName.length < 1 || lastName.length < 1) {
         setdisablebtn(true);
         setsuccessvalue(false)
         return;

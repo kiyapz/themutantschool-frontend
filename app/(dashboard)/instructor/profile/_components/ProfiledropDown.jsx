@@ -8,18 +8,8 @@ export default function ProfiledropDown() {
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [open, setOpen] = useState(false);
 
-const dropdownRef = useRef();
 
-    //  useEffect(() => {
-    //     const handler = (e) => {
-    //       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-    //         setOpen(false);
-    //         setSettingsOpen(false);
-    //       }
-    //     };
-    //     document.addEventListener("mousedown", handler);
-    //     return () => document.removeEventListener("mousedown", handler);
-    //   }, []);
+
     return (
         <div
         style={{ padding: '15px' }}
