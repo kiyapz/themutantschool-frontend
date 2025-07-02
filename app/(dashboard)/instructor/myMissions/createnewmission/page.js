@@ -4,7 +4,7 @@ import MissionDetails from "./_components/MissionDetails";
 import AddLevels from "./_components/AddLevels";
 import PreviewandLaunch from "./_components/PreviewandLaunch";
 
-export default function createnewmission() {
+export default function Createnewmission() {
      const [activeTab, setActiveTab] = useState("Mission Details");
     return (
         <div className="flex flex-col gap-3 ">
