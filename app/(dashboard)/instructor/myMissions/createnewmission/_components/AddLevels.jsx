@@ -1,73 +1,87 @@
 'use client'
+
 import { useState } from "react"
 import Addlevelbtn from "./Addlevelbtn"
 
 export default function AddLevels() {
-    const [Level,setLevel] = useState('AddLevel')
-    return (
-        <>
+  const [Level, setLevel] = useState('AddLevel')
 
-        {Level === 'AddLevel' && 
-        
-        <div onClick={()=>setLevel('SetAddLevel')} style={{paddingBottom:'30px'}} className="w-full h-[404.49px] flex items-end justify-center  shadow-[#696969] bg-[#0F0F0F] ">
+  const [levels, setLevels] = useState([
+    {
+      id: 1,
+      title: 'HTML Genesis',
+      description: 'Basic concept and overview',
+      purpose: 'Alternatives to HTML'
+    }
+  ])
 
-            <div className="w-[90%] h-[247.06px]   flexcenter flex-col border border-dashed border-[#696969] gap-5 rounded-[22px] bg-[#131313] ">
-              <p style={{padding:'10px'}} className="font-[600] text-[21px] leading-[20%] bg-[#2E2E2E] h-[30px] w-[30px] flexcenter rounded-full ">+</p>
-              <p className="font-[600] text-[12px] sm:text-[21px] leading-[20%] ">Add New Level</p>
+  const handleAddLevel = () => {
+    const newId = levels.length + 1
+    setLevels([
+      ...levels,
+      {
+        id: newId,
+        title: `Level ${newId} Title`,
+        description: 'Basic concept and overview',
+        purpose: `Purpose of Level ${newId}`
+      }
+    ])
+  }
+
+  return (
+    <>
+      {Level === 'AddLevel' && (
+        <div
+        style={{paddingBottom:'20px'}}
+          onClick={() => setLevel('SetAddLevel')}
+          className="w-full h-[404.49px] flex items-end justify-center bg-[#0F0F0F] pb-[30px]"
+        >
+          <div className="w-[90%] h-[247.06px] flexcenter flex-col border border-dashed border-[#696969] gap-5 rounded-[22px] bg-[#131313]">
+            <p className="font-[600] text-[21px] bg-[#2E2E2E] h-[30px] w-[30px] flexcenter rounded-full">+</p>
+            <p className="font-[600] text-[12px] sm:text-[21px]">Add New Level</p>
+          </div>
+        </div>
+      )}
+
+      {Level === 'SetAddLevel' && (
+        <div style={{padding:'10px'}} className="flex flex-col gap-10">
+          {levels.map((level) => (
+            <div
+             style={{padding:'30px'}}
+              key={level.id}
+              className="w-full h-fit flex flex-col gap-3 bg-[#0F0F0F] shadow-[#696969] px-[30px] py-[20px]"
+            >
+              <p className="text-[#6F6F6F] font-[600] text-[15px] sm:text-[25px]">
+                Level {level.id}:{' '}
+                <span className="text-[15px] sm:text-[25px] text-[var(--background)]">
+                  {level.title}
+                </span>
+              </p>
+              <p className="text-[#ACACAC] font-[500] text-[12px] sm:text-[24px]">{level.description}</p>
+
+              <div className="flex flex-col gap-5">
+                <Addlevelbtn level="1" text={level.title} />
+                <Addlevelbtn level="2" text={level.description} />
+                {level.purpose && <Addlevelbtn level="3" text={level.purpose} />}
+              </div>
+
+              <button
+                className="w-full h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white py-[15px]"
+              >
+                + Add Power Capsule
+              </button>
             </div>
+          ))}
 
-            </div>
-        
-        }
-
-
-
-
-        {Level === 'SetAddLevel' && 
-        
-        <div className="flex flex-col gap-10 ">
-        <div style={{padding:'30px'}} className="w-full h-fit flex flex-col gap-3  shadow-[#696969] bg-[#0F0F0F] ">
-          <>
-          <p className="text-[#6F6F6F] font-[600] text-[15px] sm:text-[25px] leading-[150%] ">Level 1:   <span className="text-[15px]  sm:text-[25px] text-[var(--background)] ">HTML Genesis</span></p>
-          <p className="text-[#ACACAC] font-[500] text-[12px] sm:text-[24px] ">Basic concept and overview</p>
-          </>
-           <div className="flex flex-col gap-5">
-            <Addlevelbtn level='1' text='HTML Genesis' />
-            <Addlevelbtn level='2' text='Alternatives to HTML' />
-            <Addlevelbtn level='3' text='Alternatives to HTML' />
-           </div>
-
-           <div>
-            <button style={{padding:'15px'}} className="w-full border-[1px] h-[59.76px] rounded-[12px] border-dashed border-[#696969] ">+ Add Power Capsule</button>
-           </div>
-
+          <button
+          style={{padding:'15px'}}
+            onClick={handleAddLevel}
+            className="w-[90%] self-center border border-dashed border-[#696969] text-white font-semibold py-4 rounded-xl bg-[#131313] hover:bg-[#1f1f1f] transition"
+          >
+            + Add New Level
+          </button>
         </div>
-
-
-
-        <div style={{padding:'30px'}} className="w-full h-fit flex flex-col gap-3  shadow-[#696969] bg-[#0F0F0F] ">
-          <>
-          <p className="text-[#6F6F6F] font-[600] text-[15px] sm:text-[25px] leading-[150%] ">Level 2:   <span className="text-[15px]  sm:text-[25px] text-[var(--background)] ">HTML Genesis</span></p>
-          <p className="text-[#ACACAC] font-[500] text-[12px] sm:text-[24px] ">Basic concept and overview</p>
-          </>
-           
-           <div>
-            <button style={{padding:'15px'}} className="w-full border-[1px] h-[59.76px] rounded-[12px] border-dashed border-[#696969] ">+ Add Power Capsule</button>
-           </div>
-
-        </div>
-
-
-
-
-
-        </div>
-        
-        }
-
-            
-
-        </>
-       
-    )
+      )}
+    </>
+  )
 }

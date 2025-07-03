@@ -4,9 +4,10 @@ import NavBar from "./_components/NavBar";
 import Sidebar from "./_components/Sidebar";
 
 export const metadata = {
-  title: "mutant school",
-  description: "Student dashboard",
-};
+  title: 'Mutant School | Instructor Dashboard',
+  description: 'Access the Mutant School portal to manage your classes, assignments, and student progress.',
+}
+
 
 export default function RootLayout({ children }) {
   return (

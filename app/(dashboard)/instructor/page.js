@@ -4,6 +4,7 @@ import { FaArrowUp } from "react-icons/fa";
 import { FaStar } from 'react-icons/fa';
 
 import SingleValueChart from "./_components/InstructorgraphSingleValueChart";
+import Link from "next/link";
 
 const data = [{
   id:1,
@@ -145,13 +146,14 @@ export default function instuctordashboard() {
             <p className="text-[var(--text)] text-[12px] xl:text-[15px] leading-[40px] ">Welcome to your management dashboard</p>
           </div>
           <div >
+             <Link href='/instructor/myMissions/createnewmission'>
             <button className="bg-[#604196] flex items-center justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px]  w-[216.75px] ">
             <span>
               <Image src={'/images/instructordasbord/Vector (13).png'} alt="save icon" width={13.64} height={17.73} />
             </span>
             Launch New Mission
             </button>
-
+            </Link>
           </div>
 
           </div>
@@ -207,7 +209,7 @@ export default function instuctordashboard() {
         </div>
 
         <div className="w-full h-[450px] flex-1   flex flex-col gap-10 overflow-auto scrollbar-hide">
-          {studentcourse.map((el,i)=>(
+          {studentcourse.slice(0,4).map((el,i)=>(
             <div key={el.id} className= "h-[112px]  flex items-center gap-5 w-full rounded-[15px] bg-[#0F0F0F] ">
 
               <div className="h-[63px] w-[63px] rounded-full bg-pink-100 ">
@@ -225,10 +227,10 @@ export default function instuctordashboard() {
          
         
         
-        <div  className="xl:col-span-3  bg-[#0F0F0F] rounded-[20px] ">
+        <div  className="xl:col-span-3 h-fit  bg-[#0F0F0F] rounded-[20px] ">
 
-        <div style={{marginBottom:'25px'}}  className="xl:col-span-2 px py w-full h-full">
-        <div  className="h-[40px] w-full flex items-center justify-between ">
+        <div style={{marginBottom:'25px'}}  className="xl:col-span-2 px py w-full h-fit">
+        <div   className="h-[40px] w-full flex items-center justify-between ">
           <p className="font-[700] text-[20px] leading-[40px] text-[var(--background)] ">Top Performing Missions</p>
           <p className="text-[#208045] font-[500] text-[15px] leading-[40px] ">View All</p>
         
@@ -247,8 +249,8 @@ export default function instuctordashboard() {
         
         <div className="flex flex-col gap-5">
           {Mission.map((el,i)=>(
-            <div key={el.id} className="border-t-[1px] border-[#3C3C3C]">
-            <div className="grid py rounded-[15px] bg-[#0F0F0F] grid-cols-5">
+            <div key={el.id} className="border-t-[1px] h-fit border-[#3C3C3C]">
+            <div className="grid py h-fit rounded-[15px] bg-[#0F0F0F] grid-cols-5">
             <div className="col-span-2 ">
               <div className="flex items-center gap-2">
               <div className=" h-[45.59px] sm:h-[62px] w-[45.59px] sm:w-[62px] bg-pink-100 rounded-[10px] "></div>
@@ -302,7 +304,7 @@ export default function instuctordashboard() {
            
            
            <div  className="flex   scrollbar-hide  py  w-[350px] sm:w-[500px]  xl:w-[1000px] overflow-auto gap-4  pb-2">
-    {studetcourse.map((el) => (
+    {studetcourse.slice(0,4).map((el) => (
       <div
         key={el.id}
         className="min-w-[300px] flex flex-col sm:min-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"

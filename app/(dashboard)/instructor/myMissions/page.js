@@ -94,7 +94,7 @@ export default function page() {
 
                <div className="  h-fit w-full flex flex-col gap-10    ">
                         <div className="hidden sm:flex h-fit justify-between  w-full">
-                        <div>
+                        <div >
                           <p className="text-[var(--sidebar-hovercolor)] font-[600] leading-[40px] text-[42px] ">My Missions</p>
                           <p className="text-[var(--text)] text-[13px] xl:text-[15px] leading-[40px] ">Here you see all your uploaded courses</p>
                         </div>
@@ -194,7 +194,7 @@ export default function page() {
 
                
 
-               {studetcourse.slice(0,8).map((el) => (
+               {studetcourse.slice(0,9).map((el) => (
                      <div
                        key={el.id}
                       
