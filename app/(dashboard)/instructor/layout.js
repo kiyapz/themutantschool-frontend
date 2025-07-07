@@ -32,6 +32,6 @@ export default function RootLayout({ children }) {
         </div>
       </div>
       </InstructorContextProvider>
-    </ProtectedRoute>
+     </ProtectedRoute>
   );
 }

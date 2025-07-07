@@ -101,6 +101,8 @@ export default function IdentifyRole() {
   
   
   useEffect(() => {
+  setErrormessage('');
+  setSuccessmessage('');
     if (registerStep === 1) {
       setdisablebtn(!selectedRole);
     
@@ -124,6 +126,8 @@ export default function IdentifyRole() {
   
   
   useEffect(() => {
+    setErrormessage('');
+  setSuccessmessage('');
     console.log("Email, Password, Confirm Password: in effect", email, password, confirmpassword);
     
     // Email validation regex
@@ -151,6 +155,8 @@ export default function IdentifyRole() {
   
   
 const handleEmailVerification = async () => {
+  setErrormessage('');
+  setSuccessmessage('');
   
   setButtonDisabled('Loading...');
 
@@ -181,9 +187,9 @@ const handleEmailVerification = async () => {
 
        localStorage.setItem("accessToken", accessToken);
        localStorage.setItem("refreshToken", refreshToken);
-       localStorage.setItem("user", JSON.stringify(user));
-       localStorage.setItem("userId", user._id);
-      // console.log("User data stored in localStorage:", user);
+       localStorage.setItem("USER", JSON.stringify(user));
+       
+    
 
       setTimeout(() => {
         setSuccessmessage('');
@@ -203,7 +209,7 @@ const handleEmailVerification = async () => {
     } else {
       setButtonDisabled('continue');
       
-      setErrormessage("Network error or unexpected issue.");
+      // setErrormessage("Network error or unexpected issue.");
       
     }
   }

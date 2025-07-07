@@ -1,17 +1,170 @@
 'use client'
 import Link from "next/link";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FiEdit } from "react-icons/fi";
 import { InstructorContext } from "../_components/context/InstructorContex";
 import { Editprofilebtn } from "./profilesetting/_components/Editprofilebtn";
 import { EditprofileRadiobtn } from "./profilesetting/_components/EditprofileRadiobtn";
 import ToggleButton from "./notification/_components/ToggleButton";
+import profilebase from "./_components/profilebase";
+import axios from "axios";
+import { Phone } from "lucide-react";
 
 export default function Profile() {
-    
     const {profiledisplay,setprofiledisplay} = useContext(InstructorContext)
     const [activeTab, setActiveTab] = useState("Personal");
      const [openEditProfile,setEditeProfile]=useState(false)
+     const {user, setUser} = useContext(InstructorContext)
+     const [userProfile, setUserProfile] = useState(null);
+
+  
+    
+    
+    // Helper function to update specific fields
+    const updateField = (field, value) => {
+      setUserUpdatedValue(prev => ({
+        ...prev,
+        [field]: value
+      }));
+    };
+
+
+    const [userUpdatedValue, setUserUpdatedValue] = useState({
+      firstName: "",
+      lastName: "",
+      username: "",
+      email: "",
+    });
+    
+     
+
+
+     
+
+     const FetchUserProfile = async () => {
+      console.log("Clicked user profile");
+      
+      try {
+        const storedUser = localStorage.getItem("USER");
+        const accessToken = localStorage.getItem("login-accessToken");
+        console.log(accessToken, 'access token');
+        
+        if (!storedUser || !accessToken) {
+          console.warn("User or token not found in localStorage");
+          return;
+        }
+        
+        const parsedUser = JSON.parse(storedUser);
+        const id = parsedUser._id;
+        console.log(id, "this is userid");
+        
+        const response = await profilebase.get(`/user-profile/${id}`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        
+        console.log("User profile exactly:", response.data.data);
+        setUserProfile(response.data.data); // Fixed: access the nested data
+        
+      } catch (error) {
+        console.log("Failed to load user", error.response?.data || error.message);
+      }
+    };
+
+    const updateUserProfile = async () => {
+      try {
+        const storedUser = localStorage.getItem("USER");
+        const accessToken = localStorage.getItem("login-accessToken");
+    
+        if (!storedUser || !accessToken) {
+          console.warn("User not found ");
+          return;
+        }
+    
+        const parsedUser = JSON.parse(storedUser);
+        const id = parsedUser._id;
+    
+        
+        const formData = new FormData();
+    
+       
+        for (let key in userUpdatedValue) {
+          formData.append(key, userUpdatedValue[key]);
+        }
+    
+       
+    
+        const response = await profilebase.put(`/user-profile/${id}`, formData, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'multipart/form-data', 
+          },
+        });
+    
+        console.log("Profile updated successfully:", response.data);
+      } catch (error) {
+        console.error("Failed to update user profile", error.response?.data || error.message);
+      }
+    };
+    
+    
+
+
+    useEffect(() => {
+      if (userProfile) {
+        setUserUpdatedValue({
+          firstName: userProfile.firstName || "",
+          lastName: userProfile.lastName || "",
+          username: userProfile.username || "",
+          email: userProfile.email || "",
+          bio:userProfile.profile.bio  || 'Short Bio (About Me)',
+          facebook:userProfile?.profile.socialLinks.facebook || 'facebook.com/etienoekanem',
+          linkedin:userProfile?.profile.socialLinks.linkedin || 'e.g linkedin.com/in/etienoekanem',
+          website:userProfile?.profile.socialLinks.website || 'e.g Mywebsite.com/etienoekanem',
+          Twitter:userProfile?.profile.socialLinks.Twitter || 'e.g Twitter.com/etienoekanem',
+          url:userProfile?.profile.socialLinks.facebook || 'facebook.com/etienoekanem',
+          youtube:userProfile?.profile.avatar.publicId || 'e.g youtube.com/url or userName',
+          instagram:userProfile?.profile.socialLinks.instagram || 'instagram.com/etienoekanem',
+          Headline:userProfile.Headline || 'Product Designer || Tutor',
+          ExpertiseTags:userProfile.ExpertiseTags || 'Designer',
+          gender:userProfile.gender || "Male",
+          Phone:userProfile.phone || "12345",
+
+        });
+      }
+    }, [userProfile]);
+
+
+  useEffect(() => {
+    const getUser = async () => {
+      try {
+        const storedUser = localStorage.getItem("USER");
+        if (storedUser) {
+          const parsedUser = JSON.parse(storedUser);
+          setUser(parsedUser);
+        } else {
+          console.warn("No user found in localStorage");
+        }
+      } catch (error) {
+        console.logr("Failed to load user from localStorage:", error);
+      }
+    };
+  
+    getUser(); // First call
+  
+    // Call again after 2 seconds
+    const timer = setTimeout(() => {
+      getUser();
+    }, 1000);
+  
+    // Cleanup to avoid memory leaks
+    return () => clearTimeout(timer);
+  }, []);
+  
+     
+
+     
     return (
         <div className="h-fit w-full max-w-[1200px] flex flex-col gap-[10px] ">
            <p className="hidden sm:block text-[var(--sidebar-hovercolor)] font-[600] text-[42px] leading-[40px] ">My Profile</p>
@@ -53,17 +206,21 @@ export default function Profile() {
                          <div className="w-full flex items-end   xl:items-center justify-between ">
                             <div className="flex flex-col xl:flex-row xl:items-center gap-3 ">
                             <div className="h-[100px] w-[100px] relative left-[10px] sm:left-0  xl:h-[190px] xl:w-[190px] rounded-full border-[11px] bg-pink-200 ">
-                                    
+                                     
                             </div>
 
                             <div>
-                                <p className=" font-[600] text-[26px] sm:text-[35px] leading-[150%] ">Etieno Ekanem</p>
+                                <p className=" font-[600] text-[26px] sm:text-[35px] leading-[150%] ">
+                                {user && (<span>{user.firstName} {user.lastName} </span>)}
+                                  </p>
                                 <p className=" text-[17px] text-[var(--button-border-color)]  sm:text-[24px] leading-[150%] sm:text-[var(--greencolor)] ">Product Designer || Tutor</p>
                             </div>
                             </div>
 
 
-                            <button onClick={()=>setEditeProfile(true)} style={{paddingLeft:'8px',paddingRight:'8px'}}  className="bg-[var(--purpel-btncolor)] w-fit cursor-pointer   flexcenter gap-1 rounded-[10px] text-[8px] sm:text-[14px] leading-[40px] font-[700]  "><span><FiEdit size={8} /></span> Edit Profile</button>
+                            <button onClick={()=>{
+                            setEditeProfile(true);
+                             FetchUserProfile();}} style={{paddingLeft:'8px',paddingRight:'8px'}}  className="bg-[var(--purpel-btncolor)] w-fit cursor-pointer   flexcenter gap-1 rounded-[10px] text-[8px] sm:text-[14px] leading-[40px] font-[700]  "><span><FiEdit size={8} /></span> Edit Profile</button>
                          </div>
 
 
@@ -89,7 +246,7 @@ export default function Profile() {
  <p className="font-[700] text-[17px] leading-[40px] ">Personal Information</p>
  <div className="grid grid-cols-2 w-full items-center ">
   <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px] ">Email Address</div>
-  <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px] ">etienodouglas@gmail.com</div>
+  <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px] ">{user && (<p>{user.email} </p>)} </div>
   <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px] ">Phone Number</div>
   <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px] ">+234 (0) 9129495797</div>
   <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px] ">Gender</div>
@@ -166,22 +323,27 @@ export default function Profile() {
         <div className="h-fit flex flex-col gap-5  ">
           <div className="w-full grid sm:grid-cols-2 gap-5">
             <div>
-              <Editprofilebtn label='First Name' />
-              <Editprofilebtn label='Last Name'  />
-              <Editprofilebtn label='Username'  />
-              <Editprofilebtn label='Email Address'  />
+              <Editprofilebtn  value={userUpdatedValue.firstName} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, firstName: e.target.value }) } label="First Name" />
+              <Editprofilebtn value={userUpdatedValue.lastName} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue,lastName: e.target.value }) }   label='Last Name'  />
+              <Editprofilebtn value={userUpdatedValue.username} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, username: e.target.value }) }   label='Username'  />
+              <Editprofilebtn value={userUpdatedValue.email} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, email: e.target.value }) }  label='Email Address'  />
             </div>
-            <div className="flex flex-col gap-3">
-              <Editprofilebtn label='Phone Number'  />
+            <div className="flex flex-col gap-0">
+              <Editprofilebtn value={userUpdatedValue.Phone} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue,Phone: e.target.value }) } placeholder={'12345'} label='Phone Number'  />
               {/* <Editprofilebtn label='Company' placeholder='Company' /> */}
               <div className="grid grid-cols-2 gap-5 w-full">
                 <div className=" flex flex-col gap-3">
                     <p className="text-[#8C8C8C] font-[600] text-[15px] leading-[40px]">Gender</p>
-                    <EditprofileRadiobtn  label='Male' />
+                    <EditprofileRadiobtn  value="Male" selectedValue={userUpdatedValue.gender}   onChange={(e) =>
+    setUserUpdatedValue({ ...userUpdatedValue, gender: e.target.value })
+  } label='Male' />
                 </div>
 
                 <div className="self-end ">
-                <EditprofileRadiobtn label='Female'  />
+                <EditprofileRadiobtn selectedValue={userUpdatedValue.gender}  onChange={(e) =>
+                
+    setUserUpdatedValue({ ...userUpdatedValue, gender: e.target.value })
+  } value={userUpdatedValue.gender} label='Female'  />
                 </div>
                 
                
@@ -196,9 +358,7 @@ export default function Profile() {
       )}
 
       {/* Professional Tab */}
-      {activeTab === "Professional" && (
-        <>
-          <div>
+      {activeTab === "Professional" && (<> <div>
            
 
 <div className="flex flex-col gap-3">
@@ -212,6 +372,7 @@ export default function Profile() {
     style={{padding:'10px'}}
     name='bio'
     placeholder='bio'
+    value={userUpdatedValue.bio} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, bio: e.target.value }) }
     rows={5} // You can adjust the number of rows
     className="w-full rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white resize-none"
   ></textarea>
@@ -221,8 +382,8 @@ export default function Profile() {
            
           </div>
           <div>
-            <Editprofilebtn label="Headline" placeholder="Product Designer || Tutor" />
-            <Editprofilebtn label="Expertise Tags" placeholder="UI/UX, Management" />
+            <Editprofilebtn value={userUpdatedValue.Headline} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue,Headline : e.target.value }) } label="Headline" placeholder="Product Designer || Tutor" />
+            <Editprofilebtn value={userUpdatedValue.ExpertiseTags} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue,ExpertiseTags: e.target.value }) } label="Expertise Tags" placeholder="UI/UX, Management" />
           </div>
         </>
       )}
@@ -231,19 +392,20 @@ export default function Profile() {
       {activeTab === "Social Links & Media" && (
         <div className='h-fit'>
           <div className="mb-5">
-            <Editprofilebtn label="Intro video (must be a valid youtube embed link)" placeholder="e.g youtube.com/etienoekanem" />
+            <Editprofilebtn label="Intro video (must be a valid youtube embed link)"  value={userProfile?.profile.avatar.publicId || 'e.g youtube.com/url or userName'} placeholder="e.g youtube.com/etienoekanem" />
           </div>
           <div className="w-full grid sm:grid-cols-2 gap-5">
             <div>
-              <Editprofilebtn label="Facebook" placeholder="e.g facebook.com/etienoekanem" />
-              <Editprofilebtn label="Linkedin" placeholder="e.g linkedin.com/in/etienoekanem" />
-              <Editprofilebtn label="Instagram" placeholder="e.g instagram.com/etienoekanem" />
+              <Editprofilebtn label="Facebook" value={userUpdatedValue.facebook} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, facebook: e.target.value }) }  placeholder="e.g facebook.com/etienoekanem" />
+              <Editprofilebtn label="Linkedin"  value={userUpdatedValue.linkedin} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, linkedin: e.target.value }) }  placeholder="e.g linkedin.com/in/etienoekanem" />
+              <Editprofilebtn label="Instagram" value={userUpdatedValue.instagram} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, instagram: e.target.value }) }  placeholder="e.g instagram.com/etienoekanem" />
             </div>
-            <div className="flex flex-col gap-5 sm:block">
-              <Editprofilebtn label="X (formerly Twitter)" placeholder="e.g x.com/etienoekanem" />
-              <div className="grid grid-cols-2 sm:grid-cols-1 gap-5 ">
-              <Editprofilebtn label="YouTube" placeholder="e.g youtube.com/etien..." />
-              <Editprofilebtn label="Personal Website" placeholder="e.g themutantsschool.c..." />
+            <div className="flex flex-col gap-0 sm:block">
+              <Editprofilebtn value={userUpdatedValue.Twitter} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue,Twitter: e.target.value }) } label="X (formerly Twitter)" placeholder="e.g x.com/etienoekanem" />
+              
+              <div className="grid grid-cols-2 sm:grid-cols-1 gap-0 ">
+              <Editprofilebtn label="YouTube" value={userUpdatedValue.youtube} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue,youtube: e.target.value }) }  placeholder="e.g youtube.com/etien..." />
+              <Editprofilebtn label="Personal Website" value={userUpdatedValue.website} onChange={(e) => setUserUpdatedValue({ ...userUpdatedValue, website: e.target.value }) }  placeholder="e.g themutantsschool.c..." />
               </div>
             
             </div>
@@ -252,10 +414,10 @@ export default function Profile() {
       )}
 
       {/* Action Buttons */}
-      <div className="flex items-center gap-3 mt-6">
+      <div className="flex items-center gap-5 mt-6">
         <button 
           style={{padding:'10px'}}
-          onClick={() => setEditeProfile(false)} 
+          onClick={updateUserProfile} 
           className="bg-[var(--purpel-btncolor)] px-6 py-2 cursor-pointer flex items-center justify-center gap-1 rounded-[10px] text-sm font-bold text-white hover:opacity-90 transition-opacity"
         >
           Update Profile

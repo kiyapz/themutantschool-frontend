@@ -10,7 +10,7 @@ import { InstructorContext } from "./context/InstructorContex";
 
 
 export default function NavBar({ onMenuClick }) {
-    const {openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown} = useContext(InstructorContext);
+    const {openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown,user} = useContext(InstructorContext);
   
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 

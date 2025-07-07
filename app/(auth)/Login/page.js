@@ -22,69 +22,62 @@ export default function Login() {
     const [buttonvalue, setButtonvalue] = useState("Enter the Lab");
 
 
+  
     const handlelogin = async () => {
-        console.log("Clicked login...");
-        setButtonvalue(
-          <span className="flex items-center gap-2">
-            <span className="w-4 h-4 border-2 border-t-transparent border-[var(--secondary)] rounded-full animate-spin inline-block" />
-            Checking...
-          </span>
-        );
-        setErrormessage("");
-      
-        if (!email || !password) {
-          setErrormessage("Please enter your email and password.");
-          setTimeout(() => setErrormessage(""), 1000);
-          setButtonvalue("Enter the Lab");
-          return;
-        }
-      
-        try {
-          const response = await authApiUrl.post("login", {email : email,password : password });
-          console.log("Login response:", response);
-      
-          if (response.status === 200) {
-            console.log(response);
-            
-            console.log("Login successful:", response.data);
-            
-            const storedUser = JSON.parse(localStorage.getItem("user"));
-            const role = storedUser?.role || response.data.role;
-
-            console.log(response.data.message);
-            console.log("Login successful:", response.data);
-            setSuccessmessage(response.data.message);
-            setTimeout(() => setSuccessmessage(""), 1000);
-            setButtonvalue("Enter the Lab");
-            localStorage.setItem("login-accessToken", response.data.accessToken);
-            
-            if (role === "instructor") {
-              router.push("/instructor");
-            } else if (role === "student") {
-              router.push("/student");
-            } else  {
-              router.push("/affiliate");
-            }
-            
-            
-            return true;
-          } else {
-            setErrormessage(response.data.message || "Login failed.");
-            setTimeout(() => setErrormessage(""), 1000);
-            setButtonvalue("Enter the Lab");
+      console.log("Clicked login...");
+      setButtonvalue(
+        <span className="flex items-center gap-2">
+          <span className="w-4 h-4 border-2 border-t-transparent border-[var(--secondary)] rounded-full animate-spin inline-block" />
+          Checking...
+        </span>
+      );
+      setErrormessage("");
+    
+      if (!email || !password) {
+        setErrormessage("Please enter your email and password.");
+        setTimeout(() => setErrormessage(""), 2000);
+        setButtonvalue("Enter the Lab");
+        return;
+      }
+    
+      try {
+        const response = await authApiUrl.post("login", { email, password });
+        console.log("Login response:", response);
         
-            return false;
-          }
-        } catch (error) {
-          console.error("Login error:", error);
-          setErrormessage(error?.response?.data?.message || "Login failed. Please try again.");
-          setTimeout(() => setErrormessage(""), 1000);
+    
+        if (response.status === 200) {
+          const { message, accessToken, user } = response.data;
+          
+          console.log("Login successful:", response.data);
+          setSuccessmessage(message);
+          localStorage.setItem("login-accessToken", accessToken
+);
+          localStorage.setItem("USER", JSON.stringify(user));
+    
+          setTimeout(() => setSuccessmessage(""), 2000);
           setButtonvalue("Enter the Lab");
-        
+    
+          
+          if (user.role === "instructor") router.push("/instructor");
+          else if (user.role === "student") router.push("/student");
+          else router.push("/affiliate");
+    
+          return true;
+        } else {
+          setErrormessage(response.data.message || "Login failed.");
+          setTimeout(() => setErrormessage(""), 2000);
+          setButtonvalue("Enter the Lab");
           return false;
         }
-      };
-      
+      } catch (error) {
+        console.error("Login error:", error);
+        setErrormessage(error?.response?.data?.message || "Login failed. Please try again.");
+        setTimeout(() => setErrormessage(""), 2000);
+        setButtonvalue("Enter the Lab");
+        return false;
+      }
+    };
+    
 
 
 

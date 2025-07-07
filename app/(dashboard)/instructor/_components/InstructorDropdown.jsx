@@ -7,7 +7,7 @@ import ProfiledropDown from "../profile/_components/ProfiledropDown";
 import { InstructorContext } from "./context/InstructorContex";
 
 export default function InstructorDropdown() {
-  const {openlargeProfileDropdown, setopenlargeProfileDropdown} = useContext(InstructorContext);
+  const {openlargeProfileDropdown, setopenlargeProfileDropdown,user} = useContext(InstructorContext);
   const [settingsOpen, setSettingsOpen] = useState(false);
   
   const dropdownRef = useRef();
@@ -37,10 +37,10 @@ export default function InstructorDropdown() {
         <div className="flex items-center xl:justify-between gap-2 xl:gap-5">
           <div>
             <p className="text-[#308672] font-medium text-[13px] leading-[20px]">
-              Instructor
+            {user && (<>{user.role} </>)}
             </p>
             <p className="text-[#D2D2D2] font-bold leading-[20px]">
-              Etieno Ekanem
+            {user && (<>{user.firstName} {user.lastName} </>)}
             </p>
           </div>
           <div>

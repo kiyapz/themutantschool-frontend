@@ -8,8 +8,9 @@ export default function InstructorContextProvider({ children }) {
   const [openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown] = useState(false);
   const [openlargeProfileDropdown, setopenlargeProfileDropdown] = useState(false);
   const [ ChangePassword,setChangePassword] = useState(false)
+  const [user, setUser] = useState(null);
   return (
-    <InstructorContext.Provider value={{openlargeProfileDropdown, setopenlargeProfileDropdown, profiledisplay, setprofiledisplay,openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown,ChangePassword,setChangePassword }}>
+    <InstructorContext.Provider value={{user, setUser,openlargeProfileDropdown, setopenlargeProfileDropdown, profiledisplay, setprofiledisplay,openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown,ChangePassword,setChangePassword }}>
       {children}
     </InstructorContext.Provider>
   );

@@ -4,7 +4,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { InstructorContext } from "../../_components/context/InstructorContex";
 
 export default function ProfiledropDown() {
-    const {setprofiledisplay,setopenSmallScreenProfileDropDown,setopenlargeProfileDropdown } = useContext(InstructorContext);
+    const {setprofiledisplay,setopenSmallScreenProfileDropDown,setopenlargeProfileDropdown,user } = useContext(InstructorContext);
     const [settingsOpen, setSettingsOpen] = useState(false);
     const [open, setOpen] = useState(false);
 
@@ -17,7 +17,7 @@ export default function ProfiledropDown() {
       >
         <div className="flex flex-col items-center gap-1 p-2">
           <div className="w-[82px] h-[82px] rounded-full bg-pink-200 mb-2"></div>
-          <p className="font-[700] leading-[40px] text-[13px]">@Etienoekanem</p>
+          <p className="font-[700] leading-[40px] text-[13px]">@{user && (<p>{user.firstName} {user.lastName} </p>)}  </p>
         </div>
 
         {/* Divider */}
