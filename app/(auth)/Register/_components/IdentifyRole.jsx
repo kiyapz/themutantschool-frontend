@@ -247,7 +247,7 @@ useEffect(() => {
 
 const handleResend = async () => {
 
-  const storedUser = JSON.parse(localStorage.getItem("user"));
+  const storedUser = JSON.parse(localStorage.getItem("USER"));
   const email = storedUser?.email;
 
   try {
