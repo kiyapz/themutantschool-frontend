@@ -21,6 +21,8 @@ const [isCompleteOtp, setIsCompleteOtp] = useState(false);
 const [otpCode, setOtpCode] = useState("");
 const [Successmessage, setSuccessmessage] = useState("");
 const [successValue,setsuccessvalue] = useState(false)
+const [otpbtn,setOtpBtn]=useState("Verify")
+
 // const [password, setPassword] = useState("");
 
 const [stack,setStack] = useState('Individual Account');
@@ -77,8 +79,10 @@ console.log(selectedRole, "selectedRole");
   
   const verifyOtpWithBackend = async () => {
     console.log("Verifying OTP with backend...");
+    setOtpBtn('Checking...')
   
-    const storedUser = JSON.parse(localStorage.getItem("user"));
+  
+    const storedUser = JSON.parse(localStorage.getItem("USER"));
     const email = storedUser?.email;
   
     console.log("Stored user email:", email);
@@ -112,6 +116,7 @@ console.log(selectedRole, "selectedRole");
         setTimeout(() => setErrormessage(""), 1000);
         setIsCompleteOtp(false)
         setIsCompleteOtp(false);
+        setOtpBtn("Verify")
         return false;
       }
     } catch (error) {
@@ -119,6 +124,7 @@ console.log(selectedRole, "selectedRole");
       setErrormessage("OTP verification failed");
       setTimeout(() => setErrormessage(""), 1000);
       setIsCompleteOtp(false)
+      setOtpBtn("Verify")
       return false;
     }
   };
@@ -132,7 +138,7 @@ console.log(selectedRole, "selectedRole");
 
 
   return (
-    <Globlaxcontex.Provider value={{Successmessage, setSuccessmessage,registerStep, setRegisterStep,handleContinue,selectedRole, setSelectedRole,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,password, setPassword,handlesubmitform,disablebtn,setdisablebtn,confirmpassword, 
+    <Globlaxcontex.Provider value={{otpbtn,setOtpBtn,Successmessage, setSuccessmessage,registerStep, setRegisterStep,handleContinue,selectedRole, setSelectedRole,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,password, setPassword,handlesubmitform,disablebtn,setdisablebtn,confirmpassword, 
     setconfirmpassword,isCompleteOtp, setIsCompleteOtp,successValue,setsuccessvalue,stack,setStack,errormessage,setErrormessage,password, setPassword,confirmpassword, setconfirmpassword,otpCode, setOtpCode,verifyOtpWithBackend}}>
       {children}
     </Globlaxcontex.Provider>

@@ -6,9 +6,7 @@ import { useContext, useRef, useState, useEffect } from "react";
 export default function OTPInput({ length = 6, onComplete }) {
   const inputs = useRef([]);
   const [otp, setOtp] = useState(Array(length).fill(""));
-  const {otpCode, setOtpCode} = useContext(Globlaxcontex)
-
-  const { setIsCompleteOtp } = useContext(Globlaxcontex);
+  const { otpCode, setOtpCode, setIsCompleteOtp } = useContext(Globlaxcontex);
 
   const handleChange = (e, i) => {
     const value = e.target.value.replace(/[^0-9a-zA-Z]/g, "").toUpperCase();
@@ -22,10 +20,10 @@ export default function OTPInput({ length = 6, onComplete }) {
     setOtp(newOtp);
 
     const code = newOtp.join("");
-    setOtpCode(code); 
+    setOtpCode(code);
 
     if (code.length === length && !newOtp.includes("")) {
-      onComplete?.(code); // pass to parent if needed
+      onComplete?.(code);
     }
   };
 
@@ -35,20 +33,38 @@ export default function OTPInput({ length = 6, onComplete }) {
     }
   };
 
-  
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData("text").replace(/[^0-9a-zA-Z]/g, "").toUpperCase();
+
+    if (pasted.length === length) {
+      const newOtp = pasted.split("").slice(0, length);
+      setOtp(newOtp);
+      setOtpCode(pasted);
+
+      newOtp.forEach((char, i) => {
+        if (inputs.current[i]) {
+          inputs.current[i].value = char;
+        }
+      });
+
+      onComplete?.(pasted);
+      setIsCompleteOtp(true);
+    }
+  };
+
   useEffect(() => {
     const complete = otp.every(val => val.length === 1);
     setIsCompleteOtp(complete);
   }, [otp, setIsCompleteOtp]);
 
-  
   useEffect(() => {
     console.log("Full OTP:", otpCode);
   }, [otpCode]);
 
   return (
     <div className="flex flex-col items-center gap-4">
-      <div className="flex gap-2 justify-center">
+      <div className="flex gap-2 justify-center" onPaste={handlePaste}>
         {[...Array(length)].map((_, i) => (
           <input
             key={i}

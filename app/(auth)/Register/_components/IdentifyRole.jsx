@@ -21,13 +21,22 @@ export default function IdentifyRole() {
   const [isValidEmail, setIsValidEmail] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
+  
+  // const [firstName, setFirstName] = useState("");
+// const [lastName, setLastName] = useState("");
+
+const [firstNameSuccess, setFirstNameSuccess] = useState(false);
+const [lastNameSuccess, setLastNameSuccess] = useState(false);
+const [isusername,setUserName]=useState(false)
+const [checkEmail,setCheckEmail]=useState(false)
 
 
-  const {otpCode,successValue,setsuccessvalue,Successmessage, setSuccessmessage,verifyOtpWithBackend, stack,setStack,password, setPassword,confirmpassword, setconfirmpassword,isCompleteOtp,registerStep, setRegisterStep ,selectedRole, setSelectedRole,errormessage,setErrormessage,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,setdisablebtn,handleContinue} = useContext(Globlaxcontex);
+  const {otpbtn,setOtpBtn,otpCode,successValue,setsuccessvalue,Successmessage, setSuccessmessage,verifyOtpWithBackend, stack,setStack,password, setPassword,confirmpassword, setconfirmpassword,isCompleteOtp,registerStep, setRegisterStep ,selectedRole, setSelectedRole,errormessage,setErrormessage,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,setdisablebtn,handleContinue} = useContext(Globlaxcontex);
 
   
   useEffect(() => {
     setsuccessvalue(false)
+    setUserName(false)
     setSuccessmessage(
       <span className="flex items-center gap-2">
         <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
@@ -40,7 +49,7 @@ export default function IdentifyRole() {
     
 
     if (username.length < 1) {
-      setErrormessage("Username must be at least 1 characters long.");
+      
       setSuccessmessage('');
       setdisablebtn(true)
       return;
@@ -58,6 +67,8 @@ export default function IdentifyRole() {
           setErrormessage('');
           setSuccessmessage(responseData.message || "Username is available.");
           setsuccessvalue(true)
+          setUserName(true)
+
           setTimeout(() => {
             setSuccessmessage('');
           }, 1000);
@@ -107,17 +118,15 @@ export default function IdentifyRole() {
       setdisablebtn(!selectedRole);
     
     }
-     else if (registerStep === 3) {
-      if ( firstName.length < 1 || lastName.length < 1) {
-        setdisablebtn(true);
-        setsuccessvalue(false)
-        return;
-      }
-      
-
-      setdisablebtn(!(firstName && lastName));
-      setsuccessvalue(true)
-    } 
+     else if  (registerStep === 3) {
+      const isFirstValid = firstName.trim().length > 0;
+      const isLastValid = lastName.trim().length > 0;
+    
+      setFirstNameSuccess(isFirstValid);
+      setLastNameSuccess(isLastValid);
+    
+      setdisablebtn(!(isFirstValid && isLastValid)); // only enable if both valid
+    }
     else if (registerStep === 5) {
       
       setIsValidEmail(!isCompleteOtp);
@@ -134,21 +143,21 @@ export default function IdentifyRole() {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const isValidEmail = email ? emailRegex.test(email.trim()) : false;
     setsuccessvalue(isValidEmail)
+    setCheckEmail(isValidEmail)
     
-    // Password length validation (minimum 8 characters)
+   
     const isValidPasswordLength = password && password.trim().length >= 8;
     
     const allFieldsFilled = email?.trim() && password?.trim() && confirmpassword?.trim();
     const passwordsMatch = password === confirmpassword;
     
-    // Set error state if password is provided but less than 8 characters
+    
     if (password?.trim() && password.trim().length < 8) {
         console.error("Password must be at least 8 characters long");
-        // You could set an error state here instead:
-        // setPasswordError("Password must be at least 8 characters long");
+        
     }
     
-    // Button should be disabled if any condition is not met
+    
     setIsValidEmail(!(allFieldsFilled && passwordsMatch && isValidEmail && isValidPasswordLength));
     
 }, [email, password, confirmpassword])
@@ -157,7 +166,6 @@ export default function IdentifyRole() {
 const handleEmailVerification = async () => {
   setErrormessage('');
   setSuccessmessage('');
-  
   setButtonDisabled('Loading...');
 
   try {
@@ -168,52 +176,45 @@ const handleEmailVerification = async () => {
       lastName,
       username,
       role: selectedRole,
-      
     });
 
     console.log("Response from server:", res);
 
     if (res.status === 201 || res.status === 200) {
       const responseData = res.data;
-      console.log("Data set successfully:", responseData.message);
+      console.log("Data set successfully:", responseData);
 
       setErrormessage('');
       setSuccessmessage(responseData.message);
-
       console.log('Success message:', responseData.message);
 
+      const { accessToken, refreshToken,  user } = res.data;
 
-      const { accessToken, refreshToken, data: user } = res.data;
-
-       localStorage.setItem("accessToken", accessToken);
-       localStorage.setItem("refreshToken", refreshToken);
-       localStorage.setItem("USER", JSON.stringify(user));
-       
-    
+      localStorage.setItem("accessToken", accessToken);
+      localStorage.setItem("refreshToken", refreshToken);
+      localStorage.setItem("USER", JSON.stringify(user)); 
 
       setTimeout(() => {
         setSuccessmessage('');
       }, 1000);
-      setButtonDisabled('Done')
 
+      setButtonDisabled('Done');
       setRegisterStep((prev) => prev + 1);
     }
   } catch (error) {
-    
+    setButtonDisabled('continue');
+
     if (error.response) {
-      setButtonDisabled('continue');
       console.log("Error response:", error.response);
       const errorMessage = error.response.data.message || "Something went wrong.";
       setErrormessage(errorMessage);
-      
     } else {
-      setButtonDisabled('continue');
-      
-      // setErrormessage("Network error or unexpected issue.");
-      
+      console.error("Unexpected error:", error);
+      setErrormessage("An unexpected error occurred.");
     }
   }
 };
+
 
 const handleviewdashboard = () => {
   const storedUser = JSON.parse(localStorage.getItem("user"));
@@ -389,7 +390,7 @@ const handleResend = async () => {
             />
               
             <div className="flex flex-col px  gap-5">
-              <RegisterInput onchange={(e)=>setCodeName(e.target.value)} value={username} textCenter={'text-start'} placeholder="ENTER YOUR USERNAME" handledelete={()=>setCodeName('')} />
+              <RegisterInput successValue={isusername} onchange={(e)=>setCodeName(e.target.value)} value={username} textCenter={'text-start'} placeholder="ENTER YOUR USERNAME" handledelete={()=>setCodeName('')} />
               <SuccessMessage message={Successmessage} />
               <Registerbtn text='Continue' onClick={handleContinue} />
 
@@ -407,8 +408,10 @@ const handleResend = async () => {
               text="We need your real-world name."
             />
             <div className="flex flex-col gap-5">
-              <RegisterInput handledelete={()=>setFirstName("")} hidden='hidden' onchange={(e)=>setFirstName(e.target.value)} value={firstName} placeholder="First Name" />
-              <RegisterInput handledelete={()=>setLastName("")} hidden='hidden' onchange={(e)=>setLastName(e.target.value)} value={lastName} placeholder="Last Name" />
+              <RegisterInput   successValue={firstNameSuccess}
+ handledelete={()=>setFirstName("")} hidden='hidden' onchange={(e)=>setFirstName(e.target.value)} value={firstName} placeholder="First Name" />
+              <RegisterInput successValue={lastNameSuccess}
+ handledelete={()=>setLastName("")} hidden='hidden' onchange={(e)=>setLastName(e.target.value)} value={lastName} placeholder="Last Name" />
               <Registerbtn text='Continue' onClick={handleContinue} />
             </div>
           
@@ -425,7 +428,7 @@ const handleResend = async () => {
             />
             <div className="flex flex-col gap-5">
               
-              <RegisterInput handledelete={()=>setEmail("")} onchange={(e)=>setEmail(e.target.value)} value={email} type='email'  placeholder="Email Address" />
+              <RegisterInput successValue={checkEmail} handledelete={()=>setEmail("")} onchange={(e)=>setEmail(e.target.value)} value={email} type='email'  placeholder="Email Address" />
               <PasswordInput onchange={(e)=>setPassword(e.target.value)} value={password} type='password'  placeholder=' password'  />
                {registerStep === 4 && password && password.length < 8 && (
                    <p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center"> Password must be at least 8 characters  </p>)}
@@ -459,7 +462,7 @@ const handleResend = async () => {
                 <div className="flex flex-col gap-1">
               
 
-                    <button onClick={verifyOtpWithBackend} className={`h-[60px] w-full rounded-[15px]  ${otpCode.length === 6 ? 'btn' :'bg-[#404040] cursor-not-allowed disabled ' }`}>Verify</button>
+                    <button onClick={verifyOtpWithBackend} className={`h-[60px] w-full rounded-[15px]  ${otpCode.length === 6 ? 'btn' :'bg-[#404040] cursor-not-allowed disabled ' }`}>{otpbtn} </button>
                          {errormessage && (<p className="text-[#FF5D5D] font-[300] leading-[57px] text-[16px] text-center">{errormessage}</p> )}
                           <SuccessMessage message={Successmessage} />
 

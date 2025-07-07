@@ -4,7 +4,7 @@ export function Editprofilebtn({
   height = 'h-[47.16px]',
   type = 'text',
   value,
-  onChange, // ✅ You need to accept onChange as a prop
+  onChange,
   readOnly = false,
 }) {
   const id = label.toLowerCase().replace(/\s+/g, '-');
@@ -20,7 +20,7 @@ export function Editprofilebtn({
       <input
         style={{ paddingLeft: '10px', paddingRight: '10px' }}
         value={value || ''}
-        onChange={onChange} // ✅ Pass the onChange prop directly
+        onChange={onChange} 
         type={type}
         readOnly={readOnly}
         id={id}

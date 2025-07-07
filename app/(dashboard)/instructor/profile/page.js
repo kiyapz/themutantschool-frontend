@@ -37,6 +37,40 @@ export default function Profile() {
     });
     
      
+    useEffect(()=>{
+      
+     async function call() {
+        try {
+          const storedUser = localStorage.getItem("USER");
+          const accessToken = localStorage.getItem("login-accessToken");
+          console.log(accessToken, 'access token');
+          
+          if (!storedUser || !accessToken) {
+            console.warn("User or token not found in localStorage");
+            return;
+          }
+          
+          const parsedUser = JSON.parse(storedUser);
+          const id = parsedUser._id;
+          console.log(id, "this is userid");
+          
+          const response = await profilebase.get(`/user-profile/${id}`, {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          });
+          
+          console.log("User profile exactly:", response.data.data);
+          setUserProfile(response.data.data); 
+          
+        } catch (error) {
+          console.log("Failed to load user", error.response?.data || error.message);
+        }
+      }
+
+      call()
+
+    },[])
 
 
      
@@ -78,7 +112,7 @@ export default function Profile() {
         const accessToken = localStorage.getItem("login-accessToken");
     
         if (!storedUser || !accessToken) {
-          console.warn("User not found ");
+          console,log("User not found ");
           return;
         }
     
@@ -211,7 +245,7 @@ export default function Profile() {
 
                             <div>
                                 <p className=" font-[600] text-[26px] sm:text-[35px] leading-[150%] ">
-                                {user && (<span>{user.firstName} {user.lastName} </span>)}
+                                {userUpdatedValue.firstName} <span>{userUpdatedValue.lastName}</span>
                                   </p>
                                 <p className=" text-[17px] text-[var(--button-border-color)]  sm:text-[24px] leading-[150%] sm:text-[var(--greencolor)] ">Product Designer || Tutor</p>
                             </div>
@@ -219,8 +253,8 @@ export default function Profile() {
 
 
                             <button onClick={()=>{
-                            setEditeProfile(true);
-                             FetchUserProfile();}} style={{paddingLeft:'8px',paddingRight:'8px'}}  className="bg-[var(--purpel-btncolor)] w-fit cursor-pointer   flexcenter gap-1 rounded-[10px] text-[8px] sm:text-[14px] leading-[40px] font-[700]  "><span><FiEdit size={8} /></span> Edit Profile</button>
+                            setEditeProfile(true)
+                             }} style={{paddingLeft:'8px',paddingRight:'8px'}}  className="bg-[var(--purpel-btncolor)] w-fit cursor-pointer   flexcenter gap-1 rounded-[10px] text-[8px] sm:text-[14px] leading-[40px] font-[700]  "><span><FiEdit size={8} /></span> Edit Profile</button>
                          </div>
 
 
