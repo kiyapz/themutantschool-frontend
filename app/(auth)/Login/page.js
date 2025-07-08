@@ -71,7 +71,7 @@ export default function Login() {
         }
       } catch (error) {
         console.error("Login error:", error);
-        setErrormessage(error?.response?.data?.message || "Login failed. Please try again.");
+        setErrormessage(error?.message || "Login failed. Please try again. Network Error.");
         setTimeout(() => setErrormessage(""), 2000);
         setButtonvalue("Enter the Lab");
         return false;

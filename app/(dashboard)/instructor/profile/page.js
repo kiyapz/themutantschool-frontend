@@ -73,7 +73,7 @@ export default function Profile() {
         fetchProfile();
     }, [setUserProfile, router]);
 
-    // / Update form values when userProfile changes
+    
     useEffect(() => {
         if (userProfile) {
             setUserUpdatedValue({
@@ -103,7 +103,7 @@ export default function Profile() {
         }
     }, [userProfile, setUserUpdatedValue]);
 
-    // Updated function to handle nested profile object
+    
     const updateUserProfile = async () => {
         setIsLoading(true);
         setError(null);
@@ -120,9 +120,9 @@ export default function Profile() {
             const parsedUser = JSON.parse(storedUser);
             const id = parsedUser._id;
             
-            // Structure the data properly for nested objects
+           
             const updateData = {
-                // Direct user fields
+                
                 firstName: userUpdatedValue.firstName || "",
                 lastName: userUpdatedValue.lastName || "",
                 username: userUpdatedValue.username || "",
@@ -135,7 +135,7 @@ export default function Profile() {
                 dateOfBirth: userUpdatedValue.dateOfBirth || "",
                 ExpertiseTags: userUpdatedValue.ExpertiseTags || [],
                 
-                // Nested profile object
+                
                 profile: {
                     bio: userUpdatedValue.bio || "",
                     headline: userUpdatedValue.Headline || "",
@@ -166,14 +166,14 @@ export default function Profile() {
             
             console.log("Profile updated successfully:", response.data);
             
-            // Update the profile state with the new data
+           
             setUserProfile(response.data.data);
             setEditProfile(false);
             
         } catch (error) {
             console.error("Failed to update user profile:", error.response?.data || error.message);
             setError("Failed to update profile. Please try again.");
-            
+            router.push("/Login");
             if (error.response?.status === 401 || error.response?.status === 403) {
                 router.push("/Login");
             }
@@ -182,7 +182,7 @@ export default function Profile() {
         }
     };
 
-    // Loading state
+   
     if (isLoading && !userProfile) {
         return (
             <div className="h-fit w-full max-w-[1200px] flex items-center justify-center">
@@ -191,7 +191,7 @@ export default function Profile() {
         );
     }
 
-    // Error state
+    
     if (error && !userProfile) {
         return (
             <div className="h-fit w-full max-w-[1200px] flex flex-col items-center justify-center gap-4">
