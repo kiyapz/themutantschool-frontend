@@ -7,6 +7,7 @@ import Link from "next/link";
 import InstructorDropdown from "./InstructorDropdown";
 import ProfiledropDown from "../profile/_components/ProfiledropDown";
 import { InstructorContext } from "./context/InstructorContex";
+import UserProfileImage from "../profile/_components/UserProfileImage";
 
 
 export default function NavBar({ onMenuClick }) {
@@ -51,7 +52,7 @@ export default function NavBar({ onMenuClick }) {
 
       {/* Mobile NavBar */}
       <div 
-        style={{paddingLeft:'10px',paddingRight:'10px'}} 
+        style={{paddingLeft:'5px',paddingRight:'5px'}} 
         className="sm:hidden z-50 fixed top-0 left-0 w-full h-[79.88px] bg-black border-b border-gray-800 backdrop-blur-sm flex items-center justify-between px-4"
       >
         <div className="flex items-center gap-3">
@@ -73,7 +74,9 @@ export default function NavBar({ onMenuClick }) {
         <div className="flex items-center">
           <div className="h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
            {/* <Link href='/instructor/profile'>  */}
-           <div onClick={()=>setopenSmallScreenProfileDropDown(!openSmallScreenProfileDropDown)} className="w-[35px] h-[35px] bg-pink-200 rounded-full cursor-pointer"></div> 
+           <div onClick={()=>setopenSmallScreenProfileDropDown(!openSmallScreenProfileDropDown)} className="w-[35px] h-[35px] bg-pink-900 rounded-full cursor-pointer">
+            <UserProfileImage />
+            </div> 
            {/* </Link> */}
           </div>
         </div>

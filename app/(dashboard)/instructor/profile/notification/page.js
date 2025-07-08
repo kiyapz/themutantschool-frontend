@@ -5,6 +5,7 @@ import { FiEdit } from "react-icons/fi";
 import ToggleButton from "./_components/ToggleButton";
 import { useContext } from "react";
 import { InstructorContext } from "../../_components/context/InstructorContex";
+import UserProfileImage from "../_components/UserProfileImage";
 
 export default function Notification() {
     const {profiledisplay,setprofiledisplay} = useContext(InstructorContext)
@@ -23,7 +24,7 @@ export default function Notification() {
                        
                        <div className="flexcenter w-full h-fit flex-col  gap-3 ">
                             <div className="h-[100px] w-[100px] relative left-[10px] sm:left-0  xl:h-[150px] xl:w-[150px] rounded-full border-[11px] bg-pink-200 ">
-                                    
+                                       <UserProfileImage />   
                             </div>
 
                             <div>

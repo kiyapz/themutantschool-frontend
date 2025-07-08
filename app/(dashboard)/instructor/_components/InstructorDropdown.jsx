@@ -5,9 +5,10 @@ import Image from "next/image";
 
 import ProfiledropDown from "../profile/_components/ProfiledropDown";
 import { InstructorContext } from "./context/InstructorContex";
+import UserProfileImage from "../profile/_components/UserProfileImage";
 
 export default function InstructorDropdown() {
-  const {openlargeProfileDropdown, setopenlargeProfileDropdown,user} = useContext(InstructorContext);
+  const {openlargeProfileDropdown, setopenlargeProfileDropdown,user,userUpdatedValue} = useContext(InstructorContext);
   const [settingsOpen, setSettingsOpen] = useState(false);
   
   const dropdownRef = useRef();
@@ -32,15 +33,17 @@ export default function InstructorDropdown() {
         onClick={() => setopenlargeProfileDropdown(!openlargeProfileDropdown)}
         className="cursor-pointer flex items-center xl:justify-between gap-2 w-full rounded-[12px] bg-[#1A1A1A] px-4 py-2"
       >
-        <div className="w-[47px] h-[47px] bg-pink-200 rounded-full"></div>
+        <div className="w-[47px] h-[47px] bg-pink-200 rounded-full">
+               <UserProfileImage />
+        </div>
 
         <div className="flex items-center xl:justify-between gap-2 xl:gap-5">
           <div>
             <p className="text-[#308672] font-medium text-[13px] leading-[20px]">
-            {user && (<>{user.role} </>)}
+            {userUpdatedValue.role}
             </p>
-            <p className="text-[#D2D2D2] font-bold leading-[20px]">
-            {user && (<>{user.firstName} {user.lastName} </>)}
+            <p className="text-[#D2D2D2] font-bold text-[15px] leading-[20px]">
+            {userUpdatedValue.firstName} <span>{userUpdatedValue.lastName}</span> 
             </p>
           </div>
           <div>

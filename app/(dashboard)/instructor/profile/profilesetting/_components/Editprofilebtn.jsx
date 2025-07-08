@@ -19,7 +19,7 @@ export function Editprofilebtn({
       </label>
       <input
         style={{ paddingLeft: '10px', paddingRight: '10px' }}
-        value={value || ''}
+        value={value ?? ''}
         onChange={onChange} 
         type={type}
         readOnly={readOnly}
