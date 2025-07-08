@@ -73,7 +73,7 @@ export default function Profile() {
         fetchProfile();
     }, [setUserProfile, router]);
 
-    // Update form values when userProfile changes
+    // / Update form values when userProfile changes
     useEffect(() => {
         if (userProfile) {
             setUserUpdatedValue({
@@ -84,12 +84,14 @@ export default function Profile() {
                 bio: userProfile.profile?.bio || "",
                 facebook: userProfile.profile?.socialLinks?.facebook || "",
                 linkedin: userProfile.profile?.socialLinks?.linkedin || "",
-                website: userProfile.googleId || "",
+                website: userProfile.profile?.socialLinks?.website || "",
                 Twitter: userProfile.profile?.socialLinks?.twitter || "",
                 instagram: userProfile.profile?.socialLinks?.instagram || "",
+                youtube: userProfile.profile?.socialLinks?.youtube || "",
                 url: userProfile.profile?.avatar?.url || "",
                 publicId: userProfile.profile?.avatar?.publicId || "",
                 Headline: userProfile.profile?.headline || "",
+                introVideo: userProfile.profile?.introVideo || "",
                 ExpertiseTags: userProfile.ExpertiseTags || [], 
                 gender: userProfile.gender || "",
                 Phone: userProfile.phoneNumber || "",
@@ -100,43 +102,68 @@ export default function Profile() {
             });
         }
     }, [userProfile, setUserUpdatedValue]);
-    
-   
 
-    // Update user profile function
+    // Updated function to handle nested profile object
     const updateUserProfile = async () => {
         setIsLoading(true);
         setError(null);
-
+        
         try {
             const storedUser = localStorage.getItem("USER");
             const accessToken = localStorage.getItem("login-accessToken");
-
+            
             if (!storedUser || !accessToken) {
                 setError("Authentication required. Please log in again.");
                 return;
             }
-
+            
             const parsedUser = JSON.parse(storedUser);
             const id = parsedUser._id;
-
-            const formData = new FormData();
-
-            // Only append non-empty values
-            Object.keys(userUpdatedValue).forEach(key => {
-                const value = userUpdatedValue[key];
-                if (value !== null && value !== undefined && value !== "") {
-                    formData.append(key, value);
+            
+            // Structure the data properly for nested objects
+            const updateData = {
+                // Direct user fields
+                firstName: userUpdatedValue.firstName || "",
+                lastName: userUpdatedValue.lastName || "",
+                username: userUpdatedValue.username || "",
+                email: userUpdatedValue.email || "",
+                gender: userUpdatedValue.gender || "",
+                phoneNumber: userUpdatedValue.Phone || "",
+                role: userUpdatedValue.role || "",
+                nationality: userUpdatedValue.nationality || "",
+                preferredLanguage: userUpdatedValue.preferredLanguage || "",
+                dateOfBirth: userUpdatedValue.dateOfBirth || "",
+                ExpertiseTags: userUpdatedValue.ExpertiseTags || [],
+                
+                // Nested profile object
+                profile: {
+                    bio: userUpdatedValue.bio || "",
+                    headline: userUpdatedValue.Headline || "",
+                    introVideo: userUpdatedValue.introVideo || "",
+                    socialLinks: {
+                        facebook: userUpdatedValue.facebook || "",
+                        linkedin: userUpdatedValue.linkedin || "",
+                        website: userUpdatedValue.website || "",
+                        twitter: userUpdatedValue.Twitter || "",
+                        instagram: userUpdatedValue.instagram || "",
+                        youtube: userUpdatedValue.youtube || ""
+                    },
+                    avatar: {
+                        url: userUpdatedValue.url || "",
+                        publicId: userUpdatedValue.publicId || ""
+                    }
                 }
-            });
-
-            const response = await profilebase.put(`/user-profile/${id}`, formData, {
+            };
+            
+            console.log("Sending update data:", updateData);
+            
+            const response = await profilebase.put(`/user-profile/${id}`, updateData, {
                 headers: {
                     Authorization: `Bearer ${accessToken}`,
-                    'Content-Type': 'multipart/form-data',
+                    'Content-Type': 'application/json',
                 },
             });
-
+            
             console.log("Profile updated successfully:", response.data);
             
             // Update the profile state with the new data
