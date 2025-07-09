@@ -1,201 +1,175 @@
+import { useState } from "react";
+import { FiEdit, FiTrash2 } from "react-icons/fi";
+import { FaPlay } from "react-icons/fa";
+import { MdOutlineQuiz } from "react-icons/md";
+import { FaClipboardList } from "react-icons/fa";
 import Actionbtn from "./Actionbtn";
 import Analitiesbtn from "./Analitiesbtn";
-import { FiEdit, FiTrash2 } from 'react-icons/fi' 
-import { FaPlay } from 'react-icons/fa'
-import { MdOutlineQuiz } from 'react-icons/md' 
-import { FaClipboardList } from 'react-icons/fa' 
 
 export default function PreviewandLaunch() {
-    return (
-        <div className="flex flex-col gap-10 ">
-            <div className="w-full h-fit grid xl:grid-cols-3 gap-10  ">
-                 <div className="border  border-[#6D4879] w-full h-[30vh] sm:h-full rounded-[13px] ">1</div>
-                 <div className="col-span-2 ">
-                    <p className="font-[600] text-[25px] text-center sm:text-start sm:text-[33px] leading-[40px] ">Mobile App Design With Figma</p>
-                     <div className="flex items-center gap-4 ">
-                        <button className="bg-[#7343B3] text-black rounded-[4px] w-[86.67px] ">Published</button>
-                        <p className="text-[#728C51] font-[600] text-[10px] leading-[40px] ">Created: Jan 11, 2025 / Last updated: 2 Days ago</p>
+  const [activeTab, setActiveTab] = useState("Mission Overview");
 
-                     </div>
+  const renderTabContent = () => {
+    if (activeTab === "Mission Overview") {
+      return (
+        <div style={{padding:'10px'}} className="flex flex-col gap-5">
+          <p>
+            Welcome to the ultimate web development journey! This comprehensive mission will take you from complete beginner to confident web developer.
+            You'll learn the core technologies that power the modern web: HTML for structure, CSS for styling, and JavaScript for interactivity. By the end of this mission, you'll have built several real-world projects and gained the skills needed to create your own websites.
+          </p>
 
-                     <p className="h-[150px] overflow-auto font-[300] text-[16px] leading-[30px] ">
-                     In this course, you'll unlock the core powers of mobile UI/UX design using Figma. Learn to craft sleek, intuitive app interfaces, build scroll-stopping prototypes, and think like a true product mutant. Whether you're just starting out or leveling up, this is your crash course in creating mobile magic—no code, just design sorcery.
-                     </p>
+          <p>What you’ll Learn:</p>
+          <ul>
+            <li>HTML fundamentals and semantic markup</li>
+            <li>CSS styling, layouts, and responsive design</li>
+            <li>JavaScript programming and DOM manipulation</li>
+            <li>Modern web development best practices</li>
+          </ul>
 
+          <p className="">Your journey to becoming a web sorcerer starts here!</p>
+        </div>
+      );
+    } else if (activeTab === "Missions Levels") {
+      const levels = [
+        {
+          level: 1,
+          title: "HTML Genesis",
+          duration: "1.5 hours",
+          capsules: 4,
+          quizzes: 10,
+          time: "90 minutes",
+          locked: false,
+        },
+        {
+          level: 1,
+          title: "CSS Evolution",
+          duration: "2.5 hours",
+          capsules: 5,
+          quizzes: 10,
+          time: "150 minutes",
+          locked: true,
+        },
+        {
+          level: 1,
+          title: "HTML Genesis",
+          duration: "2 hours",
+          capsules: 3,
+          quizzes: 10,
+          time: "120 minutes",
+          locked: true,
+        },
+      ];
 
-                 </div>
+      return (
+        <div className="flex flex-col gap-5">
+          {levels.map((level, index) => (
+            <div
+            style={{padding:'20px'}}
+              key={index}
+              className={`rounded-[12px] px-4 py-5 ${
+                level.locked ? "bg-[#1D1D1D]" : "bg-[#232D3A]"
+              } text-white flex flex-col gap-3`}
+            >
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-4">
+                  <div className="h-8 w-8 rounded-full bg-[#BDE75D] text-black flex items-center justify-center text-sm font-bold">
+                    {level.level}
+                  </div>
+                  <div>
+                    <p className="font-[600] text-[16px]">{level.title}</p>
+                    <p className="text-[13px] text-gray-400">
+                      {level.duration} • {level.capsules} Power Capsules
+                    </p>
+                  </div>
+                </div>
 
+                <div>
+                  {level.locked ? (
+                    <span className="text-gray-400 text-lg">🔒</span>
+                  ) : (
+                    <span className="text-gray-400 text-lg">›</span>
+                  )}
+                </div>
+              </div>
+
+              <p className="text-sm text-gray-300">
+                Master HTML fundamentals, tags, and document structure. Build your first web page.
+              </p>
+
+              <div className="flex gap-6 text-xs text-gray-400 mt-2">
+                <p>📦 {level.capsules} Capsules</p>
+                <p>❓ {level.quizzes} Quiz Questions</p>
+                <p>🎥 {level.time}</p>
+              </div>
             </div>
+          ))}
+        </div>
+      );
+    }
+  };
 
-            <div className="grid gap-5  xl:grid-cols-3  ">
-                <Analitiesbtn text1={'Total Enrollment'} text2={'2'} text3={'+2 from last month'} />
-                <Analitiesbtn  text1={'Completion Rate'} text2={'78%'} text3={'+2 from last month'} />
-                <Analitiesbtn text1={'Mutant Rating'} text2={'4.8'} text3={'+2 from last month'} />
+  const tabs = ["Mission Overview", "Missions Levels"];
 
-            </div>
+  return (
+    <div className="w-full h-full p-5">
+      {/* Mission banner */}
+      <div className="h-[343.54px] w-full bg-[var(--purpel-btncolor)] rounded-[15px] mb-8" />
 
-            <div  style={{paddingBottom:'20px'}}  className="flex flex-col gap-5 rounded-[20px] border border-[#535353]  ">
-
-
-                <div style={{padding:'30px'}} className="border-b border-[#535353]">
-                    <ul className="flex items-center gap-3 ">
-                        <li>Curriculum</li>
-                        <li>Students</li>
-                        <li>Resources</li>
-                        <li>Interactions</li>
-                        <li>Interactions</li>
-                    </ul>
-                </div>
-
-
-                <div style={{padding:'30px'}} className="w-full flex items-center justify-between ">
-                    <p>Course Curriculum</p>
-                    <button style={{padding:'5px 10px'}} className="bg-[#5E36A5] rounded-[8px]  ">+    Add Chapter</button>
-                </div>
-
-                <div style={{margin:'0 30px '}} className="flex flex-col gap-5 rounded-[15px] border  border-[#535353] ">
-
-                <div style={{padding:'10px'}} className="w-full border-b border-[#535353] xl:flex items-center justify-between">
-                    <div style={{paddingLeft:'50px'}}>
-                        <p className="text-[18px] font-[700] text-[16px] leading-[40px] ">Introduction to Mobile App Designs</p>
-                        <p className="text-[#838383] text-[12px] font-[300]  ">3 Lessons / 30m</p>
-                    </div>
-                    <div className="flex items-center gap-5 ">
-                        <Actionbtn  icon={<FiEdit />} style={'text-[#002BFF] border-[#002BFF] border border-[1px]' } text={'Edit'} />
-                        <Actionbtn  icon={<FiTrash2 />} style={'text-[#FF0000] border-[#FF0000] border border-[1px]' } text={'Delete'} />
-                        <Actionbtn style={'bg-[#5E36A5] border-[0px] ' } text={'Publish'} />
-                    </div>
-
-                </div>
-
-                <div style={{padding:'25px'}} className="flex flex-col gap-5">
-                    <div style={{paddingLeft:'15px'}} className="flex border-[0.5px] border-[#535353] bg-[#352e2b] rounded-[8px] items-center gap-3">
-                        <div>
-                            <FaClipboardList />
-                        </div>
-                       
-                        <div>
-                        <p className="text-[18px] font-[700] text-[16px] leading-[40px] ">A Summary of Design</p>
-                        <p className="text-[#838383] text-[12px] font-[300]  ">Text  . 10 minutes</p>
-                        </div>
-                    </div>
-
-
-                    <div style={{paddingLeft:'15px'}} className="flex border-[0.5px] rounded-[8px] border-[#535353] bg-[#352e2b] items-center gap-3">
-                        <div>
-                            <FaPlay />
-                        </div>
-                       
-                        <div>
-                        <p className="text-[18px] font-[700] text-[16px] leading-[40px] ">A Summary of Design</p>
-                        <p className="text-[#838383] text-[12px] font-[300]  ">Text  . 10 minutes</p>
-                        </div>
-                    </div>
-
-
-                    <div style={{paddingLeft:'15px'}} className="flex border-[0.5px] rounded-[8px] border-[#535353] bg-[#352e2b] items-center gap-3">
-                        <div>
-                            <MdOutlineQuiz />
-                        </div>
-                       
-                        <div>
-                        <p className="text-[18px] font-[700] text-[16px] leading-[40px] ">A Summary of Design</p>
-                        <p className="text-[#838383] text-[12px] font-[300]  ">Text  . 10 minutes</p>
-                        </div>
-                    </div>
-
-
-
-                    <button
-                
-                className="w-full h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white py-[15px]"
+      {/* Main content grid */}
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+        {/* Left side (2 columns) */}
+        <div style={{ padding: "30px" }} className="xl:col-span-2 flex flex-col gap-4">
+          {/* Tabs */}
+          <div className="flex gap-5 border-b border-[#333] pb-2">
+            {tabs.map((tab) => (
+              <button
+              style={{padding:'15px'}}
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className={`text-sm sm:text-base font-medium pb-1 ${
+                  activeTab === tab
+                    ? "border-b-2 border-[#BDE75D] text-[#BDE75D]"
+                    : "text-white"
+                }`}
               >
-                + Add Lesson
+                {tab}
               </button>
-                </div>
-                </div>
+            ))}
+          </div>
 
-
-
-
-                <div style={{margin:'0 30px '}} className="flex flex-col gap-5 rounded-[15px] border  border-[#535353] ">
-
-<div style={{padding:'10px'}} className="w-full border-b border-[#535353] xl:flex items-center justify-between">
-    <div style={{paddingLeft:'50px'}}>
-        <p className="text-[18px] font-[700] text-[16px] leading-[40px] ">Figma Basics</p>
-        <p className="text-[#838383] text-[12px] font-[300]  ">3 Lessons / 25m</p>
-    </div>
-    <div className="flex items-center gap-5 ">
-        <Actionbtn  icon={<FiEdit />} style={'text-[#002BFF] border-[#002BFF] border border-[1px]' } text={'Edit'} />
-        <Actionbtn  icon={<FiTrash2 />} style={'text-[#FF0000] border-[#FF0000] border border-[1px]' } text={'Delete'} />
-        <Actionbtn style={'bg-[#5E36A5] border-[0px] ' } text={'Publish'} />
-    </div>
-
-</div>
-
-<div style={{padding:'25px'}} className="flex flex-col gap-5">
-    <div style={{paddingLeft:'15px'}} className="flex border-[0.5px] border-[#535353] bg-[#5E31A1] rounded-[8px] items-center gap-3">
-        <div>
-            <FaPlay />
+          {/* Tab Content */}
+          <div style={{ padding: "10px" }} className="pt-4">
+            {renderTabContent()}
+          </div>
         </div>
-       
-        <div>
-        <p className="text-[18px] font-[700] text-[16px] leading-[40px] ">Basic Tool in Figma</p>
-        <p className="text-[#838383] text-[12px] font-[300]  ">Video  . 15 minutes</p>
-        </div>
-    </div>
 
+        {/* Right side (Instructor Info) */}
+        <div
+          style={{ padding: "15px" }}
+          className="bg-[var(--black-bg)] rounded-[12px] p-5"
+        >
+          <p style={{marginBottom:'20px'}} className="text-[24px] font-[600] text-[var(--sidebar-hovercolor)] mb-4">
+            Mission Instructor
+          </p>
 
-
-
-
-    
-
-
-
-    <button
-
-className="w-full h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white py-[15px]"
->
-+ Add Lesson
-</button>
-</div>
-</div>
-
-
-
-
-
-
+          <div style={{marginBottom:'10px'}} className="flex items-center gap-4 mb-3">
+            <div className="h-[40px] border border-[var(--sidebar-hovercolor)] w-[40px] rounded-full bg-gray-500" />
+            <div>
+              <p className="font-medium">Etieno Ekanem</p>
+              <p className="text-sm text-gray-400">Product Designer || Tutor</p>
             </div>
+          </div>
 
+          <p style={{marginBottom:'10px'}} className="text-sm text-gray-300 mb-4 leading-[22px]">
+            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua...
+          </p>
 
-
-
-            <div className="grid xl:grid-cols-3 gap-5 w-full ">
-<div style={{paddingLeft:'20px'}} className="bg-[#0F0F0F] h-[145.18px] rounded-[12px] flex items-center gap-3 ">
-    <div className="h-[71.59px] w-[71.59px] rounded-[10px] bg-[#4B68414D] text-[#7BBD25] flexcenter ">!</div>
-    <div>
-        <p className="text-[22px] font-[700] leading-[40px]  ">Upload Content</p>
-        <p className="text-[10px] font-[300] leading-[15px]  ">Add videos, documents and other course materials</p>
-    </div>
-</div>
-<div style={{paddingLeft:'20px'}} className="bg-[#0F0F0F] h-[145.18px] rounded-[12px] flex items-center gap-3 ">
-    <div className="h-[71.59px] w-[71.59px] rounded-[10px] bg-[#4953754D] text-[#5F7ADD] flexcenter ">!</div>
-    <div>
-        <p className="text-[22px] font-[700] leading-[40px]  ">Students Messages</p>
-        <p className="text-[10px] font-[300] leading-[15px]  ">5 New messages awaiting response</p>
-    </div>
-</div>
-<div style={{paddingLeft:'20px'}} className="bg-[#0F0F0F] h-[145.18px] rounded-[12px] flex items-center gap-3 ">
-    <div className="h-[71.59px] w-[71.59px] rounded-[10px] bg-[#73643F4D] text-[#CC6525] flexcenter ">!</div>
-    <div>
-        <p className="text-[22px] font-[700] leading-[40px]  ">Analytics Report</p>
-        <p className="text-[10px] font-[300] leading-[15px]  ">Generate detail course performance insight</p>
-    </div>
-</div>
-
-</div>
+          <div className="flex items-center justify-between">
+            <p className="font-medium text-sm text-white">Rating:</p>
+            <p className="text-[var(--sidebar-hovercolor)] font-bold text-sm">4.5</p>
+          </div>
         </div>
-    )
+      </div>
+    </div>
+  );
 }

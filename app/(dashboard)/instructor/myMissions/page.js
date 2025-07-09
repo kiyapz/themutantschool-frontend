@@ -195,8 +195,9 @@ export default function page() {
                
 
                {studetcourse.slice(0,9).map((el) => (
+                <Link href={`/instructor/myMissions/${el.id}`} key={el.id}>
                      <div
-                       key={el.id}
+                       
                       
                        className="  w-full flex flex-col xl:max-w-[410.14px] h-[447.91px] bg-[#0F0F0F] rounded-[20px] p-4 shrink-0"
                      >
@@ -254,6 +255,7 @@ export default function page() {
                          </div>
                        </div>
                      </div>
+                 </Link>
                    ))}
 
 
