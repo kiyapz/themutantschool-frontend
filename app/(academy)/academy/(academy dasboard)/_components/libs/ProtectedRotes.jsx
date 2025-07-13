@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 const ProtectedRoute = ({ children, allowedRoles }) => {
   const router = useRouter();
   const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true); 
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
@@ -16,7 +16,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         setUser(parsedUser);
 
         if (!allowedRoles.includes(parsedUser.type)) {
-          router.push("/academy/Login"); 
+          router.push("/academy/Login");
         }
       } catch (error) {
         console.error("Failed to parse user:", error);
@@ -29,7 +29,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     setLoading(false);
   }, []);
 
-  if (loading || !user) return null; 
+  if (loading || !user) return null;
 
   return children;
 };

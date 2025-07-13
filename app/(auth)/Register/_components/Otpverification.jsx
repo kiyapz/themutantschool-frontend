@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { Globlaxcontex } from "@/context/Globlaxcontex";
 import { useContext, useRef, useState, useEffect } from "react";
@@ -35,7 +35,10 @@ export default function OTPInput({ length = 6, onComplete }) {
 
   const handlePaste = (e) => {
     e.preventDefault();
-    const pasted = e.clipboardData.getData("text").replace(/[^0-9a-zA-Z]/g, "").toUpperCase();
+    const pasted = e.clipboardData
+      .getData("text")
+      .replace(/[^0-9a-zA-Z]/g, "")
+      .toUpperCase();
 
     if (pasted.length === length) {
       const newOtp = pasted.split("").slice(0, length);
@@ -54,7 +57,7 @@ export default function OTPInput({ length = 6, onComplete }) {
   };
 
   useEffect(() => {
-    const complete = otp.every(val => val.length === 1);
+    const complete = otp.every((val) => val.length === 1);
     setIsCompleteOtp(complete);
   }, [otp, setIsCompleteOtp]);
 
@@ -68,11 +71,11 @@ export default function OTPInput({ length = 6, onComplete }) {
         {[...Array(length)].map((_, i) => (
           <input
             key={i}
-            ref={el => (inputs.current[i] = el)}
+            ref={(el) => (inputs.current[i] = el)}
             maxLength={1}
             value={otp[i]}
-            onChange={e => handleChange(e, i)}
-            onKeyDown={e => handleKeyDown(e, i)}
+            onChange={(e) => handleChange(e, i)}
+            onKeyDown={(e) => handleKeyDown(e, i)}
             className="w-12 h-12 text-center text-xl border-b border-b-gray-300 focus:outline-none"
           />
         ))}

@@ -1,5 +1,4 @@
-'use client'
-
+"use client";
 
 import { useContext, useRef, useState, useEffect } from "react";
 import { ForgotPasswordContext } from "./ForgotpasswordContex";
@@ -7,7 +6,7 @@ import { ForgotPasswordContext } from "./ForgotpasswordContex";
 export default function OTPInput({ length = 6, onComplete }) {
   const inputs = useRef([]);
   const [otp, setOtp] = useState(Array(length).fill(""));
-  const {otpCode, setOtpCode} = useContext(ForgotPasswordContext)
+  const { otpCode, setOtpCode } = useContext(ForgotPasswordContext);
 
   const { setIsCompleteOtp } = useContext(ForgotPasswordContext);
 
@@ -23,7 +22,7 @@ export default function OTPInput({ length = 6, onComplete }) {
     setOtp(newOtp);
 
     const code = newOtp.join("");
-    setOtpCode(code); 
+    setOtpCode(code);
 
     if (code.length === length && !newOtp.includes("")) {
       onComplete?.(code); // pass to parent if needed
@@ -36,13 +35,11 @@ export default function OTPInput({ length = 6, onComplete }) {
     }
   };
 
-  
   useEffect(() => {
-    const complete = otp.every(val => val.length === 1);
+    const complete = otp.every((val) => val.length === 1);
     setIsCompleteOtp(complete);
   }, [otp, setIsCompleteOtp]);
 
-  
   useEffect(() => {
     console.log("Full OTP:", otpCode);
   }, [otpCode]);
@@ -53,11 +50,11 @@ export default function OTPInput({ length = 6, onComplete }) {
         {[...Array(length)].map((_, i) => (
           <input
             key={i}
-            ref={el => (inputs.current[i] = el)}
+            ref={(el) => (inputs.current[i] = el)}
             maxLength={1}
             value={otp[i]}
-            onChange={e => handleChange(e, i)}
-            onKeyDown={e => handleKeyDown(e, i)}
+            onChange={(e) => handleChange(e, i)}
+            onKeyDown={(e) => handleKeyDown(e, i)}
             className="w-12 h-12 text-center text-xl border-b border-b-gray-300 focus:outline-none"
           />
         ))}

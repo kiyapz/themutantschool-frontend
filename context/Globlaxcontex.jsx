@@ -23,11 +23,11 @@ const [Successmessage, setSuccessmessage] = useState("");
 const [successValue,setsuccessvalue] = useState(false)
 const [otpbtn,setOtpBtn]=useState("Verify")
 
-// const [password, setPassword] = useState("");
+
 
 const [stack,setStack] = useState('Individual Account');
 console.log(selectedRole, "selectedRole");
-  // Function to handle the "Continue" button click
+  
 
   console.log(password,confirmpassword, "password and confirm password");
   

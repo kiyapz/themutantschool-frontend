@@ -27,7 +27,7 @@ export default function InstructorDropdown() {
 
   return (
     <div className="relative w-[253.29px]" ref={dropdownRef}>
-      {/* Trigger Button */}
+      
       <div
         style={{ padding: '15px' }}
         onClick={() => setopenlargeProfileDropdown(!openlargeProfileDropdown)}

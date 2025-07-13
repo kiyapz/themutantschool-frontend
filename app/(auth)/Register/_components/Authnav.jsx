@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { Globlaxcontex } from "@/context/Globlaxcontex";
 import { useContext } from "react";
@@ -19,7 +19,11 @@ export default function Authnav() {
       <div
         onClick={handleClick}
         className={`absolute h-[30px] top-[3%]  w-[44px] sm:left-[5%] xl:left-[10%] cursor-pointer flex items-center justify-center
-          ${registerStep === 1 ? "opacity-40 cursor-not-allowed" : "opacity-100 hover:opacity-70"}`}
+          ${
+            registerStep === 1
+              ? "opacity-40 cursor-not-allowed"
+              : "opacity-100 hover:opacity-70"
+          }`}
       >
         <FiArrowLeft className="text-xl" />
       </div>

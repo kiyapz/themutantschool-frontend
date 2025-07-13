@@ -1,11 +1,19 @@
 import Image from "next/image";
 
-export default function Sidebarbtn({ image, text, hoverImage, active = false, onClick }) {
+export default function Sidebarbtn({
+  image,
+  text,
+  hoverImage,
+  active = false,
+  onClick,
+}) {
   return (
     <button
       onClick={onClick}
       className={`flex items-center gap-5 cursor-pointer group transition duration-200 ${
-        active ? "text-[var(--sidebar-hovercolor)]" : "text-[var(--sidebar-linkcolor)] hover:text-[var(--sidebar-hovercolor)]"
+        active
+          ? "text-[var(--sidebar-hovercolor)]"
+          : "text-[var(--sidebar-linkcolor)] hover:text-[var(--sidebar-hovercolor)]"
       }`}
     >
       {image && (
@@ -42,7 +50,9 @@ export default function Sidebarbtn({ image, text, hoverImage, active = false, on
               width={8.9}
               height={8.9}
               className={`absolute transition duration-200 ${
-                active ? "opacity-100 brightness-150 sepia saturate-200 hue-rotate-10" : "opacity-0 group-hover:opacity-100"
+                active
+                  ? "opacity-100 brightness-150 sepia saturate-200 hue-rotate-10"
+                  : "opacity-0 group-hover:opacity-100"
               }`}
             />
           )}

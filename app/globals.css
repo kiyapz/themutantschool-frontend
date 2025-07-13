@@ -1,50 +1,48 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap");
+@import url("https://fonts.cdnfonts.com/css/xirod");
 
-@import url('https://fonts.googleapis.com/css2?family=Barlow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Montserrat:ital,wght@0,100..900;1,100..900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Roboto:ital,wght@0,100..900;1,100..900&family=Urbanist:ital,wght@0,100..900;1,100..900&display=swap');
-@import url('https://fonts.cdnfonts.com/css/xirod');
-
-                
 @import "tailwindcss";
 
 :root {
-  --mutant-color:#7343B3;
+  --mutant-color: #7343b3;
   --background: #ffffff;
   --foreground: #010101;
-  --blackcolor:#000000;
-  --primary: #9159D1;
-  --primary-dark: #6523D9;
-  --primary-light: #844CDC;
-  --secondary: #4A00BC;
+  --blackcolor: #000000;
+  --primary: #9159d1;
+  --primary-dark: #6523d9;
+  --primary-light: #844cdc;
+  --secondary: #4a00bc;
   --accent: #131313;
   --error: #d93025;
   --warning: #fbbc05;
   --success: #34a853;
-  --info: #CDE98D;
+  --info: #cde98d;
   --border: #e0e0e0;
   --shadow: rgba(0, 0, 0, 0.1);
   --text: #888888;
-  --text-light: #6A6A6A;
-  --button-color:#676767;
+  --text-light: #6a6a6a;
+  --button-color: #676767;
   --button-border-color: #525252;
-  --button-hover-color: #4A4A4A;
-  --link-color:#868686;
-  --btn-bg-color:#0C0C0C;
---otp-color:#101010;
---side-textcolor:#898989; 
---sidebar-linkcolor:#AEAEAE;
---sidebar-hovercolor:#BDE75D;
---small-textcolor:#616161;
---greencolor:#247E4E;
---purpel-btncolor:#604196;
---coco-color:#C0C0C0;
---black-background:#0F0F0F;
---black-bg:#0D0D0D;
+  --button-hover-color: #4a4a4a;
+  --link-color: #868686;
+  --btn-bg-color: #0c0c0c;
+  --otp-color: #101010;
+  --side-textcolor: #898989;
+  --sidebar-linkcolor: #aeaeae;
+  --sidebar-hovercolor: #bde75d;
+  --small-textcolor: #616161;
+  --greencolor: #247e4e;
+  --purpel-btncolor: #604196;
+  --coco-color: #c0c0c0;
+  --black-background: #0f0f0f;
+  --black-bg: #0d0d0d;
+  --button-background: #1c1c1c;
 }
-
 
 /* styles/globals.css */
 .scrollbar-hide {
   scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none;  /* IE and Edge */
+  -ms-overflow-style: none; /* IE and Edge */
 
   /* Webkit-based browsers */
 }
@@ -52,32 +50,25 @@
   display: none;
 }
 
-
 input:-webkit-autofill:focus {
   -webkit-box-shadow: 0 0 0px 1000px var(--accent) inset !important;
   -webkit-text-fill-color: white !important;
 }
 
-
 .ibm-plex-mono-thin {
   font-family: "IBM Plex Mono", monospace;
-  
 }
 
 .Xirod {
-  font-family: 'Xirod', sans-serif;
+  font-family: "Xirod", sans-serif;
 }
 
 @font-face {
-  font-family: 'Xirod';
-  src: url('/fonts/xirod.woff') format('woff');
+  font-family: "Xirod";
+  src: url("/fonts/xirod.woff") format("woff");
   font-weight: normal;
   font-style: normal;
 }
-
-
-
-
 
 body {
   background: var(--foreground);
@@ -103,17 +94,15 @@ body {
 }
 
 .btn {
-  background: linear-gradient(to right, var(--primary),var(--secondary)); 
-
+  background: linear-gradient(to right, var(--primary), var(--secondary));
 }
 
-
 .btn2 {
-  background: linear-gradient(to right, #D1B959,var(--secondary)); 
+  background: linear-gradient(to right, #d1b959, var(--secondary));
 }
 
 .btn:hover {
-  background: linear-gradient(to right, var(--primary-light),var(--secondary));
+  background: linear-gradient(to right, var(--primary-light), var(--secondary));
 }
 
 .evolution-button {
@@ -121,11 +110,11 @@ body {
   background: var(--text-light);
   padding: 1px;
   clip-path: polygon(
-    20px 0%,         /* top-left cut */
-    100% 0%,
+    20px 0%,
+    /* top-left cut */ 100% 0%,
     100% calc(100% - 20px),
-    calc(100% - 20px) 100%,  /* bottom-right cut */
-    0% 100%,
+    calc(100% - 20px) 100%,
+    /* bottom-right cut */ 0% 100%,
     0% 20px
   );
 }
@@ -135,11 +124,11 @@ body {
   color: white;
   padding: 1.25rem;
   clip-path: polygon(
-    20px 0%,         /* top-left cut */
-    100% 0%,
+    20px 0%,
+    /* top-left cut */ 100% 0%,
     100% calc(100% - 20px),
-    calc(100% - 20px) 100%,  /* bottom-right cut */
-    0% 100%,
+    calc(100% - 20px) 100%,
+    /* bottom-right cut */ 0% 100%,
     0% 20px
   );
 }
@@ -154,7 +143,7 @@ body {
   /* background: transparent; */
   clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
   /* background: var(--text-light); */
-  padding: 1px; 
+  padding: 1px;
 }
 
 .cut-box-inner {
@@ -168,17 +157,27 @@ body {
   position: relative;
   /* width: full; */
   /* background: ; */
-  clip-path: polygon(0 0, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  clip-path: polygon(
+    0 0,
+    100% 0%,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%
+  );
   padding: 1px;
-  
 }
 
 .cut-box-inner2 {
   /* background: var(--foreground); */
-  clip-path: polygon(0 0, 100% 0%, 100% calc(100% - 20px), calc(100% - 20px) 100%, 0 100%);
+  clip-path: polygon(
+    0 0,
+    100% 0%,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0 100%
+  );
   padding: 1.25rem;
   /* color: white; */
-  
 }
 
 /* First Box - Bottom Right Cut */
@@ -189,39 +188,26 @@ body {
     0 0,
     100% 0,
     100% 100%,
-    20px 100%,     /* cut starts 20px from the left at the bottom */
-    0 calc(100% - 20px)  /* then up 20px on the left */
+    20px 100%,
+    /* cut starts 20px from the left at the bottom */ 0 calc(100% - 20px)
+      /* then up 20px on the left */
   );
 }
 
 .cut-box-inner3 {
   background: var(--foreground);
   height: 31.05px;
-   width: 118.05px;
+  width: 118.05px;
   padding: 1.25rem;
   color: white;
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% 100%,
-    20px 100%,
-    0 calc(100% - 20px)
-  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
 }
 
 /* Second Box - Top Left Cut */
 .cut-box4 {
-  
-  
   background: var(--text-light);
   padding: 1px;
-  clip-path: polygon(
-    0 0,
-    calc(100% - 20px) 0,
-    100% 20px,
-    100% 100%,
-    0 100%
-  );
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
 }
 
 .cut-box-inner4 {
@@ -230,23 +216,16 @@ body {
   background: var(--foreground);
   padding: 1.25rem;
   color: white;
-  clip-path: polygon(
-    0 0,
-    calc(100% - 20px) 0,
-    100% 20px,
-    100% 100%,
-    0 100%
-  );
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
 }
 
 .mt-mutantlogin {
-  margin-top:1%;
+  margin-top: 1%;
 }
-
 
 @media (max-width: 1024px) {
   .mt-mutantlogin {
-    margin-top:10%;
+    margin-top: 10%;
   }
 
   .herosection-mb {
@@ -254,79 +233,78 @@ body {
   }
 }
 
-
 @media (max-width: 640px) {
   .px {
     padding-left: 13px;
     padding-right: 13px;
   }
-  
+
   .py {
     padding-top: 5px;
     padding-bottom: 5px;
   }
 
   .mt-mutantlogin {
-    margin-top:5% !important;
+    margin-top: 5% !important;
   }
 
   .cut-box,
-.cut-box2 {
-  position: relative;
-  /* background: var(--text-light); */
-  padding: 1px;
-  border-radius: 10px; 
-  clip-path: none;
-}
+  .cut-box2 {
+    position: relative;
+    /* background: var(--text-light); */
+    padding: 1px;
+    border-radius: 10px;
+    clip-path: none;
+  }
 
-.cut-box-inner,
-.cut-box-inner2 {
-  background: var(--foreground);
-  padding: 1.25rem;
-  color: white;
-  border-radius: 10px;
-  clip-path: none;
-}
+  .cut-box-inner,
+  .cut-box-inner2 {
+    background: var(--foreground);
+    padding: 1.25rem;
+    color: white;
+    border-radius: 10px;
+    clip-path: none;
+  }
 
-.radiobtn {
-  width: 28px;
-  height: 28px;
-  border: 2px solid var(--button-border-color);
-  border-radius: 50%;
-  background: transparent;
-  
-}
+  .radiobtn {
+    width: 28px;
+    height: 28px;
+    border: 2px solid var(--button-border-color);
+    border-radius: 50%;
+    background: transparent;
+  }
 
-.px-radio {
-  padding: 1.25rem;
-}
+  .px-radio {
+    padding: 1.25rem;
+  }
 
-.hide-scrollbar::-webkit-scrollbar {
-  display: none;
-}
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
 
-.hide-scrollbar {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
-}
+  .hide-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
 
-.cut-box-inner3,.cut-box-inner4 {
-  height: 100%;
-  width: 100%;
-  padding: 1.25rem;
-  clip-path: none;
-  
-}
+  .cut-box-inner3,
+  .cut-box-inner4 {
+    height: 100%;
+    width: 100%;
+    padding: 1.25rem;
+    clip-path: none;
+  }
 
-.cut-box4 ,.cut-box3 {
-  margin-bottom: 10px;
-  width: 100%;
-}
+  .cut-box4,
+  .cut-box3 {
+    margin-bottom: 10px;
+    width: 100%;
+  }
 
-.cut-box2 {
-width: 100%;
-  background: var(--text-light);
-  padding: 1px;
-  clip-path: none;
-}
+  .cut-box2 {
+    width: 100%;
+    background: var(--text-light);
+    padding: 1px;
+    clip-path: none;
+  }
 }

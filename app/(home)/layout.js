@@ -12,23 +12,16 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: 'Mutant School | Home Page',
-  description: 'Welcome to the Mutant School portal. Explore courses, connect with instructors, and stay updated.',
-}
-
+  title: "Mutant School | Home Page",
+  description:
+    "Welcome to the Mutant School portal. Explore courses, connect with instructors, and stay updated.",
+};
 
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body
-       
-      >
-        <main>
-          
-          
-           {children}
-        </main>
-       
+      <body>
+        <main>{children}</main>
       </body>
     </html>
   );

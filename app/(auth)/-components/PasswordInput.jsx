@@ -1,9 +1,13 @@
-'use client';
+"use client";
 
 import { useState } from "react";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 
-export default function PasswordInput({value ,onchange,placeholder='passwprd' }) {
+export default function PasswordInput({
+  value,
+  onchange,
+  placeholder = "passwprd",
+}) {
   const [showPassword, setShowPassword] = useState(false);
 
   const togglePassword = () => setShowPassword((prev) => !prev);
@@ -26,4 +30,3 @@ export default function PasswordInput({value ,onchange,placeholder='passwprd' })
     </div>
   );
 }
-

@@ -1,8 +1,13 @@
-'use client'
+"use client";
 import { FiChevronDown } from "react-icons/fi";
 import { useState } from "react";
 
-export default function Sidebuttons({ text, icons, width = "w-fit", items = [] }) {
+export default function Sidebuttons({
+  text,
+  icons,
+  width = "w-fit",
+  items = [],
+}) {
   const [isOpen, setIsOpen] = useState(false);
 
   return (
@@ -32,7 +37,10 @@ export default function Sidebuttons({ text, icons, width = "w-fit", items = [] }
 
       {/* Dropdown menu */}
       {isOpen && (
-        <div style={{padding:'5px'}} className="absolute mt-2 w-full z-50 bg-white border border-gray-200 rounded-md shadow-lg">
+        <div
+          style={{ padding: "5px" }}
+          className="absolute mt-2 w-full z-50 bg-white border border-gray-200 rounded-md shadow-lg"
+        >
           <ul className="py-1">
             {items.map((item, idx) => (
               <li

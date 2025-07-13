@@ -1,9 +1,7 @@
-
 import { AcademyGloblaxcontexProvider } from "../_components/academycontext/AcademyContext";
 import "../../globals.css";
 import Authnav from "../_components/Authnav";
 import Navbar from "@/components/Navbar";
-
 
 export const metadata = {
   title: "Mutant School",
@@ -14,27 +12,23 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body>
-    
         {/* <main> */}
-          
-          <AcademyGloblaxcontexProvider>
 
-            <div className="block sm:hidden">
-              <Navbar />
-            </div>
-            
-            {/* <div className="hidden sm:block ">
+        <AcademyGloblaxcontexProvider>
+          <div className="block sm:hidden">
+            <Navbar />
+          </div>
+
+          {/* <div className="hidden sm:block ">
               <div className="hidden sm:block  h-[10vh]  flexcenter w-screen ">
                  <Authnav />
               </div>
             </div> */}
-            
-            
-            {children}
-          </AcademyGloblaxcontexProvider>
-           
+
+          {children}
+        </AcademyGloblaxcontexProvider>
+
         {/* </main> */}
-       
       </body>
     </html>
   );
