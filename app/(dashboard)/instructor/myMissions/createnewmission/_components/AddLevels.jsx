@@ -104,8 +104,15 @@ export default function AddLevels() {
     setOpenAddModel(true);
   };
 
-  const handleAddCapsel = async () => {
+  const handleAddCapsel = async (levelId) => {
+
     console.log("Adding capsule with levelId:", levelId);
+console.log("Capsule data:", {
+      title: capsuleTitle,
+      description: capsuleDescription,
+      video: selectedFile,
+    }); 
+
 
     if (!capsuleTitle.trim()) {
       showToast("Please enter a capsule title", "error");
@@ -130,7 +137,7 @@ export default function AddLevels() {
         formData,
         {
           headers: {
-            "Content-Type": "multipart/form-data",
+            // "Content-Type": "multipart/form-data",
             Authorization: `Bearer ${localStorage.getItem(
               "login-accessToken"
             )}`,
@@ -138,6 +145,8 @@ export default function AddLevels() {
         }
       );
 
+      console.log(res);
+      
       console.log("Capsule uploaded successfully:", res.data);
       showToast("Capsule uploaded successfully!", "success");
       setOpenAddModel(false);

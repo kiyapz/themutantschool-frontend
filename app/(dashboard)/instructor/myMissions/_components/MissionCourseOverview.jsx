@@ -137,7 +137,7 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
   );
 };
 
-// Content components for different tabs
+
 const CurriculumContent = ({ course }) => (
   <>
     <div
@@ -149,7 +149,7 @@ const CurriculumContent = ({ course }) => (
         className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
         style={{ padding: "8px 16px" }}
       >
-        + Add Chapter
+        + Level
       </button>
     </div>
 
@@ -274,13 +274,13 @@ export default function MissionCourseOverview({ course }) {
       className="flex flex-col w-full max-w-[1200px] mx-auto gap-10"
       style={{ padding: "16px" }}
     >
-      {/* Course Header */}
       <div className="grid xl:grid-cols-3 gap-8">
-        <div className="border border-[#6D4879] w-full h-[300px] xl:h-full rounded-[13px] bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] flex items-center justify-center">
+        <div
+          style={{ backgroundImage: `url(${course.thumbnail.url})` }}
+          className="border border-[#6D4879] w-full h-[300px] xl:h-full rounded-[13px] bg-cover bg-center bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] flex items-center justify-center"
+        >
           <div className="text-center text-[#6D4879]">
-            <div className="text-4xl" style={{ marginBottom: "8px" }}>
-              📚
-            </div>
+          
             <p className="text-sm">Course Preview</p>
           </div>
         </div>
@@ -314,34 +314,30 @@ export default function MissionCourseOverview({ course }) {
         </div>
       </div>
 
-      {/* Analytics */}
       <div className="grid gap-6 xl:grid-cols-3">
         <Analitiesbtn
           text1="Total Enrollment"
-          text2={course.analytics.enrollments}
+          text2={course.analytics?.enrollments}
           text3="+2 from last month"
         />
         <Analitiesbtn
           text1="Completion Rate"
-          text2={course.analytics.completionRate}
+          text2={course.analytics?.completionRate}
           text3="+5% from last month"
         />
         <Analitiesbtn
           text1="Student Rating"
-          text2={course.analytics.rating}
+          text2={course.analytics?.rating}
           text3="+0.2 from last month"
         />
       </div>
 
-      {/* Main Content Area */}
       <div className="flex flex-col gap-6 rounded-[20px] border border-[#535353] bg-[#111111]">
         <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        {/* Dynamic Tab Content */}
         {renderTabContent(activeTab, course)}
       </div>
 
-      {/* Quick Actions - Only show on Curriculum tab */}
       {activeTab === "Curriculum" && (
         <div className="grid xl:grid-cols-3 gap-6">
           {course.quickActions?.map((action) => (

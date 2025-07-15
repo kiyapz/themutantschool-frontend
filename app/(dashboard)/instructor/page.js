@@ -13,28 +13,6 @@ import profilebase from "./profile/_components/profilebase";
 
 
 
-const data = [
-  {
-    id: 1,
-    sub: "Active Missions",
-    qunatity: 12,
-  },
-  {
-    id: 2,
-    sub: "Total Recruits",
-    qunatity: 248,
-  },
-  {
-    id: 3,
-    sub: "Total Revenue",
-    qunatity: "$4,285",
-  },
-  {
-    id: 4,
-    sub: "Ratings",
-    qunatity: 4.8,
-  },
-];
 
 const studentcourse = [
   {
@@ -94,7 +72,7 @@ const Mission = [
     id: 2,
     purpose: "Design Principles: Beginners",
     type: "",
-    recruits: 500,
+    recruits: 900,
     revenue: "$2500",
     rating: 5,
   },
@@ -102,7 +80,7 @@ const Mission = [
     id: 3,
     purpose: "Design Principles: Beginners",
     type: "course",
-    recruits: 500,
+    recruits: 800,
     revenue: "$2500",
     rating: 3.5,
   },
@@ -110,7 +88,7 @@ const Mission = [
     id: 4,
     purpose: "Design Principles: Beginners",
     type: "",
-    recruits: 500,
+    recruits: 100,
     revenue: "$2500",
     rating: 1.5,
   },
@@ -163,13 +141,42 @@ const studetcourse = [
   },
 ];
 
+
+
+
 export default function InstructorDashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-
-  const { setUserProfile, userProfile, setUserUpdatedValue } =
+  const [MissionCreated, setMission] = useState([]);
+  const { setUserProfile, userProfile, setUserUpdatedValue, userUpdatedValue } =
     useContext(InstructorContext);
+
+
+    
+const data = [
+  {
+    id: 1,
+    sub: "Active Missions",
+    qunatity: MissionCreated?.length || 0,
+  },
+  {
+    id: 2,
+    sub: "Total Recruits",
+    qunatity: 248,
+  },
+  {
+    id: 3,
+    sub: "Total Revenue",
+    qunatity: "$4,285",
+  },
+  {
+    id: 4,
+    sub: "Ratings",
+    qunatity: 4.8,
+  },
+];
+
 
   
   async function checkAuthAndFetchProfile() {
@@ -268,7 +275,45 @@ export default function InstructorDashboard() {
     checkAuthAndFetchProfile();
   }, []);
 
-  // Show loading state while checking authentication
+
+
+
+ 
+
+  useEffect(() => {
+
+    console.log('use effect for fetching missions');
+    
+     const storedUser = localStorage.getItem("USER");
+      const parsedUser = JSON.parse(storedUser);
+      const id = parsedUser._id;
+    async function getAllMission() {
+      try {
+        const response = await profilebase.get(`instructor/report/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "login-accessToken"
+            )}`,
+          },
+        });
+
+        console.log("fesded missoin respons", response.data.missions);
+        
+
+        setMission(response.data.missions);
+        
+       
+
+        
+
+      } catch (error) {
+        console.log("Error fetching missions:", error);
+      }
+    }
+    getAllMission();
+  }, []);
+
+  
   if (isLoading || !authChecked) {
     return (
       <div className="flex items-center justify-center h-screen">
@@ -290,7 +335,6 @@ export default function InstructorDashboard() {
             </p>
             <p className="text-[var(--text)] text-[12px] xl:text-[15px] leading-[40px] ">
               Welcome to your management dashboard
-              
             </p>
           </div>
           <div>
@@ -426,8 +470,10 @@ export default function InstructorDashboard() {
                 </div>
               </div>
 
-              <div className="flex flex-col gap-5">
-                {Mission.map((el, i) => (
+              {[...Mission]
+                .sort((a, b) => b.recruits - a.recruits)
+                .slice(0, 4)
+                .map((el, i) => (
                   <div
                     key={el.id}
                     className="border-t-[1px] h-fit border-[#3C3C3C]"
@@ -469,7 +515,6 @@ export default function InstructorDashboard() {
                     </div>
                   </div>
                 ))}
-              </div>
             </div>
           </div>
         </div>
@@ -493,20 +538,20 @@ export default function InstructorDashboard() {
 
         <div className="w-full flexcenter h-fit">
           <div className="flex scrollbar-hide py w-[350px] sm:w-[500px] xl:w-[1000px] overflow-auto gap-4 pb-2">
-            {studetcourse.slice(0, 4).map((el) => (
+            {MissionCreated?.slice(0, 4).map((el, i) => (
               <div
-                key={el.id}
-                className="min-w-[300px] flex flex-col sm:min-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
+                key={i}
+                className="max-w-[300px] flex flex-col w-full sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
               >
                 <div
-                  style={{ backgroundImage: `url(${el.image})` }}
+                  style={{ backgroundImage: `url(${el.thumbnail.url})` }}
                   className="h-[173.34px] bg-cover bg-center rounded-t-[20px] w-full "
                 ></div>
                 <div className="px w-full flex-1 flex flex-col justify-between py">
                   <div className="flex flex-col gap-3">
                     <div className="w-full flex items-center justify-between">
                       <button className="bg-[#393D4E] rounded-[5px] px text-[#ABABAB] font-[500] text-[13px] leading-[25px] ">
-                        Design
+                        {el.category}
                       </button>
 
                       <div className="flex space-x-1">
@@ -514,17 +559,23 @@ export default function InstructorDashboard() {
                           <FaStar
                             key={star}
                             size={10}
-                            color={star <= el.rating ? "#EFDB3F" : "#E5E7EB"}
+                            color={
+                              star <= el.averageRating ? "#EFDB3F" : "#E5E7EB"
+                            }
                           />
                         ))}
                       </div>
                     </div>
                     <div>
                       <p className="text-[#E8EDF6] font-[600] text-[15px] sm:text-[27px] leading-[35px] ">
-                        {el.purpose}:
+                        {el.description}:
                       </p>
                       <p className="text-[#E8EDF6] font-[600] text-[27px] leading-[35px] ">
-                        {el.type}
+                        {el.shortDescription}
+                      </p>
+                      <p className="text-[#ABABAB] text-[12px] mt-1">
+                        {el.estimatedDuration} • {el.skillLevel} •{" "}
+                        {el.isFree ? "Free" : `$${el.price}`}
                       </p>
                     </div>
                   </div>
@@ -534,8 +585,8 @@ export default function InstructorDashboard() {
                       <p className="text-[#767E8F] font-[400] text-[10px] leading-[20px] ">
                         Recruit Progress
                       </p>
-                      <p className="text-sm text-right mt-1 text-gray-800">
-                        {el.progress}%
+                      <p className="text-[10px] text-right mt-1 text-[#767E8F]">
+                        {el.__v}%
                       </p>
                     </div>
 
@@ -544,7 +595,7 @@ export default function InstructorDashboard() {
                         <div className="w-full bg-[#000000] rounded-full h-[8px] overflow-hidden">
                           <div
                             className="h-full bg-[#4F3457] transition-all duration-200"
-                            style={{ width: `${el.progress}%` }}
+                            style={{ width: `${el.__v}%` }}
                           />
                         </div>
                       </div>

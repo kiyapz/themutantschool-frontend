@@ -151,7 +151,6 @@ export default function MissionDetails() {
           method: "POST",
           headers: {
             Authorization: `Bearer ${accessToken}`,
-            
           },
           body: formData,
         }

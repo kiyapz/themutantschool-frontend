@@ -33,7 +33,7 @@ export default function InstructorContextProvider({ children }) {
     nationality: "",
   });
 
-  // Token refresh function
+ 
   const refreshAuthToken = async () => {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
@@ -74,7 +74,7 @@ export default function InstructorContextProvider({ children }) {
     }
   };
 
-  // Enhanced API call function with token refresh
+  
   const makeAuthenticatedRequest = async (url, options = {}) => {
     let accessToken = localStorage.getItem("login-accessToken");
 
@@ -85,7 +85,7 @@ export default function InstructorContextProvider({ children }) {
     }
 
     try {
-      // First attempt with current token
+  
       const response = await profilebase.get(url, {
         ...options,
         headers: {
@@ -96,15 +96,15 @@ export default function InstructorContextProvider({ children }) {
 
       return response;
     } catch (error) {
-      // Check if token is expired (401 or 403)
+      
       if (error.response?.status === 401 || error.response?.status === 403) {
         console.log("Token expired, attempting to refresh...");
 
-        // Try to refresh the token
+       
         const newAccessToken = await refreshAuthToken();
 
         if (newAccessToken) {
-          // Retry the original request with new token
+          
           try {
             const retryResponse = await profilebase.get(url, {
               ...options,
@@ -129,7 +129,7 @@ export default function InstructorContextProvider({ children }) {
     }
   };
 
-  // Updated useEffect with token refresh logic
+ 
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -144,7 +144,7 @@ export default function InstructorContextProvider({ children }) {
         const parsedUser = JSON.parse(storedUser);
         const id = parsedUser._id;
 
-        // Use the enhanced request function
+       
         const response = await makeAuthenticatedRequest(`/user-profile/${id}`);
 
         if (response) {
@@ -163,7 +163,7 @@ export default function InstructorContextProvider({ children }) {
     getUser();
   }, []);
 
-  // Updated useEffect to populate form when userProfile changes
+ 
   useEffect(() => {
     if (userProfile) {
       setUserUpdatedValue({
@@ -185,11 +185,12 @@ export default function InstructorContextProvider({ children }) {
         Phone: userProfile.phone || "",
         role: userProfile.role || "",
         nationality: userProfile.nationality || "",
+        id: userProfile._id || "",
       });
     }
   }, [userProfile]);
 
-  // Optional: Function to manually refresh user data
+ 
   const refreshUserData = async () => {
     try {
       const storedUser = localStorage.getItem("USER");
@@ -208,7 +209,7 @@ export default function InstructorContextProvider({ children }) {
     }
   };
 
-  // Optional: Set up periodic token refresh (every 50 minutes for 1-hour tokens)
+ 
   useEffect(() => {
     const interval = setInterval(async () => {
       const accessToken = localStorage.getItem("login-accessToken");
