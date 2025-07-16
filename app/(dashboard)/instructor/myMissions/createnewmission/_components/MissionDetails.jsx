@@ -55,7 +55,7 @@ export default function MissionDetails() {
   const [language, setLanguage] = useState("English (uk)");
   const [image, setImage] = useState(null);
   const [video, setVideo] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null); // Added missing state
+  const [previewUrl, setPreviewUrl] = useState(null); 
   const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e) => {
@@ -75,12 +75,13 @@ export default function MissionDetails() {
       console.log("Access token:", accessToken ? "Found" : "Not found");
 
       if (!accessToken) {
+       
         alert("Please login first to create a mission");
         setLoading(false);
         return;
       }
 
-      // Enhanced validation
+      
       if (!title.trim()) {
         alert("Mission title is required");
         setLoading(false);
@@ -107,7 +108,7 @@ export default function MissionDetails() {
 
       const formData = new FormData();
 
-      // Core required fields
+    
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("shortDescription", description.trim());
@@ -115,7 +116,7 @@ export default function MissionDetails() {
       formData.append("certificateAvailable", "true");
       formData.append("price", "50");
 
-      // Optional fields with proper validation
+    
       if (detailedDescription.trim()) {
         formData.append("bio", detailedDescription.trim());
       }
@@ -124,11 +125,11 @@ export default function MissionDetails() {
       formData.append("skillLevel", difficulty);
       formData.append("Language", language);
 
-      // Add tags as JSON string
+     
       const tags = [category.toLowerCase(), "mission", "course"];
       formData.append("tags", JSON.stringify(tags));
 
-      // File uploads
+      
       if (image) {
         formData.append("thumbnail", image);
       }
@@ -137,7 +138,6 @@ export default function MissionDetails() {
         formData.append("video", video);
       }
 
-      // Debug: Log FormData contents
       console.log("FormData contents being sent:");
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value);
@@ -156,15 +156,18 @@ export default function MissionDetails() {
         }
       );
 
+      console.log(response,'Response received from server');
+      
       console.log("Response status:", response.status);
       console.log("Response headers:", response.headers);
 
-      // Get response text first to see what we're dealing with
+      
       const responseText = await response.text();
       console.log("Raw response:", responseText);
 
       if (response.status === 401) {
         alert("Authentication failed. Please login again.");
+        
         return;
       }
 
@@ -174,9 +177,9 @@ export default function MissionDetails() {
       }
 
       if (!response.ok) {
-        console.error("Error response:", responseText);
+        console.log("Error response:", responseText);
 
-        // Try to parse as JSON for better error message
+        
         try {
           const errorData = JSON.parse(responseText);
           throw new Error(
@@ -187,7 +190,7 @@ export default function MissionDetails() {
         }
       }
 
-      // Parse successful response
+      
       let result;
       try {
         result = JSON.parse(responseText);
@@ -198,12 +201,14 @@ export default function MissionDetails() {
 
       console.log("Mission created successfully:", result);
 
-      // Store mission ID if available
+      localStorage.removeItem('missionId')
+
+      
       if (result.data && result.data._id) {
         localStorage.setItem("missionId", result.data._id);
       }
 
-      // Clear form after successful submission
+      
       setTitle("");
       setDescription("");
       setDetailedDescription("");
@@ -216,10 +221,10 @@ export default function MissionDetails() {
 
       alert("Mission created successfully!");
     } catch (error) {
-      console.error("Error creating mission:", error);
+      console.log("Error creating mission:", error);
 
-      // More specific error handling
-      if (error.message.includes("Failed to fetch")) {
+      
+      if (error.message.includes("402")) {
         alert(
           "Network error. Please check your internet connection and try again."
         );

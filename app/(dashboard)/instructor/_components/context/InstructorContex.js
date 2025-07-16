@@ -1,16 +1,23 @@
-'use client';
+"use client";
 import { createContext, useEffect, useState } from "react";
 import profilebase from "../../profile/_components/profilebase";
+import { useRouter } from "next/router";
 
 export const InstructorContext = createContext();
-
+const router = useRouter;
 export default function InstructorContextProvider({ children }) {
-  const [profiledisplay, setprofiledisplay] = useState('Personal Information');
-  const [openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown] = useState(false);
-  const [openlargeProfileDropdown, setopenlargeProfileDropdown] = useState(false);
-  const [ ChangePassword,setChangePassword] = useState(false)
+  const [profiledisplay, setprofiledisplay] = useState("Personal Information");
+  const [openSmallScreenProfileDropDown, setopenSmallScreenProfileDropDown] =
+    useState(false);
+  const [openlargeProfileDropdown, setopenlargeProfileDropdown] =
+    useState(false);
+  const [ChangePassword, setChangePassword] = useState(false);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+
+  // for level
+  const [levelId, setLeveld] = useState("");
+  const [capselId, setcapselId] = useState("");
 
   const [userUpdatedValue, setUserUpdatedValue] = useState({
     firstName: "",
@@ -33,7 +40,6 @@ export default function InstructorContextProvider({ children }) {
     nationality: "",
   });
 
- 
   const refreshAuthToken = async () => {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
@@ -74,7 +80,6 @@ export default function InstructorContextProvider({ children }) {
     }
   };
 
-  
   const makeAuthenticatedRequest = async (url, options = {}) => {
     let accessToken = localStorage.getItem("login-accessToken");
 
@@ -85,7 +90,6 @@ export default function InstructorContextProvider({ children }) {
     }
 
     try {
-  
       const response = await profilebase.get(url, {
         ...options,
         headers: {
@@ -96,15 +100,12 @@ export default function InstructorContextProvider({ children }) {
 
       return response;
     } catch (error) {
-      
       if (error.response?.status === 401 || error.response?.status === 403) {
         console.log("Token expired, attempting to refresh...");
 
-       
         const newAccessToken = await refreshAuthToken();
 
         if (newAccessToken) {
-          
           try {
             const retryResponse = await profilebase.get(url, {
               ...options,
@@ -116,10 +117,7 @@ export default function InstructorContextProvider({ children }) {
 
             return retryResponse;
           } catch (retryError) {
-            console.error(
-              "Request failed even after token refresh:",
-              retryError
-            );
+            console.log("Request failed even after token refresh:", retryError);
             throw retryError;
           }
         }
@@ -129,7 +127,6 @@ export default function InstructorContextProvider({ children }) {
     }
   };
 
- 
   useEffect(() => {
     const getUser = async () => {
       try {
@@ -144,7 +141,6 @@ export default function InstructorContextProvider({ children }) {
         const parsedUser = JSON.parse(storedUser);
         const id = parsedUser._id;
 
-       
         const response = await makeAuthenticatedRequest(`/user-profile/${id}`);
 
         if (response) {
@@ -153,9 +149,9 @@ export default function InstructorContextProvider({ children }) {
         }
       } catch (error) {
         console.error("Failed to load user profile:", error);
-        // Handle other errors (network, server errors, etc.)
+
         if (error.response?.status >= 500) {
-          console.error("Server error occurred");
+          console.log("Server error occurred");
         }
       }
     };
@@ -163,7 +159,6 @@ export default function InstructorContextProvider({ children }) {
     getUser();
   }, []);
 
- 
   useEffect(() => {
     if (userProfile) {
       setUserUpdatedValue({
@@ -190,7 +185,6 @@ export default function InstructorContextProvider({ children }) {
     }
   }, [userProfile]);
 
- 
   const refreshUserData = async () => {
     try {
       const storedUser = localStorage.getItem("USER");
@@ -209,13 +203,23 @@ export default function InstructorContextProvider({ children }) {
     }
   };
 
- 
   useEffect(() => {
+    const storedUser = localStorage.getItem("USER");
+
+    if (!storedUser) {
+      console.warn("User not found in localStorage");
+      router.push("/Login");
+      return;
+    }
     const interval = setInterval(async () => {
       const accessToken = localStorage.getItem("login-accessToken");
+
+      if (!accessToken) {
+        router.push("/Login");
+        return;
+      }
       if (accessToken) {
         try {
-          // Decode token to check expiration (optional)
           const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
           const currentTime = Math.floor(Date.now() / 1000);
 
@@ -224,48 +228,67 @@ export default function InstructorContextProvider({ children }) {
             await refreshAuthToken();
           }
         } catch (error) {
-          console.error("Error checking token expiration:", error);
+          console.log("Error checking token expiration:", error);
         }
       }
-    }, 50 * 60 * 1000); // Check every 50 minutes
+    }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, []);
 
+  const FetchUserProfile = async () => {
+    console.log("Clicked user profile");
 
-      const FetchUserProfile = async () => {
-        console.log("Clicked user profile");
-        
-        try {
-          const storedUser = localStorage.getItem("USER");
-          const accessToken = localStorage.getItem("login-accessToken");
-          console.log(accessToken, 'access token');
-          
-          if (!storedUser || !accessToken) {
-            console.warn("User or token not found in localStorage");
-            return;
-          }
-          
-          const parsedUser = JSON.parse(storedUser);
-          const id = parsedUser._id;
-          console.log(id, "this is userid");
-          
-          const response = await profilebase.get(`/user-profile/${id}`, {
-            headers: {
-              Authorization: `Bearer ${accessToken}`,
-            },
-          });
-          
-          console.log("User profile exactly:", response.data.data);
-          setUserProfile(response.data.data); 
-          
-          
-        } catch (error) {
-          console.log("Failed to load user", error.response?.data || error.message);
-        }
-      };
+    try {
+      const storedUser = localStorage.getItem("USER");
+      const accessToken = localStorage.getItem("login-accessToken");
+      console.log(accessToken, "access token");
+
+      if (!storedUser || !accessToken) {
+        console.warn("User or token not found in localStorage");
+        return;
+      }
+
+      const parsedUser = JSON.parse(storedUser);
+      const id = parsedUser._id;
+      console.log(id, "this is userid");
+
+      const response = await profilebase.get(`/user-profile/${id}`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      console.log("User profile exactly:", response.data.data);
+      setUserProfile(response.data.data);
+    } catch (error) {
+      console.log("Failed to load user", error.response?.data || error.message);
+    }
+  };
   return (
-    <InstructorContext.Provider value={{FetchUserProfile,userProfile, setUserProfile,userUpdatedValue, setUserUpdatedValue,user, setUser,openlargeProfileDropdown, setopenlargeProfileDropdown, profiledisplay, setprofiledisplay,openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown,ChangePassword,setChangePassword }}>
+    <InstructorContext.Provider
+      value={{
+        levelId,
+        setLeveld,
+        capselId,
+        setcapselId,
+        FetchUserProfile,
+        userProfile,
+        setUserProfile,
+        userUpdatedValue,
+        setUserUpdatedValue,
+        user,
+        setUser,
+        openlargeProfileDropdown,
+        setopenlargeProfileDropdown,
+        profiledisplay,
+        setprofiledisplay,
+        openSmallScreenProfileDropDown,
+        setopenSmallScreenProfileDropDown,
+        ChangePassword,
+        setChangePassword,
+      }}
+    >
       {children}
     </InstructorContext.Provider>
   );

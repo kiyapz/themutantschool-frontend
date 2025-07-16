@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import Addlevelbtn from "./Addlevelbtn";
 import { FaVideo, FaImage, FaEye, FaEdit, FaTrash } from "react-icons/fa";
 import ToggleButton from "../../../profile/notification/_components/ToggleButton";
 import axios from "axios";
-
+// import AddQuize from "./AddQuize";
+import { InstructorContext } from "../../../_components/context/InstructorContex";
+import QuizCreator from "./AddQuize";
 
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -18,7 +20,7 @@ const Toast = ({ message, type, onClose }) => {
 
   return (
     <div
-    style={{padding: "5px"}}
+      style={{ padding: "5px" }}
       className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transform transition-all duration-300 ease-in-out ${
         type === "success"
           ? "bg-green-600"
@@ -40,38 +42,36 @@ const Toast = ({ message, type, onClose }) => {
   );
 };
 
-// Loading Spinner Component
 const LoadingSpinner = () => (
   <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
 );
 
 export default function AddLevels() {
+  const { capselId, setcapselId, levelId, setLeveld } =
+    useContext(InstructorContext);
   const [Level, setLevel] = useState("AddLevel");
   const [openAddModel, setOpenAddModel] = useState(false);
   const [title, settitle] = useState("");
   const [description, setdescription] = useState("");
   const [estimatedTime, setestimatedTime] = useState("30 mins");
   const [levels, setLevels] = useState([]);
-  const [levelId, setLeveld] = useState("");
+ 
 
-  // Loading states
   const [isAddingLevel, setIsAddingLevel] = useState(false);
   const [isAddingCapsule, setIsAddingCapsule] = useState(false);
   const [isLoadingLevels, setIsLoadingLevels] = useState(false);
 
-  // Toast state
   const [toast, setToast] = useState(null);
 
-  // add capsule
   const [capsuleTitle, setCapsuleTitle] = useState("");
   const [capsuleDescription, setCapsuleDescription] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [order,setOder] = useState();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("idle");
   const fileInputRef = useRef(null);
 
-  // Toast helper function
   const showToast = (message, type = "info") => {
     setToast({ message, type });
   };
@@ -98,21 +98,26 @@ export default function AddLevels() {
     fileInputRef.current?.click();
   };
 
-  const handleAddCapsuleClick = (levelId) => {
+  // seen
+  const handleAddCapsuleClick = (levelId,order) => {
     setLeveld(levelId);
+    setOder(order);
     console.log("Adding capsule to levelId:", levelId);
     setOpenAddModel(true);
   };
 
-  const handleAddCapsel = async (levelId) => {
+ 
+
+  const handleAddCapsule = async () => {
+    setIsAddingCapsule(true);
 
     console.log("Adding capsule with levelId:", levelId);
-console.log("Capsule data:", {
-      title: capsuleTitle,
-      description: capsuleDescription,
-      video: selectedFile,
-    }); 
 
+    console.log("Adding capsule with levelId:", levelId);
+    if (!levelId) {
+      showToast("Level ID is required to add a capsule", "error");
+      return;
+    }
 
     if (!capsuleTitle.trim()) {
       showToast("Please enter a capsule title", "error");
@@ -124,45 +129,60 @@ console.log("Capsule data:", {
       return;
     }
 
-    setIsAddingCapsule(true);
+    const accessToken = localStorage.getItem("login-accessToken");
+    if (!accessToken) {
+      showToast("Please login first to add a capsule", "error");
+      return;
+    }
 
     try {
       const formData = new FormData();
-      formData.append("title", capsuleTitle);
-      formData.append("description", capsuleDescription);
-      formData.append("video", selectedFile);
+      formData.append("title",capsuleTitle);
+      formData.append("description",capsuleDescription);
+      formData.append("video",selectedFile);
+      formData.append("order", order);
+      formData.append("duration","90 seconds");
+      formData.append("isPreview",true);
 
-      const res = await axios.post(
+      const res = await fetch(
         `https://themutantschool-backend.onrender.com/api/mission-capsule/create/${levelId}`,
-        formData,
         {
+          method: "POST",
           headers: {
-            // "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${localStorage.getItem(
-              "login-accessToken"
-            )}`,
+            contentType: "multipart/form-data",
+            Authorization: `Bearer ${accessToken}`,
           },
+          body: formData,
         }
       );
 
-      console.log(res);
-      
-      console.log("Capsule uploaded successfully:", res.data);
+      console.log(accessToken, " access token used for capsule upload");
+
+      console.log("Capsule upload response:", res);
+
+      console.log("Capsule uploaded successfully:", res);
       showToast("Capsule uploaded successfully!", "success");
+      setIsAddingCapsule(false);
       setOpenAddModel(false);
+
       setCapsuleTitle("");
       setCapsuleDescription("");
       setSelectedFile(null);
-      // Refresh levels after adding capsule
       getAllLevel();
     } catch (error) {
-      console.error("Capsule upload failed:", error);
+      console.log(
+        "Capsule upload failed:",
+        error.response?.data || error.message
+      );
       showToast("Capsule upload failed. Please try again.", "error");
     } finally {
       setIsAddingCapsule(false);
     }
   };
 
+
+
+  // seen
   const AddMissionLevel = async () => {
     if (!title.trim()) {
       showToast("Please enter a title for the level", "error");
@@ -193,7 +213,12 @@ console.log("Capsule data:", {
           "Content-Type": "application/json",
           Authorization: `Bearer ${accessToken}`,
         },
-        body: JSON.stringify({ title, description, estimatedTime, order: 1 }),
+        body: JSON.stringify({
+          title,
+          description,
+          estimatedTime,
+          order: levels.length + 1,
+        }),
       });
 
       const data = await res.json();
@@ -203,7 +228,6 @@ console.log("Capsule data:", {
       showToast("Level created successfully!", "success");
       settitle("");
       setdescription("");
-      // Refresh levels after adding
       getAllLevel();
     } catch (error) {
       console.error("Upload error:", error);
@@ -261,9 +285,49 @@ console.log("Capsule data:", {
     showToast("New level added", "success");
   };
 
+
+  // Add Quize
+
+  const handleAddQuize =async (capsel,id)=>{
+    setLevel("AddQuize");
+   setLeveld(id);
+   setcapselId(capsel);
+
+
+    console.log(capsel,id, " capsule id for quiz");
+    
+
+    //  try {
+    //    const response = await fetch(
+    //      "https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz",
+    //      {
+    //        method: "POST",
+    //        headers: {
+    //          "Content-Type": "application/json",
+    //          Authorization: `Bearer ${accessToken}`,
+    //        },
+    //        body: JSON.stringify(payload),
+    //      }
+    //    );
+
+    //    const result = await response.json();
+
+    //    if (!response.ok) {
+    //      console.error("Quiz submission failed:", result);
+    //      alert("Failed to submit quiz: " + (result.message || "Unknown error"));
+    //    } else {
+    //      console.log("Quiz submitted successfully:", result);
+    //      alert("Quiz submitted successfully!");
+    //    }
+    //  } catch (error) {
+    //    console.error("Submission error:", error);
+    //    alert("Something went wrong. Please try again.");
+    //  }
+    
+  }
+
   return (
     <>
-      {/* Toast Notification */}
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
@@ -343,6 +407,8 @@ console.log("Capsule data:", {
                     <p className="font-[600] text-[20px]">{level.title}</p>
                     {level.capsules?.map((capsule, i) => (
                       <div
+                        onClick={() => handleAddQuize(capsule, level._id)}
+                        style={{ padding: "0px  10px" }}
                         key={i}
                         className="w-full flex items-center justify-between h-[73.64px] rounded-[12px] bg-[#1C1C1C] px-4"
                       >
@@ -359,7 +425,9 @@ console.log("Capsule data:", {
                     ))}
 
                     <button
-                      onClick={() => handleAddCapsuleClick(level._id)}
+                      onClick={() =>
+                        handleAddCapsuleClick(level._id, level.order)
+                      }
                       className="w-full h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white py-[15px] mt-3 hover:bg-[#1a1a1a] transition-colors"
                     >
                       + Add Capsule
@@ -386,6 +454,8 @@ console.log("Capsule data:", {
           </div>
         </div>
       )}
+
+      {Level === "AddQuize" && <QuizCreator />}
 
       {openAddModel && (
         <div className="fixed top-0 left-0 w-screen h-screen overflow-auto flex justify-center z-40 bg-[rgba(0,0,0,0.9)]">
@@ -504,7 +574,7 @@ console.log("Capsule data:", {
 
             <div className="flex items-center gap-2">
               <button
-                onClick={() => handleAddCapsel(levelId)}
+                onClick={handleAddCapsule}
                 disabled={isAddingCapsule}
                 className="text-[16px] leading-[40px] font-[300] cursor-pointer rounded-[10px] bg-[#604196] w-[169.37px] hover:bg-[#704da6] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >

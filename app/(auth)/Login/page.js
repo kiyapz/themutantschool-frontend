@@ -39,10 +39,11 @@ export default function Login() {
       console.log("Login response:", response);
 
       if (response.status === 200) {
-        const { message, accessToken, user } = response.data;
+        const { message, accessToken, user, refreshToken } = response.data;
 
         console.log("Login successful:", response.data);
         setSuccessmessage(message);
+        localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("login-accessToken", accessToken);
         localStorage.setItem("USER", JSON.stringify(user));
 
