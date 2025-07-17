@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useContext, useState } from "react";
-import { Plus, Minus, Send, Eye, EyeOff } from "lucide-react";
+import { Plus, Minus, Send, Eye, EyeOff, Loader2 } from "lucide-react";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 
 const QuizCreator = () => {
   const { levelId } = useContext(InstructorContext);
   const [quiz, setQuiz] = useState({
-    levelId: levelId || "",
+    levelId: levelId ,
     title: "",
     questions: [
       {
@@ -18,7 +18,7 @@ const QuizCreator = () => {
     ],
   });
 
-  const [showPreview, setShowPreview] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
 
   const addQuestion = () => {
@@ -69,29 +69,6 @@ const QuizCreator = () => {
     }));
   };
 
-  const addOption = (qIndex) => {
-    setQuiz((prev) => ({
-      ...prev,
-      questions: prev.questions.map((q, i) =>
-        i === qIndex ? { ...q, options: [...q.options, ""] } : q
-      ),
-    }));
-  };
-
-  const removeOption = (qIndex, optIndex) => {
-    setQuiz((prev) => ({
-      ...prev,
-      questions: prev.questions.map((q, i) =>
-        i === qIndex
-          ? {
-              ...q,
-              options: q.options.filter((_, j) => j !== optIndex),
-            }
-          : q
-      ),
-    }));
-  };
-
   const validateQuiz = () => {
     if (!quiz.levelId.trim()) return "Level ID is required";
     if (!quiz.title.trim()) return "Quiz title is required";
@@ -121,15 +98,18 @@ const QuizCreator = () => {
     const accessToken = localStorage.getItem("login-accessToken");
 
     try {
-      setApiResponse({ loading: true });
+      setIsLoading(true);
+      setApiResponse(null); 
 
       const transformedQuiz = {
         levelId: quiz.levelId,
         title: quiz.title,
-        questions: quiz.questions.question,
-        options: quiz.questions.options,
-        answers: quiz.questions.answer,
+        question: quiz.questions[0]?.question,
+        options: quiz.questions[0]?.options,
+        answer: quiz.questions[0]?.answer,
       };
+
+      console.log("Transformed Quiz Data:", transformedQuiz);
 
       const response = await fetch(
         "https://themutantschool-backend.onrender.com/api/mission-quiz/create",
@@ -139,7 +119,7 @@ const QuizCreator = () => {
             "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: JSON.stringify(quiz),
+          body: JSON.stringify(transformedQuiz), 
         }
       );
 
@@ -151,11 +131,27 @@ const QuizCreator = () => {
           message: "Quiz created successfully!",
           data: responseData,
         });
+
+        
+        setQuiz({
+          levelId: levelId || "",
+          title: "",
+          questions: [
+            {
+              question: "",
+              options: ["", "", "", ""],
+              answer: "",
+            },
+          ],
+        });
       } else {
         setApiResponse({
           error: `Server Error (${response.status})`,
           success: false,
-          details: responseData || "No additional error details available",
+          details:
+            responseData?.message ||
+            responseData ||
+            "No additional error details available",
           status: response.status,
           statusText: response.statusText,
         });
@@ -166,24 +162,30 @@ const QuizCreator = () => {
         success: false,
         details: "Check your internet connection and try again",
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const copyToClipboard = () => {
-    navigator.clipboard.writeText(JSON.stringify(quiz, null, 2));
-  };
+  // Auto-hide success/error messages after 5 seconds
+  React.useEffect(() => {
+    if (apiResponse && (apiResponse.success || apiResponse.error)) {
+      const timer = setTimeout(() => {
+        setApiResponse(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [apiResponse]);
 
   return (
     <div className="max-w-4xl mx-auto p-6 bg-black min-h-screen flex flex-col gap-5 text-white">
-      <h1 className="text-3xl font-bold mb-4">Quiz Creator</h1>
-
-      
-
-      <div className="mb-6">
-        <label className="block mb-1">Quiz Title</label>
-        <input
-          className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+      <div className="mb-6 w-full h-[266.88px] rounded-[20px] bg-[#101010]">
+        <textarea
+          style={{ padding: "20px" }}
+          className="w-full p-2 rounded outline-none w-full h-full resize-none"
           value={quiz.title}
+          placeholder="Quiz Title"
+          disabled={isLoading}
           onChange={(e) =>
             setQuiz((prev) => ({ ...prev, title: e.target.value }))
           }
@@ -191,54 +193,63 @@ const QuizCreator = () => {
       </div>
 
       {quiz.questions.map((q, qIndex) => (
-        <div key={qIndex} className="mb-6 p-4 border flex flex-col gap-5 border-gray-700 rounded">
+        <div
+          style={{ padding: "20px" }}
+          key={qIndex}
+          className="mb-6 p-4 flex flex-col gap-5 rounded bg-[#101010]"
+        >
           <div className="flex justify-between mb-2">
-            <h2 className="text-lg font-semibold">Question {qIndex + 1}</h2>
             {quiz.questions.length > 1 && (
-              <button onClick={() => removeQuestion(qIndex)}>
+              <button
+                onClick={() => removeQuestion(qIndex)}
+                disabled={isLoading}
+                className="disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Minus size={16} className="text-red-500" />
               </button>
             )}
           </div>
 
           <textarea
-            className="w-full p-2 rounded  border border-gray-700 mb-4"
-            placeholder="Enter your question here"
+            style={{ padding: "10px" }}
+            className="w-full p-2 rounded-[12px] h-[142.18px] bg-[#070707] outline-none resize-none"
+            placeholder="Type Your Question here"
             value={q.question}
+            disabled={isLoading}
             onChange={(e) => updateQuestion(qIndex, "question", e.target.value)}
           />
 
           {q.options.map((opt, optIndex) => (
             <div className="flex flex-col gap-10 mb-4" key={optIndex}>
-            <div key={optIndex} className="flex items-center border gap-2 mb-2">
-              <input
-              style={{padding:'10px'}}
-              placeholder={`Option  ${optIndex + 1}`}
-                className="flex-1 p-2 rounded  border-gray-700"
-                value={opt}
-                onChange={(e) => updateOption(qIndex, optIndex, e.target.value)}
-              />
-              {q.options.length > 2 && (
-                <button onClick={() => removeOption(qIndex, optIndex)}>
-                  <Minus size={16} className="text-red-500" />
-                </button>
-              )}
-            </div>
+              <div className="flex items-center bg-[#070707] rounded-[12px] gap-2 mb-2">
+                <input
+                  style={{ padding: "10px" }}
+                  placeholder={`Option ${optIndex + 1}`}
+                  className="w-full p-2 rounded-[12px] h-[75.76px] bg-[#070707] outline-none"
+                  value={opt}
+                  disabled={isLoading}
+                  onChange={(e) =>
+                    updateOption(qIndex, optIndex, e.target.value)
+                  }
+                />
+              </div>
             </div>
           ))}
 
-        
-
           <select
-            className="w-full p-2 rounded bg-gray-800 border border-gray-700"
+            style={{ padding: "10px" }}
+            className="w-full p-4 rounded-[12px] h-[60px] text-white bg-[#070707] outline-none appearance-none focus:outline-none focus:ring-0"
             value={q.answer}
+            disabled={isLoading}
             onChange={(e) => updateQuestion(qIndex, "answer", e.target.value)}
           >
-            <option value="">Select correct answer</option>
+            <option style={{ padding: "10px" }} value="">
+              Select correct answer
+            </option>
             {q.options.map(
               (opt, idx) =>
                 opt.trim() && (
-                  <option key={idx} value={opt}>
+                  <option className="text-white" key={idx} value={opt}>
                     {opt}
                   </option>
                 )
@@ -247,23 +258,78 @@ const QuizCreator = () => {
         </div>
       ))}
 
-      
-
-      <div className="flex gap-4">
+      <div className="flex gap-4 items-center">
         <button
-        style={{padding:'5px'}}
           onClick={handleSubmit}
-          className="px-6 py-2 border flex items-center w-fit rounded hover:bg-green-700"
+          disabled={isLoading}
+          className="bg-[#604196] cursor-pointer w-[169.37px] h-[44.07px] hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
         >
-          <Send size={16} /> Create Quiz
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin" size={16} />
+              Creating...
+            </>
+          ) : (
+            "Create Quiz"
+          )}
         </button>
 
-        
+        <button
+          onClick={addQuestion}
+          disabled={isLoading}
+          className="bg-[#604196] cursor-pointer w-[169.37px] h-[44.07px] hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
+        >
+          {isLoading ? (
+            <>
+              <Loader2 className="animate-spin" size={16} />
+              Wait...
+            </>
+          ) : (
+            <>
+              <Plus size={16} />
+              Add Question
+            </>
+          )}
+        </button>
       </div>
 
-
-
-     
+      {/* Improved Response Display */}
+      {apiResponse && (
+        <div
+          style={{ padding: "16px" }}
+          className={`mt-4 fixed top-4 right-4 w-fit max-w-md p-4 bg-[#070707] rounded-sm shadow-lg z-50 ${
+            apiResponse.success
+              ? "bg-green-900 border border-green-700"
+              : "bg-red-900 border border-red-700"
+          }`}
+        >
+          {apiResponse.success ? (
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              <div className="text-green-100">{apiResponse.message}</div>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                <div className="text-red-100 font-medium">
+                  {apiResponse.error || "An error occurred"}
+                </div>
+              </div>
+              {apiResponse.details && (
+                <div className="text-sm text-red-300 pl-4">
+                  {apiResponse.details}
+                </div>
+              )}
+              {apiResponse.status && (
+                <div className="text-xs text-red-400 pl-4">
+                  Status: {apiResponse.status} - {apiResponse.statusText}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };
