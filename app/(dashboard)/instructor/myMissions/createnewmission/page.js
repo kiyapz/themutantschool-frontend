@@ -1,20 +1,67 @@
 "use client";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import MissionDetails from "./_components/MissionDetails";
 import AddLevels from "./_components/AddLevels";
 import PreviewandLaunch from "./_components/PreviewandLaunch";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import Link from "next/link";
 import { FaLessThan } from "react-icons/fa";
+import { InstructorContext } from "../../_components/context/InstructorContex";
+// import { o } from "framer-motion/dist/types.d-B_QPEvFK";
 
 export default function Createnewmission() {
-  const [activeTab, setActiveTab] = useState("Mission Details");
+  const { activeTab, setActiveTab } = useContext(InstructorContext);
+  
+ 
+
+
   const [buttonAction, setbuttonAction] = useState("Publish");
   const actions = [
     { text: "Delete", icon: <FiTrash2 /> },
     { text: "Edit", icon: <FiEdit /> },
     { text: "Publish", icon: null },
   ];
+
+ const editMission =async ()=> {
+
+try {
+  const storedMissionId = localStorage.getItem("missionId");
+  const accessToken = localStorage.getItem("login-accessToken");
+
+  if (!storedMissionId || !accessToken) {
+    console.log("Missing missionId or accessToken in localStorage");
+    return;
+  }
+
+ 
+
+  const response = await axios.put(
+    `https://themutantschool-backend.onrender.com/api/mission/${storedMissionId}`,
+    updatedMissionData,
+    {
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+      },
+    }
+  );
+
+  console.log("Mission updated successfully:", response.data);
+
+
+
+  
+} catch (error) {
+  console.error("Error editing mission:", error);
+  
+}
+
+
+ }
+
+
+   
+
   return (
     <div className="flex  flex-col gap-3 ">
       <div className="w-full h-fit flex flex-col sm:flex-row items-center gap-5 justify-between ">
@@ -60,12 +107,14 @@ export default function Createnewmission() {
               ))}
             </div>
           ) : (
-            <button
-              style={{ padding: "15px" }}
-              className="bg-[var(--purpel-btncolor)] rounded-[10px] "
-            >
-              Preview Mission
-            </button>
+            <Link href={`/instructor/myMissions/`}>
+              <button
+                style={{ padding: "15px" }}
+                className="bg-[var(--purpel-btncolor)] rounded-[10px] "
+              >
+                Preview Mission
+              </button>
+            </Link>
           )}
         </div>
       </div>

@@ -10,14 +10,49 @@ import Link from "next/link";
 import axios from "axios";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 import UserProfileImage from "../../../profile/_components/UserProfileImage";
-// import { headers } from "next/headers";
+
 
 export default function PreviewandLaunch() {
   const {userUpdatedValue} = useContext(InstructorContext);
   const [activeTab, setActiveTab] = useState("Mission Overview");
   const [levels, setLevels] = useState([]);
 
+const getMissionByID = async ()=>{
+  console.log("Fetching mission by ID...");
+  
+  try {
 
+        const storedMissionId = localStorage.getItem("missionId");
+        const accessToken = localStorage.getItem("login-accessToken");
+
+    if (!storedMissionId || !accessToken) {
+      console.log("Missing missionId or accessToken in localStorage");
+      return;
+    }
+
+    const response = await axios.get(
+      `https://themutantschool-backend.onrender.com/api/mission/${storedMissionId}`,
+      
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${accessToken}`,
+        },
+      }
+    );
+
+    console.log("Mission updated successfully:", response);
+
+    
+  } catch (error) {
+    console.log(error);
+    
+  }
+}
+
+useEffect(() =>{
+getMissionByID()
+},[])
 
   useEffect(() => {
     const fetchMissionLevels = async () => {
@@ -79,39 +114,7 @@ export default function PreviewandLaunch() {
         </div>
       );
     } else if (activeTab === "Missions Levels") {
-      // const levels = [
-      //   {
-      //     id: 1,
-      //     level: 1,
-      //     title: "HTML Genesis",
-      //     duration: "1.5 hours",
-      //     capsules: 4,
-      //     quizzes: 10,
-      //     time: "90 minutes",
-      //     locked: false,
-      //   },
-      //   {
-      //     id: 2,
-      //     level: 1,
-      //     title: "CSS Evolution",
-      //     duration: "2.5 hours",
-      //     capsules: 5,
-      //     quizzes: 10,
-      //     time: "150 minutes",
-      //     locked: true,
-      //   },
-      //   {
-      //     id: 3,
-      //     level: 1,
-      //     title: "HTML Genesis",
-      //     duration: "2 hours",
-      //     capsules: 3,
-      //     quizzes: 10,
-      //     time: "120 minutes",
-      //     locked: true,
-      //   },
-      // ];
-
+      
       return (
         <div className="flex flex-col gap-5">
           {levels.map((level, index) => (

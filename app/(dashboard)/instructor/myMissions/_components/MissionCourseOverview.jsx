@@ -1,9 +1,11 @@
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { FaClipboardList, FaPlay } from "react-icons/fa";
 import { FiEdit, FiTrash2 } from "react-icons/fi";
 import { MdOutlineQuiz } from "react-icons/md";
 import Actionbtn from "../createnewmission/_components/Actionbtn";
 import Analitiesbtn from "../createnewmission/_components/Analitiesbtn";
+import Link from "next/link";
+import { InstructorContext } from "../../_components/context/InstructorContex";
 
 const getIconComponent = (iconType) => {
   switch (iconType) {
@@ -137,20 +139,22 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
   );
 };
 
-
-const CurriculumContent = ({ course }) => (
+const CurriculumContent = ({ course, handleAddLevelId }) => (
   <>
     <div
       className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
       style={{ padding: "0 32px" }}
     >
       <h2 className="text-[24px] font-[600]">Course Curriculum</h2>
-      <button
-        className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
-        style={{ padding: "8px 16px" }}
-      >
-        + Level
-      </button>
+      <Link href={`/instructor/myMissions/createnewmission`}>
+        <button
+          onClick={() => handleAddLevelId(course._id)}
+          className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
+          style={{ padding: "8px 16px" }}
+        >
+          + Level
+        </button>
+      </Link>
     </div>
 
     <div className="space-y-6" style={{ paddingBottom: "24px" }}>
@@ -249,10 +253,15 @@ const SettingsContent = ({ course }) => (
   </div>
 );
 
-const renderTabContent = (activeTab, course) => {
+const renderTabContent = (activeTab, course, handleAddLevelId) => {
   switch (activeTab) {
     case "Curriculum":
-      return <CurriculumContent course={course} />;
+      return (
+        <CurriculumContent
+          course={course}
+          handleAddLevelId={handleAddLevelId}
+        />
+      );
     case "Students":
       return <StudentsContent course={course} />;
     case "Resources":
@@ -262,12 +271,25 @@ const renderTabContent = (activeTab, course) => {
     case "Settings":
       return <SettingsContent course={course} />;
     default:
-      return <CurriculumContent course={course} />;
+      return (
+        <CurriculumContent
+          course={course}
+          handleAddLevelId={handleAddLevelId}
+        />
+      );
   }
 };
 
 export default function MissionCourseOverview({ course }) {
   const [activeTab, setActiveTab] = useState("Curriculum");
+  const { setActiveTab: setContextActiveTab } = useContext(InstructorContext);
+
+  const handleAddLevelId = (courseId) => {
+    console.log("Adding level to course:", courseId);
+    setContextActiveTab("Add Levels");
+    localStorage.removeItem("missionId");
+    localStorage.setItem("missionId", courseId);
+  };
 
   return (
     <div
@@ -276,11 +298,17 @@ export default function MissionCourseOverview({ course }) {
     >
       <div className="grid xl:grid-cols-3 gap-8">
         <div
-          style={{ backgroundImage: `url(${course.thumbnail.url})` }}
-          className="border border-[#6D4879] w-full h-[300px] xl:h-full rounded-[13px] bg-cover bg-center bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] flex items-center justify-center"
+          style={{
+            backgroundImage: course.thumbnail?.url
+              ? `url(${course.thumbnail.url})`
+              : "none",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+          }}
+          className="border border-[#6D4879] w-full h-[300px] xl:h-full rounded-[13px] bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] flex items-center justify-center"
         >
           <div className="text-center text-[#6D4879]">
-          
             <p className="text-sm">Course Preview</p>
           </div>
         </div>
@@ -317,17 +345,17 @@ export default function MissionCourseOverview({ course }) {
       <div className="grid gap-6 xl:grid-cols-3">
         <Analitiesbtn
           text1="Total Enrollment"
-          text2={course.analytics?.enrollments}
+          text2={course.analytics?.enrollments || "0"}
           text3="+2 from last month"
         />
         <Analitiesbtn
           text1="Completion Rate"
-          text2={course.analytics?.completionRate}
+          text2={course.analytics?.completionRate || "0%"}
           text3="+5% from last month"
         />
         <Analitiesbtn
           text1="Student Rating"
-          text2={course.analytics?.rating}
+          text2={course.analytics?.rating || "0.0"}
           text3="+0.2 from last month"
         />
       </div>
@@ -335,7 +363,7 @@ export default function MissionCourseOverview({ course }) {
       <div className="flex flex-col gap-6 rounded-[20px] border border-[#535353] bg-[#111111]">
         <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        {renderTabContent(activeTab, course)}
+        {renderTabContent(activeTab, course, handleAddLevelId)}
       </div>
 
       {activeTab === "Curriculum" && (

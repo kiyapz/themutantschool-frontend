@@ -9,11 +9,15 @@ export default function InstructorContextProvider({ children }) {
   const [profiledisplay, setprofiledisplay] = useState("Personal Information");
   const [openSmallScreenProfileDropDown, setopenSmallScreenProfileDropDown] =
     useState(false);
+    const [activeTab, setActiveTab] = useState("Mission Details");
   const [openlargeProfileDropdown, setopenlargeProfileDropdown] =
     useState(false);
   const [ChangePassword, setChangePassword] = useState(false);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+   const [missionId, setmessionId] = useState("");
+    const [passingScore, setPassingScore] = useState(70);
 
   // for level
   const [levelId, setLeveld] = useState("");
@@ -265,6 +269,19 @@ export default function InstructorContextProvider({ children }) {
       console.log("Failed to load user", error.response?.data || error.message);
     }
   };
+
+  const handleLogout = () => {
+ 
+    localStorage.removeItem("login-accessToken");
+    localStorage.removeItem("accessToken");
+    localStorage.removeItem("USER");
+    localStorage.removeItem("refreshToken");
+    localStorage.removeItem("missionDraft");
+    localStorage.removeItem("missionId");
+    
+    window.location.href = "/Login";
+  };
+
   return (
     <InstructorContext.Provider
       value={{
@@ -287,6 +304,15 @@ export default function InstructorContextProvider({ children }) {
         setopenSmallScreenProfileDropDown,
         ChangePassword,
         setChangePassword,
+        activeTab,
+        setActiveTab,
+        handleLogout,
+        isMobileMenuOpen,
+        setIsMobileMenuOpen,
+        missionId,
+        setmessionId,
+        passingScore,
+        setPassingScore,
       }}
     >
       {children}

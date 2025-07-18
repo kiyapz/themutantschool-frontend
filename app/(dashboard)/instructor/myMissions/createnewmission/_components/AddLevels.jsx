@@ -47,7 +47,7 @@ const LoadingSpinner = () => (
 );
 
 export default function AddLevels() {
-  const { capselId, setcapselId, levelId, setLeveld } =
+  const { capselId, setcapselId, levelId, setLeveld,missionId,setmessionId } =
     useContext(InstructorContext);
   const [Level, setLevel] = useState("AddLevel");
   const [openAddModel, setOpenAddModel] = useState(false);
@@ -288,13 +288,16 @@ export default function AddLevels() {
 
   // Add Quize
 
-  const handleAddQuize =async (capsel,id)=>{
+  const handleAddQuize =async (index,id)=>{
+    const missionId = localStorage.getItem("missionId");
+    setmessionId(missionId)
     setLevel("AddQuize");
+
    setLeveld(id);
-   setcapselId(capsel);
+   setcapselId(index);
 
 
-    console.log(capsel,id, " capsule id for quiz");
+    console.log(id, " capsule id for quiz");
     
 
     //  try {
@@ -407,7 +410,9 @@ export default function AddLevels() {
                     <p className="font-[600] text-[20px]">{level.title}</p>
                     {level.capsules?.map((capsule, i) => (
                       <div
-                        onClick={() => handleAddQuize(capsule, level._id)}
+                        onClick={() =>
+                          handleAddQuize(`${index}`, level._id)
+                        }
                         style={{ padding: "0px  10px" }}
                         key={i}
                         className="w-full flex items-center justify-between h-[73.64px] rounded-[12px] bg-[#1C1C1C] px-4"

@@ -2,9 +2,13 @@
 import Link from "next/link";
 import Sidebarbtn from "./Sidebarbtn";
 import { usePathname } from "next/navigation";
+import { useContext } from "react";
+import { InstructorContext } from "./context/InstructorContex";
 
 export default function Sidebar() {
   const pathname = usePathname();
+  const { handleLogout, isMobileMenuOpen, setIsMobileMenuOpen } =
+    useContext(InstructorContext);
 
   return (
     <div className="max-w-[343.91px] overflow-auto scrollbar-hide w-full h-screen shadow-[1px_0px_4px_0px_#A6A6A640]">
@@ -14,14 +18,19 @@ export default function Sidebar() {
             Mutant
           </p>
 
-          <div style={{ padding: '10px' }} className="w-fit flex flex-col px-5 py-4">
+          <div
+            style={{ padding: "10px" }}
+            className="w-fit flex flex-col px-5 py-4"
+          >
             <div className="gap-4 flex flex-col">
-              
               {/* Core Nav */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">CORE NAVIGATION</p>
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                  CORE NAVIGATION
+                </p>
                 <Link href="/instructor">
                   <Sidebarbtn
+                    onClick={() => setIsMobileMenuOpen(false)}
                     image="/images/sidebaricons/Group (3).png"
                     text="Dashboard"
                     active={pathname === "/instructor"}
@@ -29,6 +38,7 @@ export default function Sidebar() {
                 </Link>
                 <Link href="/instructor/myMissions">
                   <Sidebarbtn
+                    onClick={() => setIsMobileMenuOpen(false)}
                     image="/images/sidebaricons/Group (3).png"
                     text="My Missions"
                     active={pathname === "/instructor/myMissions"}
@@ -38,18 +48,23 @@ export default function Sidebar() {
 
               {/* Engagement */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">STUDENT ENGAGEMENT</p>
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                  STUDENT ENGAGEMENT
+                </p>
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (8).png"
                   text="My Recruits"
                   active={pathname === "/instructor/recruits"}
                 />
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (7).png"
                   text="Comms Center"
                   active={pathname === "/instructor/comms"}
                 />
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Vector (10).png"
                   text="Squad Discussions"
                   active={pathname === "/instructor/discussions"}
@@ -58,18 +73,23 @@ export default function Sidebar() {
 
               {/* Performance */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">PERFORMANCE AND FEEDBACK</p>
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                  PERFORMANCE AND FEEDBACK
+                </p>
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (6).png"
                   text="Mission Analytics"
                   active={pathname === "/instructor/analytics"}
                 />
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (5).png"
                   text="Field Reports"
                   active={pathname === "/instructor/reports"}
                 />
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (5).png"
                   text="Achievements"
                   active={pathname === "/instructor/achievements"}
@@ -78,8 +98,11 @@ export default function Sidebar() {
 
               {/* Monetization */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">MONETIZATION AND EARNINGS</p>
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                  MONETIZATION AND EARNINGS
+                </p>
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Layer_1.png"
                   text="The Vault"
                   active={pathname === "/instructor/vault"}
@@ -88,13 +111,17 @@ export default function Sidebar() {
 
               {/* Support */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">SUPPORT ROOM</p>
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                  SUPPORT ROOM
+                </p>
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (4).png"
                   text="Knowledge Codex"
                   active={pathname === "/instructor/codex"}
                 />
                 <Sidebarbtn
+                  onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Vector (10).png"
                   text="Contact Command"
                   active={pathname === "/instructor/contact"}
@@ -105,8 +132,13 @@ export default function Sidebar() {
         </div>
 
         {/* Footer Logout */}
-        <div style={{ paddingLeft: '10px' }} className="self-bottom">
+        <div
+          onClick={handleLogout}
+          style={{ paddingLeft: "10px" }}
+          className="self-bottom"
+        >
           <Sidebarbtn
+            onClick={() => setIsMobileMenuOpen(false)}
             image="/images/sidebaricons/Layer_1 (1).png"
             text="Logout"
             active={pathname === "/logout"}

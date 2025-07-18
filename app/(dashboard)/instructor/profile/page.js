@@ -63,7 +63,6 @@ export default function Profile() {
         );
         setError("Failed to load profile. Please try again.");
 
-        // Only redirect on auth errors
         if (error.response?.status === 401 || error.response?.status === 403) {
           router.push("/Login");
         }

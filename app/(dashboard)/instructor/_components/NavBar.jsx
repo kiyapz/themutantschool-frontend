@@ -11,9 +11,14 @@ import UserProfileImage from "../profile/_components/UserProfileImage";
 
 
 export default function NavBar({ onMenuClick }) {
-    const {openSmallScreenProfileDropDown,setopenSmallScreenProfileDropDown,user} = useContext(InstructorContext);
+    const {
+      openSmallScreenProfileDropDown,
+      setopenSmallScreenProfileDropDown,
+      isMobileMenuOpen,
+      setIsMobileMenuOpen,
+    } = useContext(InstructorContext);
   
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+ 
 
   const handleMenuClick = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -73,16 +78,16 @@ export default function NavBar({ onMenuClick }) {
         
         <div className="flex items-center">
           <div className="h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
-           {/* <Link href='/instructor/profile'>  */}
+           
            <div onClick={()=>setopenSmallScreenProfileDropDown(!openSmallScreenProfileDropDown)} className="w-[35px] h-[35px] bg-pink-900 rounded-full cursor-pointer">
             <UserProfileImage />
             </div> 
-           {/* </Link> */}
+       
           </div>
         </div>
       </div>
 
-      {/* Add padding to body content on mobile to account for fixed navbar */}
+    
       <div className="sm:hidden h-[79.88px]" />
 
       {isMobileMenuOpen && (

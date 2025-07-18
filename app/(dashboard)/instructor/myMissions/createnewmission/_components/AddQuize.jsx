@@ -1,25 +1,34 @@
 "use client";
 
-import React, { useContext, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { Plus, Minus, Send, Eye, EyeOff, Loader2 } from "lucide-react";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
+import axios from "axios";
+import QuizeCustomDropdown from "./QuizeDropdown";
 
 const QuizCreator = () => {
-  const { levelId } = useContext(InstructorContext);
+  const { levelId, missionId, capselId, passingScore, setPassingScore } =
+    useContext(InstructorContext);
   const [quiz, setQuiz] = useState({
-    levelId: levelId ,
+    missionId: missionId,
+    levelId: levelId,
     title: "",
     questions: [
       {
         question: "",
         options: ["", "", "", ""],
         answer: "",
+        explanation: "",
       },
     ],
   });
 
   const [isLoading, setIsLoading] = useState(false);
   const [apiResponse, setApiResponse] = useState(null);
+  const [QuizData, setQuizData] = useState("AddLevel");
+  const [durationMinutes, setDurationMinutes] = useState(15);
+ 
+  console.log("Quiz Creator initialized with levelId:", QuizData);
 
   const addQuestion = () => {
     setQuiz((prev) => ({
@@ -30,6 +39,7 @@ const QuizCreator = () => {
           question: "",
           options: ["", "", "", ""],
           answer: "",
+          explanation: "",
         },
       ],
     }));
@@ -72,6 +82,7 @@ const QuizCreator = () => {
   const validateQuiz = () => {
     if (!quiz.levelId.trim()) return "Level ID is required";
     if (!quiz.title.trim()) return "Quiz title is required";
+    if (quiz.questions.length === 0) return "At least one question is required";
 
     for (let i = 0; i < quiz.questions.length; i++) {
       const q = quiz.questions[i];
@@ -83,6 +94,8 @@ const QuizCreator = () => {
       if (!q.answer.trim()) return `Answer for Question ${i + 1} is required`;
       if (!q.options.includes(q.answer))
         return `Answer for Question ${i + 1} must match one of the options`;
+      if (!q.explanation.trim())
+        return `Explanation for Question ${i + 1} is required`;
     }
 
     return null;
@@ -99,48 +112,61 @@ const QuizCreator = () => {
 
     try {
       setIsLoading(true);
-      setApiResponse(null); 
+      setApiResponse(null);
+
+      const transformedQuestions = quiz.questions.map((question) => {
+        const correctAnswerIndex = question.options.indexOf(question.answer);
+        return {
+          questionText: question.question,
+          options: question.options,
+          correctAnswerIndex: correctAnswerIndex,
+          explanation: question.explanation,
+        };
+      });
 
       const transformedQuiz = {
-        levelId: quiz.levelId,
         title: quiz.title,
-        question: quiz.questions[0]?.question,
-        options: quiz.questions[0]?.options,
-        answer: quiz.questions[0]?.answer,
+        type: "mutation",
+        missionId: quiz.missionId,
+        levelId: quiz.levelId,
+        questions: transformedQuestions,
+        passingScore: passingScore,
+        durationMinutes: durationMinutes,
       };
 
       console.log("Transformed Quiz Data:", transformedQuiz);
 
-      const response = await fetch(
+      const response = await axios.post(
         "https://themutantschool-backend.onrender.com/api/mission-quiz/create",
+        transformedQuiz,
         {
-          method: "POST",
           headers: {
-            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
           },
-          body: JSON.stringify(transformedQuiz), 
         }
       );
 
-      const responseData = await response.json().catch(() => null);
+      console.log("API Response:", response);
 
-      if (response.ok) {
+      if (response.status === 200 || response.status === 201) {
         setApiResponse({
           success: true,
           message: "Quiz created successfully!",
-          data: responseData,
+          data: response.data,
         });
-
-        
+        getAllLevel();
+        // Reset form
         setQuiz({
           levelId: levelId || "",
+          missionId: missionId || "",
           title: "",
           questions: [
             {
               question: "",
               options: ["", "", "", ""],
               answer: "",
+              explanation: "",
             },
           ],
         });
@@ -149,25 +175,46 @@ const QuizCreator = () => {
           error: `Server Error (${response.status})`,
           success: false,
           details:
-            responseData?.message ||
-            responseData ||
+            response.data?.message ||
+            response.data ||
             "No additional error details available",
           status: response.status,
           statusText: response.statusText,
         });
       }
     } catch (error) {
-      setApiResponse({
-        error: `Network Error: ${error.message}`,
-        success: false,
-        details: "Check your internet connection and try again",
-      });
+      console.error("Error creating quiz:", error);
+
+      if (error.response) {
+        setApiResponse({
+          error: `Server Error (${error.response.status})`,
+          success: false,
+          details:
+            error.response.data?.message ||
+            error.response.data ||
+            "Server error occurred",
+          status: error.response.status,
+          statusText: error.response.statusText,
+        });
+      } else if (error.request) {
+        setApiResponse({
+          error: "Network Error",
+          success: false,
+          details:
+            "Unable to connect to server. Check your internet connection.",
+        });
+      } else {
+        setApiResponse({
+          error: `Error: ${error.message}`,
+          success: false,
+          details: "An unexpected error occurred",
+        });
+      }
     } finally {
       setIsLoading(false);
     }
   };
 
- 
   React.useEffect(() => {
     if (apiResponse && (apiResponse.success || apiResponse.error)) {
       const timer = setTimeout(() => {
@@ -177,13 +224,87 @@ const QuizCreator = () => {
     }
   }, [apiResponse]);
 
+  const getAllLevel = async () => {
+    console.log(levelId, " level id for quiz");
+
+    const accessToken = localStorage.getItem("login-accessToken");
+    const missionId = localStorage.getItem("missionId");
+
+    // setIsLoadingLevels(true);
+
+    try {
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+      setQuizData(response.data.data[capselId] || []);
+      console.log("Fetched quiz levels:", response.data.data[capselId]);
+    } catch (error) {
+      console.error("Failed to fetch levels:", error);
+      // showToast("Failed to fetch levels", "error");
+    } finally {
+      // setIsLoadingLevels(false);
+    }
+  };
+
+  useEffect(() => {
+    getAllLevel();
+  }, []);
+
   return (
-    <div className=" xl:grid grid-cols-3 gap-4 ">
+    <div className="flex flex-col  xl:grid grid-cols-3 gap-4">
       <div className="max-w-4xl col-span-2 mx-auto p-6 bg-black min-h-screen flex flex-col gap-5 text-white">
-        <div className="mb-6 w-full h-[266.88px] rounded-[20px] bg-[#101010]">
-          <textarea
+        <div
+          style={{ padding: "20px" }}
+          className="rounded-[20px] w-full h-fit bg-[#101010]"
+        >
+          <p className=" text-[#BDE75D] leading-[40px] text-[28px] font-[600] ">
+            Quiz Settings
+          </p>
+
+          <div
+            style={{ padding: "10px" }}
+            className="mb-6 w-full gap-5 h-fit xl:grid grid-cols-3 "
+          >
+            <div className="flex flex-col gap-2">
+              <p className="text-[#7F7F7F] font-[400] text-[19px] ">
+                Time Limit(Minutes)
+              </p>
+              <input
+                style={{ padding: "10px" }}
+                value={durationMinutes}
+                onChange={(e) => setDurationMinutes(e.target.value)}
+                type="number"
+                className="w-full outline-none h-[75.76px]  text-center rounded-[14px] bg-[#070707] "
+              />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-[#7F7F7F] font-[400] text-[19px] ">
+                Passing Score
+              </p>
+              <QuizeCustomDropdown />
+            </div>
+            <div className="flex flex-col gap-2">
+              <p className="text-[#7F7F7F] font-[400] text-[19px] ">
+                Allowed Attempts
+              </p>
+              <input
+                style={{ padding: "10px" }}
+                defaultValue={1}
+                type="text"
+                className="w-full outline-none text-center h-[75.76px] rounded-[14px] bg-[#070707] "
+              />
+            </div>
+          </div>
+        </div>
+
+        <div
+          style={{ padding: "10px" }}
+          className="mb-6 w-full h-[75.16px] rounded-[12px] bg-[#101010]"
+        >
+          <input 
             style={{ padding: "20px" }}
-            className="w-full p-2 rounded bg-[#101010] outline-none w-full h-full resize-none"
+            className="w-full p-2 rounded bg-[#070707] outline-none w-full h-full "
             value={quiz.title}
             placeholder="Quiz Title"
             disabled={isLoading}
@@ -200,6 +321,7 @@ const QuizCreator = () => {
             className="mb-6 p-4 flex flex-col gap-5 rounded bg-[#101010]"
           >
             <div className="flex justify-between mb-2">
+              <h3 className="text-lg font-semibold">Question {qIndex + 1}</h3>
               {quiz.questions.length > 1 && (
                 <button
                   onClick={() => removeQuestion(qIndex)}
@@ -211,9 +333,9 @@ const QuizCreator = () => {
               )}
             </div>
 
-            <textarea
+            <input
               style={{ padding: "10px" }}
-              className="w-full p-2 rounded-[12px] h-[142.18px] bg-[#070707] outline-none resize-none"
+              className="w-full p-2 rounded-[12px] h-[75.16px] bg-[#070707] outline-none resize-none"
               placeholder="Type Your Question here"
               value={q.question}
               disabled={isLoading}
@@ -222,49 +344,54 @@ const QuizCreator = () => {
               }
             />
 
-            {q.options.map((opt, optIndex) => (
-              <div className="flex flex-col gap-10 mb-4" key={optIndex}>
-                <div className="flex items-center bg-[#070707] rounded-[12px] gap-2 mb-2">
-                  <input
-                    style={{ padding: "10px" }}
-                    placeholder={`Option ${optIndex + 1}`}
-                    className="w-full p-2 rounded-[12px] h-[75.76px] bg-[#070707] outline-none"
-                    value={opt}
-                    disabled={isLoading}
-                    onChange={(e) =>
-                      updateOption(qIndex, optIndex, e.target.value)
-                    }
-                  />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full">
+              {q.options.map((opt, optIndex) => (
+                <div className="w-full mb-4" key={optIndex}>
+                  <div className="flex gap-2 items-center">
+                    <input
+                      type="radio"
+                      id={`q${qIndex}_option${optIndex}`}
+                      name={`question_${qIndex}_answer`}
+                      value={opt}
+                      checked={q.answer === opt}
+                      disabled={isLoading || !opt.trim()}
+                      onChange={(e) =>
+                        updateQuestion(qIndex, "answer", e.target.value)
+                      }
+                      className="w-5 h-5 text-[#604196] bg-[#070707] border-2 border-gray-600 focus:ring-[#604196] focus:ring-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                    />
+                    <input
+                      style={{ padding: "10px" }}
+                      placeholder={`Option ${optIndex + 1}`}
+                      className="flex-1 p-2 rounded-[12px] w-full h-[75.76px] bg-[#070707] outline-none"
+                      value={opt}
+                      disabled={isLoading}
+                      onChange={(e) =>
+                        updateOption(qIndex, optIndex, e.target.value)
+                      }
+                    />
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
 
-            <select
+            <textarea
               style={{ padding: "10px" }}
-              className="w-full p-4 rounded-[12px] h-[60px] text-white bg-[#070707] outline-none appearance-none focus:outline-none focus:ring-0"
-              value={q.answer}
+              className="w-full p-2 rounded-[12px] h-[75.16px] bg-[#070707] outline-none resize-none"
+              placeholder="Explanation for this question"
+              value={q.explanation}
               disabled={isLoading}
-              onChange={(e) => updateQuestion(qIndex, "answer", e.target.value)}
-            >
-              <option style={{ padding: "10px" }} value="">
-                Select correct answer
-              </option>
-              {q.options.map(
-                (opt, idx) =>
-                  opt.trim() && (
-                    <option className="text-white" key={idx} value={opt}>
-                      {opt}
-                    </option>
-                  )
-              )}
-            </select>
+              onChange={(e) =>
+                updateQuestion(qIndex, "explanation", e.target.value)
+              }
+            />
           </div>
         ))}
 
         <div className="flex gap-4 items-center">
           <button
             onClick={handleSubmit}
-            disabled={isLoading}
+            disabled={QuizData.quiz || isLoading || quiz.questions.length <= 4}
             className="bg-[#604196] cursor-pointer w-[169.37px] h-[44.07px] hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
           >
             {isLoading ? (
@@ -279,7 +406,7 @@ const QuizCreator = () => {
 
           <button
             onClick={addQuestion}
-            disabled={isLoading}
+            disabled={QuizData.quiz || isLoading}
             className="bg-[#604196] cursor-pointer w-[169.37px] h-[44.07px] hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
           >
             {isLoading ? (
@@ -335,18 +462,32 @@ const QuizCreator = () => {
       </div>
 
       <div className="">
-        <p className="text-[#BDE75D] font-[600] text-[27px] leading-[57px] ">
+        <p className="text-[#BDE75D] font-[600] text-[27px] leading-[57px]">
           Quiz Questions
         </p>
-        <div
-          style={{ padding: "20px" }}
-          className="bg-[#62337C] flex flex-col justify-center h-[102px] w-full  rounded-[13px] "
-        >
-          <p className="font-[600] text-[20px] leading-[27px] ">Question 1</p>
-          <p className="font-[300] text-[12px] leading-[17px] ">
-            Correct answer: Option B
-          </p>
-        </div>
+
+        {QuizData.quiz ? (
+          <div className="flex flex-col gap-4">
+            {" "}
+            {QuizData?.quiz?.questions.map((question, index) => (
+              <div
+                key={index}
+                style={{ padding: "20px" }}
+                className="bg-[#62337C] flex flex-col justify-center h-[102px] w-full rounded-[13px] mb-4"
+              >
+                <p className="font-[600] text-[20px] leading-[27px]">
+                  Question {index + 1}: {question.questionText}
+                </p>
+                <p className="font-[300] text-[12px] leading-[17px]">
+                  Correct answer (Option {question.correctAnswerIndex + 1}):{" "}
+                  {question.options[question.correctAnswerIndex]}
+                </p>
+              </div>
+            ))}
+          </div>
+        ) : (
+          "Create A Quize"
+        )}
       </div>
     </div>
   );
