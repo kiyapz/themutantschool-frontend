@@ -18,6 +18,8 @@ export default function InstructorContextProvider({ children }) {
    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
    const [missionId, setmessionId] = useState("");
     const [passingScore, setPassingScore] = useState(70);
+     const [quiztitle, setQuizTitle] = useState("");
+      const [Level, setLevel] = useState("AddLevel");
 
   // for level
   const [levelId, setLeveld] = useState("");
@@ -285,6 +287,7 @@ export default function InstructorContextProvider({ children }) {
   return (
     <InstructorContext.Provider
       value={{
+        Level, setLevel,
         levelId,
         setLeveld,
         capselId,
@@ -313,6 +316,8 @@ export default function InstructorContextProvider({ children }) {
         setmessionId,
         passingScore,
         setPassingScore,
+        quiztitle,
+        setQuizTitle,
       }}
     >
       {children}

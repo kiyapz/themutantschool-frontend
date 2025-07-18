@@ -47,9 +47,17 @@ const LoadingSpinner = () => (
 );
 
 export default function AddLevels() {
-  const { capselId, setcapselId, levelId, setLeveld,missionId,setmessionId } =
-    useContext(InstructorContext);
-  const [Level, setLevel] = useState("AddLevel");
+  const {
+    capselId,
+    setcapselId,
+    levelId,
+    setLeveld,
+    missionId,
+    setmessionId,
+    Level,
+    setLevel,
+  } = useContext(InstructorContext);
+ 
   const [openAddModel, setOpenAddModel] = useState(false);
   const [title, settitle] = useState("");
   const [description, setdescription] = useState("");

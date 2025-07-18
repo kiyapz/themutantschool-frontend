@@ -1,14 +1,21 @@
 "use client";
 
 import React, { useContext, useEffect, useState } from "react";
+import { MdSettings } from "react-icons/md";
 import { Plus, Minus, Send, Eye, EyeOff, Loader2 } from "lucide-react";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 import axios from "axios";
 import QuizeCustomDropdown from "./QuizeDropdown";
 
 const QuizCreator = () => {
-  const { levelId, missionId, capselId, passingScore, setPassingScore } =
-    useContext(InstructorContext);
+  const {
+    levelId,
+    missionId,
+    capselId,
+    passingScore,
+    setQuizTitle,
+  } = useContext(InstructorContext);
+   
   const [quiz, setQuiz] = useState({
     missionId: missionId,
     levelId: levelId,
@@ -156,7 +163,7 @@ const QuizCreator = () => {
           data: response.data,
         });
         getAllLevel();
-        // Reset form
+        
         setQuiz({
           levelId: levelId || "",
           missionId: missionId || "",
@@ -230,7 +237,7 @@ const QuizCreator = () => {
     const accessToken = localStorage.getItem("login-accessToken");
     const missionId = localStorage.getItem("missionId");
 
-    // setIsLoadingLevels(true);
+   
 
     try {
       const response = await axios.get(
@@ -238,12 +245,13 @@ const QuizCreator = () => {
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       setQuizData(response.data.data[capselId] || []);
+      setQuizTitle(response.data.data[capselId]?.title || "");
       console.log("Fetched quiz levels:", response.data.data[capselId]);
     } catch (error) {
       console.error("Failed to fetch levels:", error);
-      // showToast("Failed to fetch levels", "error");
+     
     } finally {
-      // setIsLoadingLevels(false);
+     
     }
   };
 
@@ -254,12 +262,13 @@ const QuizCreator = () => {
   return (
     <div className="flex flex-col  xl:grid grid-cols-3 gap-4">
       <div className="max-w-4xl col-span-2 mx-auto p-6 bg-black min-h-screen flex flex-col gap-5 text-white">
+        
         <div
           style={{ padding: "20px" }}
           className="rounded-[20px] w-full h-fit bg-[#101010]"
         >
-          <p className=" text-[#BDE75D] leading-[40px] text-[28px] font-[600] ">
-            Quiz Settings
+          <p className=" text-[#BDE75D] flex items-center gap-2 leading-[40px] text-[28px] font-[600] ">
+           <MdSettings /> Quiz Settings
           </p>
 
           <div
@@ -302,7 +311,7 @@ const QuizCreator = () => {
           style={{ padding: "10px" }}
           className="mb-6 w-full h-[75.16px] rounded-[12px] bg-[#101010]"
         >
-          <input 
+          <input
             style={{ padding: "20px" }}
             className="w-full p-2 rounded bg-[#070707] outline-none w-full h-full "
             value={quiz.title}
@@ -321,7 +330,15 @@ const QuizCreator = () => {
             className="mb-6 p-4 flex flex-col gap-5 rounded bg-[#101010]"
           >
             <div className="flex justify-between mb-2">
-              <h3 className="text-lg font-semibold">Question {qIndex + 1}</h3>
+              <div className="flex items-center gap-3">
+                <div className="h-[50px] text-[#000000] leading-[150%] font-[600] w-[50px] rounded-full flexcenter bg-[#BDE75D] ">
+                  {qIndex + 1}
+                </div>
+                <h3 className="text-[29px] leading-[150%] text-[#83A140] font-[600] ">
+                  Question {qIndex + 1}
+                </h3>
+              </div>
+
               {quiz.questions.length > 1 && (
                 <button
                   onClick={() => removeQuestion(qIndex)}

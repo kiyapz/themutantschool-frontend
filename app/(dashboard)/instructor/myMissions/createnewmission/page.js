@@ -7,10 +7,12 @@ import { FiEdit, FiTrash2 } from "react-icons/fi";
 import Link from "next/link";
 import { FaLessThan } from "react-icons/fa";
 import { InstructorContext } from "../../_components/context/InstructorContex";
-// import { o } from "framer-motion/dist/types.d-B_QPEvFK";
+import { HiArrowNarrowLeft } from "react-icons/hi";
+
 
 export default function Createnewmission() {
-  const { activeTab, setActiveTab } = useContext(InstructorContext);
+  const { activeTab, setActiveTab, quiztitle, Level, setLevel } =
+    useContext(InstructorContext);
   
  
 
@@ -67,9 +69,25 @@ try {
       <div className="w-full h-fit flex flex-col sm:flex-row items-center gap-5 justify-between ">
         <div>
           {activeTab === "Add Levels" ? (
-            <p className="font-[600] text-[#BDE75D] text-[42px] leading-[40px]">
-              Mission Levels
-            </p>
+            <>
+              {Level === "AddQuize" ? (
+                <div className="flex items-center gap-1 text-[25px]">
+                  <span
+                    onClick={() => setLevel("Add Levels")}
+                    className="cursor-pointer"
+                  >
+                    <HiArrowNarrowLeft />
+                  </span>
+                  <p className="font-[600] text-[33px] leading-[40px] ">
+                    Final Quiz: {quiztitle}
+                  </p>
+                </div>
+              ) : (
+                <p className="font-[600] text-[#BDE75D] text-[42px] leading-[40px]">
+                  Mission Levels
+                </p>
+              )}
+            </>
           ) : activeTab === "Preview and Launch" ? (
             <p className="font-[600] text-[25px] xl:text-[42px] flex items-center gap-1 leading-[40px] text-white ">
               <Link
