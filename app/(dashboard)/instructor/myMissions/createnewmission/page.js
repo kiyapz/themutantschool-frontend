@@ -73,7 +73,7 @@ try {
               {Level === "AddQuize" ? (
                 <div className="flex items-center gap-1 text-[25px]">
                   <span
-                    onClick={() => setLevel("Add Levels")}
+                    // onClick={() => setLevel("Add Levels")}
                     className="cursor-pointer"
                   >
                     <HiArrowNarrowLeft />
