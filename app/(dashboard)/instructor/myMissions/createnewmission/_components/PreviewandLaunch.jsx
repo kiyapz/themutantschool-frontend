@@ -1,58 +1,59 @@
 "use client";
 import { useContext, useEffect, useState } from "react";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { FaPlay } from "react-icons/fa";
-import { MdOutlineQuiz } from "react-icons/md";
-import { FaClipboardList } from "react-icons/fa";
-import Actionbtn from "./Actionbtn";
-import Analitiesbtn from "./Analitiesbtn";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import axios from "axios";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 import UserProfileImage from "../../../profile/_components/UserProfileImage";
 
-
 export default function PreviewandLaunch() {
-  const {userUpdatedValue} = useContext(InstructorContext);
+  const { userUpdatedValue } = useContext(InstructorContext);
   const [activeTab, setActiveTab] = useState("Mission Overview");
   const [levels, setLevels] = useState([]);
 
-const getMissionByID = async ()=>{
-  console.log("Fetching mission by ID...");
-  
-  try {
+  const router = useRouter();
 
-        const storedMissionId = localStorage.getItem("missionId");
-        const accessToken = localStorage.getItem("login-accessToken");
+  const getMissionByID = async () => {
+    console.log("Fetching mission by ID...");
 
-    if (!storedMissionId || !accessToken) {
-      console.log("Missing missionId or accessToken in localStorage");
-      return;
-    }
+    try {
+      const storedMissionId = localStorage.getItem("missionId");
 
-    const response = await axios.get(
-      `https://themutantschool-backend.onrender.com/api/mission/${storedMissionId}`,
-      
-      {
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-        },
+
+      if (!storedMissionId) {
+        console.log("No missionId found in localStorage");
+        alert("Please create a mission first.");
+        router.push("/instructor/myMissions/createnewmission");
+        return;
       }
-    );
 
-    console.log("Mission updated successfully:", response);
+      const accessToken = localStorage.getItem("login-accessToken");
 
-    
-  } catch (error) {
-    console.log(error);
-    
-  }
-}
+      if (!storedMissionId || !accessToken) {
+        console.log("Missing missionId or accessToken in localStorage");
+        return;
+      }
 
-useEffect(() =>{
-getMissionByID()
-},[])
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission/${storedMissionId}`,
+
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      console.log("Mission updated successfully:", response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    getMissionByID();
+  }, []);
 
   useEffect(() => {
     const fetchMissionLevels = async () => {
@@ -100,7 +101,7 @@ getMissionByID()
             websites.
           </p>
 
-          <p>What you’ll Learn:</p>
+          <p>What you'll Learn:</p>
           <ul>
             <li>HTML fundamentals and semantic markup</li>
             <li>CSS styling, layouts, and responsive design</li>
@@ -114,7 +115,6 @@ getMissionByID()
         </div>
       );
     } else if (activeTab === "Missions Levels") {
-      
       return (
         <div className="flex flex-col gap-5">
           {levels.map((level, index) => (
@@ -135,16 +135,19 @@ getMissionByID()
                       {index + 1}
                     </div>
                     <div>
-                      <p className="font-[600] text-[16px]">{level.title}</p>
+                      <p className="font-[600] text-[16px]">{level?.title}</p>
                       <p className="text-[13px] text-gray-400">
-                        {level.estimatedTime} • {level.capsules.length} Power
-                        Capsules
+                        {level.estimatedTime} •{" "}
+                        {Array.isArray(level?.capsules)
+                          ? level.capsules.length
+                          : 0}{" "}
+                        Power Capsules
                       </p>
                     </div>
                   </div>
 
                   <div>
-                    {level.locked ? (
+                    {level?.locked ? (
                       <span className="text-gray-400 text-lg">🔒</span>
                     ) : (
                       <span className="text-gray-400 text-lg">›</span>
@@ -155,9 +158,19 @@ getMissionByID()
                 <p className="text-sm text-gray-300">{level.summary}</p>
 
                 <div className="flex gap-6 text-xs text-gray-400 mt-2">
-                  <p>📦 {level.capsules} Capsules</p>
-                  <p>❓ {level.quizzes} Quiz Questions</p>
-                  <p>🎥 {level.estimatedTime}</p>
+                  <p>
+                    📦{" "}
+                    {Array.isArray(level?.capsules) ? level.capsules.length : 0}{" "}
+                    Capsules
+                  </p>
+                  <p>
+                    ❓{" "}
+                    {Array.isArray(level?.quiz?.questions)
+                      ? level.quiz.questions.length
+                      : 0}{" "}
+                    Quiz Questions
+                  </p>
+                  <p>🎥 {level?.estimatedTime}</p>
                 </div>
               </div>
             </Link>

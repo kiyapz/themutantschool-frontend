@@ -262,13 +262,12 @@ const QuizCreator = () => {
   return (
     <div className="flex flex-col  xl:grid grid-cols-3 gap-4">
       <div className="max-w-4xl col-span-2 mx-auto p-6 bg-black min-h-screen flex flex-col gap-5 text-white">
-        
         <div
           style={{ padding: "20px" }}
           className="rounded-[20px] w-full h-fit bg-[#101010]"
         >
           <p className=" text-[#BDE75D] flex items-center gap-2 leading-[40px] text-[28px] font-[600] ">
-           <MdSettings /> Quiz Settings
+            <MdSettings /> Quiz Settings
           </p>
 
           <div
@@ -408,8 +407,8 @@ const QuizCreator = () => {
         <div className="flex gap-4 items-center">
           <button
             onClick={handleSubmit}
-            disabled={QuizData.quiz || isLoading || quiz.questions.length <= 4}
-            className="bg-[#604196] cursor-pointer w-[169.37px] h-[44.07px] hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
+            disabled={QuizData.quiz || isLoading || quiz.questions.length <= 9}
+            className="bg-[#604196] cursor-pointer w-full h-[44.07px] hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
           >
             {isLoading ? (
               <>
@@ -420,24 +419,30 @@ const QuizCreator = () => {
               "Create Quiz"
             )}
           </button>
+        </div>
 
+        <div className=" w-full h-[247.06px] bg-[#070707] rounded-[22px] flex-col border border-dashed border-[#703D71] flex gap-2 items-center justify-center">
           <button
             onClick={addQuestion}
-            disabled={QuizData.quiz || isLoading}
-            className="bg-[#604196] cursor-pointer w-[169.37px] h-[44.07px] hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
+            disabled={QuizData.quiz || isLoading || quiz.questions.length === 10}
+            className="bg-[#221326] text-[#751F8B] cursor-pointer w-[60px] h-[60px] rounded-full hover:bg-[#1D132E] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 rounded transition-colors"
           >
+            <Plus size={26} />
+          </button>
+          <p>
             {isLoading ? (
-              <>
+              <p className="flex items-center gap-2">
                 <Loader2 className="animate-spin" size={16} />
                 Wait...
-              </>
+              </p>
             ) : (
-              <>
-                <Plus size={16} />
-                Add Question
-              </>
+              <>Add Question</>
             )}
-          </button>
+          </p>
+
+          <p className="text-center text-[#9C9C9C] text-[19px] font-[200]  leading-[20%] ">
+            Questions {quiz.questions.length}/10
+          </p>
         </div>
 
         {apiResponse && (

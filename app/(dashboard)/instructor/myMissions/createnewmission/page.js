@@ -72,12 +72,14 @@ try {
             <>
               {Level === "AddQuize" ? (
                 <div className="flex items-center gap-1 text-[25px]">
-                  <span
-                    // onClick={() => setLevel("Add Levels")}
-                    className="cursor-pointer"
-                  >
-                    <HiArrowNarrowLeft />
-                  </span>
+                  <Link href="/instructor/myMissions/createnewmission">
+                    <span
+                      onClick={() => setLevel("AddLevel")}
+                      className="cursor-pointer"
+                    >
+                      <HiArrowNarrowLeft />
+                    </span>
+                  </Link>
                   <p className="font-[600] text-[33px] leading-[40px] ">
                     Final Quiz: {quiztitle}
                   </p>
@@ -90,13 +92,13 @@ try {
             </>
           ) : activeTab === "Preview and Launch" ? (
             <p className="font-[600] text-[25px] xl:text-[42px] flex items-center gap-1 leading-[40px] text-white ">
-              <Link
+              <Link href="/instructor/myMissions/createnewmission">
+              <span
                 className="cursor-pointer"
-                href="/instructor/myMissions/createnewmission"
+                onClick={() => setActiveTab("Add Levels")}
               >
-                <span>
-                  <FaLessThan />
-                </span>
+                <FaLessThan />
+              </span>
               </Link>
               {`Mission Preview`}
             </p>
