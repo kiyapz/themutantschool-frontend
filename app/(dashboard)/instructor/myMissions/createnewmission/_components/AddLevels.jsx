@@ -57,13 +57,12 @@ export default function AddLevels() {
     Level,
     setLevel,
   } = useContext(InstructorContext);
- 
+
   const [openAddModel, setOpenAddModel] = useState(false);
   const [title, settitle] = useState("");
   const [description, setdescription] = useState("");
   const [estimatedTime, setestimatedTime] = useState("30 mins");
   const [levels, setLevels] = useState([]);
- 
 
   const [isAddingLevel, setIsAddingLevel] = useState(false);
   const [isAddingCapsule, setIsAddingCapsule] = useState(false);
@@ -75,7 +74,7 @@ export default function AddLevels() {
   const [capsuleDescription, setCapsuleDescription] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
-  const [order,setOder] = useState();
+  const [order, setOder] = useState();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("idle");
   const fileInputRef = useRef(null);
@@ -107,14 +106,12 @@ export default function AddLevels() {
   };
 
   // seen
-  const handleAddCapsuleClick = (levelId,order) => {
+  const handleAddCapsuleClick = (levelId, order) => {
     setLeveld(levelId);
     setOder(order);
     console.log("Adding capsule to levelId:", levelId);
     setOpenAddModel(true);
   };
-
- 
 
   const handleAddCapsule = async () => {
     setIsAddingCapsule(true);
@@ -145,12 +142,12 @@ export default function AddLevels() {
 
     try {
       const formData = new FormData();
-      formData.append("title",capsuleTitle);
-      formData.append("description",capsuleDescription);
-      formData.append("video",selectedFile);
+      formData.append("title", capsuleTitle);
+      formData.append("description", capsuleDescription);
+      formData.append("video", selectedFile);
       formData.append("order", order);
-      formData.append("duration","90 seconds");
-      formData.append("isPreview",true);
+      formData.append("duration", "90 seconds");
+      formData.append("isPreview", true);
 
       const res = await fetch(
         `https://themutantschool-backend.onrender.com/api/mission-capsule/create/${levelId}`,
@@ -187,8 +184,6 @@ export default function AddLevels() {
       setIsAddingCapsule(false);
     }
   };
-
-
 
   // seen
   const AddMissionLevel = async () => {
@@ -293,20 +288,17 @@ export default function AddLevels() {
     showToast("New level added", "success");
   };
 
-
   // Add Quize
 
-  const handleAddQuize =async (index,id)=>{
+  const handleAddQuize = async (index, id) => {
     const missionId = localStorage.getItem("missionId");
-    setmessionId(missionId)
+    setmessionId(missionId);
     setLevel("AddQuize");
 
-   setLeveld(id);
-   setcapselId(index);
-
+    setLeveld(id);
+    setcapselId(index);
 
     console.log(id, " capsule id for quiz");
-    
 
     //  try {
     //    const response = await fetch(
@@ -334,8 +326,7 @@ export default function AddLevels() {
     //    console.error("Submission error:", error);
     //    alert("Something went wrong. Please try again.");
     //  }
-    
-  }
+  };
 
   return (
     <>
@@ -353,7 +344,7 @@ export default function AddLevels() {
           </p>
           <p className="font-[600] text-[12px] sm:text-[21px]">Add New Level</p>
           <p className="font-[200] text-[12px] sm:text-[19px] text-[#9C9C9C]">
-            Create another learning module (5/5 remaining)
+            Create another learning module ({levels.length}/5 remaining)
           </p>
         </div>
       )}
@@ -371,11 +362,18 @@ export default function AddLevels() {
                 key={level._id}
                 className="w-full bg-[#0F0F0F] px-[30px] py-[20px] rounded-lg flex flex-col gap-3"
               >
-                <div className="text-[#BDE75D] font-[600] flex items-center gap-2 text-[15px] sm:text-[25px]">
-                  <span className="w-[50px] h-[50px] flexcenter text-[25px] rounded-full bg-[#BDE75D] text-black">
-                    {index + 1}
-                  </span>
-                  <span>{level.title || `Level ${index + 1}`}</span>
+                <div className="flex justify-between w-full items-center">
+                  <div className="text-[#BDE75D] font-[600] flex items-center gap-2 text-[15px] sm:text-[25px]">
+                    <span className="w-[50px] h-[50px] flexcenter text-[25px] rounded-full bg-[#BDE75D] text-black">
+                      {index + 1}
+                    </span>
+                    <span>{level.title || `Level ${index + 1}`}</span>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <FaEdit className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors" />
+                    <FaTrash className="cursor-pointer text-[#FF6363] hover:text-red-500 transition-colors" />
+                  </div>
                 </div>
 
                 {level?.isNew ? (
@@ -418,9 +416,6 @@ export default function AddLevels() {
                     <p className="font-[600] text-[20px]">{level.title}</p>
                     {level.capsules?.map((capsule, i) => (
                       <div
-                        onClick={() =>
-                          handleAddQuize(`${index}`, level._id)
-                        }
                         style={{ padding: "0px  10px" }}
                         key={i}
                         className="w-full flex items-center justify-between h-[73.64px] rounded-[12px] bg-[#1C1C1C] px-4"
@@ -430,21 +425,29 @@ export default function AddLevels() {
                           <p>{capsule.title}</p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <FaEdit className="cursor-pointer hover:text-[#BDE75D] transition-colors" />
-                          <FaTrash className="cursor-pointer hover:text-red-500 transition-colors" />
+                          <FaEdit className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors" />
+                          <FaTrash className="cursor-pointer text-[#FF6363] hover:text-red-500 transition-colors" />
                           <FaEye className="cursor-pointer hover:text-blue-500 transition-colors" />
                         </div>
                       </div>
                     ))}
-
-                    <button
-                      onClick={() =>
-                        handleAddCapsuleClick(level._id, level.order)
-                      }
-                      className="w-full h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white py-[15px] mt-3 hover:bg-[#1a1a1a] transition-colors"
-                    >
-                      + Add Capsule
-                    </button>
+                    <div className="flex gap-4 mt-4 items-center">
+                      <button
+                        onClick={() =>
+                          handleAddCapsuleClick(level._id, level.order)
+                        }
+                        className="flex-1 h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white px-4 text-[16px] font-medium hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+                      >
+                        + Add Capsule
+                      </button>
+                      <button
+                        style={{ padding: "0px  10px" }}
+                        onClick={() => handleAddQuize(`${index}`, level._id)}
+                        className="h-[59.76px] bg-[#6B479C]  rounded-[12px] text-white px-5 text-[21px] font-bold hover:bg-[#1a1a1a] transition-transform transform hover:scale-105 flex items-center justify-center whitespace-nowrap cursor-pointer"
+                      >
+                        Add Quiz
+                      </button>
+                    </div>
                   </>
                 )}
               </div>
