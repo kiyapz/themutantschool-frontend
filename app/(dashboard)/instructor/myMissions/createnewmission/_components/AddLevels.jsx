@@ -337,7 +337,7 @@ export default function AddLevels() {
       {Level === "AddLevel" && (
         <div
           onClick={() => setLevel("SetAddLevel")}
-          className="w-full h-[247.06px] flexcenter flex-col border border-dashed border-[#703D71] gap-5 rounded-[22px] bg-[#131313] mt-10 cursor-pointer hover:bg-[#1a1a1a] transition-colors"
+          className="w-full h-[154.5px] sm:h-[247.06px] flexcenter flex-col border border-dashed border-[#703D71] gap-2 sm:gap-5 rounded-[22px] bg-[#131313] mt-10 cursor-pointer hover:bg-[#1a1a1a] transition-colors"
         >
           <p className="font-[600] text-[21px] sm:text-[40px] text-[#703D71] bg-[#221326] h-[30px] w-[30px] sm:h-[60px] sm:w-[60px] flexcenter rounded-full">
             +
@@ -367,7 +367,7 @@ export default function AddLevels() {
                     <span className="w-[50px] h-[50px] flexcenter text-[25px] rounded-full bg-[#BDE75D] text-black">
                       {index + 1}
                     </span>
-                    <span>{level.title || `Level ${index + 1}`}</span>
+                    <span> {`Level ${index + 1}`}</span>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -399,7 +399,7 @@ export default function AddLevels() {
                     <button
                       onClick={AddMissionLevel}
                       disabled={isAddingLevel}
-                      className="w-full h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white py-[15px] hover:bg-[#1a1a1a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      className="w-full h-[59.76px] rounded-[12px] border text-[#CCCCCC] border-dashed border-[#696969] text-white py-[15px] hover:bg-[#1a1a1a] text-[12px] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                     >
                       {isAddingLevel ? (
                         <>
@@ -413,7 +413,9 @@ export default function AddLevels() {
                   </>
                 ) : (
                   <>
-                    <p className="font-[600] text-[20px]">{level.title}</p>
+                    <p className="font-[600] text-[13px] sm:text-[25px] sm:leading-[40px] leading-[150%] ">
+                      {level.title}
+                    </p>
                     {level.capsules?.map((capsule, i) => (
                       <div
                         style={{ padding: "0px  10px" }}
@@ -421,8 +423,12 @@ export default function AddLevels() {
                         className="w-full flex items-center justify-between h-[73.64px] rounded-[12px] bg-[#1C1C1C] px-4"
                       >
                         <div className="flex items-center gap-2">
-                          <p>{`Capsule ${i + 1}:`}</p>
-                          <p>{capsule.title}</p>
+                          <p className="text-[#737373] sm:text-[25px] sm:leading-[40px]  text-[10px] leading-[150%] font-[300] ">{`Capsule ${
+                            i + 1
+                          }:`}</p>
+                          <p className="text-[#CCCCCC] sm:text-[25px] sm:leading-[40px]  font-[400] text-[10px]leading-[150%] ">
+                            {capsule.title}
+                          </p>
                         </div>
                         <div className="flex items-center gap-2">
                           <FaEdit className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors" />
@@ -431,19 +437,20 @@ export default function AddLevels() {
                         </div>
                       </div>
                     ))}
-                    <div className="flex gap-4 mt-4 items-center">
+                    <div className="flex gap-2 sm:gap-4 mt-4 items-center">
                       <button
+                        style={{ padding: "0px  10px" }}
                         onClick={() =>
                           handleAddCapsuleClick(level._id, level.order)
                         }
-                        className="flex-1 h-[59.76px] rounded-[12px] border border-dashed border-[#696969] text-white px-4 text-[16px] font-medium hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+                        className="flex-1 h-[59.76px] sm:text-[21px] sm:leading-[40px]  text-[#CCCCCC] rounded-[12px] border border-dashed border-[#696969] text-white px-4 text-[12px] sm:text-[16px] font-medium hover:bg-[#1a1a1a] transition-colors cursor-pointer"
                       >
-                        + Add Capsule
+                        + Add Power Capsule
                       </button>
                       <button
                         style={{ padding: "0px  10px" }}
                         onClick={() => handleAddQuize(`${index}`, level._id)}
-                        className="h-[59.76px] bg-[#6B479C]  rounded-[12px] text-white px-5 text-[21px] font-bold hover:bg-[#1a1a1a] transition-transform transform hover:scale-105 flex items-center justify-center whitespace-nowrap cursor-pointer"
+                        className="h-[59.76px] bg-[#6B479C]  rounded-[12px] text-white px-5 text-[12px] sm:text-[21px] font-bold hover:bg-[#1a1a1a] transition-transform transform hover:scale-105 flex items-center justify-center whitespace-nowrap cursor-pointer"
                       >
                         Add Quiz
                       </button>
@@ -456,7 +463,7 @@ export default function AddLevels() {
 
           <div
             onClick={handleAddLevel}
-            className="w-full h-[247.06px] flexcenter flex-col border border-dashed border-[#703D71] gap-5 rounded-[22px] bg-[#131313] cursor-pointer hover:bg-[#1a1a1a] transition-colors"
+            className="w-full h-[154.5px] sm:h-[247.06px] flexcenter flex-col border border-dashed border-[#703D71] gap-2 sm:gap-5 rounded-[22px] bg-[#131313] cursor-pointer hover:bg-[#1a1a1a] transition-colors"
           >
             <p className="font-[600] text-[21px] sm:text-[40px] text-[#703D71] bg-[#221326] h-[30px] w-[30px] sm:h-[60px] sm:w-[60px] flexcenter rounded-full">
               +

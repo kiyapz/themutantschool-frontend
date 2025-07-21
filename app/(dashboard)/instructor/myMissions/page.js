@@ -73,7 +73,7 @@ export default function FilterableCoursesDashboard() {
     sortBy: "popularity",
   });
 
-  // Updated filter options to match API data
+  
   const filterOptions = {
     duration: [
       { label: "24 hours", value: "24 hours" },
@@ -110,7 +110,7 @@ export default function FilterableCoursesDashboard() {
     }));
   };
 
-  // Fixed filtered and sorted courses logic
+  
   const filteredCourses = useMemo(() => {
     let filtered = courses.filter((course) => {
       return (
@@ -123,7 +123,7 @@ export default function FilterableCoursesDashboard() {
       );
     });
 
-    // Sort courses based on available fields
+  
     switch (filters.sortBy) {
       case "rating":
         filtered.sort(
@@ -154,10 +154,13 @@ export default function FilterableCoursesDashboard() {
   return (
     <div className="flex flex-col h-full gap-10 w-full bg-black text-white min-h-screen p-6">
       {/* Header */}
-      <div className="h-fit w-full flex flex-col gap-10">
-        <div className="hidden sm:flex h-fit justify-between w-full">
+      <div className="h-fit w-full flex flex-col gap-5 sm:gap-10">
+        <div className="flex flex-col sm:flex-row h-fit justify-between w-full">
           <div>
-            <p className="text-purple-400 font-[600] leading-[40px] text-[42px]">
+            <p
+              style={{ marginTop: "10px " }}
+              className="text-purple-400 font-[600] sm:leading-[40px] leading-[150%] text-[17px] sm:text-[42px]"
+            >
               My Missions
             </p>
             <p className="text-gray-400 text-[13px] xl:text-[15px] leading-[40px]">
@@ -165,9 +168,12 @@ export default function FilterableCoursesDashboard() {
               of {courses.length})
             </p>
           </div>
-          <div>
-            <Link href="/instructor/myMissions/createnewmission">
-              <button className="bg-[#604196] flex items-center cursor-pointer justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px] w-[216.75px] hover:bg-[#7052a8] transition-colors">
+          <div className="hidden sm:block">
+            <Link
+              className="hidden sm:block"
+              href="/instructor/myMissions/createnewmission"
+            >
+              <button className="bg-[#604196] hidden sm:block flex items-center cursor-pointer justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px] w-[216.75px] hover:bg-[#7052a8] transition-colors">
                 Launch New Mission
               </button>
             </Link>
@@ -175,8 +181,8 @@ export default function FilterableCoursesDashboard() {
         </div>
 
         {/* Filters */}
-        <div className="flex flex-col gap-5 xl:gap-0 xl:flex-row h-fit justify-between w-full">
-          <div className="flex sm:grid grid-cols-4 xl:flex items-center gap-3">
+        <div className="flex gap-3 sm:flex-col sm:gap-5 xl:gap-0 xl:flex-row h-fit sm:justify-between w-full">
+          <div className=" sm:grid grid-cols-4 xl:flex items-center gap-3">
             <Sidebuttons
               icons={<FiClock />}
               text="Duration"
@@ -225,39 +231,17 @@ export default function FilterableCoursesDashboard() {
           </div>
         </div>
 
-        {/* Stats for mobile */}
-        <div className="sm:hidden">
-          <div className="bg-[#0F0F0F] rounded-[10px] flex items-center justify-between w-full gap-3 p-3">
-            <div className="flex flex-col items-center gap-2 text-[#7343B3] font-[600] text-[31px] leading-[11px]">
-              {stats.total}
-              <p className="text-gray-400 text-[8px] leading-[11px]">
-                Total Missions
-              </p>
-            </div>
-            <span className="h-[53px] w-[1px] bg-[#212121]"></span>
-            <div className="flex flex-col items-center gap-2 text-[#00895E] font-[600] text-[31px] leading-[11px]">
-              {stats.published}
-              <p className="text-gray-400 text-[8px] leading-[11px]">
-                Published
-              </p>
-            </div>
-            <span className="h-[53px] w-[1px] bg-[#212121]"></span>
-            <div className="flex flex-col items-center gap-2 text-[#FF8C00] font-[600] text-[31px] leading-[11px]">
-              {stats.draft}
-              <p className="text-gray-400 text-[8px] leading-[11px]">Draft</p>
-            </div>
-          </div>
-        </div>
+       
       </div>
 
       {/* Course Grid */}
-      <div className="w-full h-fit flex justify-center p-4">
+      <div className="w-full h-fit flexcenter p-4">
         <div className="grid gap-5 sm:grid-cols-2 w-full xl:grid-cols-3">
           {filteredCourses.map((el) => (
             <Link href={`/instructor/myMissions/${el._id}`} key={el._id}>
               <div
                 key={el._id}
-                className="max-w-[300px] w-full flex flex-col sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
+                className="max-w-[380.5px] w-full flex flex-col sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
               >
                 <div
                   style={{ backgroundImage: `url(${el.thumbnail.url})` }}

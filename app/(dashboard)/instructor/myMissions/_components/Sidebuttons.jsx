@@ -35,7 +35,7 @@ export default function Sidebuttons({
 
       {isOpen && (
         <div
-          style={{ padding: "5px" }}
+          // style={{ padding: "5px" }}
           className="absolute mt-2 w-full z-50 bg-[#1a1a1a] border border-gray-600 rounded-md shadow-lg"
         >
           <ul className="py-1">

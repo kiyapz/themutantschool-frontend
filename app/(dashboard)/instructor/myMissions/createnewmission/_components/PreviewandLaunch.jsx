@@ -91,7 +91,7 @@ export default function PreviewandLaunch() {
     if (activeTab === "Mission Overview") {
       return (
         <div style={{ padding: "10px" }} className="flex flex-col gap-5">
-          <p>
+          <p className="text-[#BFBFBF] font-[400] text-[14px] leading-[20px] ">
             Welcome to the ultimate web development journey! This comprehensive
             mission will take you from complete beginner to confident web
             developer. You'll learn the core technologies that power the modern
@@ -101,15 +101,20 @@ export default function PreviewandLaunch() {
             websites.
           </p>
 
-          <p>What you'll Learn:</p>
-          <ul>
+          <p className="text-[#BFBFBF] font-[400] text-[14px] leading-[20px] ">
+            What you'll Learn:
+          </p>
+          <ul
+            style={{ paddingLeft: "8px" }}
+            className="text-[#BFBFBF] list-disc font-[400] flex flex-col gap-1 text-[14px] leading-[20px] "
+          >
             <li>HTML fundamentals and semantic markup</li>
             <li>CSS styling, layouts, and responsive design</li>
             <li>JavaScript programming and DOM manipulation</li>
             <li>Modern web development best practices</li>
           </ul>
 
-          <p className="">
+          <p className="text-[#BFBFBF] font-[400] text-[14px] leading-[20px] ">
             Your journey to becoming a web sorcerer starts here!
           </p>
         </div>
@@ -184,18 +189,18 @@ export default function PreviewandLaunch() {
 
   return (
     <div className="w-full h-full p-5">
-      {/* Mission banner */}
+    
       <div className="h-[343.54px] w-full bg-[var(--purpel-btncolor)] rounded-[15px] mb-8" />
 
-      {/* Main content grid */}
+    
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-        {/* Left side (2 columns) */}
+       
         <div
           style={{ padding: "30px" }}
           className="xl:col-span-2 flex flex-col gap-4"
         >
           {/* Tabs */}
-          <div className="flex gap-5 border-b border-[#333] pb-2">
+          <div className="flex gap-2 border-b border-[#333] pb-2">
             {tabs.map((tab) => (
               <button
                 style={{ padding: "15px" }}
@@ -203,7 +208,7 @@ export default function PreviewandLaunch() {
                 onClick={() => setActiveTab(tab)}
                 className={`text-sm sm:text-base font-medium pb-1 ${
                   activeTab === tab
-                    ? "border-b-2 border-[#BDE75D] text-[#BDE75D]"
+                    ? "border-b-2 border-[#BDE75D] text-[10px] sm:text-[17px] text-[#BDE75D]"
                     : "text-white"
                 }`}
               >
@@ -212,13 +217,13 @@ export default function PreviewandLaunch() {
             ))}
           </div>
 
-          {/* Tab Content */}
+         
           <div style={{ padding: "10px" }} className="pt-4">
             {renderTabContent()}
           </div>
         </div>
 
-        {/* Right side (Instructor Info) */}
+       
         <div
           style={{ padding: "15px" }}
           className="bg-[var(--black-bg)] rounded-[12px] p-5"
@@ -240,7 +245,7 @@ export default function PreviewandLaunch() {
             <div>
               <p className="font-medium">
                 {" "}
-                {userUpdatedValue.firstName}{" "}
+                {userUpdatedValue.firstName}
                 <span>{userUpdatedValue.lastName}</span>
               </p>
               <p className="text-sm text-gray-400">

@@ -66,7 +66,7 @@ try {
 
   return (
     <div className="flex  flex-col gap-3 ">
-      <div className="w-full h-fit flex flex-col sm:flex-row items-center gap-5 justify-between ">
+      <div className="w-full h-fit flex flex-col sm:flex-row sm:items-center sm:gap-5 sm:justify-between ">
         <div>
           {activeTab === "Add Levels" ? (
             <>
@@ -80,30 +80,30 @@ try {
                       <HiArrowNarrowLeft />
                     </span>
                   </Link>
-                  <p className="font-[600] text-[33px] leading-[40px] ">
+                  <p style={{marginTop:'10px'}} className="font-[600] text-[33px] leading-[40px] ">
                     Final Quiz: {quiztitle}
                   </p>
                 </div>
               ) : (
-                <p className="font-[600] text-[#BDE75D] text-[42px] leading-[40px]">
+                <p className="font-[600] text-[#BDE75D] text-[18px] sm:text-[42px] leading-[150%] sm:leading-[40px]">
                   Mission Levels
                 </p>
               )}
             </>
           ) : activeTab === "Preview and Launch" ? (
-            <p className="font-[600] text-[25px] xl:text-[42px] flex items-center gap-1 leading-[40px] text-white ">
+            <p className=" font-[600] text-[20px] sm:text-[25px] xl:text-[42px] flex items-center gap-1 leading-[40px] text-white ">
               <Link href="/instructor/myMissions/createnewmission">
-              <span
-                className="cursor-pointer"
-                onClick={() => setActiveTab("Add Levels")}
-              >
-                <FaLessThan />
-              </span>
+                <span
+                  className="cursor-pointer"
+                  onClick={() => setActiveTab("Add Levels")}
+                >
+                  <FaLessThan />
+                </span>
               </Link>
               {`Mission Preview`}
             </p>
           ) : (
-            <p className="font-[600] text-[#BDE75D] text-[42px] leading-[40px]">
+            <p className="font-[600]  text-[#BDE75D] text-[18px] sm:text-[42px] leading-[150%] sm:leading-[40px]">
               Create New Mission
             </p>
           )}
@@ -111,13 +111,13 @@ try {
 
         <div>
           {activeTab === "Preview and Launch" ? (
-            <div className="flex gap-3 mt-4">
+            <div className="hidden  sm:flex gap-3 mt-4">
               {actions.map((el, idx) => (
                 <button
                   style={{ padding: "15px" }}
                   onClick={() => setbuttonAction(el.text)}
                   key={idx}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-medium ${
+                  className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-[600] ${
                     buttonAction == el.text ? "bg-[#604196]" : "bg-[#292929]"
                   }`}
                 >
@@ -130,7 +130,7 @@ try {
             <Link href={`/instructor/myMissions/`}>
               <button
                 style={{ padding: "15px" }}
-                className="bg-[var(--purpel-btncolor)] rounded-[10px] "
+                className="hidden sm:block  bg-[var(--purpel-btncolor)] rounded-[10px] "
               >
                 Preview Mission
               </button>
@@ -155,7 +155,7 @@ try {
                 <li
                   key={tab.level}
                   onClick={() => setActiveTab(tab.text)}
-                  className={`cursor-pointer px-4 text-[12px] flex items-center gap-1 sm:text-[15px] py-2 font-semibold relative
+                  className={`cursor-pointer px-4 text-[10px] flex items-center gap-1 sm:text-[15px] py-2 font-semibold relative
                      ${
                        activeTab === tab.text
                          ? "text-[#BDE75D] "

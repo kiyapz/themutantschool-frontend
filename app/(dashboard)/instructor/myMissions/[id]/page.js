@@ -37,7 +37,7 @@ export default function Page() {
     getAllMission();
   }, []);
 
-  // Set the course when courses or id change
+ 
   useEffect(() => {
     if (courses.length && id) {
       const found = courses.find((c) => c._id === id);

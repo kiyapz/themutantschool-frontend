@@ -41,10 +41,10 @@
 
 /* styles/globals.css */
 .scrollbar-hide {
-  scrollbar-width: none; /* Firefox */
-  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; 
+  -ms-overflow-style: none;
 
-  /* Webkit-based browsers */
+
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -125,10 +125,10 @@ body {
   padding: 1.25rem;
   clip-path: polygon(
     20px 0%,
-    /* top-left cut */ 100% 0%,
+   100% 0%,
     100% calc(100% - 20px),
     calc(100% - 20px) 100%,
-    /* bottom-right cut */ 0% 100%,
+   0% 100%,
     0% 20px
   );
 }
@@ -140,14 +140,14 @@ body {
 
 .cut-box {
   position: relative;
-  /* background: transparent; */
+ 
   clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
-  /* background: var(--text-light); */
+ 
   padding: 1px;
 }
 
 .cut-box-inner {
-  /* background: var(--foreground); */
+
   clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
   padding: 1.25rem;
   color: white;
@@ -168,7 +168,7 @@ body {
 }
 
 .cut-box-inner2 {
-  /* background: var(--foreground); */
+
   clip-path: polygon(
     0 0,
     100% 0%,
@@ -177,10 +177,10 @@ body {
     0 100%
   );
   padding: 1.25rem;
-  /* color: white; */
+  
 }
 
-/* First Box - Bottom Right Cut */
+
 .cut-box3 {
   background: var(--text-light);
   padding: 1px;
@@ -189,8 +189,8 @@ body {
     100% 0,
     100% 100%,
     20px 100%,
-    /* cut starts 20px from the left at the bottom */ 0 calc(100% - 20px)
-      /* then up 20px on the left */
+    0 calc(100% - 20px)
+    
   );
 }
 
@@ -238,7 +238,9 @@ body {
     padding-left: 13px;
     padding-right: 13px;
   }
-
+.marginTopSSmall {
+    margin-top: 250px;
+  }
   .py {
     padding-top: 5px;
     padding-bottom: 5px;

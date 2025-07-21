@@ -292,10 +292,7 @@ export default function MissionCourseOverview({ course }) {
   };
 
   return (
-    <div
-      className="flex flex-col w-full max-w-[1200px] mx-auto gap-10"
-      style={{ padding: "16px" }}
-    >
+    <div className="flex flex-col w-full sm:max-w-[1200px] mx-auto gap-10">
       <div className="grid xl:grid-cols-3 gap-8">
         <div
           style={{
@@ -306,20 +303,19 @@ export default function MissionCourseOverview({ course }) {
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
           }}
-          className="border border-[#6D4879] w-full h-[300px] xl:h-full rounded-[13px] bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] flex items-center justify-center"
-        >
-          <div className="text-center text-[#6D4879]">
-            <p className="text-sm">Course Preview</p>
-          </div>
-        </div>
+          className="border border-[#6D4879] w-[100vw] fixed  top-0 left-0 sm:relative sm:w-full h-[300px] xl:h-full sm:rounded-[13px] bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] "
+        ></div>
 
-        <div className="xl:col-span-2 flex flex-col gap-8">
-          <div className="flex flex-col gap-1">
-            <h1 className="font-[600] text-[28px] xl:text-[33px] leading-[40px] text-center xl:text-left">
+        <div
+          style={{ padding: "16px" }}
+          className="xl:col-span-2  marginTopSSmall flex flex-col gap-2 sm:gap-8"
+        >
+          <div className="flex flex-col sm:gap-1">
+            <h1 className="font-[600] text-[28px] xl:text-[33px] leading-[40px] sm:text-center xl:text-left">
               {course.title}
             </h1>
 
-            <div className="flex items-center gap-4 flex-wrap">
+            <div className=" items-center gap-4 flex-wrap hidden sm:flex">
               <button
                 className={`rounded-[4px] text-[10px] text-black font-[600] ${
                   course.status === "Published"
@@ -336,43 +332,77 @@ export default function MissionCourseOverview({ course }) {
             </div>
           </div>
 
-          <div className="max-h-[200px] overflow-y-auto font-[300] text-[16px] leading-[28px] text-[#E5E5E5]">
+          <div className="max-h-[200px] overflow-y-auto font-[300] text-[16px] leading-[28px] text-[#878787] sm:text-[#E5E5E5]">
             {course.description}
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 xl:grid-cols-3">
+      <div className="grid grid-cols-2 gap-2 sm:gap-6 xl:grid-cols-3">
         <Analitiesbtn
           text1="Total Enrollment"
           text2={course.analytics?.enrollments || "0"}
           text3="+2 from last month"
+          text4={"Recruits"}
         />
-        <Analitiesbtn
-          text1="Completion Rate"
-          text2={course.analytics?.completionRate || "0%"}
-          text3="+5% from last month"
-        />
+        <div className="hidden xl:block">
+          <Analitiesbtn
+            text1="Completion Rate"
+            text2={course.analytics?.completionRate || "0%"}
+            text3="+5% from last month"
+          />
+        </div>
         <Analitiesbtn
           text1="Student Rating"
           text2={course.analytics?.rating || "0.0"}
           text3="+0.2 from last month"
+          text4={"Rating"}
         />
       </div>
 
-      <div className="flex flex-col gap-6 rounded-[20px] border border-[#535353] bg-[#111111]">
+      <div className=" hidden sm:flex flex-col gap-6 rounded-[20px] border border-[#535353] bg-[#111111]">
         <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
         {renderTabContent(activeTab, course, handleAddLevelId)}
       </div>
 
-      {activeTab === "Curriculum" && (
-        <div className="grid xl:grid-cols-3 gap-6">
-          {course.quickActions?.map((action) => (
-            <QuickActionCard key={action.id} action={action} />
-          ))}
+      <div className="hidden sm:block">
+        {activeTab === "Curriculum" && (
+          <div className="grid xl:grid-cols-3 gap-6 hidden sm:block">
+            {course.quickActions?.map((action) => (
+              <QuickActionCard key={action.id} action={action} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className=" flex flex-col gap-5 sm:hidden  ">
+        <div>
+          <div className="flex justify-between items-center mb-4 w-full text-[#767E8F] text-[10px] font-[400] leading-[20px] ">
+            <p>Mission Progress</p>
+            <p>{course.isPublished ? "100%" : "50%"}</p>
+          </div>
+          <div className="w-full max-w-md">
+            <div className="w-full bg-[#000000] rounded-full h-[8px] overflow-hidden">
+              <div
+                className="h-full bg-[#4F3457] transition-all duration-200"
+                style={{ width: course.isPublished ? "100%" : "50%" }}
+              />
+            </div>
+          </div>
         </div>
-      )}
+        <div className="grid grid-cols-2  gap-4">
+          <button className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer ">
+            Edit Mission
+          </button>
+          <button
+            onClick={() => handleAddLevelId(course._id)}
+            className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer "
+          >
+            + Level
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
