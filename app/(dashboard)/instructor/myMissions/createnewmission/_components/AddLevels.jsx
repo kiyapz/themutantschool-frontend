@@ -8,6 +8,8 @@ import axios from "axios";
 // import AddQuize from "./AddQuize";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 import QuizCreator from "./AddQuize";
+import { useRouter } from "next/navigation";
+import profilebase from "../../../profile/_components/profilebase";
 
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
@@ -47,6 +49,8 @@ const LoadingSpinner = () => (
 );
 
 export default function AddLevels() {
+
+    const router = useRouter();
   const {
     capselId,
     setcapselId,
@@ -56,6 +60,9 @@ export default function AddLevels() {
     setmessionId,
     Level,
     setLevel,
+    setActiveTab,
+    setMission,
+    courses,
   } = useContext(InstructorContext);
 
   const [openAddModel, setOpenAddModel] = useState(false);
@@ -261,6 +268,78 @@ export default function AddLevels() {
       setIsLoadingLevels(false);
     }
   };
+
+    useEffect(() => {
+      console.log("use effect for fetching missions");
+
+      const storedUser = localStorage.getItem("USER");
+      const parsedUser = JSON.parse(storedUser);
+      const id = parsedUser._id;
+
+      async function getAllMission() {
+        try {
+          const response = await profilebase.get(`instructor/report/${id}`, {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem(
+                "login-accessToken"
+              )}`,
+            },
+          });
+
+          if (response.status === 401) {
+            console.log("Unauthorized access. Please log in again.");
+
+            const refreshToken = localStorage.getItem("login-refreshToken");
+            // make a reques to get new token
+            const getToken = await profilebase.post(
+              "auth/refresh-token",
+              { refreshToken },
+              {
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem(
+                    "login-accessToken"
+                  )}`,
+                },
+              }
+            );
+
+            if (getToken.status === 200) {
+              localStorage.setItem(
+                "login-accessToken",
+                getToken.data.accessToken
+              );
+              console.log("Access token refreshed successfully.");
+
+              return getAllMission();
+            }
+          }
+
+          console.log("fetched mission response", response.data.missions);
+          setMission(response.data.missions);
+        } catch (error) {
+          console.log("Error fetching missions:", error);
+        }
+      }
+      getAllMission();
+    }, []);
+
+  useEffect(() => {
+    const missionId = localStorage.getItem("missionId");
+
+    if (courses.length > 0 && !missionId) {
+      alert(" Redirecting to choose a mission.");
+      router.push("/instructor/myMissions");
+      return;
+    }
+
+    if (!missionId) {
+      alert("No mission ID found. Redirecting to create new mission.");
+      setActiveTab("Mission Details");
+
+      router.push("/instructor/myMissions/createnewmission");
+    return;
+    }
+  }, []);
 
   useEffect(() => {
     getAllLevel();

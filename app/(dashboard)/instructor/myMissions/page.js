@@ -2,13 +2,15 @@
 import { FiClock, FiChevronDown } from "react-icons/fi";
 import { MdMenuBook } from "react-icons/md";
 import { FaTag, FaMoneyBillWave, FaStar } from "react-icons/fa";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useContext } from "react";
 import Sidebuttons from "./_components/Sidebuttons";
 import profilebase from "../profile/_components/profilebase";
 import Link from "next/link";
+import { InstructorContext } from "../_components/context/InstructorContex";
 
 export default function FilterableCoursesDashboard() {
-  const [courses, setMission] = useState([]);
+  // const [courses, setMission] = useState([]);
+    const { courses, setMission } = useContext(InstructorContext);
 
   useEffect(() => {
     console.log("use effect for fetching missions");

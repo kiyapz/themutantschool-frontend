@@ -148,9 +148,15 @@ export default function InstructorDashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-  const [MissionCreated, setMission] = useState([]);
-  const { setUserProfile, userProfile, setUserUpdatedValue, userUpdatedValue } =
-    useContext(InstructorContext);
+  // const [MissionCreated, setMission] = useState([]);
+  const {
+    setUserProfile,
+    userProfile,
+    setUserUpdatedValue,
+    userUpdatedValue,
+    setMission,
+    courses,
+  } = useContext(InstructorContext);
 
 
     
@@ -158,7 +164,7 @@ const data = [
   {
     id: 1,
     sub: "Active Missions",
-    qunatity: MissionCreated?.length || 0,
+    qunatity: courses?.length || 0,
   },
   {
     id: 2,
@@ -276,6 +282,59 @@ const data = [
   }, []);
 
 
+  useEffect(() => {
+    console.log("use effect for fetching missions");
+
+    const storedUser = localStorage.getItem("USER");
+    const parsedUser = JSON.parse(storedUser);
+    const id = parsedUser._id;
+
+    async function getAllMission() {
+      try {
+        const response = await profilebase.get(`instructor/report/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "login-accessToken"
+            )}`,
+          },
+        });
+
+        if (response.status === 401) {
+          console.log("Unauthorized access. Please log in again.");
+
+          const refreshToken = localStorage.getItem("login-refreshToken");
+          // make a reques to get new token
+          const getToken = await profilebase.post(
+            "auth/refresh-token",
+            { refreshToken },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem(
+                  "login-accessToken"
+                )}`,
+              },
+            }
+          );
+
+          if (getToken.status === 200) {
+            localStorage.setItem(
+              "login-accessToken",
+              getToken.data.accessToken
+            );
+            console.log("Access token refreshed successfully.");
+
+            return getAllMission();
+          }
+        }
+
+        console.log("fetched mission response", response.data.missions);
+        setMission(response.data.missions);
+      } catch (error) {
+        console.log("Error fetching missions:", error);
+      }
+    }
+    getAllMission();
+  }, []);
 
 
  
@@ -538,7 +597,7 @@ const data = [
 
         <div className="w-full flexcenter h-fit">
           <div className="flex scrollbar-hide py w-[350px] sm:w-[500px] xl:w-[1000px] overflow-auto gap-4 pb-2">
-            {MissionCreated?.slice(0, 4).map((el, i) => (
+            {courses?.slice(0, 4).map((el, i) => (
               <div
                 key={i}
                 className="max-w-[300px] flex flex-col w-full sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"

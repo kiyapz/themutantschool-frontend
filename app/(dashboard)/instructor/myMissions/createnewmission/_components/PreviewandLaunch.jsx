@@ -7,9 +7,11 @@ import { InstructorContext } from "../../../_components/context/InstructorContex
 import UserProfileImage from "../../../profile/_components/UserProfileImage";
 
 export default function PreviewandLaunch() {
-  const { userUpdatedValue } = useContext(InstructorContext);
-  const [activeTab, setActiveTab] = useState("Mission Overview");
+ 
+  const { userUpdatedValue, setActiveTab } = useContext(InstructorContext);
+  const [activeTab, setActiveTabs] = useState("Mission Overview");
   const [levels, setLevels] = useState([]);
+  const [missionById,setmissionById] = useState([])
 
   const router = useRouter();
 
@@ -22,8 +24,8 @@ export default function PreviewandLaunch() {
 
       if (!storedMissionId) {
         console.log("No missionId found in localStorage");
-        alert("Please create a mission first.");
-        router.push("/instructor/myMissions/createnewmission");
+        // alert("Please create a mission first.");
+        // router.push("/instructor/myMissions/createnewmission");
         return;
       }
 
@@ -45,7 +47,8 @@ export default function PreviewandLaunch() {
         }
       );
 
-      console.log("Mission updated successfully:", response);
+      console.log("new mission by Mission updated successfully:", response.data.data);
+      setmissionById()
     } catch (error) {
       console.log(error);
     }
@@ -54,6 +57,18 @@ export default function PreviewandLaunch() {
   useEffect(() => {
     getMissionByID();
   }, []);
+
+   useEffect(() => {
+     const missionId = localStorage.getItem("missionId");
+
+     if (!missionId) {
+       alert("No mission ID found. Redirecting to create new mission.");
+       setActiveTab("Mission Details");
+
+       router.push("/instructor/myMissions/createnewmission");
+       return;
+     }
+   }, []);
 
   useEffect(() => {
     const fetchMissionLevels = async () => {
@@ -77,7 +92,7 @@ export default function PreviewandLaunch() {
             },
           }
         );
-        console.log("Mission data retrieved successfully:", res.data.data);
+        console.log("Mission by id data retrieved successfully:", res.data.data);
         setLevels(res.data.data);
       } catch (error) {
         console.log("Error retrieving mission data:", error);
@@ -189,12 +204,14 @@ export default function PreviewandLaunch() {
 
   return (
     <div className="w-full h-full p-5">
-    
-      <div className="h-[343.54px] w-full bg-[var(--purpel-btncolor)] rounded-[15px] mb-8" />
+      <div
+        style={{
+          backgroundImage: `url(${missionById?.thumbnail?.url})`,
+        }}
+        className="h-[343.54px] bg-cover bg-center w-full bg-[var(--purpel-btncolor)] rounded-[15px] mb-8"
+      />
 
-    
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-       
         <div
           style={{ padding: "30px" }}
           className="xl:col-span-2 flex flex-col gap-4"
@@ -205,7 +222,7 @@ export default function PreviewandLaunch() {
               <button
                 style={{ padding: "15px" }}
                 key={tab}
-                onClick={() => setActiveTab(tab)}
+                onClick={() => setActiveTabs(tab)}
                 className={`text-sm sm:text-base font-medium pb-1 ${
                   activeTab === tab
                     ? "border-b-2 border-[#BDE75D] text-[10px] sm:text-[17px] text-[#BDE75D]"
@@ -217,13 +234,11 @@ export default function PreviewandLaunch() {
             ))}
           </div>
 
-         
           <div style={{ padding: "10px" }} className="pt-4">
             {renderTabContent()}
           </div>
         </div>
 
-       
         <div
           style={{ padding: "15px" }}
           className="bg-[var(--black-bg)] rounded-[12px] p-5"

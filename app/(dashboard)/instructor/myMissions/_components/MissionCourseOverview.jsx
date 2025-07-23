@@ -294,6 +294,7 @@ export default function MissionCourseOverview({ course }) {
   return (
     <div className="flex flex-col w-full sm:max-w-[1200px] mx-auto gap-10">
       <div className="grid xl:grid-cols-3 gap-8">
+        {/* Fixed the background image positioning */}
         <div
           style={{
             backgroundImage: course.thumbnail?.url
@@ -303,12 +304,12 @@ export default function MissionCourseOverview({ course }) {
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
           }}
-          className="border border-[#6D4879] w-[100vw] fixed  top-0 left-0 sm:relative sm:w-full h-[300px] xl:h-full sm:rounded-[13px] bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] "
+          className="border border-[#6D4879] w-full h-[200px] sm:h-[300px] xl:h-full rounded-[13px] bg-gradient-to-br from-[#2D1B3D] to-[#1A0F21] z-0"
         ></div>
 
         <div
           style={{ padding: "16px" }}
-          className="xl:col-span-2  marginTopSSmall flex flex-col gap-2 sm:gap-8"
+          className="xl:col-span-2 flex flex-col gap-2 sm:gap-8 relative z-10"
         >
           <div className="flex flex-col sm:gap-1">
             <h1 className="font-[600] text-[28px] xl:text-[33px] leading-[40px] sm:text-center xl:text-left">
@@ -376,7 +377,8 @@ export default function MissionCourseOverview({ course }) {
         )}
       </div>
 
-      <div className=" flex flex-col gap-5 sm:hidden  ">
+      {/* Mobile view - Fixed positioning and visibility issues */}
+      <div className="flex flex-col gap-5 sm:hidden relative z-10">
         <div>
           <div className="flex justify-between items-center mb-4 w-full text-[#767E8F] text-[10px] font-[400] leading-[20px] ">
             <p>Mission Progress</p>
@@ -391,16 +393,18 @@ export default function MissionCourseOverview({ course }) {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2  gap-4">
+        <div className="grid grid-cols-2 gap-4">
           <button className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer ">
             Edit Mission
           </button>
-          <button
-            onClick={() => handleAddLevelId(course._id)}
-            className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer "
-          >
-            + Level
-          </button>
+          <Link href={`/instructor/myMissions/createnewmission`}>
+            <button
+              onClick={() => handleAddLevelId(course._id)}
+              className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer "
+            >
+              + Level
+            </button>
+          </Link>
         </div>
       </div>
     </div>
