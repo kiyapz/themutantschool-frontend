@@ -1,5 +1,5 @@
 "use client";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useEffect, useState, useCallback } from "react";
 import profilebase from "../../profile/_components/profilebase";
 import { useRouter } from "next/router";
 
@@ -9,18 +9,18 @@ export default function InstructorContextProvider({ children }) {
   const [profiledisplay, setprofiledisplay] = useState("Personal Information");
   const [openSmallScreenProfileDropDown, setopenSmallScreenProfileDropDown] =
     useState(false);
-    const [activeTab, setActiveTab] = useState("Mission Details");
+  const [activeTab, setActiveTab] = useState("Mission Details");
   const [openlargeProfileDropdown, setopenlargeProfileDropdown] =
     useState(false);
   const [ChangePassword, setChangePassword] = useState(false);
   const [user, setUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
-   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-   const [missionId, setmessionId] = useState("");
-    const [passingScore, setPassingScore] = useState(70);
-     const [quiztitle, setQuizTitle] = useState("");
-      const [Level, setLevel] = useState("AddLevel");
-       const [courses, setMission] = useState([]);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [missionId, setmessionId] = useState("");
+  const [passingScore, setPassingScore] = useState(70);
+  const [quiztitle, setQuizTitle] = useState("");
+  const [Level, setLevel] = useState("AddLevel");
+  const [courses, setMission] = useState([]);
 
   // for level
   const [levelId, setLeveld] = useState("");
@@ -47,7 +47,7 @@ export default function InstructorContextProvider({ children }) {
     nationality: "",
   });
 
-  const refreshAuthToken = async () => {
+  const refreshAuthToken = useCallback(async () => {
     try {
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
@@ -85,54 +85,60 @@ export default function InstructorContextProvider({ children }) {
       router.push("/Login");
       return null;
     }
-  };
+  }, []);
 
-  const makeAuthenticatedRequest = async (url, options = {}) => {
-    let accessToken = localStorage.getItem("login-accessToken");
+  const makeAuthenticatedRequest = useCallback(
+    async (url, options = {}) => {
+      let accessToken = localStorage.getItem("login-accessToken");
 
-    if (!accessToken) {
-      console.warn("No access token found");
-      router.push("/Login");
-      return null;
-    }
-
-    try {
-      const response = await profilebase.get(url, {
-        ...options,
-        headers: {
-          ...options.headers,
-          Authorization: `Bearer ${accessToken}`,
-        },
-      });
-
-      return response;
-    } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("Token expired, attempting to refresh...");
-
-        const newAccessToken = await refreshAuthToken();
-
-        if (newAccessToken) {
-          try {
-            const retryResponse = await profilebase.get(url, {
-              ...options,
-              headers: {
-                ...options.headers,
-                Authorization: `Bearer ${newAccessToken}`,
-              },
-            });
-
-            return retryResponse;
-          } catch (retryError) {
-            console.log("Request failed even after token refresh:", retryError);
-            throw retryError;
-          }
-        }
+      if (!accessToken) {
+        console.warn("No access token found");
+        router.push("/Login");
+        return null;
       }
 
-      throw error;
-    }
-  };
+      try {
+        const response = await profilebase.get(url, {
+          ...options,
+          headers: {
+            ...options.headers,
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
+        return response;
+      } catch (error) {
+        if (error.response?.status === 401 || error.response?.status === 403) {
+          console.log("Token expired, attempting to refresh...");
+
+          const newAccessToken = await refreshAuthToken();
+
+          if (newAccessToken) {
+            try {
+              const retryResponse = await profilebase.get(url, {
+                ...options,
+                headers: {
+                  ...options.headers,
+                  Authorization: `Bearer ${newAccessToken}`,
+                },
+              });
+
+              return retryResponse;
+            } catch (retryError) {
+              console.log(
+                "Request failed even after token refresh:",
+                retryError
+              );
+              throw retryError;
+            }
+          }
+        }
+
+        throw error;
+      }
+    },
+    [refreshAuthToken]
+  );
 
   useEffect(() => {
     const getUser = async () => {
@@ -164,7 +170,7 @@ export default function InstructorContextProvider({ children }) {
     };
 
     getUser();
-  }, []);
+  }, [makeAuthenticatedRequest]);
 
   useEffect(() => {
     if (userProfile) {
@@ -192,7 +198,7 @@ export default function InstructorContextProvider({ children }) {
     }
   }, [userProfile]);
 
-  const refreshUserData = async () => {
+  const refreshUserData = useCallback(async () => {
     try {
       const storedUser = localStorage.getItem("USER");
       if (!storedUser) return;
@@ -208,7 +214,7 @@ export default function InstructorContextProvider({ children }) {
     } catch (error) {
       console.error("Failed to refresh user data:", error);
     }
-  };
+  }, [makeAuthenticatedRequest]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("USER");
@@ -241,7 +247,7 @@ export default function InstructorContextProvider({ children }) {
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [refreshAuthToken]);
 
   const FetchUserProfile = async () => {
     console.log("Clicked user profile");
@@ -274,14 +280,13 @@ export default function InstructorContextProvider({ children }) {
   };
 
   const handleLogout = () => {
- 
     localStorage.removeItem("login-accessToken");
     localStorage.removeItem("accessToken");
     localStorage.removeItem("USER");
     localStorage.removeItem("refreshToken");
     localStorage.removeItem("missionDraft");
     localStorage.removeItem("missionId");
-    
+
     window.location.href = "/Login";
   };
 
@@ -322,6 +327,8 @@ export default function InstructorContextProvider({ children }) {
         setQuizTitle,
         courses,
         setMission,
+        refreshUserData,
+        makeAuthenticatedRequest,
       }}
     >
       {children}

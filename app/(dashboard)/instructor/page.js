@@ -7,12 +7,9 @@ import { useState } from "react";
 
 import SingleValueChart from "./_components/InstructorgraphSingleValueChart";
 import Link from "next/link";
-import { useContext, useEffect } from "react";
+import { useContext, useEffect, useCallback } from "react";
 import { InstructorContext } from "./_components/context/InstructorContex";
 import profilebase from "./profile/_components/profilebase";
-
-
-
 
 const studentcourse = [
   {
@@ -94,61 +91,11 @@ const Mission = [
   },
 ];
 
-const studetcourse = [
-  {
-    id: 1,
-    purpose: "Design Principles: Beginners",
-    type: "course",
-    recruits: 500,
-    revenue: "$2500",
-    rating: 4.5,
-    progress: 50,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcST1X_KXRZTcaSF3D_INaAnaZY0OyJ70jbYyw&s",
-  },
-  {
-    id: 2,
-    purpose: "Design Principles: Beginners",
-    type: "",
-    recruits: 500,
-    revenue: "$2500",
-    rating: 5,
-    progress: 100,
-    image:
-      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQy26vJHT36wsJbtLIYECQYK3ypBjoguRpMQA&s",
-  },
-  {
-    id: 3,
-    purpose: "Design Principles: Beginners",
-    type: "course",
-    recruits: 500,
-    revenue: "$2500",
-    rating: 3.5,
-    progress: 80,
-    image:
-      "https://theadminbar.com/wp-content/uploads/2025/04/What-you-need-to-know-about-Figma.webp",
-  },
-  {
-    id: 4,
-    purpose: "Design Principles: Beginners",
-    type: "",
-    recruits: 500,
-    revenue: "$2500",
-    rating: 1.5,
-    progress: 20,
-    image:
-      "https://www.psdly.to/wp-content/uploads/2025/04/Udemy-Figma-Crash-Course-Learn-UI-Design-Step-by-Step.jpg",
-  },
-];
-
-
-
-
 export default function InstructorDashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
-  // const [MissionCreated, setMission] = useState([]);
+
   const {
     setUserProfile,
     userProfile,
@@ -158,34 +105,113 @@ export default function InstructorDashboard() {
     courses,
   } = useContext(InstructorContext);
 
+  const data = [
+    {
+      id: 1,
+      sub: "Active Missions",
+      qunatity: courses?.length || 0,
+    },
+    {
+      id: 2,
+      sub: "Total Recruits",
+      qunatity: 248,
+    },
+    {
+      id: 3,
+      sub: "Total Revenue",
+      qunatity: "$4,285",
+    },
+    {
+      id: 4,
+      sub: "Ratings",
+      qunatity: 4.8,
+    },
+  ];
 
-    
-const data = [
-  {
-    id: 1,
-    sub: "Active Missions",
-    qunatity: courses?.length || 0,
-  },
-  {
-    id: 2,
-    sub: "Total Recruits",
-    qunatity: 248,
-  },
-  {
-    id: 3,
-    sub: "Total Revenue",
-    qunatity: "$4,285",
-  },
-  {
-    id: 4,
-    sub: "Ratings",
-    qunatity: 4.8,
-  },
-];
+  // Enhanced token refresh function
+  const refreshAccessToken = useCallback(async () => {
+    try {
+      const refreshToken = localStorage.getItem("login-refreshToken");
+      if (!refreshToken) {
+        throw new Error("No refresh token available");
+      }
 
+      const response = await profilebase.post(
+        "auth/refresh-token",
+        { refreshToken },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "login-accessToken"
+            )}`,
+          },
+        }
+      );
 
-  
-  async function checkAuthAndFetchProfile() {
+      if (response.status === 200) {
+        localStorage.setItem("login-accessToken", response.data.accessToken);
+        return response.data.accessToken;
+      }
+      throw new Error("Failed to refresh token");
+    } catch (error) {
+      console.error("Token refresh failed:", error);
+      // Clear storage and redirect to login
+      localStorage.removeItem("USER");
+      localStorage.removeItem("login-accessToken");
+      localStorage.removeItem("login-refreshToken");
+      router.push("/login");
+      throw error;
+    }
+  }, [router]);
+
+  // Generic authenticated request function
+  const makeAuthenticatedRequest = useCallback(
+    async (url, options = {}) => {
+      try {
+        let accessToken = localStorage.getItem("login-accessToken");
+
+        const response = await profilebase.get(url, {
+          ...options,
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            ...options.headers,
+          },
+        });
+
+        return response;
+      } catch (error) {
+        // If unauthorized, try to refresh token and retry
+        if (error.response?.status === 401) {
+          console.log("Access token expired, attempting to refresh...");
+          try {
+            const newToken = await refreshAccessToken();
+
+            // Retry the original request with new token
+            const retryResponse = await profilebase.get(url, {
+              ...options,
+              headers: {
+                Authorization: `Bearer ${newToken}`,
+                ...options.headers,
+              },
+            });
+
+            return retryResponse;
+          } catch (refreshError) {
+            console.error(
+              "Failed to refresh token and retry request:",
+              refreshError
+            );
+            throw refreshError;
+          }
+        }
+        throw error;
+      }
+    },
+    [refreshAccessToken]
+  );
+
+  // Authentication and profile fetching
+  const checkAuthAndFetchProfile = useCallback(async () => {
     try {
       setIsLoading(true);
 
@@ -217,13 +243,8 @@ const data = [
         return;
       }
 
-      const response = await profilebase.get(
-        `/user-profile/${parsedUser._id}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
+      const response = await makeAuthenticatedRequest(
+        `/user-profile/${parsedUser._id}`
       );
 
       console.log("User profile fetched successfully:", response.data.data);
@@ -246,7 +267,37 @@ const data = [
     } finally {
       setIsLoading(false);
     }
-  }
+  }, [router, makeAuthenticatedRequest, setUserProfile]);
+
+  // Fetch missions function
+  const fetchMissions = useCallback(async () => {
+    try {
+      console.log("Fetching missions...");
+
+      const storedUser = localStorage.getItem("USER");
+      if (!storedUser) {
+        console.log("No user found in localStorage");
+        return;
+      }
+
+      const parsedUser = JSON.parse(storedUser);
+      const id = parsedUser._id;
+
+      if (!id) {
+        console.log("No user ID found");
+        return;
+      }
+
+      const response = await makeAuthenticatedRequest(
+        `instructor/report/${id}`
+      );
+
+      console.log("Fetched missions response:", response.data.missions);
+      setMission(response.data.missions);
+    } catch (error) {
+      console.error("Error fetching missions:", error);
+    }
+  }, [makeAuthenticatedRequest, setMission]);
 
   // Update user values when profile is loaded
   useEffect(() => {
@@ -262,9 +313,9 @@ const data = [
         website: userProfile.profile?.socialLinks?.website || "",
         Twitter: userProfile.profile?.socialLinks?.twitter || "",
         url: userProfile.profile?.avatar?.url || "",
-        publicId: userProfile.profile?.avatar?.publicId || "", // Fixed: was mapped to youtube
+        publicId: userProfile.profile?.avatar?.publicId || "",
         instagram: userProfile.profile?.socialLinks?.instagram || "",
-        Headline: userProfile.profile?.headline || "", // Fixed: was userProfile.Headline
+        Headline: userProfile.profile?.headline || "",
         ExpertiseTags: userProfile.ExpertiseTags || [],
         gender: userProfile.gender || "",
         Phone: userProfile.phoneNumber || "",
@@ -279,100 +330,15 @@ const data = [
   // Check auth and fetch profile on component mount
   useEffect(() => {
     checkAuthAndFetchProfile();
-  }, []);
+  }, [checkAuthAndFetchProfile]);
 
-
+  // Fetch missions after authentication is confirmed
   useEffect(() => {
-    console.log("use effect for fetching missions");
-
-    const storedUser = localStorage.getItem("USER");
-    const parsedUser = JSON.parse(storedUser);
-    const id = parsedUser._id;
-
-    async function getAllMission() {
-      try {
-        const response = await profilebase.get(`instructor/report/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "login-accessToken"
-            )}`,
-          },
-        });
-
-        if (response.status === 401) {
-          console.log("Unauthorized access. Please log in again.");
-
-          const refreshToken = localStorage.getItem("login-refreshToken");
-          // make a reques to get new token
-          const getToken = await profilebase.post(
-            "auth/refresh-token",
-            { refreshToken },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem(
-                  "login-accessToken"
-                )}`,
-              },
-            }
-          );
-
-          if (getToken.status === 200) {
-            localStorage.setItem(
-              "login-accessToken",
-              getToken.data.accessToken
-            );
-            console.log("Access token refreshed successfully.");
-
-            return getAllMission();
-          }
-        }
-
-        console.log("fetched mission response", response.data.missions);
-        setMission(response.data.missions);
-      } catch (error) {
-        console.log("Error fetching missions:", error);
-      }
+    if (authChecked && userProfile) {
+      fetchMissions();
     }
-    getAllMission();
-  }, []);
+  }, [authChecked, userProfile, fetchMissions]);
 
-
- 
-
-  useEffect(() => {
-
-    console.log('use effect for fetching missions');
-    
-     const storedUser = localStorage.getItem("USER");
-      const parsedUser = JSON.parse(storedUser);
-      const id = parsedUser._id;
-    async function getAllMission() {
-      try {
-        const response = await profilebase.get(`instructor/report/${id}`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem(
-              "login-accessToken"
-            )}`,
-          },
-        });
-
-        console.log("fesded missoin respons", response.data.missions);
-        
-
-        setMission(response.data.missions);
-        
-       
-
-        
-
-      } catch (error) {
-        console.log("Error fetching missions:", error);
-      }
-    }
-    getAllMission();
-  }, []);
-
-  
   if (isLoading || !authChecked) {
     return (
       <div className="flex items-center justify-center h-screen">

@@ -31,7 +31,7 @@ export default function FilterableCoursesDashboard() {
 
         if (response.status === 401) {
           console.log("Unauthorized access. Please log in again.");
-          
+
           const refreshToken = localStorage.getItem("login-refreshToken");
           // make a reques to get new token
           const getToken = await profilebase.post(
@@ -46,16 +46,15 @@ export default function FilterableCoursesDashboard() {
             }
           );
 
-          if (getToken.status === 200) {  
-            localStorage.setItem("login-accessToken", getToken.data.accessToken);
+          if (getToken.status === 200) {
+            localStorage.setItem(
+              "login-accessToken",
+              getToken.data.accessToken
+            );
             console.log("Access token refreshed successfully.");
-            
+
             return getAllMission();
           }
-
-
-
-          
         }
 
         console.log("fetched mission response", response.data.missions);
@@ -65,7 +64,7 @@ export default function FilterableCoursesDashboard() {
       }
     }
     getAllMission();
-  }, []);
+  }, [setMission]);
 
   const [filters, setFilters] = useState({
     duration: null,
