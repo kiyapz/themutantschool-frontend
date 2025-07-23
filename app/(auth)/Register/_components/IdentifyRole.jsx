@@ -62,76 +62,103 @@ export default function IdentifyRole() {
     handleContinue,
   } = useContext(Globlaxcontex);
 
-  useEffect(() => {
-    setsuccessvalue(false);
-    setUserName(false);
-    setSuccessmessage(
-      <span className="flex items-center gap-2">
-        <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
-        Checking...
-      </span>
-    );
+ useEffect(() => {
+  
+   setsuccessvalue(false);
+   setUserName(false);
+   setdisablebtn(true);
+   setErrormessage("");
+   setSuccessmessage("");
 
-    setdisablebtn(true);
-    setErrormessage("");
+   
+   if (username.length === 0) {
+     return;
+   }
 
-    if (username.length < 1) {
-      setSuccessmessage("");
-      setdisablebtn(true);
-      return;
-    }
+   
+   setSuccessmessage(
+     <span className="flex items-center gap-2">
+       <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
+       Checking...
+     </span>
+   );
 
-    const verifyAccount = async () => {
-      try {
-        const res = await authApiUrl.post("check-username", { username });
+  
+   const abortController = new AbortController();
 
-        const responseData = res.data;
-        console.log("Response from server:", res);
+   
+   const timeoutId = setTimeout(async () => {
+     try {
+       
+       if (username.length === 0) {
+         return;
+       }
 
-        if (res.status === 201 || res.status === 200) {
-          setErrormessage("");
-          setSuccessmessage(responseData.message || "Username is available.");
-          setsuccessvalue(true);
-          setUserName(true);
+       const res = await authApiUrl.post(
+         "check-username",
+         { username },
+         { signal: abortController.signal }
+       );
 
-          setTimeout(() => {
-            setSuccessmessage("");
-          }, 1000);
-          setdisablebtn(!username);
-        } else {
-          setsuccessvalue(false);
-          setSuccessmessage("");
-          setdisablebtn(true);
-          setErrormessage(responseData.message || "Something went wrong.");
-          setTimeout(() => {
-            setErrormessage("");
-          }, 1000);
-        }
-      } catch (err) {
-        setsuccessvalue(false);
-        setdisablebtn(true);
-        setErrormessage("");
-        setdisablebtn(true);
-        console.log("Error fetching data:", err);
-        setSuccessmessage("");
+       
+       if (abortController.signal.aborted || username.length === 0) {
+         return;
+       }
 
-        let errorMsg = "An error occurred while verifying the account.";
+       const responseData = res.data;
+       console.log("Response from server:", res);
 
-        if (err?.code === "ERR_NETWORK") {
-          errorMsg = "Network error: Please check your internet connection.";
-        } else if (err?.response?.data?.message) {
-          errorMsg = err.response.data.message;
-        }
+       if (res.status === 201 || res.status === 200) {
+         setErrormessage("");
+         setSuccessmessage(responseData.message);
+         setsuccessvalue(true);
+         setUserName(true);
+         setdisablebtn(false);
 
-        setErrormessage(errorMsg);
-        setTimeout(() => {
-          setErrormessage("");
-        }, 1000);
-      }
-    };
+         setTimeout(() => {
+           setSuccessmessage("");
+         }, 1000);
+       } else {
+         setsuccessvalue(false);
+         setSuccessmessage("");
+         setdisablebtn(true);
+         setErrormessage(responseData.message || "Something went wrong.");
 
-    verifyAccount();
-  }, [username]);
+         setTimeout(() => {
+           setErrormessage("");
+         }, 1000);
+       }
+     } catch (err) {
+     
+       if (err.name === "AbortError" || abortController.signal.aborted) {
+         return;
+       }
+
+       setsuccessvalue(false);
+       setdisablebtn(true);
+       setSuccessmessage("");
+
+       let errorMsg = "An error occurred while verifying the account.";
+
+       if (err?.code === "ERR_NETWORK") {
+         errorMsg = "Network error: Please check your internet connection.";
+       } else if (err?.response?.data?.message) {
+         errorMsg = err.response.data.message;
+       }
+
+       setErrormessage(errorMsg);
+       setTimeout(() => {
+         setErrormessage("");
+       }, 1000);
+     }
+   }, 300); 
+
+   
+   return () => {
+     clearTimeout(timeoutId);
+     abortController.abort(); 
+   };
+ }, [username]);
 
   useEffect(() => {
     setErrormessage("");
