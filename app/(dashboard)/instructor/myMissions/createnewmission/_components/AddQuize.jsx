@@ -6,16 +6,13 @@ import { Plus, Minus, Send, Eye, EyeOff, Loader2 } from "lucide-react";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 import axios from "axios";
 import QuizeCustomDropdown from "./QuizeDropdown";
+import { FiEdit } from "react-icons/fi";
+
 
 const QuizCreator = () => {
-  const {
-    levelId,
-    missionId,
-    capselId,
-    passingScore,
-    setQuizTitle,
-  } = useContext(InstructorContext);
-   
+  const { levelId, missionId, capselId, passingScore, setQuizTitle } =
+    useContext(InstructorContext);
+
   const [quiz, setQuiz] = useState({
     missionId: missionId,
     levelId: levelId,
@@ -34,7 +31,12 @@ const QuizCreator = () => {
   const [apiResponse, setApiResponse] = useState(null);
   const [QuizData, setQuizData] = useState("AddLevel");
   const [durationMinutes, setDurationMinutes] = useState(15);
- 
+  const [editQuize, setEditQuize] = useState(false);
+  const [quizId, setQuizeId] = useState("");
+  const [getquizID, setGetQuizID] = useState([]);
+  const [editedQuestion, setEditedQuestion] = useState(null);
+
+  console.log(editedQuestion?._id, "show quiz id");
   console.log("Quiz Creator initialized with levelId:", QuizData);
 
   const addQuestion = () => {
@@ -163,7 +165,7 @@ const QuizCreator = () => {
           data: response.data,
         });
         getAllLevel();
-        
+
         setQuiz({
           levelId: levelId || "",
           missionId: missionId || "",
@@ -222,6 +224,164 @@ const QuizCreator = () => {
     }
   };
 
+  
+  const handleEditQuestion = (questionIndex) => {
+    const questionToEdit = QuizData.quiz.questions[questionIndex];
+    setEditedQuestion({
+      ...questionToEdit,
+      questionIndex: questionIndex,
+    });
+    setEditQuize(true);
+  };
+
+  
+  const handleUpdateQuiz = async () => {
+    try {
+      setIsLoading(true);
+
+      const accessToken = localStorage.getItem("login-accessToken");
+
+      if (!editedQuestion.questionText.trim()) {
+        alert("Question text is required");
+        return;
+      }
+
+      if (editedQuestion.options.some((opt) => !opt.trim())) {
+        alert("All options must be filled");
+        return;
+      }
+
+      if (!editedQuestion.explanation.trim()) {
+        alert("Explanation is required");
+        return;
+      }
+
+     
+      const updatedQuizData = {
+        title: QuizData.quiz.title,
+        type: QuizData.quiz.type,
+        missionId: QuizData.quiz.mission,
+        isFinal: QuizData.quiz.isFinal,
+        questions: QuizData.quiz.questions.map((q) =>
+          q._id === editedQuestion._id
+            ? {
+                questionText: editedQuestion.questionText,
+                options: editedQuestion.options,
+                correctAnswerIndex: editedQuestion.correctAnswerIndex,
+                explanation: editedQuestion.explanation,
+                shuffleOptions: editedQuestion.shuffleOptions || false,
+              }
+            : {
+                questionText: q.questionText,
+                options: q.options,
+                correctAnswerIndex: q.correctAnswerIndex,
+                explanation: q.explanation,
+                shuffleOptions: q.shuffleOptions || false,
+              }
+        ),
+        passingScore: QuizData.quiz.passingScore,
+        durationMinutes: QuizData.quiz.durationMinutes,
+      };
+
+      console.log("Updating quiz with ID:", QuizData.quiz._id);
+      console.log("Update payload:", updatedQuizData);
+
+      const response = await axios.put(
+        `https://themutantschool-backend.onrender.com/api/mission-quiz/update/${QuizData.quiz._id}`,
+        updatedQuizData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Quiz updated successfully:", response.data);
+
+      
+      setApiResponse({
+        success: true,
+        message: "Quiz updated successfully!",
+        data: response.data,
+      });
+
+      
+      setEditQuize(false);
+      getAllLevel();
+    } catch (error) {
+      console.error("Error updating quiz:", error);
+
+      let errorMessage = "Failed to update quiz";
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+
+      alert(errorMessage);
+
+      setApiResponse({
+        error: errorMessage,
+        success: false,
+        details:
+          error.response?.data || "An error occurred while updating the quiz",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleDeleteEdit = async (id) => {
+    setEditQuize(true);
+    setQuizeId(id);
+    console.log(id, "id for single quiz edit");
+
+    try {
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission-quiz/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "login-accessToken"
+            )}`,
+          },
+        }
+      );
+
+      console.log("getting single Quiz successfully:", response.data.data);
+      setEditedQuestion(response.data.data);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDeleteQuize = async (id) => {
+    try {
+      console.log("Deleting quiz with ID:", id);
+
+      const response = await axios.delete(
+        `https://themutantschool-backend.onrender.com/api/mission-quiz/delete/${id}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "login-accessToken"
+            )}`,
+          },
+        }
+      );
+
+      console.log("Quiz deleted successfully:", response.data);
+      getAllLevel();
+    } catch (error) {
+      console.error(
+        "Error deleting quiz:",
+        error.response?.data || error.message
+      );
+      alert("Failed to delete quiz.");
+    }
+  };
+
   React.useEffect(() => {
     if (apiResponse && (apiResponse.success || apiResponse.error)) {
       const timer = setTimeout(() => {
@@ -237,8 +397,6 @@ const QuizCreator = () => {
     const accessToken = localStorage.getItem("login-accessToken");
     const missionId = localStorage.getItem("missionId");
 
-   
-
     try {
       const response = await axios.get(
         `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
@@ -249,9 +407,7 @@ const QuizCreator = () => {
       console.log("Fetched quiz levels:", response.data.data[capselId]);
     } catch (error) {
       console.error("Failed to fetch levels:", error);
-     
     } finally {
-     
     }
   };
 
@@ -260,7 +416,7 @@ const QuizCreator = () => {
   }, []);
 
   return (
-    <div className="flex flex-col  xl:grid grid-cols-3 gap-4">
+    <div className="flex flex-col xl:grid grid-cols-3 gap-4">
       <div className="max-w-4xl col-span-2 mx-auto p-6 bg-black min-h-screen flex flex-col gap-5 text-white">
         <div
           style={{ padding: "20px" }}
@@ -283,7 +439,7 @@ const QuizCreator = () => {
                 value={durationMinutes}
                 onChange={(e) => setDurationMinutes(e.target.value)}
                 type="number"
-                className="w-full outline-none h-[75.76px]  text-center rounded-[14px] bg-[#070707] "
+                className="w-full outline-none h-[75.76px] text-center rounded-[14px] bg-[#070707] "
               />
             </div>
             <div className="flex flex-col gap-2">
@@ -440,7 +596,7 @@ const QuizCreator = () => {
             )}
           </p>
 
-          <p className="text-center text-[#9C9C9C] text-[19px] font-[200]  leading-[20%] ">
+          <p className="text-center text-[#9C9C9C] text-[19px] font-[200] leading-[20%] ">
             Questions {quiz.questions.length}/10
           </p>
         </div>
@@ -490,12 +646,11 @@ const QuizCreator = () => {
 
         {QuizData.quiz ? (
           <div className="flex flex-col gap-4">
-            {" "}
             {QuizData?.quiz?.questions.map((question, index) => (
               <div
                 key={index}
                 style={{ padding: "20px" }}
-                className="bg-[#62337C] flex flex-col justify-center h-[102px] w-full rounded-[13px] mb-4"
+                className="bg-[#62337C] relative flex flex-col justify-center h-[102px] w-full rounded-[13px] mb-4"
               >
                 <p className="font-[600] text-[20px] leading-[27px]">
                   Question {index + 1}: {question.questionText}
@@ -504,13 +659,118 @@ const QuizCreator = () => {
                   Correct answer (Option {question.correctAnswerIndex + 1}):{" "}
                   {question.options[question.correctAnswerIndex]}
                 </p>
+                <div className="absolute top-[13px] right-[19px] flex items-center gap-2 ">
+                  <button
+                    className="text-[var(--btn-bg-color)] w-2 h-2 cursor-pointer"
+                    onClick={() => handleEditQuestion(index)}
+                  >
+                    <FiEdit />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
         ) : (
-          "Create A Quize"
+          "Create A Quiz"
         )}
       </div>
+
+      {editQuize && editedQuestion && (
+        <div className="absolute z-40 top-0 items-center flex justify-center flex-col left-0 h-screen w-screen bg-[rgba(0,0,0,0.9)] ">
+          <div
+            style={{ padding: "20px" }}
+            className="w-full bg-[#101010]  max-w-[600px] flex flex-col gap-3 rounded-[20px] p-4"
+          >
+            <div className="flex justify-between items-center mb-4">
+              <p className="text-[#BDE75D] font-bold text-2xl">
+                Edit Question
+              </p>
+              <button
+                onClick={() => setEditQuize(false)}
+                disabled={isLoading}
+                className="text-white text-xl disabled:opacity-50"
+              >
+                <Minus size={16} className="text-red-500" />
+              </button>
+            </div>
+
+            {/* Question Text */}
+            <input
+              style={{ padding: "10px" }}
+              className="w-full p-3 rounded  bg-[#070707] mb-4 text-white"
+              placeholder="Type your question here"
+              value={editedQuestion.questionText}
+              onChange={(e) =>
+                setEditedQuestion((prev) => ({
+                  ...prev,
+                  questionText: e.target.value,
+                }))
+              }
+              disabled={isLoading}
+            />
+
+            {/* Options */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {editedQuestion.options.map((opt, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <input
+                    type="radio"
+                    name="correctAnswer"
+                    checked={editedQuestion.correctAnswerIndex === index}
+                    onChange={() =>
+                      setEditedQuestion((prev) => ({
+                        ...prev,
+                        correctAnswerIndex: index,
+                      }))
+                    }
+                    disabled={isLoading}
+                    className="w-5 h-5"
+                  />
+                  <input
+                    style={{ padding: "10px" }}
+                    value={opt}
+                    onChange={(e) => {
+                      const updatedOptions = [...editedQuestion.options];
+                      updatedOptions[index] = e.target.value;
+                      setEditedQuestion((prev) => ({
+                        ...prev,
+                        options: updatedOptions,
+                      }));
+                    }}
+                    disabled={isLoading}
+                    className="flex-1 p-2 rounded bg-[#070707] text-white"
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Explanation */}
+            <textarea
+              style={{ padding: "10px" }}
+              className="w-full mt-4 p-3 rounded bg-[#070707] text-white"
+              placeholder="Explanation"
+              value={editedQuestion.explanation}
+              onChange={(e) =>
+                setEditedQuestion((prev) => ({
+                  ...prev,
+                  explanation: e.target.value,
+                }))
+              }
+              disabled={isLoading}
+            />
+
+            {/* Update Button */}
+            <button
+              style={{ padding: "10px" }}
+              className="mt-4 btn text-black cursor-pointer py-2 px-4 rounded disabled:opacity-50"
+              disabled={isLoading}
+              onClick={handleUpdateQuiz}
+            >
+              {isLoading ? "Updating..." : "Update"}
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

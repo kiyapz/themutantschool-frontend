@@ -2,10 +2,16 @@
 
 import { useContext, useEffect, useRef, useState } from "react";
 import Addlevelbtn from "./Addlevelbtn";
-import { FaVideo, FaImage, FaEye, FaEdit, FaTrash } from "react-icons/fa";
+import {
+  FaVideo,
+  FaImage,
+  FaEye,
+  FaEdit,
+  FaTrash,
+  FaTimes,
+} from "react-icons/fa";
 import ToggleButton from "../../../profile/notification/_components/ToggleButton";
 import axios from "axios";
-// import AddQuize from "./AddQuize";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 import QuizCreator from "./AddQuize";
 import { useRouter } from "next/navigation";
@@ -48,9 +54,347 @@ const LoadingSpinner = () => (
   <div className="inline-block animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
 );
 
-export default function AddLevels() {
+// Confirmation Modal Component
+const ConfirmationModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  title,
+  message,
+  isLoading,
+}) => {
+  if (!isOpen) return null;
 
-    const router = useRouter();
+  return (
+    <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)]">
+      <div
+        style={{ padding: "20px" }}
+        className="max-w-[500px] w-full mx-4 bg-[#101010] rounded-lg p-6"
+      >
+        <h3 className="text-[20px] font-[600] mb-4">{title}</h3>
+        <p className="text-[#9C9C9C] mb-6">{message}</p>
+        <div className="flex gap-3 justify-end">
+          <button
+            style={{ padding: "10px" }}
+            onClick={onClose}
+            disabled={isLoading}
+            className="px-4 py-2 text-[#9C9C9C] hover:text-white transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            style={{ padding: "10px" }}
+            onClick={onConfirm}
+            disabled={isLoading}
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 flex items-center gap-2"
+          >
+            {isLoading ? (
+              <>
+                <LoadingSpinner />
+                <span>Deleting...</span>
+              </>
+            ) : (
+              "Delete"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Video Preview Modal Component
+const VideoPreviewModal = ({ isOpen, onClose, capsule }) => {
+  if (!isOpen || !capsule) return null;
+
+  return (
+    <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)]">
+      <div
+        style={{ padding: "20px" }}
+        className="max-w-[800px] w-full mx-4 bg-[#101010] rounded-lg p-6"
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-[20px] font-[600]">{capsule.title}</h3>
+          <button
+            onClick={onClose}
+            className="text-[#9C9C9C] hover:text-white transition-colors"
+          >
+            <FaTimes size={20} />
+          </button>
+        </div>
+
+        {capsule.videoUrl ? (
+          <video
+            controls
+            className="w-full max-h-[400px] rounded-lg"
+            src={capsule.videoUrl.url}
+          >
+            Your browser does not support the video tag.
+          </video>
+        ) : (
+          <div className="w-full h-[300px] bg-[#1C1C1C] rounded-lg flex items-center justify-center">
+            <p className="text-[#9C9C9C]">No video available</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+// Level Edit Modal Component
+const LevelEditModal = ({ isOpen, onClose, level, onSave }) => {
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [editEstimatedTime, setEditEstimatedTime] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (level) {
+      setEditTitle(level.title || "");
+      setEditDescription(level.description || "");
+      setEditEstimatedTime(level.estimatedTime || "");
+      setError("");
+    }
+  }, [level]);
+
+  const handleSave = async () => {
+    setError("");
+
+    if (!editTitle.trim()) {
+      setError("Please enter a title for the level");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const success = await onSave({
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+        estimatedTime: editEstimatedTime.trim(),
+      });
+
+      if (success !== false) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Failed to update level:", error);
+      setError("Failed to update level. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleClose = () => {
+    setError("");
+    setEditTitle("");
+    setEditDescription("");
+    setEditEstimatedTime("");
+    onClose();
+  };
+
+  if (!isOpen || !level) return null;
+
+  return (
+    <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)]">
+      <div
+        style={{ padding: "10px" }}
+        className="max-w-[600px] w-full mx-4 bg-[#101010] rounded-lg p-6 flex flex-col gap-2"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[20px] font-[600]">Edit Level</h3>
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleClose}
+            className="text-[#9C9C9C] hover:text-white transition-colors"
+            disabled={isUpdating}
+          >
+            <FaTimes size={20} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-600/20 border border-red-600/50 rounded-lg">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-4">
+          <Addlevelbtn
+            value={editTitle}
+            onchange={(e) => setEditTitle(e.target.value)}
+            placeholder="Level Title"
+            disabled={isUpdating}
+          />
+          <Addlevelbtn
+            value={editEstimatedTime}
+            onchange={(e) => setEditEstimatedTime(e.target.value)}
+            placeholder="Estimated Time"
+            disabled={isUpdating}
+          />
+          <Addlevelbtn
+            value={editDescription}
+            onchange={(e) => setEditDescription(e.target.value)}
+            placeholder="Summary"
+            disabled={isUpdating}
+          />
+        </div>
+
+        <div className="flex gap-3 justify-end mt-6">
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleClose}
+            disabled={isUpdating}
+            className="px-4 py-2 text-[#9C9C9C] hover:text-white transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleSave}
+            disabled={isUpdating || !editTitle.trim()}
+            className="px-4 py-2 bg-[#604196] hover:bg-[#704da6] rounded-lg disabled:opacity-50 flex items-center gap-2"
+          >
+            {isUpdating ? (
+              <>
+                <LoadingSpinner />
+                <span>Saving...</span>
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Fixed Capsule Edit Modal Component
+const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
+  const [editTitle, setEditTitle] = useState("");
+  const [editDescription, setEditDescription] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (capsule) {
+      setEditTitle(capsule.title || "");
+      setEditDescription(capsule.description || "");
+      setError("");
+    }
+  }, [capsule]);
+
+  const handleSave = async () => {
+    setError("");
+
+    if (!editTitle.trim()) {
+      setError("Please enter a title for the capsule");
+      return;
+    }
+
+    setIsUpdating(true);
+
+    try {
+      const success = await onSave({
+        title: editTitle.trim(),
+        description: editDescription.trim(),
+      });
+
+      if (success !== false) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Failed to update capsule:", error);
+      setError("Failed to update capsule. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleClose = () => {
+    setError("");
+    setEditTitle("");
+    setEditDescription("");
+    onClose();
+  };
+
+  if (!isOpen || !capsule) return null;
+
+  return (
+    <div
+      style={{ padding: "10px" }}
+      className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)]"
+    >
+      <div
+        style={{ padding: "10px" }}
+        className="max-w-[600px] w-full mx-4 bg-[#101010] flex flex-col gap-2 rounded-lg p-6"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[20px] font-[600]">Edit Capsule</h3>
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleClose}
+            className="text-[#9C9C9C] hover:text-white transition-colors"
+            disabled={isUpdating}
+          >
+            <FaTimes size={20} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-600/20 border border-red-600/50 rounded-lg">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-4">
+          <Addlevelbtn
+            value={editTitle}
+            onchange={(e) => setEditTitle(e.target.value)}
+            placeholder="Capsule Title"
+            disabled={isUpdating}
+          />
+          <Addlevelbtn
+            value={editDescription}
+            onchange={(e) => setEditDescription(e.target.value)}
+            placeholder="Summary (Optional)"
+            disabled={isUpdating}
+          />
+        </div>
+
+        <div className="flex gap-3 justify-end mt-6">
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleClose}
+            disabled={isUpdating}
+            className="px-4 py-2 text-[#9C9C9C] hover:text-white transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleSave}
+            disabled={isUpdating || !editTitle.trim()}
+            className="px-4 py-2 bg-[#604196] hover:bg-[#704da6] rounded-lg disabled:opacity-50 flex items-center gap-2"
+          >
+            {isUpdating ? (
+              <>
+                <LoadingSpinner />
+                <span>Saving...</span>
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default function AddLevels() {
+  const router = useRouter();
   const {
     capselId,
     setcapselId,
@@ -86,6 +430,30 @@ export default function AddLevels() {
   const [uploadStatus, setUploadStatus] = useState("idle");
   const fileInputRef = useRef(null);
 
+  // Modal states
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: null,
+    item: null,
+    levelIndex: null,
+    capsuleIndex: null,
+  });
+  const [videoPreviewModal, setVideoPreviewModal] = useState({
+    isOpen: false,
+    capsule: null,
+  });
+  const [levelEditModal, setLevelEditModal] = useState({
+    isOpen: false,
+    level: null,
+  });
+  const [capsuleEditModal, setCapsuleEditModal] = useState({
+    isOpen: false,
+    capsule: null,
+    levelIndex: null,
+    capsuleIndex: null,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const showToast = (message, type = "info") => {
     setToast({ message, type });
   };
@@ -112,7 +480,197 @@ export default function AddLevels() {
     fileInputRef.current?.click();
   };
 
-  // seen
+  // Level CRUD operations
+  const handleEditLevel = (level) => {
+    setLevelEditModal({ isOpen: true, level });
+  };
+
+  const handleDeleteLevel = (level) => {
+    setConfirmModal({
+      isOpen: true,
+      type: "level",
+      item: level,
+      levelIndex: null,
+      capsuleIndex: null,
+    });
+  };
+
+  const handleUpdateLevel = async (levelId, updatedData) => {
+    const accessToken = localStorage.getItem("login-accessToken");
+    if (!accessToken) {
+      showToast("Please login first", "error");
+      return false;
+    }
+
+    try {
+      const response = await axios.put(
+        `https://themutantschool-backend.onrender.com/api/mission-level/${levelId}`,
+        updatedData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        showToast("Level updated successfully!", "success");
+        await getAllLevel();
+        return true;
+      } else {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Failed to update level:", error);
+
+      if (error.response) {
+        const errorMsg =
+          error.response.data?.message ||
+          `Server error: ${error.response.status}`;
+        showToast(errorMsg, "error");
+      } else if (error.request) {
+        showToast("Network error. Please check your connection.", "error");
+      } else {
+        showToast("Failed to update level. Please try again.", "error");
+      }
+
+      throw error;
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModal.item) return;
+
+    setIsDeleting(true);
+    const accessToken = localStorage.getItem("login-accessToken");
+
+    try {
+      if (confirmModal.type === "level") {
+        const response = await axios.delete(
+          `https://themutantschool-backend.onrender.com/api/mission-level/${confirmModal.item._id}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (response.status === 200) {
+          showToast("Level deleted successfully!", "success");
+          getAllLevel();
+        }
+      } else if (confirmModal.type === "capsule") {
+        const response = await axios.delete(
+          `https://themutantschool-backend.onrender.com/api/mission-capsule/${confirmModal.item._id}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (response.status === 200) {
+          showToast("Capsule deleted successfully!", "success");
+          getAllLevel();
+        }
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+      showToast("Failed to delete. Please try again.", "error");
+    } finally {
+      setIsDeleting(false);
+      setConfirmModal({
+        isOpen: false,
+        type: null,
+        item: null,
+        levelIndex: null,
+        capsuleIndex: null,
+      });
+    }
+  };
+
+  // Fixed Capsule CRUD operations
+  const handleEditCapsule = (capsule, levelIndex, capsuleIndex) => {
+    setCapsuleEditModal({
+      isOpen: true,
+      capsule,
+      levelIndex,
+      capsuleIndex,
+    });
+  };
+
+  const handleDeleteCapsule = (capsule, levelIndex, capsuleIndex) => {
+    setConfirmModal({
+      isOpen: true,
+      type: "capsule",
+      item: capsule,
+      levelIndex,
+      capsuleIndex,
+    });
+  };
+
+  const handleViewCapsule = (capsule) => {
+    setVideoPreviewModal({ isOpen: true, capsule });
+  };
+
+  // Fixed handleUpdateCapsule function with local state update
+  const handleUpdateCapsule = async (capsuleId, updatedData) => {
+    const accessToken = localStorage.getItem("login-accessToken");
+    if (!accessToken) {
+      showToast("Please login first", "error");
+      return false;
+    }
+
+    try {
+      const response = await axios.put(
+        `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}`,
+        updatedData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        showToast("Capsule updated successfully!", "success");
+
+        // Update local state immediately for better UX
+        const { levelIndex, capsuleIndex } = capsuleEditModal;
+        if (levelIndex !== null && capsuleIndex !== null) {
+          setLevels((prevLevels) => {
+            const newLevels = [...prevLevels];
+            newLevels[levelIndex].capsules[capsuleIndex] = {
+              ...newLevels[levelIndex].capsules[capsuleIndex],
+              ...updatedData,
+            };
+            return newLevels;
+          });
+        }
+
+        // Still fetch fresh data to ensure consistency
+        await getAllLevel();
+        return true;
+      } else {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Failed to update capsule:", error);
+
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        const errorMsg =
+          error.response.data?.message ||
+          `Server error: ${error.response.status}`;
+        showToast(errorMsg, "error");
+      } else if (error.request) {
+        showToast("Network error. Please check your connection.", "error");
+      } else {
+        showToast("Failed to update capsule. Please try again.", "error");
+      }
+
+      throw error;
+    }
+  };
+
   const handleAddCapsuleClick = (levelId, order) => {
     setLeveld(levelId);
     setOder(order);
@@ -125,25 +683,28 @@ export default function AddLevels() {
 
     console.log("Adding capsule with levelId:", levelId);
 
-    console.log("Adding capsule with levelId:", levelId);
     if (!levelId) {
       showToast("Level ID is required to add a capsule", "error");
+      setIsAddingCapsule(false);
       return;
     }
 
     if (!capsuleTitle.trim()) {
       showToast("Please enter a capsule title", "error");
+      setIsAddingCapsule(false);
       return;
     }
 
     if (!selectedFile) {
       showToast("Please select a video file", "error");
+      setIsAddingCapsule(false);
       return;
     }
 
     const accessToken = localStorage.getItem("login-accessToken");
     if (!accessToken) {
       showToast("Please login first to add a capsule", "error");
+      setIsAddingCapsule(false);
       return;
     }
 
@@ -161,38 +722,34 @@ export default function AddLevels() {
         {
           method: "POST",
           headers: {
-            contentType: "multipart/form-data",
             Authorization: `Bearer ${accessToken}`,
           },
           body: formData,
         }
       );
 
-      console.log(accessToken, " access token used for capsule upload");
-
-      console.log("Capsule upload response:", res);
-
-      console.log("Capsule uploaded successfully:", res);
-      showToast("Capsule uploaded successfully!", "success");
-      setIsAddingCapsule(false);
-      setOpenAddModel(false);
-
-      setCapsuleTitle("");
-      setCapsuleDescription("");
-      setSelectedFile(null);
-      getAllLevel();
+      if (res.ok) {
+        console.log("Capsule uploaded successfully:", res);
+        showToast("Capsule uploaded successfully!", "success");
+        setOpenAddModel(false);
+        setCapsuleTitle("");
+        setCapsuleDescription("");
+        setSelectedFile(null);
+        await getAllLevel();
+      } else {
+        const errorData = await res.json();
+        throw new Error(
+          errorData.message || `HTTP error! status: ${res.status}`
+        );
+      }
     } catch (error) {
-      console.log(
-        "Capsule upload failed:",
-        error.response?.data || error.message
-      );
+      console.log("Capsule upload failed:", error.message);
       showToast("Capsule upload failed. Please try again.", "error");
     } finally {
       setIsAddingCapsule(false);
     }
   };
 
-  // seen
   const AddMissionLevel = async () => {
     if (!title.trim()) {
       showToast("Please enter a title for the level", "error");
@@ -269,59 +826,57 @@ export default function AddLevels() {
     }
   };
 
-    useEffect(() => {
-      console.log("use effect for fetching missions");
+  useEffect(() => {
+    console.log("use effect for fetching missions");
 
-      const storedUser = localStorage.getItem("USER");
-      const parsedUser = JSON.parse(storedUser);
-      const id = parsedUser._id;
+    const storedUser = localStorage.getItem("USER");
+    const parsedUser = JSON.parse(storedUser);
+    const id = parsedUser._id;
 
-      async function getAllMission() {
-        try {
-          const response = await profilebase.get(`instructor/report/${id}`, {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem(
-                "login-accessToken"
-              )}`,
-            },
-          });
+    async function getAllMission() {
+      try {
+        const response = await profilebase.get(`instructor/report/${id}`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem(
+              "login-accessToken"
+            )}`,
+          },
+        });
 
-          if (response.status === 401) {
-            console.log("Unauthorized access. Please log in again.");
+        if (response.status === 401) {
+          console.log("Unauthorized access. Please log in again.");
 
-            const refreshToken = localStorage.getItem("login-refreshToken");
-            // make a reques to get new token
-            const getToken = await profilebase.post(
-              "auth/refresh-token",
-              { refreshToken },
-              {
-                headers: {
-                  Authorization: `Bearer ${localStorage.getItem(
-                    "login-accessToken"
-                  )}`,
-                },
-              }
-            );
-
-            if (getToken.status === 200) {
-              localStorage.setItem(
-                "login-accessToken",
-                getToken.data.accessToken
-              );
-              console.log("Access token refreshed successfully.");
-
-              return getAllMission();
+          const refreshToken = localStorage.getItem("login-refreshToken");
+          const getToken = await profilebase.post(
+            "auth/refresh-token",
+            { refreshToken },
+            {
+              headers: {
+                Authorization: `Bearer ${localStorage.getItem(
+                  "login-accessToken"
+                )}`,
+              },
             }
-          }
+          );
 
-          console.log("fetched mission response", response.data.missions);
-          setMission(response.data.missions);
-        } catch (error) {
-          console.log("Error fetching missions:", error);
+          if (getToken.status === 200) {
+            localStorage.setItem(
+              "login-accessToken",
+              getToken.data.accessToken
+            );
+            console.log("Access token refreshed successfully.");
+            return getAllMission();
+          }
         }
+
+        console.log("fetched mission response", response.data.missions);
+        setMission(response.data.missions);
+      } catch (error) {
+        console.log("Error fetching missions:", error);
       }
-      getAllMission();
-    }, []);
+    }
+    getAllMission();
+  }, []);
 
   useEffect(() => {
     const missionId = localStorage.getItem("missionId");
@@ -335,9 +890,8 @@ export default function AddLevels() {
     if (!missionId) {
       alert("No mission ID found. Redirecting to create new mission.");
       setActiveTab("Mission Details");
-
       router.push("/instructor/myMissions/createnewmission");
-    return;
+      return;
     }
   }, []);
 
@@ -367,44 +921,13 @@ export default function AddLevels() {
     showToast("New level added", "success");
   };
 
-  // Add Quize
-
   const handleAddQuize = async (index, id) => {
     const missionId = localStorage.getItem("missionId");
     setmessionId(missionId);
     setLevel("AddQuize");
-
     setLeveld(id);
     setcapselId(index);
-
     console.log(id, " capsule id for quiz");
-
-    //  try {
-    //    const response = await fetch(
-    //      "https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz",
-    //      {
-    //        method: "POST",
-    //        headers: {
-    //          "Content-Type": "application/json",
-    //          Authorization: `Bearer ${accessToken}`,
-    //        },
-    //        body: JSON.stringify(payload),
-    //      }
-    //    );
-
-    //    const result = await response.json();
-
-    //    if (!response.ok) {
-    //      console.error("Quiz submission failed:", result);
-    //      alert("Failed to submit quiz: " + (result.message || "Unknown error"));
-    //    } else {
-    //      console.log("Quiz submitted successfully:", result);
-    //      alert("Quiz submitted successfully!");
-    //    }
-    //  } catch (error) {
-    //    console.error("Submission error:", error);
-    //    alert("Something went wrong. Please try again.");
-    //  }
   };
 
   return (
@@ -412,6 +935,58 @@ export default function AddLevels() {
       {toast && (
         <Toast message={toast.message} type={toast.type} onClose={closeToast} />
       )}
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() =>
+          setConfirmModal({
+            isOpen: false,
+            type: null,
+            item: null,
+            levelIndex: null,
+            capsuleIndex: null,
+          })
+        }
+        onConfirm={handleConfirmDelete}
+        title={`Delete ${confirmModal.type === "level" ? "Level" : "Capsule"}`}
+        message={`Are you sure you want to delete this ${confirmModal.type}? This action cannot be undone.`}
+        isLoading={isDeleting}
+      />
+
+      {/* Video Preview Modal */}
+      <VideoPreviewModal
+        isOpen={videoPreviewModal.isOpen}
+        onClose={() => setVideoPreviewModal({ isOpen: false, capsule: null })}
+        capsule={videoPreviewModal.capsule}
+      />
+
+      {/* Level Edit Modal */}
+      <LevelEditModal
+        isOpen={levelEditModal.isOpen}
+        onClose={() => setLevelEditModal({ isOpen: false, level: null })}
+        level={levelEditModal.level}
+        onSave={(updatedData) =>
+          handleUpdateLevel(levelEditModal.level._id, updatedData)
+        }
+      />
+
+      {/* Capsule Edit Modal */}
+      <CapsuleEditModal
+        isOpen={capsuleEditModal.isOpen}
+        onClose={() =>
+          setCapsuleEditModal({
+            isOpen: false,
+            capsule: null,
+            levelIndex: null,
+            capsuleIndex: null,
+          })
+        }
+        capsule={capsuleEditModal.capsule}
+        onSave={(updatedData) =>
+          handleUpdateCapsule(capsuleEditModal.capsule._id, updatedData)
+        }
+      />
 
       {Level === "AddLevel" && (
         <div
@@ -449,10 +1024,20 @@ export default function AddLevels() {
                     <span> {`Level ${index + 1}`}</span>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <FaEdit className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors" />
-                    <FaTrash className="cursor-pointer text-[#FF6363] hover:text-red-500 transition-colors" />
-                  </div>
+                  {!level?.isNew && (
+                    <div className="flex items-center gap-2">
+                      <FaEdit
+                        className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors"
+                        onClick={() => handleEditLevel(level)}
+                        title="Edit Level"
+                      />
+                      <FaTrash
+                        className="cursor-pointer text-[#FF6363] hover:text-red-500 transition-colors"
+                        onClick={() => handleDeleteLevel(level)}
+                        title="Delete Level"
+                      />
+                    </div>
+                  )}
                 </div>
 
                 {level?.isNew ? (
@@ -498,7 +1083,7 @@ export default function AddLevels() {
                     {level.capsules?.map((capsule, i) => (
                       <div
                         style={{ padding: "0px  10px" }}
-                        key={i}
+                        key={capsule._id || i}
                         className="w-full flex items-center justify-between h-[73.64px] rounded-[12px] bg-[#1C1C1C] px-4"
                       >
                         <div className="flex items-center gap-2">
@@ -510,9 +1095,23 @@ export default function AddLevels() {
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
-                          <FaEdit className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors" />
-                          <FaTrash className="cursor-pointer text-[#FF6363] hover:text-red-500 transition-colors" />
-                          <FaEye className="cursor-pointer hover:text-blue-500 transition-colors" />
+                          <FaEdit
+                            className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors"
+                            onClick={() => handleEditCapsule(capsule, index, i)}
+                            title="Edit Capsule"
+                          />
+                          <FaTrash
+                            className="cursor-pointer text-[#FF6363] hover:text-red-500 transition-colors"
+                            onClick={() =>
+                              handleDeleteCapsule(capsule, index, i)
+                            }
+                            title="Delete Capsule"
+                          />
+                          <FaEye
+                            className="cursor-pointer hover:text-blue-500 transition-colors"
+                            onClick={() => handleViewCapsule(capsule)}
+                            title="View Capsule"
+                          />
                         </div>
                       </div>
                     ))}
@@ -565,9 +1164,17 @@ export default function AddLevels() {
             style={{ padding: "30px" }}
             className="max-w-[800px] flex flex-col gap-5 w-full h-fit bg-[#101010] rounded-lg"
           >
-            <p className="text-[25px] leading-[40px] font-[700]">
-              Add Power Capsule
-            </p>
+            <div className="flex justify-between items-center">
+              <p className="text-[25px] leading-[40px] font-[700]">
+                Add Power Capsule
+              </p>
+              <button
+                onClick={() => setOpenAddModel(false)}
+                className="text-[#9C9C9C] hover:text-white transition-colors"
+              >
+                <FaTimes size={20} />
+              </button>
+            </div>
 
             <div className="flex flex-col gap-5">
               <Addlevelbtn
@@ -597,6 +1204,22 @@ export default function AddLevels() {
                       ? "border-[#19569C] bg-[#19569C]/10"
                       : "border-[#404040] hover:border-[#19569C]/50"
                   }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDragging(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDragging(false);
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                      handleFileSelect(files[0]);
+                    }
+                  }}
                 >
                   {!selectedFile ? (
                     <>
@@ -628,6 +1251,12 @@ export default function AddLevels() {
                       <p className="text-[#787878] text-[13px] mb-4">
                         File selected successfully
                       </p>
+                      <button
+                        onClick={() => setSelectedFile(null)}
+                        className="text-[#FF6363] hover:text-red-500 text-[12px] underline"
+                      >
+                        Remove file
+                      </button>
                     </div>
                   )}
                 </div>
