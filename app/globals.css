@@ -182,8 +182,8 @@ body {
 
 
 .cut-box3 {
-  background: var(--text-light);
-  padding: 1px;
+  background:#FFFFFF;
+  padding: 2px;
   clip-path: polygon(
     0 0,
     100% 0,
@@ -195,27 +195,27 @@ body {
 }
 
 .cut-box-inner3 {
-  background: var(--foreground);
+  /* background: var(--foreground); */
   height: 31.05px;
   width: 118.05px;
   padding: 1.25rem;
-  color: white;
+  /* color: white; */
   clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
 }
 
 /* Second Box - Top Left Cut */
 .cut-box4 {
-  background: var(--text-light);
-  padding: 1px;
+  background:#FFFFFF;
+  padding: 2px;
   clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
 }
 
 .cut-box-inner4 {
   height: 31.05px;
   width: 118.05px;
-  background: var(--foreground);
+  /* background: var(--foreground); */
   padding: 1.25rem;
-  color: white;
+  /* color: white; */
   clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
 }
 

@@ -1,5 +1,6 @@
 import Navbar from "@/components/Navbar";
 import { Clock, Star, User } from "lucide-react";
+import Image from "next/image";
 
 const studentcourse = [
   {
@@ -9,8 +10,9 @@ const studentcourse = [
     title: "Design Principles:",
     subtitle: "Beginners Course",
     duration: "5hr 22mins",
-    instructor: "Sarah Johnson",
+    instructor: "BEGINNER  - MUTANT PRO LEVEL",
     students: 1250,
+    bg: "#71C7E7",
     image:
       "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=200&fit=crop",
   },
@@ -21,8 +23,9 @@ const studentcourse = [
     title: "React Fundamentals:",
     subtitle: "Complete Guide",
     duration: "8hr 45mins",
-    instructor: "Mike Chen",
+    instructor: "MUTANT PRO LEVEL",
     students: 2340,
+    bg: "#AE71E7",
     image:
       "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop",
   },
@@ -33,8 +36,9 @@ const studentcourse = [
     title: "Digital Marketing:",
     subtitle: "Strategy & Analytics",
     duration: "6hr 15mins",
-    instructor: "Emma Davis",
+    instructor: "INTERMEDIATE",
     students: 890,
+    bg: "#71E775",
     image:
       "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop",
   },
@@ -44,17 +48,15 @@ export default function Home() {
     <div className="flex flex-col gap-20 items-center ">
       <div className="fixed top-0 left-0 w-full h-fit flexcenter bg-black flex-col  z-50">
         {/* <div className="w-full h-[70px] bg-[var(--primary-light)]"> */}
-          <div className="w-full overflow-hidden bg-[var(--primary-light)] py-6">
-            <div className="whitespace-nowrap animate-marquee text-white text-2xl font-semibold">
-              <span className="inline-block font-[400] text-[20px] leading-[70px] px-4">
-                50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION
-                NOW
-              </span>
-              <span className="inline-block font-[400] text-[20px] leading-[70px] px-4">
-                50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION
-                NOW
-              </span>
-            </div>
+        <div className="w-full  overflow-hidden bg-[var(--primary-light)] py-6">
+          <div className="whitespace-nowrap animate-marquee text-white text-2xl font-semibold">
+            <span className="inline-block font-[400] text-[20px] leading-[30px] sm:leading-[70px] px-4">
+              50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION NOW
+            </span>
+            <span className="inline-block font-[400] text-[20px] leading-[30px] sm:leading-[70px] px-4">
+              50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION NOW
+            </span>
+          </div>
           {/* </div> */}
         </div>
 
@@ -111,7 +113,7 @@ export default function Home() {
         style={{ padding: "20px" }}
         className=" w-full max-w-[1440px] gap-10 sm:gap-0 flex flex-col sm:flex-row items-center justify-between "
       >
-        <p className="font-[400] text-[23px] xl:text-[45px] leading-[27px] sm:leading-[52px] ">
+        <p className="font-[400] text-[23px] w-full Xirod max-w-[301.56px] xl:text-[45px] leading-[27px] sm:leading-[52px] ">
           Most Wanted Missions
         </p>
         <button className="font-[700] cursor-pointer bg-white text-[20px] xl:text-[28px] text-black leading-[40px] xl:leading-[80px] w-[268.47px] xl:w-[380.2px] h-[83.92px] rounded-[17px] ">
@@ -137,7 +139,12 @@ export default function Home() {
                   backgroundImage: `url(${course.image})`,
                 }}
               >
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+                <div
+                  style={{ backgroundColor: course.bg }}
+                  className={`absolute  h-[33.69px] text-[#350053] font-[900] text-[9px] leading-[10px] w-[70%] left-0 flexcenter rounded-br-[20px] top-0 `}
+                >
+                  {course.instructor}
+                </div>
               </div>
 
               <div
@@ -210,7 +217,7 @@ export default function Home() {
 
       <div
         style={{ backgroundImage: `url("/images/Rectangle 158.png")` }}
-        className=" h-[230vh] sm:h-[120vh] w-full relative max-w-[1400px]  bg-center bg-cover pb-[100px]" // 👈 Added bottom padding
+        className=" h-[230vh] sm:h-[65vh] xl:h-[120vh] w-full relative max-w-[1400px]  bg-center bg-cover pb-[100px]" // 👈 Added bottom padding
       >
         <div className="absolute flexcenter  w-full h-fit bg-[rgba(0,0,0,0.6)] z-20 pt-[80px]">
           <div className="w-[70%] h-fit flex flex-col items-center gap-15 ">
@@ -225,14 +232,35 @@ export default function Home() {
 
             <div className="grid sm:grid-cols-3 gap-4 w-full mt-10">
               <div className="h-[410px] flex flex-col items-center justify-center gap-10 rounded-[22px] bg-gradient-to-b from-[#1B1F2E] to-[#559463]">
+                <Image
+                  src={"/images/Group 55.png"}
+                  width={33.39}
+                  height={23.48}
+                  alt="social-icon"
+                />
+
                 <p className="text-white text-xl">Design</p>
               </div>
 
               <div className="h-[410px] flex flex-col items-center justify-center gap-10 rounded-[22px] bg-gradient-to-b from-[#1B1F2E] to-[#559463] sm:relative -top-6">
+                <Image
+                  src={"/images/Vector (18).png"}
+                  width={33.39}
+                  height={23.48}
+                  alt="social-icon"
+                />
+
                 <p className="text-white text-xl">Code</p>
               </div>
 
               <div className="h-[410px] flex flex-col items-center justify-center gap-10 rounded-[22px] bg-gradient-to-b from-[#1B1F2E] to-[#559463]">
+                <Image
+                  src={"/images/python logo.png"}
+                  width={33.39}
+                  height={23.48}
+                  alt="social-icon"
+                />
+
                 <p className="text-white text-xl">Marketing</p>
               </div>
             </div>
@@ -258,9 +286,9 @@ export default function Home() {
             <span className="text-[#BDE75D]">Mutation</span> Lab?
           </p>
 
-          <div className="w-full max-w-[1200px] mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 items-center">
+          <div className="w-full max-w-[1200px] mx-auto grid grid-cols-1 xl:grid-cols-3 gap-4 items-center">
             {/* Left Side (2 stacked images) */}
-            <div className="hidden xl:flex flex-col gap-4 sm:col-span-2">
+            <div className="hidden xl:flex flex-col gap-4 xl:col-span-2">
               <div
                 style={{
                   backgroundImage: `url("/images/Mask group (10).png")`,
