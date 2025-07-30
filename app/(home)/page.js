@@ -46,25 +46,7 @@ const studentcourse = [
 export default function Home() {
   return (
     <div className="flex flex-col gap-20 items-center ">
-      <div className="fixed top-0 left-0 w-full h-fit flexcenter bg-black flex-col  z-50">
-        {/* <div className="w-full h-[70px] bg-[var(--primary-light)]"> */}
-        <div className="w-full  overflow-hidden bg-[var(--primary-light)] py-6">
-          <div className="whitespace-nowrap animate-marquee text-white text-2xl font-semibold">
-            <span className="inline-block font-[400] text-[20px] leading-[30px] sm:leading-[70px] px-4">
-              50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION NOW
-            </span>
-            <span className="inline-block font-[400] text-[20px] leading-[30px] sm:leading-[70px] px-4">
-              50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION NOW
-            </span>
-          </div>
-          {/* </div> */}
-        </div>
-
-        {/* Nav Bar */}
-        <div className="max-w-[1440px] px w-full h-full bg-black   ">
-          <Navbar />
-        </div>
-      </div>
+     
 
       {/* Herosection */}
       <div

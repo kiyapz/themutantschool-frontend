@@ -21,7 +21,10 @@ export default function Navbar() {
 
   return (
     <div className="w-full flexcenter  h-[70px] relative">
-      <div style={{border:'none'}} className="max-w-[350px] px sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8">
+      <div
+        style={{ border: "none" }}
+        className="max-w-[350px] px sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8"
+      >
         <div className="flex items-center justify-between w-full">
           {/* Logo */}
           <div className="flex items-center">
@@ -35,9 +38,11 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden xl:block">
             <ul className="flex gap-4 xl:gap-6">
-              <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
-                MISSIONS
-              </li>
+              <Link href={"/mission"}>
+                <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
+                  MISSIONS
+                </li>
+              </Link>
               <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
                 THE LAB
               </li>
@@ -137,14 +142,16 @@ export default function Navbar() {
           {/* Mobile Navigation Links */}
           <nav className="flex-1 px-4 py-6">
             <ul className="space-y-8">
-              <li>
-                <button
-                  onClick={closeMobileMenu}
-                  className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
-                >
-                  MISSIONS
-                </button>
-              </li>
+              <Link href={"/mission"}>
+                <li>
+                  <button
+                    onClick={closeMobileMenu}
+                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                  >
+                    MISSIONS
+                  </button>
+                </li>
+              </Link>
               <li>
                 <button
                   onClick={closeMobileMenu}
