@@ -853,7 +853,7 @@ export default function Mission() {
         <div className=""></div>
         <div className="col-span-2 flex flex-col gap-5 xl:gap-0 sm:flex-row px-4 sm:px-6 md:px-8 xl:px-0 items-center w-full justify-between">
           <p className="font-[700]  text-[20px] xs:text-[25px] md:text-[30px] xxl:text-[37px] leading-[24px] text-black text-center xl:text-left">
-            All Missions 
+            All Missions
           </p>
           <div className="flex flex-col sm:flex-row items-center gap-2   w-full sm:w-auto">
             <div
@@ -871,12 +871,15 @@ export default function Mission() {
               />
             </div>
             <div
-              className="border-[#C0C0C0] text-[#B6B6B6] leading-[30px] text-[10px] flexcenter border rounded-[38px] h-[47.15px] w-full sm:w-[120px] md:w-[150px] lg:w-[175.72px] relative cursor-pointer"
+              className="border-[#C0C0C0] text-[#B6B6B6] font-[500] leading-[30px] text-[10px] flexcenter border rounded-[38px] h-[47.15px] w-full sm:w-[120px] md:w-[150px] lg:w-[175.72px] relative cursor-pointer"
               onClick={() => setShowSortDropdown(!showSortDropdown)}
             >
-              <span>Sort by : {sortBy || "Default"}</span>
+              Sort by :<span className="text-black"> {sortBy || "Default"}</span>
               {showSortDropdown && (
-                <div style={{padding:'2px'}} className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#C0C0C0]  rounded-[10px] shadow-lg z-50">
+                <div
+                  style={{ padding: "2px" }}
+                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#C0C0C0]  rounded-[10px] shadow-lg z-50"
+                >
                   <div
                     className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px] text-[10px]"
                     onClick={(e) => {
@@ -1001,7 +1004,7 @@ export default function Mission() {
               </p>
             </div>
           ) : (
-            <div className="w-full  grid md:grid-cols-3  gap-5 ">
+            <div className="w-full flex items-center flex-col  sm:grid md:grid-cols-3  gap-5 ">
               {currentItems.map((course, i) => (
                 <div
                   key={course.id}
