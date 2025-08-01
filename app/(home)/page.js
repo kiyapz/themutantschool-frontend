@@ -59,7 +59,7 @@ export default function Home() {
 
         <div
           style={{ paddingTop: "10%" }}
-          className="max-w-[336.97px]  relative herosection-mb flexcenter flex-col gap-5  sm:max-w-[500px] w-full  px-4"
+          className="max-w-[336.97px]  relative herosection-mb flexcenter flex-col gap-5  sm:max-w-[1750.59px]  w-full  px-4"
         >
           <div className="absolute shadow-[-4px_4px_10px_rgba(255,192,203,0.5)] top-[38.5px] bottom-10 sm:bottom-0  h-[180px]  w-[80px] sm:h-[200px] z-10 h-[80px]  w-[80px] sm:w-[100px]">
             {" "}

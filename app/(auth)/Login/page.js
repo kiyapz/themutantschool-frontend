@@ -55,8 +55,15 @@ export default function Login() {
         else router.push("/affiliate");
 
         return true;
+      }else if (response.status === 404) {
+          setErrormessage("invalid email or Password Login failed.");
+          setTimeout(() => setErrormessage(""), 2000);
+          setButtonvalue("Enter the Lab");
+          return false;
+
       } else {
-        setErrormessage(response.data.message || "Login failed.");
+        // setErrormessage(response.data.message || "Login failed.");
+           setErrormessage("invalid email or Password Login failed.");
         setTimeout(() => setErrormessage(""), 2000);
         setButtonvalue("Enter the Lab");
         return false;
