@@ -12,6 +12,8 @@ export default function PreviewandLaunch() {
   const [activeTab, setActiveTabs] = useState("Mission Overview");
   const [levels, setLevels] = useState([]);
   const [missionById,setmissionById] = useState([])
+  console.log("Thumbnail URL:", missionById?.thumbnail?.url);
+
 
   const router = useRouter();
 
@@ -48,7 +50,8 @@ export default function PreviewandLaunch() {
       );
 
       console.log("new mission by Mission updated successfully:", response.data.data);
-      setmissionById()
+      
+      setmissionById(response.data.data);
     } catch (error) {
       console.log(error);
     }
@@ -107,13 +110,7 @@ export default function PreviewandLaunch() {
       return (
         <div style={{ padding: "10px" }} className="flex flex-col gap-5">
           <p className="text-[#BFBFBF] font-[400] text-[14px] leading-[20px] ">
-            Welcome to the ultimate web development journey! This comprehensive
-            mission will take you from complete beginner to confident web
-            developer. You'll learn the core technologies that power the modern
-            web: HTML for structure, CSS for styling, and JavaScript for
-            interactivity. By the end of this mission, you'll have built several
-            real-world projects and gained the skills needed to create your own
-            websites.
+            {missionById.description}
           </p>
 
           <p className="text-[#BFBFBF] font-[400] text-[14px] leading-[20px] ">
@@ -207,6 +204,9 @@ export default function PreviewandLaunch() {
       <div
         style={{
           backgroundImage: `url(${missionById?.thumbnail?.url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+         
         }}
         className="h-[343.54px] bg-cover bg-center w-full bg-[var(--purpel-btncolor)] rounded-[15px] mb-8"
       />

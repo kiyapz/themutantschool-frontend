@@ -79,7 +79,7 @@ export default function NavBar({ onMenuClick }) {
         <div className="flex items-center">
           <div className="h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
            
-           <div onClick={()=>setopenSmallScreenProfileDropDown(!openSmallScreenProfileDropDown)} className="w-[35px] h-[35px] bg-pink-900 rounded-full cursor-pointer">
+           <div onClick={()=>setopenSmallScreenProfileDropDown(!openSmallScreenProfileDropDown)} className="w-[35px] h-[35px]  rounded-full cursor-pointer">
             <UserProfileImage />
             </div> 
        

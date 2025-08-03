@@ -13,6 +13,27 @@ import { HiArrowNarrowLeft } from "react-icons/hi";
 export default function Createnewmission() {
   const { activeTab, setActiveTab, quiztitle, Level, setLevel } =
     useContext(InstructorContext);
+
+
+    const handleActionClick = (actionText) => {
+  setbuttonAction(actionText);
+  
+  // Call specific functions based on action
+  switch (actionText) {
+    case "Edit":
+      handleEditMission(); // or handleEditLevel(item) if editing a level
+      break;
+    case "Delete":
+      setShowDeleteModal(true); // or handleDeleteLevel(levelId) if deleting a level
+      break;
+    case "Publish":
+      handlePublishMission(); // Add your publish function
+      break;
+    default:
+      break;
+  }
+};
+
   
  
 
