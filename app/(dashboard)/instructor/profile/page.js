@@ -74,34 +74,37 @@ export default function Profile() {
     fetchProfile();
   }, [setUserProfile, router]);
 
-  useEffect(() => {
-    if (userProfile) {
-      setUserUpdatedValue({
-        firstName: userProfile.firstName || "",
-        lastName: userProfile.lastName || "",
-        username: userProfile.username || "",
-        email: userProfile.email || "",
-        bio: userProfile.profile?.bio || "",
-        facebook: userProfile.profile?.socialLinks?.facebook || "",
-        linkedin: userProfile.profile?.socialLinks?.linkedin || "",
-        website: userProfile.profile?.socialLinks?.website || "",
-        Twitter: userProfile.profile?.socialLinks?.twitter || "",
-        instagram: userProfile.profile?.socialLinks?.instagram || "",
-        youtube: userProfile.profile?.socialLinks?.youtube || "",
-        url: userProfile.profile?.avatar?.url || "",
-        publicId: userProfile.profile?.avatar?.publicId || "",
-        Headline: userProfile.profile?.headline || "",
-        introVideo: userProfile.profile?.introVideo || "",
-        ExpertiseTags: userProfile.ExpertiseTags || [],
-        gender: userProfile.gender || "",
-        Phone: userProfile.phoneNumber || "",
-        role: userProfile.role || "",
-        nationality: userProfile.nationality || "",
-        preferredLanguage: userProfile.preferredLanguage || "",
-        dateOfBirth: userProfile.dateOfBirth || "",
-      });
-    }
-  }, [userProfile, setUserUpdatedValue]);
+ useEffect(() => {
+   if (userProfile) {
+     setUserUpdatedValue({
+       firstName: userProfile.firstName || "",
+       lastName: userProfile.lastName || "",
+       username: userProfile.username || "",
+       email: userProfile.email || "",
+       bio: userProfile.profile?.bio || "",
+       facebook: userProfile.profile?.socialLinks?.facebook || "",
+       linkedin: userProfile.profile?.socialLinks?.linkedin || "",
+       website: userProfile.profile?.socialLinks?.website || "",
+
+       twitter: userProfile.profile?.socialLinks?.twitter || "",
+       instagram: userProfile.profile?.socialLinks?.instagram || "",
+       youtube: userProfile.profile?.socialLinks?.youtube || "",
+       url: userProfile.profile?.avatar?.url || "",
+       publicId: userProfile.profile?.avatar?.publicId || "",
+       Headline: userProfile.profile?.headline || "",
+       introVideo: userProfile.profile?.introVideo || "",
+       ExpertiseTags: userProfile.ExpertiseTags || [],
+       gender: userProfile.gender || "",
+       phoneNumber:userProfile.phoneNumber || "", // FIX: Map phoneNumber to Phone
+       role: userProfile.role || "",
+       nationality: userProfile.nationality || "",
+       preferredLanguage: userProfile.preferredLanguage || "", // FIX: Use consistent field name
+       dateOfBirth: userProfile.dateOfBirth
+         ? userProfile.dateOfBirth.split("T")[0]
+         : "", // FIX: Format date for input
+     });
+   }
+ }, [userProfile, setUserUpdatedValue]);
 
   const updateUserProfile = async () => {
     setIsLoading(true);
@@ -125,10 +128,10 @@ export default function Profile() {
         username: userUpdatedValue.username || "",
         email: userUpdatedValue.email || "",
         gender: userUpdatedValue.gender || "",
-        phoneNumber: userUpdatedValue.Phone || "",
+        phoneNumber: userUpdatedValue.phoneNumber || "", // FIX: Map Phone to phoneNumber
         role: userUpdatedValue.role || "",
         nationality: userUpdatedValue.nationality || "",
-        preferredLanguage: userUpdatedValue.preferredLanguage || "",
+        preferredLanguage: userUpdatedValue.preferredLanguage || "", // FIX: Use consistent field name
         dateOfBirth: userUpdatedValue.dateOfBirth || "",
         ExpertiseTags: userUpdatedValue.ExpertiseTags || [],
 
@@ -140,7 +143,7 @@ export default function Profile() {
             facebook: userUpdatedValue.facebook || "",
             linkedin: userUpdatedValue.linkedin || "",
             website: userUpdatedValue.website || "",
-            twitter: userUpdatedValue.Twitter || "",
+            twitter: userUpdatedValue.twitter || "",
             instagram: userUpdatedValue.instagram || "",
             youtube: userUpdatedValue.youtube || "",
           },
@@ -164,7 +167,7 @@ export default function Profile() {
         }
       );
 
-      console.log("Profile updated successfully:", response.data);
+      console.log("Profile updated successfully:", response.data.data);
 
       setUserProfile(response.data.data);
       setEditProfile(false);
@@ -174,7 +177,7 @@ export default function Profile() {
         error.response?.data || error.message
       );
       setError("Failed to update profile. Please try again.");
-      router.push("/Login");
+
       if (error.response?.status === 401 || error.response?.status === 403) {
         router.push("/Login");
       }
@@ -182,6 +185,8 @@ export default function Profile() {
       setIsLoading(false);
     }
   };
+
+
 
   if (isLoading && !userProfile) {
     return (
@@ -346,7 +351,7 @@ export default function Profile() {
                   Phone Number
                 </div>
                 <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
-                  {userUpdatedValue?.Phone || "N/A"}
+                  {userUpdatedValue?.phoneNumber || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Gender
@@ -370,7 +375,7 @@ export default function Profile() {
                   Preferred Language
                 </div>
                 <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
-                  {userProfile?.preferredLanguage || "N/A"}
+                  {userUpdatedValue?.preferredLanguage || "N/A"}
                 </div>
               </div>
             </div>
@@ -403,7 +408,7 @@ export default function Profile() {
                   X
                 </div>
                 <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px]">
-                  {userUpdatedValue?.Twitter || "N/A"}
+                  {userUpdatedValue?.twitter || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Facebook
@@ -488,16 +493,17 @@ export default function Profile() {
                     />
 
                     <Editprofilebtn
-                      value={userUpdatedValue?.Phone || ""}
+                      value={userUpdatedValue?.phoneNumber || ""}
                       onChange={(e) =>
                         setUserUpdatedValue({
                           ...userUpdatedValue,
-                          Phone: e.target.value,
+                          phoneNumber: e.target.value,
                         })
                       }
-                      placeholder={"12345"}
-                      label="Phone Number"
-                      type="tel"
+                      // placeholder={"12345"}
+                      label="phoneNumber
+"
+                      type="number"
                     />
                     <Editprofilebtn
                       value={userUpdatedValue?.nationality || ""}
@@ -690,11 +696,11 @@ export default function Profile() {
                   </div>
                   <div className="flex flex-col gap-0 sm:block">
                     <Editprofilebtn
-                      value={userUpdatedValue?.Twitter || ""}
+                      value={userUpdatedValue?.twitter || ""}
                       onChange={(e) =>
                         setUserUpdatedValue({
                           ...userUpdatedValue,
-                          Twitter: e.target.value,
+                          twitter: e.target.value,
                         })
                       }
                       label="X (formerly Twitter)"

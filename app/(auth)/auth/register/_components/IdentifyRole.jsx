@@ -6,11 +6,11 @@ import Registerbtn from "./Registerbtn";
 import RegisterInput from "./RegisterIput";
 import { Globlaxcontex } from "@/context/Globlaxcontex";
 import OTPInput from "./Otpverification";
-import PasswordInput from "../../-components/PasswordInput";
+import PasswordInput from "../../../-components/PasswordInput";
 import Image from "next/image";
 import Link from "next/link";
 import authApiUrl from "@/lib/baseUrl";
-import SuccessMessage from "../../../../components/SuccessMessage";
+import SuccessMessage from "../../../../../components/SuccessMessage";
 import { useRouter } from "next/navigation";
 
 export default function IdentifyRole() {
@@ -62,103 +62,94 @@ export default function IdentifyRole() {
     handleContinue,
   } = useContext(Globlaxcontex);
 
- useEffect(() => {
-  
-   setsuccessvalue(false);
-   setUserName(false);
-   setdisablebtn(true);
-   setErrormessage("");
-   setSuccessmessage("");
+  useEffect(() => {
+    setsuccessvalue(false);
+    setUserName(false);
+    setdisablebtn(true);
+    setErrormessage("");
+    setSuccessmessage("");
 
-   
-   if (username.length === 0) {
-     return;
-   }
+    if (username.length === 0) {
+      return;
+    }
 
-   
-   setSuccessmessage(
-     <span className="flex items-center gap-2">
-       <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
-       Checking...
-     </span>
-   );
+    setSuccessmessage(
+      <span className="flex items-center gap-2">
+        <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
+        Checking...
+      </span>
+    );
 
-  
-   const abortController = new AbortController();
+    const abortController = new AbortController();
 
-   
-   const timeoutId = setTimeout(async () => {
-     try {
-       
-       if (username.length === 0) {
-         return;
-       }
+    const timeoutId = setTimeout(async () => {
+      try {
+        if (username.length === 0) {
+          return;
+        }
 
-       const res = await authApiUrl.post(
-         "check-username",
-         { username },
-         { signal: abortController.signal }
-       );
+        const res = await authApiUrl.post(
+          "check-username",
+          { username },
+          { signal: abortController.signal }
+        );
 
-       
-       if (abortController.signal.aborted || username.length === 0) {
-         return;
-       }
+        if (abortController.signal.aborted || username.length === 0) {
+          return;
+        }
 
-       const responseData = res.data;
-       console.log("Response from server:", res);
+        const responseData = res.data;
+        console.log("Response from server:", res);
 
-       if (res.status === 201 || res.status === 200) {
-         setErrormessage("");
-         setSuccessmessage(responseData.message);
-         setsuccessvalue(true);
-         setUserName(true);
-         setdisablebtn(false);
+        if (res.status === 201 || res.status === 200) {
+          setErrormessage("");
+          setSuccessmessage(responseData.message);
+          setsuccessvalue(true);
+          setUserName(true);
+          setdisablebtn(false);
 
-         setTimeout(() => {
-           setSuccessmessage("");
-         }, 1000);
-       } else {
-         setsuccessvalue(false);
-         setSuccessmessage("");
-         setdisablebtn(true);
-         setErrormessage(responseData.message || "Something went wrong.");
+          setTimeout(() => {
+            setSuccessmessage("");
+          }, 1000);
+        } else {
+          setsuccessvalue(false);
+          setSuccessmessage("");
+          setdisablebtn(true);
+          setErrormessage(responseData.message || "Something went wrong.");
 
-         setTimeout(() => {
-           setErrormessage("");
-         }, 1000);
-       }
-     } catch (err) {
-     
-       if (err.name === "AbortError" || abortController.signal.aborted) {
-         return;
-       }
+          setTimeout(() => {
+            setErrormessage("");
+          }, 1000);
+        }
+      } catch (err) {
+        if (err.name === "AbortError" || abortController.signal.aborted) {
+          return;
+        }
 
-       setsuccessvalue(false);
-       setdisablebtn(true);
-       setSuccessmessage("");
+        setsuccessvalue(false);
+        setdisablebtn(true);
+        setSuccessmessage("");
 
-       let errorMsg = "An error occurred while verifying the account.";
+        let errorMsg = "An error occurred while verifying the account.";
 
-       if (err?.code === "ERR_NETWORK") {
-         errorMsg = "Network error: Please check your internet connection.";
-       } else if (err?.response?.data?.message) {
-         errorMsg = err.response.data.message;
-       }
+        if (err?.code === "ERR_NETWORK") {
+          errorMsg = "Network error: Please check your internet connection.";
+        } else if (err?.response?.data?.message) {
+          errorMsg = err.response.data.message;
+        }
 
-       setErrormessage(errorMsg);
-       setTimeout(() => {
-         setErrormessage("");
-       }, 1000);
-     }
-   }, 300); 
+        setErrormessage(errorMsg);
+        setTimeout(() => {
+          setErrormessage("");
+        }, 1000);
+      }
+    }, 300);
 
-   
-   return () => {
-     clearTimeout(timeoutId);
-     abortController.abort(); 
-   };
- }, [username]);
+    return () => {
+      clearTimeout(timeoutId);
+      abortController.abort();
+    };
+  }, [username]);
 
   useEffect(() => {
     setErrormessage("");
@@ -650,7 +641,7 @@ export default function IdentifyRole() {
               heading="Congratulations"
               subheading="You’ve been admmited"
             />
-            <Link href={"/Login"}>
+            <Link href={"/auth/login"}>
               <button className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]">
                 continue to the lab
               </button>

@@ -1,4 +1,4 @@
-import Navbar from "@/components/Navbar";
+
 import { Clock, Star, User } from "lucide-react";
 import Image from "next/image";
 
@@ -46,8 +46,6 @@ const studentcourse = [
 export default function Home() {
   return (
     <div className="flex flex-col gap-20 items-center ">
-     
-
       {/* Herosection */}
       <div
         style={{
@@ -72,12 +70,15 @@ export default function Home() {
             <h2 className="Xirod text-[40px] sm:text-[60px] leading-[37px] sm:leading-[62px] text-center  ">
               YOU AIN’T{" "}
             </h2>
-            <h2 className="bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text text-transparent Xirod text-[40px] leading-[40px] sm:text-[60px] sm:leading-[62px] text-center ">
-              LIKE THE OTHERS
+            <h2 className="text-white   sm:bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text sm:text-transparent Xirod text-[40px] leading-[40px] sm:text-[60px] sm:leading-[62px] text-center ">
+              LIKE THE{" "}
+              <span className="bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text text-transparent Xirod">
+                OTHERS
+              </span>
             </h2>
           </div>
 
-          <p className="Xirod text-[14px] relative z-40 sm:text-[18px] leading-[14px] sm:leading-[70px] text-[var(--info)] text-center ">
+          <p className="Xirod text-[14px]  relative z-40 sm:text-[18px] leading-[14px] sm:leading-[70px] sm:text-[var(--info)] text-center ">
             MUTANT GENE DETECTED
           </p>
           <div className="flexcenter relative z-40 h-[70px] w-fit evolution-button">

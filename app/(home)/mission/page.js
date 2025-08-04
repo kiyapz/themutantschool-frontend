@@ -816,311 +816,315 @@ export default function Mission() {
   );
 
   return (
-    <div className="max-w-[1800px] w-full ">
-      {/* Herosection */}
-      <div
-        style={{
-          backgroundImage: "url('/images/Mask group.png')",
-        }}
-        className="h-screen flex items-center justify-center flex-col w-full bg-cover bg-center"
-      >
+    <div className="w-screen h-full bg-white flexcenter ">
+      <div className="max-w-[1800px] w-full  ">
+        {/* Herosection */}
         <div
-          style={{ paddingTop: "10%" }}
-          className="max-w-[336.97px] relative herosection-mb flexcenter flex-col gap-5 sm:max-w-[852.48px] w-full px-4"
+          style={{
+            backgroundImage: "url('/images/Rectangle 120.png')",
+          }}
+          className="h-screen relative z-20 flex items-center justify-center flex-col w-full bg-cover bg-center"
         >
-          <div className="relative z-40">
-            <h2 className="text-[#E2E2E2] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
-              Choose Your Next
-            </h2>
-            <h2 className="text-[#E2E2E2] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
-              Mutation Mission
-            </h2>
-          </div>
-
-          <p className="font-[500] text-[12px] xs:text-[14px] relative z-40 sm:text-[17px] leading-[14px] sm:leading-[24px] md:leading-[28px] text-[#CDE98D] text-center px-2">
-            EVERY MISSION IS A TEST. EVERY SKILL IS A POWER WAITING TO AWAKEN
-          </p>
-        </div>
-      </div>
-
-      {/* main */}
-
-      {/* search btn */}
-      <div
-        style={{ paddingTop: "60px" }}
-        className="w-full grid bg-white  gap-5 sm:gap-0 xl:grid-cols-3"
-      >
-        <div className=""></div>
-        <div className="col-span-2 flex flex-col gap-5 xl:gap-0 sm:flex-row px-4 sm:px-6 md:px-8 xl:px-0 items-center w-full justify-between">
-          <p className="font-[700]  text-[20px] xs:text-[25px] md:text-[30px] xxl:text-[37px] leading-[24px] text-black text-center xl:text-left">
-            All Missions
-          </p>
-          <div className="flex flex-col sm:flex-row items-center gap-2   w-full sm:w-auto">
-            <div
-              style={{ padding: "0 15px" }}
-              className="border-[#C0C0C0] border text-black rounded-[38px] flex items-center h-[47.15px] w-full sm:max-w-[350px] md:max-w-[400px] lg:max-w-[446.1px]"
-            >
-              <FaSearch className="text-[#CCCCCC] flex-shrink-0" />
-              <input
-                style={{ padding: "7px" }}
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={`"Search Missions… Try "Growth hacking", "Figma", "Python""`}
-                className="w-full h-full outline-none placeholder-[#B6B6B6] font-[700] text-black text-[8px] xs:text-[10px] leading-[30px]"
-              />
+          <div
+            style={{ paddingTop: "10%" }}
+            className="max-w-[336.97px] relative herosection-mb flexcenter flex-col gap-5 sm:max-w-[852.48px] w-full px-4"
+          >
+            <div className="relative z-40">
+              <h2 className="text-[#E2E2E2] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
+                Choose Your Next
+              </h2>
+              <h2 className="text-[#E2E2E2] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
+                Mutation Mission
+              </h2>
             </div>
-            <div
-              className="border-[#C0C0C0] text-[#B6B6B6] font-[500] leading-[30px] text-[10px] flexcenter border rounded-[38px] h-[47.15px] w-full sm:w-[120px] md:w-[150px] lg:w-[175.72px] relative cursor-pointer"
-              onClick={() => setShowSortDropdown(!showSortDropdown)}
-            >
-              Sort by :<span className="text-black"> {sortBy || "Default"}</span>
-              {showSortDropdown && (
-                <div
-                  style={{ padding: "2px" }}
-                  className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#C0C0C0]  rounded-[10px] shadow-lg z-50"
-                >
+
+            <p className="font-[500] text-[12px] xs:text-[14px] relative z-40 sm:text-[17px] leading-[14px] sm:leading-[24px] md:leading-[28px] text-[#CDE98D] text-center px-2">
+              EVERY MISSION IS A TEST. EVERY SKILL IS A POWER WAITING TO AWAKEN
+            </p>
+          </div>
+       
+        </div>
+
+        {/* main */}
+
+        {/* search btn */}
+        <div
+          style={{ paddingTop: "60px" }}
+          className="w-full grid bg-white  gap-5 sm:gap-0 xl:grid-cols-3"
+        >
+          <div className=""></div>
+          <div className="col-span-2 flex flex-col gap-5 xl:gap-0 sm:flex-row px-4 sm:px-6 md:px-8 xl:px-0 items-center w-full justify-between">
+            <p className="font-[700]  text-[20px] xs:text-[25px] md:text-[30px] xxl:text-[37px] leading-[24px] text-black text-center xl:text-left">
+              All Missions
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-2   w-full sm:w-auto">
+              <div
+                style={{ padding: "0 15px" }}
+                className="border-[#C0C0C0] border text-black rounded-[38px] flex items-center h-[47.15px] w-full sm:max-w-[350px] md:max-w-[400px] lg:max-w-[446.1px]"
+              >
+                <FaSearch className="text-[#CCCCCC] flex-shrink-0" />
+                <input
+                  style={{ padding: "7px" }}
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder={`"Search Missions… Try "Growth hacking", "Figma", "Python""`}
+                  className="w-full h-full outline-none placeholder-[#B6B6B6] font-[700] text-black text-[8px] xs:text-[10px] leading-[30px]"
+                />
+              </div>
+              <div
+                className="border-[#C0C0C0] text-[#B6B6B6] font-[500] leading-[30px] text-[10px] flexcenter border rounded-[38px] h-[47.15px] w-full sm:w-[120px] md:w-[150px] lg:w-[175.72px] relative cursor-pointer"
+                onClick={() => setShowSortDropdown(!showSortDropdown)}
+              >
+                Sort by :
+                <span className="text-black"> {sortBy || "Default"}</span>
+                {showSortDropdown && (
                   <div
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px] text-[10px]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSortBy("Most Popular");
-                      setShowSortDropdown(false);
-                    }}
+                    style={{ padding: "2px" }}
+                    className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#C0C0C0]  rounded-[10px] shadow-lg z-50"
                   >
-                    Most Popular
+                    <div
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px] text-[10px]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSortBy("Most Popular");
+                        setShowSortDropdown(false);
+                      }}
+                    >
+                      Most Popular
+                    </div>
+                    <div
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSortBy("Recent");
+                        setShowSortDropdown(false);
+                      }}
+                    >
+                      Recent
+                    </div>
+                    <div
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSortBy("Free");
+                        setShowSortDropdown(false);
+                      }}
+                    >
+                      Free
+                    </div>
+                    <div
+                      className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px]"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setSortBy("");
+                        setShowSortDropdown(false);
+                      }}
+                    >
+                      Default
+                    </div>
                   </div>
-                  <div
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSortBy("Recent");
-                      setShowSortDropdown(false);
-                    }}
-                  >
-                    Recent
-                  </div>
-                  <div
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSortBy("Free");
-                      setShowSortDropdown(false);
-                    }}
-                  >
-                    Free
-                  </div>
-                  <div
-                    className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px]"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setSortBy("");
-                      setShowSortDropdown(false);
-                    }}
-                  >
-                    Default
-                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* values */}
+        <div
+          style={{ padding: "15px" }}
+          className="grid xl:grid-cols-3 gap-5 w-full min-h-screen bg-white text-black"
+        >
+          {/* Desktop sidebar - hidden on small screens */}
+          <div className="p-6 max-w-4xl mx-auto">
+            <div className="hidden xl:flex flex-col gap-5">
+              <div
+                style={{ padding: "10px" }}
+                className="p-4 shadow-sm rounded-[20px] "
+              >
+                <DropDown
+                  label="Choose Your Power Discipline"
+                  options={options}
+                  value={powerDiscipline}
+                  onChange={setPowerDiscipline}
+                  type="text"
+                />
+              </div>
+
+              <div
+                style={{ padding: "10px" }}
+                className="h-fit  rounded-[20px]  grid w-full shadow-sm"
+              >
+                <div className="border-b-[1px] border-gray-300">
+                  <DropDown
+                    label="Mutation Intensity (Checkbox)"
+                    options={optionsIntensity}
+                    value={mutationIntensity2}
+                    onChange={setMutationIntensity2}
+                    type="checkbox"
+                  />
                 </div>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
 
-      {/* values */}
-      <div
-        style={{ padding: "15px" }}
-        className="grid xl:grid-cols-3 gap-5 w-full min-h-screen bg-white text-black"
-      >
-        {/* Desktop sidebar - hidden on small screens */}
-        <div className="p-6 max-w-4xl mx-auto">
-          <div className="hidden xl:flex flex-col gap-5">
-            <div
-              style={{ padding: "10px" }}
-              className="p-4 shadow-sm rounded-[20px] "
-            >
-              <DropDown
-                label="Choose Your Power Discipline"
-                options={options}
-                value={powerDiscipline}
-                onChange={setPowerDiscipline}
-                type="text"
-              />
-            </div>
+                <div className="border-b-[1px] border-gray-300">
+                  <DropDown
+                    label="Mutation Intensity (Checkbox Multi)"
+                    options={optionsIntensity2}
+                    value={mutationIntensity3}
+                    onChange={setMutationIntensity3}
+                    type="checkbox"
+                  />
+                </div>
 
-            <div
-              style={{ padding: "10px" }}
-              className="h-fit  rounded-[20px]  grid w-full shadow-sm"
-            >
-              <div className="border-b-[1px] border-gray-300">
-                <DropDown
-                  label="Mutation Intensity (Checkbox)"
-                  options={optionsIntensity}
-                  value={mutationIntensity2}
-                  onChange={setMutationIntensity2}
-                  type="checkbox"
-                />
-              </div>
+                <div className="border-b-[1px] border-gray-300">
+                  <DropDown
+                    label="Mutation Intensity (Radio)"
+                    options={optionsIntensity3}
+                    value={mutationIntensity4}
+                    onChange={setMutationIntensity4}
+                    type="radio"
+                  />
+                </div>
 
-              <div className="border-b-[1px] border-gray-300">
-                <DropDown
-                  label="Mutation Intensity (Checkbox Multi)"
-                  options={optionsIntensity2}
-                  value={mutationIntensity3}
-                  onChange={setMutationIntensity3}
-                  type="checkbox"
-                />
-              </div>
-
-              <div className="border-b-[1px] border-gray-300">
-                <DropDown
-                  label="Mutation Intensity (Radio)"
-                  options={optionsIntensity3}
-                  value={mutationIntensity4}
-                  onChange={setMutationIntensity4}
-                  type="radio"
-                />
-              </div>
-
-              <div>
-                <DropDown
-                  label="Mutation Intensity (Radio 2)"
-                  options={optionsIntensity4}
-                  value={mutationIntensity5}
-                  onChange={setMutationIntensity5}
-                  type="radio"
-                />
+                <div>
+                  <DropDown
+                    label="Mutation Intensity (Radio 2)"
+                    options={optionsIntensity4}
+                    value={mutationIntensity5}
+                    onChange={setMutationIntensity5}
+                    type="radio"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Main content */}
-        <div className="col-span-2">
-          {currentItems.length === 0 ? (
-            <div className="flex items-center justify-center h-64">
-              <p className="text-[#6D6D6D] text-lg">
-                No missions found matching your criteria.
-              </p>
-            </div>
-          ) : (
-            <div className="w-full flex items-center flex-col  sm:grid md:grid-cols-3  gap-5 ">
-              {currentItems.map((course, i) => (
-                <div
-                  key={course.id}
-                  className="h-[516.72px] w-full max-w-[340.81px] border-[#A6A6A6] rounded-[20px] shadow-md "
-                >
+          {/* Main content */}
+          <div className="col-span-2">
+            {currentItems.length === 0 ? (
+              <div className="flex items-center justify-center h-64">
+                <p className="text-[#6D6D6D] text-lg">
+                  No missions found matching your criteria.
+                </p>
+              </div>
+            ) : (
+              <div className="w-full flex items-center flex-col  sm:grid md:grid-cols-3  gap-5 ">
+                {currentItems.map((course, i) => (
                   <div
-                    style={{ backgroundImage: `url(${course.image})` }}
-                    className="h-[294.71px] w-full bg-pink-100 rounded-t-[20px] bg-cover bg-center"
-                  ></div>
-
-                  <div
-                    className="flex flex-col  justify-between flex-1 h-[222.01px]  "
-                    style={{ padding: "20px" }}
+                    key={course.id}
+                    className="h-[516.72px] w-full max-w-[340.81px] border-[#A6A6A6] rounded-[20px] shadow-md "
                   >
-                    <div>
-                      <div className="flex items-center justify-between w-full">
-                        <p
-                          style={{ marginBottom: "3px" }}
-                          className="w-[53.75px] h-[22.94px] border border-[#A6A6A6] text-[#A6A6A6] flexcenter font-[500] leading-[25px] text-[10px]  rounded-[5px]"
-                        >
-                          Design
+                    <div
+                      style={{ backgroundImage: `url(${course.image})` }}
+                      className="h-[294.71px] w-full bg-pink-100 rounded-t-[20px] bg-cover bg-center"
+                    ></div>
+
+                    <div
+                      className="flex flex-col  justify-between flex-1 h-[222.01px]  "
+                      style={{ padding: "20px" }}
+                    >
+                      <div>
+                        <div className="flex items-center justify-between w-full">
+                          <p
+                            style={{ marginBottom: "3px" }}
+                            className="w-[53.75px] h-[22.94px] border border-[#A6A6A6] text-[#A6A6A6] flexcenter font-[500] leading-[25px] text-[10px]  rounded-[5px]"
+                          >
+                            Design
+                          </p>
+                          <p className="w-[53.75px] flexcenter h-[22.94px] bg-[#D3D3D3] text-black font-[600] text-[8px] leading-[28px] rounded-[30px]">
+                            <AiFillStar className="text-[#FFA100] w-[12.19px]  " />
+                            <span>{course.rating}</span>
+                          </p>
+                        </div>
+                        <p className="text-[#292929] font-[700] text-[20px] leading-[23px] ">
+                          {course.courseName}
                         </p>
-                        <p className="w-[53.75px] flexcenter h-[22.94px] bg-[#D3D3D3] text-black font-[600] text-[8px] leading-[28px] rounded-[30px]">
-                          <AiFillStar className="text-[#FFA100] w-[12.19px]  " />
-                          <span>{course.rating}</span>
+                        <p className="text-[#288C4F] font-[800] text-[15px] leading-[28px]">
+                          {" "}
+                          ${course.price}
                         </p>
                       </div>
-                      <p className="text-[#292929] font-[700] text-[20px] leading-[23px] ">
-                        {course.courseName}
-                      </p>
-                      <p className="text-[#288C4F] font-[800] text-[15px] leading-[28px]">
-                        {" "}
-                        ${course.price}
-                      </p>
-                    </div>
 
-                    <div className="">
-                      <p className="text-[#5C5C5C] font-[500] flex items-center gap-1 text-[10px] leading-[28px]">
-                        <FaClock className="w-[12.19px] mr-1" />
-                        <span>{course.time}</span>
-                      </p>
-                      <button
-                        onClick={() => handleButtonClick(course.id)}
-                        className={`${
-                          clickedButtons.has(course.id)
-                            ? "bg-[#7343B3] text-white"
-                            : "bg-[#C1C1C1] text-black"
-                        } font-[700] cursor-pointer h-[42.52px] w-[138.44px] rounded-[8px] text-[13px] leading-[28px] transition-colors duration-200`}
-                      >
-                        Enter Mission
-                      </button>
+                      <div className="">
+                        <p className="text-[#5C5C5C] font-[500] flex items-center gap-1 text-[10px] leading-[28px]">
+                          <FaClock className="w-[12.19px] mr-1" />
+                          <span>{course.time}</span>
+                        </p>
+                        <button
+                          onClick={() => handleButtonClick(course.id)}
+                          className={`${
+                            clickedButtons.has(course.id)
+                              ? "bg-[#7343B3] text-white"
+                              : "bg-[#C1C1C1] text-black"
+                          } font-[700] cursor-pointer h-[42.52px] w-[138.44px] rounded-[8px] text-[13px] leading-[28px] transition-colors duration-200`}
+                        >
+                          Enter Mission
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* pagination button */}
-          {totalPages > 1 && (
-            <div className="flex items-center gap-5 justify-center">
-              {/* Previous button */}
-              <p>
-                <span
-                  onClick={
-                    currentPage > 1
-                      ? () => setCurrentPage(currentPage - 1)
-                      : undefined
-                  }
-                  className={`text-[20.5px] ${
-                    currentPage > 1
-                      ? "text-[#6D6D6D] cursor-pointer hover:text-[#7343B3]"
-                      : "text-[#CCCCCC] cursor-not-allowed"
-                  }`}
-                >
-                  {`<`}
-                </span>
-              </p>
-
-              {/* Page numbers */}
-              <div className="flex justify-center mt-6 gap-2">
-                {Array.from({ length: totalPages }, (_, i) => (
-                  <button
-                    style={{ margin: "20px 0" }}
-                    key={i}
-                    className={`sm:h-[60px] h-[20px] w-[20px] flexcenter cursor-pointer sm:w-[60px] h-[20px] w-[20px] flexcenter font-[700] text-[10px] sm:text-[18px] leading-[30px] rounded-full transition-all duration-200 ${
-                      currentPage === i + 1
-                        ? "bg-[#7343B3] text-white shadow-sm shadow-[#7C38FF]"
-                        : "bg-white text-[#6D6D6D] hover:bg-[#F5F5F5]"
-                    }`}
-                    onClick={() => setCurrentPage(i + 1)}
-                  >
-                    {i + 1}
-                  </button>
                 ))}
               </div>
+            )}
 
-              {/* Next button */}
-              <p>
-                <span
-                  onClick={
-                    currentPage < totalPages
-                      ? () => setCurrentPage(currentPage + 1)
-                      : undefined
-                  }
-                  className={`text-[20.5px] ${
-                    currentPage < totalPages
-                      ? "text-[#6D6D6D] cursor-pointer hover:text-[#7343B3]"
-                      : "text-[#CCCCCC] cursor-not-allowed"
-                  }`}
-                >
-                  {`>`}
-                </span>
-              </p>
-            </div>
-          )}
+            {/* pagination button */}
+            {totalPages > 1 && (
+              <div className="flex items-center gap-5 justify-center">
+                {/* Previous button */}
+                <p>
+                  <span
+                    onClick={
+                      currentPage > 1
+                        ? () => setCurrentPage(currentPage - 1)
+                        : undefined
+                    }
+                    className={`text-[20.5px] ${
+                      currentPage > 1
+                        ? "text-[#6D6D6D] cursor-pointer hover:text-[#7343B3]"
+                        : "text-[#CCCCCC] cursor-not-allowed"
+                    }`}
+                  >
+                    {`<`}
+                  </span>
+                </p>
+
+                {/* Page numbers */}
+                <div className="flex justify-center mt-6 gap-2">
+                  {Array.from({ length: totalPages }, (_, i) => (
+                    <button
+                      style={{ margin: "20px 0" }}
+                      key={i}
+                      className={`sm:h-[60px] h-[20px] w-[20px] flexcenter cursor-pointer sm:w-[60px] h-[20px] w-[20px] flexcenter font-[700] text-[10px] sm:text-[18px] leading-[30px] rounded-full transition-all duration-200 ${
+                        currentPage === i + 1
+                          ? "bg-[#7343B3] text-white shadow-sm shadow-[#7C38FF]"
+                          : "bg-white text-[#6D6D6D] hover:bg-[#F5F5F5]"
+                      }`}
+                      onClick={() => setCurrentPage(i + 1)}
+                    >
+                      {i + 1}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Next button */}
+                <p>
+                  <span
+                    onClick={
+                      currentPage < totalPages
+                        ? () => setCurrentPage(currentPage + 1)
+                        : undefined
+                    }
+                    className={`text-[20.5px] ${
+                      currentPage < totalPages
+                        ? "text-[#6D6D6D] cursor-pointer hover:text-[#7343B3]"
+                        : "text-[#CCCCCC] cursor-not-allowed"
+                    }`}
+                  >
+                    {`>`}
+                  </span>
+                </p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

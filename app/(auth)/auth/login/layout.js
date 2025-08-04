@@ -1,5 +1,5 @@
 import { GloblaxcontexProvider } from "@/context/Globlaxcontex";
-import AuthNavBar from "../-components/AuthNavBar";
+import AuthNavBar from "../../-components/AuthNavBar";
 
 export const metadata = {
   title: "Mutant School | Login Portal",

@@ -174,7 +174,7 @@ export default function Login() {
                   <div className="h-[60.5px] w-full flexcenter font-[600] text-[12px] sm:text-[14px] leading-[40px] text-[var(--background)]  border-[1px] px rounded-[8px] border-[var(--primary)] sm:h-[75.16px] ">
                     <p>
                       New here?{" "}
-                      <Link href="/Register">
+                      <Link href="/auth/register">
                         <span className="text-[var(--primary)] ">
                           Begin Your Transformation
                         </span>

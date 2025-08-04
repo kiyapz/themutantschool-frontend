@@ -52,7 +52,7 @@ export default function InstructorContextProvider({ children }) {
       const refreshToken = localStorage.getItem("refreshToken");
       if (!refreshToken) {
         console.warn("No refresh token found");
-        router.push("/Login");
+        router.push("/auth/login");
         return null;
       }
 
@@ -82,7 +82,7 @@ export default function InstructorContextProvider({ children }) {
       localStorage.removeItem("login-accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("USER");
-      router.push("/Login");
+      router.push("/auth/login");
       return null;
     }
   }, []);
@@ -93,7 +93,7 @@ export default function InstructorContextProvider({ children }) {
 
       if (!accessToken) {
         console.warn("No access token found");
-        router.push("/Login");
+        router.push("/auth/login");
         return null;
       }
 
@@ -147,7 +147,7 @@ export default function InstructorContextProvider({ children }) {
 
         if (!storedUser) {
           console.warn("User not found in localStorage");
-          router.push("/Login");
+          router.push("/auth/login");
           return;
         }
 
@@ -221,14 +221,14 @@ export default function InstructorContextProvider({ children }) {
 
     if (!storedUser) {
       console.warn("User not found in localStorage");
-      router.push("/Login");
+      router.push("/auth/login");
       return;
     }
     const interval = setInterval(async () => {
       const accessToken = localStorage.getItem("login-accessToken");
 
       if (!accessToken) {
-        router.push("/Login");
+        router.push("/auth/login");
         return;
       }
       if (accessToken) {
@@ -287,7 +287,7 @@ export default function InstructorContextProvider({ children }) {
     localStorage.removeItem("missionDraft");
     localStorage.removeItem("missionId");
 
-    window.location.href = "/Login";
+    window.location.href = "/auth/login";
   };
 
   return (

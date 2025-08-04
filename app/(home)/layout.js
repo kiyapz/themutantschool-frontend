@@ -28,11 +28,11 @@ export default function RootLayout({ children }) {
             {/* <div className="w-full h-[70px] bg-[var(--primary-light)]"> */}
             <div style={{marginBottom:'15px'}} className="w-full h-[30px]  flexcenter  overflow-hidden bg-[var(--primary-light)] py-6">
               <div className="whitespace-nowrap animate-marquee text-white  h-[20px] flexcenter text-2xl text-black font-semibold">
-                <span className="inline-block font-[400] text-[10px] text-black  leading-[30px] sm:leading-[40px] px-4">
+                <span className="inline-block font-[400] text-[20px] text-black  leading-[70px] sm:leading-[40px] px-4">
                   50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION
                   NOW
                 </span>
-                <span className="inline-block font-[400] text-[10px] leading-[30px] text-black sm:leading-[40px] px-4">
+                <span className="inline-block font-[400] text-[20px] leading-[70px] text-black sm:leading-[40px] px-4">
                   50% OFF FOR THE FIRST 100 RECRUITS - BEGIN YOUR TRANSFORMATION
                   NOW
                 </span>

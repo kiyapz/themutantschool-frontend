@@ -61,7 +61,7 @@ export default function Navbar() {
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3 lg:gap-4">
             <div className="cut-box3">
-              <Link href={"/Login"}>
+              <Link href={"/auth/login"}>
                 <div
                   onClick={() => handleClick("signup")}
                   className={`cut-box-inner3 cursor-pointer  flex items-center justify-center text-[12px] lg:text-[13px] font-[700] px-3 py-2 ${
@@ -76,7 +76,7 @@ export default function Navbar() {
             </div>
 
             <div className="cut-box4">
-              <Link href={"/Register"}>
+              <Link href={"/auth/register"}>
                 <div
                   onClick={() => handleClick("register")}
                   className={`cut-box-inner4 flex items-center justify-center text-[12px] lg:text-[13px] font-[700] cursor-pointer px-3 py-2 ${
@@ -190,7 +190,7 @@ export default function Navbar() {
           {/* Mobile Auth Buttons - FIXED: Removed hidden class */}
           <div className="flex flex-col gap-3 px-4 pb-4">
             <div className="cut-box3">
-              <Link href={"/Login"}>
+              <Link href={"/auth/login"}>
                 <div
                   onClick={() => {
                     handleClick("signup");
@@ -208,7 +208,7 @@ export default function Navbar() {
             </div>
 
             <div className="cut-box4">
-              <Link href={"/Register"}>
+              <Link href={"/auth/register"}>
                 <div
                   onClick={() => {
                     handleClick("register");

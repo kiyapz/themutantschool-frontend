@@ -1,8 +1,8 @@
 "use client";
-import "../../globals.css";
+import "../../../globals.css";
 import Authnav from "./_components/Authnav";
 // import { GloblaxcontexProvider } from "@/context/Globlaxcontex";
-import AuthNavBar from "../-components/AuthNavBar";
+import AuthNavBar from "../../-components/AuthNavBar";
 import Navbar from "@/components/Navbar";
 import { GloblaxcontexProvider } from "@/context/Globlaxcontex";
 
