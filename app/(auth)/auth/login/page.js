@@ -55,27 +55,43 @@ export default function Login() {
         else router.push("/affiliate");
 
         return true;
-      }else if (response.status === 404) {
-          setErrormessage("invalid email or Password Login failed.");
-          setTimeout(() => setErrormessage(""), 2000);
-          setButtonvalue("Enter the Lab");
-          return false;
-
+      }else if (!response.status === 200) {
+        setErrormessage("invalid email or Password Login failed.");
+        setTimeout(() => setErrormessage(""), 2000);
+        setButtonvalue("Enter the Lab");
+        return false;
       } else {
         // setErrormessage(response.data.message || "Login failed.");
-           setErrormessage("invalid email or Password Login failed.");
+        setErrormessage("invalid email or Password Login failed.");
         setTimeout(() => setErrormessage(""), 2000);
         setButtonvalue("Enter the Lab");
         return false;
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrormessage(
-        error?.message || "Login failed. Please try again. Network Error."
-      );
-      setTimeout(() => setErrormessage(""), 2000);
-      setButtonvalue("Enter the Lab");
-      return false;
+
+      if (error.response.status === 403) {
+
+          setErrormessage("invalid email  Login failed.");
+          setTimeout(() => setErrormessage(""), 2000);
+          setButtonvalue("Enter the Lab");
+          return false;
+        
+      }else if (error.response.status === 404 || error.response.status === 400) {
+        setErrormessage("invalid Password Login failed.");
+        setTimeout(() => setErrormessage(""), 2000);
+        setButtonvalue("Enter the Lab");
+        return false;
+      } else {
+        setErrormessage(
+          error?.message || "Login failed. Please try again. Network Error."
+        );
+        setTimeout(() => setErrormessage(""), 2000);
+        setButtonvalue("Enter the Lab");
+        return false;
+      }
+      
+     
     }
   };
 

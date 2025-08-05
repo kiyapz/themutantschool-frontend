@@ -1068,7 +1068,7 @@ export default function Mission() {
 
             {/* pagination button */}
             {totalPages > 1 && (
-              <div className="flex items-center gap-5 justify-center">
+              <div className="flex items-center gap-3 h-fit justify-center">
                 {/* Previous button */}
                 <p>
                   <span
