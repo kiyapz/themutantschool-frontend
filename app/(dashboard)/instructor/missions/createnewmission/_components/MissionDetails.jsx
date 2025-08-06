@@ -369,7 +369,7 @@ export default function MissionDetails() {
         />
       </div>
 
-      <div className="w-full grid gap-5 xl:grid-cols-2 ">
+      <div className="w-full grid gap-5  ">
         <div className="flex flex-col gap-3">
           <label
             htmlFor="image"
@@ -420,7 +420,7 @@ export default function MissionDetails() {
           />
         </div>
 
-        <div className="flex flex-col gap-3">
+        {/* <div className="flex flex-col gap-3">
           <label
             htmlFor="video"
             className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
@@ -456,7 +456,7 @@ export default function MissionDetails() {
             onChange={(e) => setVideo(e.target.files[0])}
             style={{ display: "none" }}
           />
-        </div>
+        </div> */}
       </div>
     </div>
   );

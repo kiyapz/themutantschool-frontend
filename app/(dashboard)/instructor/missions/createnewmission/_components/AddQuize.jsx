@@ -453,6 +453,7 @@ const QuizCreator = () => {
                 Allowed Attempts
               </p>
               <input
+              disabled
                 style={{ padding: "10px" }}
                 defaultValue={1}
                 type="text"

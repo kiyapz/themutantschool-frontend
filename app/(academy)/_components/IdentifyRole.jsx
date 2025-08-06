@@ -354,7 +354,7 @@ const handleResend = async () => {
           <div className="flex w-full flex-col gap-4 pb-8">
             <Registerbtn text='Continue' onClick={handleContinue} />
             <p className="text-center text-[var(--text)] font-[700] text-[14px] leading-[20px]">
-              Already in mutant academy?<Link href='/academy/Login'> <span className="text-[var(--secondary)] cursor-pointer hover:underline">Enter the Lab</span></Link> 
+              Already in mutant academy?<Link href='/academy/auth/login'> <span className="text-[var(--secondary)] cursor-pointer hover:underline">Enter the Lab</span></Link> 
             </p>
           </div>
         </div>

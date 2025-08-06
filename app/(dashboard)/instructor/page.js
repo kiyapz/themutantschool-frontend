@@ -363,7 +363,7 @@ export default function InstructorDashboard() {
             </p>
           </div>
           <div>
-            <Link href="/instructor/myMissions/createnewmission">
+            <Link href="/instructor/missions/createnewmission">
               <button className="bg-[#604196] flex items-center justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px] w-[216.75px] ">
                 <span>
                   <Image
