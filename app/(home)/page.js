@@ -1,6 +1,7 @@
 
 import { Clock, Star, User } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 
 const studentcourse = [
   {
@@ -57,10 +58,8 @@ export default function Home() {
 
         <div
           style={{ paddingTop: "10%" }}
-          className="max-w-[336.97px]  herosection-mb flexcenter flex-col gap-5  sm:max-w-[1750.59px]  w-full  px-4"
+          className="max-w-[376.97px]   herosection-mb flexcenter flex-col gap-5  sm:max-w-[1750.59px]  w-full  px-4"
         >
-         
-
           <div className="relative z-40">
             <h2 className="Xirod text-[40px] sm:text-[60px] leading-[37px] sm:leading-[62px] text-center  ">
               YOU AIN’T{" "}
@@ -76,13 +75,18 @@ export default function Home() {
           <p className="Xirod text-[14px]  relative z-40 sm:text-[18px] leading-[14px] sm:leading-[70px] sm:text-[var(--info)] text-center ">
             MUTANT GENE DETECTED
           </p>
-          <div className="flexcenter relative z-40 h-[70px] w-fit evolution-button">
-            <div className="evolution-button-inner flexcenter h-full w-full">
-              <p className="font-[700] text-[17px] leading-[70px] ">
-                START YOUR EVOLUTION
-              </p>
+          <Link href='/auth/register'>
+            <div
+              style={{ marginTop: "40px" }}
+              className="flexcenter relative cursor-pointer z-40 h-[70px] w-fit evolution-button"
+            >
+              <div className="evolution-button-inner flexcenter h-full w-full">
+                <p className="font-[700] text-[17px] leading-[70px] ">
+                  START YOUR EVOLUTION
+                </p>
+              </div>
             </div>
-          </div>
+          </Link>
         </div>
       </div>
 

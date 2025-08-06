@@ -38,7 +38,7 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden xl:block">
             <ul className="flex gap-4 xl:gap-6">
-              <Link href={"/mission"}>
+              <Link href={"/missions"}>
                 <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
                   MISSIONS
                 </li>
@@ -142,7 +142,7 @@ export default function Navbar() {
           {/* Mobile Navigation Links */}
           <nav className="flex-1 px-4 py-6">
             <ul className="space-y-8">
-              <Link href={"/mission"}>
+              <Link href={"/missions"}>
                 <li>
                   <button
                     onClick={closeMobileMenu}

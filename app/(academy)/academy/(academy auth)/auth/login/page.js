@@ -1,7 +1,7 @@
 "use client";
 
-import PasswordInput from "@/app/(auth)/-components/PasswordInput.jsx";
-import authApiUrl from "@/lib/baseUrl";
+import PasswordInput from "@/app/(auth)/-components/PasswordInput";
+import authApiUrl from "../../../../_components/libs/authApiUrl";
 import Image from "next/image";
 import Link from "next/link";
 import { useState } from "react";
@@ -18,7 +18,7 @@ export default function Login() {
   const [buttonvalue, setButtonvalue] = useState("Enter the Lab");
 
   const handlelogin = async () => {
-    console.log("Clicked login...");
+    // console.log("Clicked login...");
     setButtonvalue(
       <span className="flex items-center gap-2">
         <span className="w-4 h-4 border-2 border-t-transparent border-[var(--secondary)] rounded-full animate-spin inline-block" />
@@ -29,75 +29,70 @@ export default function Login() {
 
     if (!email || !password) {
       setErrormessage("Please enter your email and password.");
-      setTimeout(() => setErrormessage(""), 2000);
+      setTimeout(() => setErrormessage(""), 1000);
       setButtonvalue("Enter the Lab");
       return;
     }
 
     try {
-      const response = await authApiUrl.post("login", { email, password });
+      const response = await authApiUrl.post("login", {
+        email: email,
+        password: password,
+      });
       console.log("Login response:", response);
 
       if (response.status === 200) {
-        const { message, accessToken, user, refreshToken } = response.data;
+        console.log(response);
 
         console.log("Login successful:", response.data);
-        setSuccessmessage(message);
-        localStorage.setItem("refreshToken", refreshToken);
-        localStorage.setItem("login-accessToken", accessToken);
-        localStorage.setItem("USER", JSON.stringify(user));
 
-        setTimeout(() => setSuccessmessage(""), 2000);
+        const storedUser = JSON.parse(localStorage.getItem("type"));
+        const role = storedUser?.type || response.data.type;
+
+        console.log(response.data.message);
+        console.log("Login successful:", response.data);
+        setSuccessmessage(response.data.message);
+        setTimeout(() => setSuccessmessage(""), 1000);
         setButtonvalue("Enter the Lab");
+        localStorage.setItem("login-accessToken", response.data.accessToken);
 
-        if (user.role === "instructor") router.push("/instructor");
-        else if (user.role === "student") router.push("/student");
-        else router.push("/affiliate");
+        if (role === "University") {
+          router.push("/University");
+        } else if (role === "College") {
+          router.push("/College");
+        } else if (role === "Training Center") {
+          router.push("/Training Center");
+        } else if (role === "Bootcamp") {
+          router.push("/Bootcamp");
+        } else if (role === "Online Academy") {
+          router.push("/Online Academy");
+        } else {
+          router.push("/academy/Login");
+        }
 
         return true;
-      }else if (!response.status === 200) {
-        setErrormessage("invalid email or Password Login failed.");
-        setTimeout(() => setErrormessage(""), 2000);
-        setButtonvalue("Enter the Lab");
-        return false;
       } else {
-        // setErrormessage(response.data.message || "Login failed.");
-        setErrormessage("invalid email or Password Login failed.");
-        setTimeout(() => setErrormessage(""), 2000);
+        setErrormessage(response.data.message || "Login failed.");
+        setTimeout(() => setErrormessage(""), 1000);
         setButtonvalue("Enter the Lab");
+
         return false;
       }
     } catch (error) {
       console.error("Login error:", error);
+      setErrormessage(
+        error?.response?.data?.message || "Login failed. Please try again."
+      );
+      setTimeout(() => setErrormessage(""), 1000);
+      setButtonvalue("Enter the Lab");
 
-      if (error.response.status === 403) {
-
-          setErrormessage("invalid email  Login failed.");
-          setTimeout(() => setErrormessage(""), 2000);
-          setButtonvalue("Enter the Lab");
-          return false;
-        
-      }else if (error.response.status === 404 || error.response.status === 400) {
-        setErrormessage("invalid Password Login failed.");
-        setTimeout(() => setErrormessage(""), 2000);
-        setButtonvalue("Enter the Lab");
-        return false;
-      } else {
-        setErrormessage(
-          error?.message || "Login failed. Please try again. Network Error."
-        );
-        setTimeout(() => setErrormessage(""), 2000);
-        setButtonvalue("Enter the Lab");
-        return false;
-      }
-      
-     
+      return false;
     }
   };
 
   return (
-    <div className="flex py flex-col items-center  justify-between  h-[90vh]    sm:h-screen w-full">
-      <div className="mt-mutantlogin grid  grid-cols-1 sm:grid-cols-2 sm:gap-4  w-full max-w-[350px] md:max-w-[90%]   px  xl:max-w-[1200px] h-fit">
+    <div className="flex py flex-col items-center  justify-center  h-[80vh]    sm:h-screen w-screen ">
+      <div className="mt-mutantlogin grid   grid-cols-1 sm:grid-cols-2 sm:gap-4  w-full max-w-[350px]   px sm:max-w-[700px]   xl:max-w-[1200px] h-fit ">
         <div
           style={{ backgroundImage: `url('/images/loginimg.png')` }}
           className="hidden sm:block bg-cover h-full   rounded-r-[30px] bg-center"
@@ -105,8 +100,8 @@ export default function Login() {
           {" "}
         </div>
 
-        <div className=" w-full flex  justify-center h-fit">
-          <div className="  py mt-mutantlogin max-w-[500px]   flex flex-col gap-8 w-full h-full  ">
+        <div className=" w-full flex   justify-center h-fit">
+          <div className="    flex flex-col gap-2 w-full h-full  ">
             <h2 className="hidden sm:block  text-center Xirod text-[26px] leading-[41px] text-[var(--secondary)]  ">
               MUTANT
             </h2>
@@ -175,7 +170,7 @@ export default function Login() {
                   )}
                 </div>
 
-                <Link href="/auth/forgot-password">
+                <Link href="/academy/ForgotPassword.jsx">
                   <p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[40px] ">
                     Forgot Password?
                   </p>
@@ -190,7 +185,7 @@ export default function Login() {
                   <div className="h-[60.5px] w-full flexcenter font-[600] text-[12px] sm:text-[14px] leading-[40px] text-[var(--background)]  border-[1px] px rounded-[8px] border-[var(--primary)] sm:h-[75.16px] ">
                     <p>
                       New here?{" "}
-                      <Link href="/auth/register">
+                      <Link href="/Register">
                         <span className="text-[var(--primary)] ">
                           Begin Your Transformation
                         </span>

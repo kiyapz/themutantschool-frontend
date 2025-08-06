@@ -36,12 +36,12 @@ export default function Sidebar() {
                     active={pathname === "/instructor"}
                   />
                 </Link>
-                <Link href="/instructor/myMissions">
+                <Link href="/instructor/missions">
                   <Sidebarbtn
                     onClick={() => setIsMobileMenuOpen(false)}
                     image="/images/sidebaricons/Group (3).png"
                     text="My Missions"
-                    active={pathname === "/instructor/myMissions"}
+                    active={pathname === "/instructor/missions"}
                   />
                 </Link>
               </div>

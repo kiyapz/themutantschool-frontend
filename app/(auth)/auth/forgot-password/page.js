@@ -1,15 +1,15 @@
 "use client";
 
 import { useContext, useEffect, useState } from "react";
-import Registerherosection from "../auth/register/_components/Registerherosection";
-import RegisterInput from "../auth/register/_components/RegisterIput";
+import Registerherosection from "../register/_components/Registerherosection";
+import RegisterInput from "../register/_components/RegisterIput";
 import { FiArrowLeft } from "react-icons/fi";
 import Image from "next/image";
 import { ForgotPasswordContext } from "./_components/ForgotpasswordContex";
 import OTPInput from "./_components/Otp";
 import authApiUrl from "@/lib/baseUrl";
 import Link from "next/link";
-import PasswordInput from "../-components/PasswordInput";
+import PasswordInput from "../../-components/PasswordInput";
 import { Globlaxcontex } from "@/context/Globlaxcontex";
 
 export default function Forgotpassword() {
