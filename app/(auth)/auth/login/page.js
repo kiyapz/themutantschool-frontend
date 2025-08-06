@@ -180,7 +180,7 @@ export default function Login() {
                     Forgot Password?
                   </p>
                 </Link>
-                <Link href="/academy/Register">
+                <Link href="/academy/auth/register">
                   <p className="text-[16px] text-center cursor-pointer  hover:text-[var(--text)] leading-[40px] text-white ">
                     Register as Institution
                   </p>

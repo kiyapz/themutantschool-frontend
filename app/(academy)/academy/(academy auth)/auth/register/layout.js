@@ -1,6 +1,6 @@
 import { AcademyGloblaxcontexProvider } from "../../../../_components/academycontext/AcademyContext";
 import Authnav from "../../../../_components/Authnav";
-import "../../../../globals.css";
+import "../../../../../globals.css";
 
 export const metadata = {
   title: "Mutant School",

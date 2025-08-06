@@ -440,7 +440,10 @@ export default function IdentifyRole() {
                   <Registerbtn text="Continue" onClick={handleContinue} />
                   <p className="text-center text-[var(--text)] font-[700] text-[14px] leading-[20px]">
                     Already a mutant?
-                    <Link href="/Login">
+                    <Link
+                      href="
+                    /auth/login"
+                    >
                       {" "}
                       <span className="text-[var(--secondary)] cursor-pointer hover:underline">
                         Enter the Lab
