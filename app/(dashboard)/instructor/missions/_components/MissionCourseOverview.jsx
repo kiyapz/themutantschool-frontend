@@ -146,7 +146,7 @@ const CurriculumContent = ({ course, handleAddLevelId }) => (
       style={{ padding: "0 32px" }}
     >
       <h2 className="text-[24px] font-[600]">Course Curriculum</h2>
-      <Link href={`/instructor/myMissions/createnewmission`}>
+      <Link href={`/instructor/missions/createnewmission`}>
         <button
           onClick={() => handleAddLevelId(course._id)}
           className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
@@ -397,7 +397,7 @@ export default function MissionCourseOverview({ course }) {
           <button className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer ">
             Edit Mission
           </button>
-          <Link href={`/instructor/myMissions/createnewmission`}>
+          <Link href={`/instructor/missions/createnewmission`}>
             <button
               onClick={() => handleAddLevelId(course._id)}
               className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer "

@@ -17,6 +17,8 @@ import QuizCreator from "./AddQuize";
 import { useRouter } from "next/navigation";
 import profilebase from "../../../profile/_components/profilebase";
 
+import FinalQuizGenerator from "./AddFinalQuize";
+
 const Toast = ({ message, type, onClose }) => {
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -1153,10 +1155,28 @@ export default function AddLevels() {
               Create another learning module ({levels.length}/5 remaining)
             </p>
           </div>
+
+          {/* Add Final Quize */}
+
+          <div
+            onClick={() => setLevel("AddFinalQuize")}
+            className="w-full h-[154.5px] sm:h-[247.06px] flexcenter flex-col border border-dashed border-[#703D71] gap-2 sm:gap-5 rounded-[22px] bg-[#131313] mt-10 cursor-pointer hover:bg-[#1a1a1a] transition-colors"
+          >
+            <p className="font-[600] text-[21px] sm:text-[40px] text-[#703D71] bg-[#221326] h-[30px] w-[30px] sm:h-[60px] sm:w-[60px] flexcenter rounded-full">
+              +
+            </p>
+            {/* <p className="font-[600] text-[12px] sm:text-[21px]">
+              Add New Level
+            </p> */}
+            <p className="font-[200] text-[12px] sm:text-[19px] text-[#9C9C9C]">
+              Create final Quiz
+            </p>
+          </div>
         </div>
       )}
 
       {Level === "AddQuize" && <QuizCreator />}
+      {Level === "AddFinalQuize" && <FinalQuizGenerator />}
 
       {openAddModel && (
         <div className="fixed top-0 left-0 w-screen h-screen overflow-auto flex justify-center z-40 bg-[rgba(0,0,0,0.9)]">

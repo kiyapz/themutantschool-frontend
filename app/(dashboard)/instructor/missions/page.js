@@ -172,7 +172,7 @@ export default function FilterableCoursesDashboard() {
           <div className="hidden sm:block">
             <Link
               className="hidden sm:block"
-              href="/instructor/myMissions/createnewmission"
+              href="/instructor/missions/createnewmission"
             >
               <button className="bg-[#604196] hidden sm:block flex items-center cursor-pointer justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px] w-[216.75px] hover:bg-[#7052a8] transition-colors">
                 Launch New Mission
@@ -239,7 +239,7 @@ export default function FilterableCoursesDashboard() {
       <div className="w-full h-fit flexcenter p-4">
         <div className="grid gap-5 sm:grid-cols-2 w-full xl:grid-cols-3">
           {filteredCourses.map((el) => (
-            <Link href={`/instructor/myMissions/${el._id}`} key={el._id}>
+            <Link href={`/instructor/missions/${el._id}`} key={el._id}>
               <div
                 key={el._id}
                 className="max-w-[380.5px] w-full flex flex-col sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
