@@ -3,7 +3,7 @@ import { useContext, useEffect } from "react";
 import LevelsPath from "../../component/LevelsPath";
 import { StudentContext } from "../../component/Context/StudentContext";
 
-export default function page() {
+export default function Page() {
   const { setViewStudentName } = useContext(StudentContext);
    useEffect(() => {
      setViewStudentName(false);

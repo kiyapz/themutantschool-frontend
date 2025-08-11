@@ -5,7 +5,7 @@ import Image from "next/image";
 import Activebtn from "./component/btn/Activebtn";
 import Link from "next/link";
 
-export default function page() {
+export default function Page() {
   const [changeStages, setChangeStages] = useState(1);
 
   useEffect(() => {
