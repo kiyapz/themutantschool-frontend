@@ -105,6 +105,14 @@ body {
   background: linear-gradient(to right, var(--primary-light), var(--secondary));
 }
 
+.studentbtn2 {
+  background: linear-gradient(to right, #840B94, #AF7B34);
+}
+
+.studentbtn2:hover {
+  background: linear-gradient(to right, #AF7B34, #840B94);
+}
+
 .evolution-button {
   position: relative;
   background: var(--text-light);
@@ -117,6 +125,10 @@ body {
     /* bottom-right cut */ 0% 100%,
     0% 20px
   );
+}
+
+.padding-left {
+  padding-left: 30px;
 }
 
 .evolution-button-inner {
@@ -248,6 +260,9 @@ body {
 }
 
 @media (max-width: 640px) {
+  .padding-left  {
+    padding-left: 0px;
+  }
   .px {
     padding-left: 13px;
     padding-right: 13px;

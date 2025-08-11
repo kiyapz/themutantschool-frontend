@@ -645,7 +645,7 @@ export default function IdentifyRole() {
               subheading="You’ve been admmited"
             />
             <Link href={"/auth/login"}>
-              <button className="w-full btn h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]">
+              <button style={{padding:' 6px 30px'}} className=" btn cursor-pointer  rounded-[10px] text-[18px] font-[700] leading-[57px]">
                 continue to the lab
               </button>
             </Link>
