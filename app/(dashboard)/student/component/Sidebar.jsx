@@ -1,8 +1,11 @@
 "use client";
 import Image from "next/image";
 import Sidebtn from "./btn/Sidebtn";
+import { useContext } from "react";
+import { StudentContext } from "./Context/StudentContext";
 
 export default function Sidebar() {
+  const { menuOpen, setMenuOpen } = useContext(StudentContext);
   return (
     <div
       style={{ paddingLeft: "20px" }}
@@ -16,8 +19,11 @@ export default function Sidebar() {
         </div>
 
         <div className="flex flex-col gap-5">
-          <Sidebtn text={"Home"} />
-          <Sidebtn text={"My Missions"} />
+          <Sidebtn link={"/student/student-dashboard"} text={"Home"} />
+          <Sidebtn
+            link={"/student/student-dashboard/student-mission"}
+            text={"My Missions"}
+          />
           <Sidebtn text={"Mutation History"} />
           <Sidebtn text={"Mutation Profile"} />
           <Sidebtn text={"Certificates"} />

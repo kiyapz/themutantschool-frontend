@@ -15,7 +15,7 @@ export default function SidePanelLayout({text1,text2,text3,style}) {
             </p>
           </div>
         </div>
-        <div className={    `${style}`}>{text3}</div>
+        <div style={{padding:'10px'}} className={    `${style}`}>{text3}</div>
       </div>
     </>
   );

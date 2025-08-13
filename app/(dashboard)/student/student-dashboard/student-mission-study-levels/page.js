@@ -33,6 +33,8 @@ export default function Page() {
         ></div>
       </div>
 
+      
+
       <div className="w-full flexcenter h-fit  ">
         <LevelsPath />
       </div>

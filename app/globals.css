@@ -263,6 +263,9 @@ body {
   .padding-left  {
     padding-left: 0px;
   }
+  .margin-btn-smallScreen {
+    margin-top: 50px;
+  }
   .px {
     padding-left: 13px;
     padding-right: 13px;
@@ -339,3 +342,5 @@ body {
     clip-path: none;
   }
 }
+
+

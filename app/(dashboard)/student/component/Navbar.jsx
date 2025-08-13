@@ -1,31 +1,52 @@
-'use client'
-import { useContext } from "react";
+"use client";
+import { useContext, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
 import { FaArrowLeft } from "react-icons/fa";
+import { FiMenu } from "react-icons/fi"; // hamburger icon
+import { IoClose } from "react-icons/io5"; // close icon
+import Sidebar from "./Sidebar";
 
+export default function Navbar() {
+  const { viewStudentName, menuOpen, setMenuOpen } = useContext(StudentContext);
+  
 
-export default function Navbar(params) {
-    const { viewStudentName, } = useContext(StudentContext);
-    return (
+  return (
+    <div
+      style={{ padding: "0 30px" }}
+      className="h-[10vh] flex w-full  justify-between items-center"
+    >
+      <div>
+        <p className="text-[#919191] font-[300] text-[20px] sm:text-[48px] leading-[40px]">
+          Hello Mutant Etieno
+        </p>
+      </div>
+
+      {/* Menu Icon */}
       <div
-        style={{ paddingLeft: "30px" }}
-        className="h-[10vh] flex  items-center"
+        onClick={() => setMenuOpen(!menuOpen)}
+        className="sm:hidden relative z-30 cursor-pointer transition-transform duration-300"
       >
-        <div>
-          {viewStudentName ? (
-            <p className="text-[#919191] font-[300] text-[48px] leading-[40px]">
-              Hello Mutant Etieno
-            </p>
-          ) : (
-            <div className="flex gap-2">
-              <div className="cursor-pointer"><FaArrowLeft size={30} /></div>
-              <div>
-                <p className="font-[500] text-[20px] lg:text-[38px]  lg:leading-[39px] ">Digital Marketing</p>
-                <p className="font-[500] text-[20px] lg:text-[23px]  lg:leading-[20px] ">5 Levels</p>
-              </div>
-            </div>
-          )}
+        {menuOpen ? (
+          <IoClose size={22} className="text-white" />
+        ) : (
+          <FiMenu size={18} className="text-white" />
+        )}
+      </div>
+
+      {/* Sidebar Overlay */}
+      <div
+        className={`fixed top-0 right-0 z-20 w-full h-screen bg-[rgba(0,0,0,0.9)] sm:hidden transform transition-transform duration-500 ease-in-out ${
+          menuOpen ? "translate-x-0" : "translate-x-full"
+        }`}
+      >
+        <div
+          className={`w-[80%] h-full shadow-lg p-4 transition-transform duration-500 ease-in-out ${
+            menuOpen ? "translate-x-0" : "translate-x-full"
+          }`}
+        >
+          <Sidebar />
         </div>
       </div>
-    );
+    </div>
+  );
 }

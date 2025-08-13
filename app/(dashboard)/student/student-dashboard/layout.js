@@ -22,12 +22,12 @@ export default function RootLayout({ children }) {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-screen sm:h-screen">
           {/* Navbar  */}
-          <div>
+          <div className=" fixed top-0  left-0 right-0 z-10 bg-black sm:relative">
             <Navbar />
           </div>
           {/* Page Content */}
 
-          <div className="flex-1 px   py  grid h-[90vh]  ">
+          <div className="flex-1 px margin-btn-smallScreen   py  grid h-[90vh]  ">
             <main className="overflow-auto scrollbar-hide h-full col-span-2   p-4">
               {children}
             </main>

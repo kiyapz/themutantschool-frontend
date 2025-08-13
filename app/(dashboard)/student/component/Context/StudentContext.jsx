@@ -7,6 +7,7 @@ export const StudentContext = createContext();
 export const StudentProvider = ({ children }) => {
 
 const [viewStudentName,setViewStudentName] = useState(true)
+const [menuOpen, setMenuOpen] = useState(false);
 
   
   
@@ -15,6 +16,8 @@ const [viewStudentName,setViewStudentName] = useState(true)
       value={{
         viewStudentName,
         setViewStudentName,
+        menuOpen,
+        setMenuOpen,
       }}
     >
       {children}
