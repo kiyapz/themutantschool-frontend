@@ -1,5 +1,5 @@
 "use client";
-import Image from "next/image";
+
 import { useContext, useEffect, useState } from "react";
 import LoadingBar from "./components/LodingBar";
 import { CourseGuideContext } from "./components/course-guild-contex/Contex";
