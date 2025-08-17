@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { useState } from "react";
 
 export default function LevelsPath() {
@@ -36,6 +37,7 @@ export default function LevelsPath() {
             </p>
 
             {levels.map((label, levelIndex) => (
+              <Link href={`/student/student-dashboard/student-course-guilde`} key={levelIndex}>
               <div
                 key={levelIndex}
                 style={{
@@ -84,6 +86,7 @@ export default function LevelsPath() {
                   {label}
                 </div>
               </div>
+              </Link>
             ))}
           </div>
         </div>

@@ -1,7 +1,8 @@
-import { StudentProvider } from "../component/Context/StudentContext";
-import LevelChallange from "../component/LevelChallange";
-import Navbar from "../component/Navbar";
-import Sidebar from "../component/Sidebar";
+
+import { StudentProvider } from "../../component/Context/StudentContext";
+import LevelChallange from "../../component/LevelChallange";
+import Navbar from "../../component/Navbar";
+import Sidebar from "../../component/Sidebar";
 
 
 export const metadata = {

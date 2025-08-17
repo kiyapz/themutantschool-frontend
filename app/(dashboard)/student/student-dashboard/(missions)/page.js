@@ -1,5 +1,5 @@
 import Image from "next/image";
-import SidePanelLayout from "../component/SidePanelLayout";
+import SidePanelLayout from "../../component/SidePanelLayout";
 import Link from "next/link";
 import MissionCard from "./student-mission/components/MissionCard";
 

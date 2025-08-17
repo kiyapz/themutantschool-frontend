@@ -1,7 +1,7 @@
 'use client'
 import { useContext, useEffect } from "react";
-import LevelsPath from "../../component/LevelsPath";
-import { StudentContext } from "../../component/Context/StudentContext";
+import LevelsPath from "../../../component/LevelsPath";
+import { StudentContext } from "../../../component/Context/StudentContext";
 
 export default function Page() {
   const { setViewStudentName } = useContext(StudentContext);
