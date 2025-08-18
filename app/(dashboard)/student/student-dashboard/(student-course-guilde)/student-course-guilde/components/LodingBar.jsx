@@ -2,9 +2,9 @@ import Image from "next/image";
 
 export default function LoadingBar({width}) {
     return (
-      <div className="flex justify-between items-center w-full h-full px-4  gap-4 sm:gap-0 ">
-        <span className="font-[700] xl:text-[38px] leading-[100%] ">1/2</span>
-        <div className="w-[80%] h-[20px] xl:h-[34px] relative border-[4px] border-[#840B94] rounded-[50px]  ">
+      <div style={{marginBottom:'10px'}} className="flex justify-between items-center w-full h-full px-4  gap-4 sm:gap-0 ">
+        <span className="text-[12px] font-[700] xl:text-[28px] leading-[100%] ">1/2</span>
+        <div className=" w-[70%] sm:w-[80%] h-[20px] xl:h-[34px] relative border-[4px] border-[#840B94] rounded-[50px]  ">
           <div className={`${width} h-full bg-[#D550E6] rounded-[50px]`}></div>
           <div className="absolute top-[-3px] right-[-1px]  ">
             <Image
@@ -16,7 +16,7 @@ export default function LoadingBar({width}) {
           </div>
         </div>
         
-        <span className="text-[#037B9D] leading-[100%]  font-[700] xl:text-[38px] ">
+        <span className="text-[#037B9D] leading-[100%] text-[12px] font-[700] xl:text-[28px] ">
           5 XP
         </span>
       </div>

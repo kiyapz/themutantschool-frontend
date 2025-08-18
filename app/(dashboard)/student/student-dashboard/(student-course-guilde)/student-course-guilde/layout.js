@@ -1,7 +1,9 @@
 
+
 import CourseGuideProvider from "./components/course-guild-contex/Contex";
 import MissionVideo from "./components/MissionVideos";
 import NavBar from "./components/NavBar";
+
 
 
 
@@ -24,7 +26,7 @@ export default function RootLayout({ children }) {
           <main className="overflow-auto w-full scrollbar-hide h-full    p-4">
             {children}
           </main>
-          <div  className="   ">
+          <div className="">
             <MissionVideo />
           </div>
         </div>

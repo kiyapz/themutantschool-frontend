@@ -3,9 +3,10 @@ import Image from "next/image";
 import { CourseGuideContext } from "./course-guild-contex/Contex";
 import { useContext } from "react";
 import { FaPlay, FaPause, FaLock, FaLockOpen } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 
 export default function MissionVideo() {
-    const { showVideo } = useContext(CourseGuideContext);
+    const { showVideo, setShowVideo } = useContext(CourseGuideContext);
 
     const couser = [
       {
@@ -37,10 +38,24 @@ export default function MissionVideo() {
     return (
       <div>
         {showVideo && (
-          <div className={`w-[300px] xl:w-[400px] h-[90vh]`}>
-            <p className="text-[#BDE75D] font-[600] sm:text-[39px] sm:leading-[57px] text-center ">
-              Mutation Process
-            </p>
+          <div
+            className={`fixed top-0 left-0 px py w-full h-full z-50 bg-black lg:relative lg:opacity-100      lg:w-[300px] xl:w-[400px] lg:h-[90vh] overflow-auto  scrollbar-hide h-[90vh] lg:z-0`}
+          >
+            <div className="flex items-center justify-between lg:block">
+              <p
+                style={{ margin: " 15px 0px" }}
+                className="text-[#BDE75D] font-[600] sm:text-[39px] sm:leading-[57px] sm:text-center "
+              >
+                Mutation Process
+              </p>
+
+              <p
+                onClick={() => setShowVideo(false)}
+                className="cursor-pointer lg:hidden"
+              >
+                <FaTimes />
+              </p>
+            </div>
             <div className="grid grid-cols-1 h-[80vh]   gap-4 ">
               {couser.map((el, i) => (
                 <div
@@ -48,7 +63,7 @@ export default function MissionVideo() {
                   style={{ padding: "0 30px" }}
                   className="flex   rounded-[20px] bg-[#380C39] items-center justify-between "
                 >
-                  <div className="flex items-center justify-center gap-2">
+                  <div className="flex items-center justify-center gap-2 cursor-pointer">
                     <p>
                       <FaPlay />
                     </p>

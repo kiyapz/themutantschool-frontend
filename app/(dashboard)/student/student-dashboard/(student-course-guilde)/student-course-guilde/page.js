@@ -131,18 +131,17 @@ export default function Page() {
         return (
           <div
             style={{ padding: "10px" }}
-            className="w-full   relative  flex-1 h-[90vh] flexcenter flex-col bg-[#0A0A0A] m "
+            className="w-full   relative   flex-1 h-[90vh] flexcenter flex-col bg-[#0A0A0A] m "
           >
             <div className="max-w-[1261px] w-full h-full flex flex-col items-end justify-between">
               <div className="h-10 w-full flex items-center gap-4  ">
                 <LoadingBar width={"w-[40%]"} />
-                
               </div>
               {/* text */}
-              <div className="h-[80%] w-full flex flex-col justify-center items-center">
+              <div className="h-[80%] w-full max-w-[1800px]  flexcenter">
                 <video
                   controls
-                  className="max-w-full max-h-full object-contain"
+                  className="w-full h-full object-contain"
                   preload="metadata"
                   poster="/images/video-thumb.jpg"
                 >
