@@ -9,7 +9,7 @@ export default function NavBar() {
     const { showVideo, setShowVideo } = useContext(CourseGuideContext);
   return (
     <div
-    //   style={{ padding: "15px 30px" }}
+    
       className="w-full flex items-center justify-between p-4 text-white"
     >
       <div className="flex items-center gap-3  lg:gap-20 ">
