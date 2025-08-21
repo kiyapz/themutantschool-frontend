@@ -54,7 +54,7 @@ export default function Home() {
         }}
         className="h-screen flex items-center justify-center flex-col w-full bg-cover bg-center"
       >
-        {/* <div className="w-screen h-screen absolute top-0 z-40 left-0 bg-[rgba(0,0,0,0.7)] "></div> */}
+
 
         <div
           style={{ paddingTop: "10%" }}
