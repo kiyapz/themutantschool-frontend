@@ -6,7 +6,7 @@ import Capsels from '../components/Capsels';
 import MissionVideo from '../components/MissionVideos';
 import LevelQuiz from '../components/LevelQuiz';
 
-export default function page(params) {
+export default function Page(params) {
       const { id: id} = useParams();
 
     useEffect(() => {
