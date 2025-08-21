@@ -1,5 +1,5 @@
 'use client';
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { MdMenu } from "react-icons/md";
 import { CourseGuideContext } from "./course-guild-contex/Contex";
@@ -7,6 +7,10 @@ import { FaTimes } from "react-icons/fa";
 
 export default function NavBar() {
     const { showVideo, setShowVideo } = useContext(CourseGuideContext);
+    console.log(localStorage.getItem("USER"));
+
+
+  
   return (
     <div
     

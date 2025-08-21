@@ -1,40 +1,35 @@
 'use client';
 import Image from "next/image";
 import { CourseGuideContext } from "./course-guild-contex/Contex";
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { FaPlay, FaPause, FaLock, FaLockOpen } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
 
-export default function MissionVideo() {
-    const { showVideo, setShowVideo } = useContext(CourseGuideContext);
+export default function MissionVideo({id}) {
+    const { showVideo, setShowVideo, capselIndex, setCapselIndex } =
+      useContext(CourseGuideContext);
+    const [missionsCapsels, setMissionsCapsels] = useState([]);
 
-    const couser = [
-      {
-        id: 1,
-        title: "Mutation Process",
-        video: "https://www.youtube.com/watch?v=example1",
-      },
-      {
-        id: 2,
-        title: "Advanced Mutation Techniques",
-        video: "https://www.youtube.com/watch?v=example2",
-      },
-      {
-        id: 3,
-        title: "Mutation in Real-World Applications",
-        video: "https://www.youtube.com/watch?v=example3",
-      },
-      {
-        id: 4,
-        title: "Advanced Mutation Techniques",
-        video: "https://www.youtube.com/watch?v=example2",
-      },
-      {
-        id: 5,
-        title: "Mutation in Real-World Applications",
-        video: "https://www.youtube.com/watch?v=example3",
-      },
-    ];
+ useEffect(() => {
+      
+      const fetchMissionCapsels = async () => {
+        const Capsels = localStorage.getItem("missionsCapsels");
+        console.log("Capsels from localStorage:", Capsels); 
+        if (Capsels) {
+          const parsedCapsels = JSON.parse(Capsels);
+          console.log("Parsed Capsels:", parsedCapsels);
+          setMissionsCapsels(parsedCapsels);
+        }
+
+      }
+
+       
+      fetchMissionCapsels();
+    }, []);
+
+
+
+   
     return (
       <div>
         {showVideo && (
@@ -57,9 +52,13 @@ export default function MissionVideo() {
               </p>
             </div>
             <div className="grid grid-cols-1 h-[80vh]   gap-4 ">
-              {couser.map((el, i) => (
+              {missionsCapsels.map((el, i) => (
                 <div
                   key={i}
+                  onClick={() => {
+                    setShowVideo(false);
+                    setCapselIndex(i);
+                  }}
                   style={{ padding: "0 30px" }}
                   className="flex   rounded-[20px] bg-[#380C39] items-center justify-between "
                 >

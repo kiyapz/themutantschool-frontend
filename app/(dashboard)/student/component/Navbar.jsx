@@ -1,14 +1,27 @@
 "use client";
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
 import { FaArrowLeft } from "react-icons/fa";
 import { FiMenu } from "react-icons/fi"; // hamburger icon
 import { IoClose } from "react-icons/io5"; // close icon
 import Sidebar from "./Sidebar";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const router = useRouter();
   const { viewStudentName, menuOpen, setMenuOpen } = useContext(StudentContext);
-  
+  const [name, setName] = useState("");
+
+  useEffect(() => {
+    const user = localStorage.getItem("USER");
+    if (user) {
+      const { firstName, lastName } = JSON.parse(user);
+      setName(`${firstName} ${lastName}`);
+    } else {
+      console.log("No user found in localStorage");
+      router.push("/");
+    }
+  }, [router]);
 
   return (
     <div
@@ -17,7 +30,7 @@ export default function Navbar() {
     >
       <div>
         <p className="text-[#919191] font-[300] text-[20px] sm:text-[48px] leading-[40px]">
-          Hello Mutant Etieno
+          Hello {name}
         </p>
       </div>
 

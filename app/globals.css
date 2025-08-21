@@ -234,6 +234,17 @@ body {
 .mt-mutantlogin {
   margin-top: 1%;
 }
+/* Add to global styles or inside a <style jsx> block */
+.loader {
+  border-top-color: #facc15; /* yellow */
+  animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 @keyframes marquee {
   0% {

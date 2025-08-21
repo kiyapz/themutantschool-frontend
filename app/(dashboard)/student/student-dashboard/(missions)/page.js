@@ -2,8 +2,16 @@ import Image from "next/image";
 import SidePanelLayout from "../../component/SidePanelLayout";
 import Link from "next/link";
 import MissionCard from "./student-mission/components/MissionCard";
+import axios from "axios";
 
 export default function page() {
+
+ 
+
+
+
+
+
   return (
     <div className="flex flex-col justify-between h-full">
       <MissionCard
