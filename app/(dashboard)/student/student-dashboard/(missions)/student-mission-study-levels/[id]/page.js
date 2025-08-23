@@ -56,7 +56,7 @@ export default function MissionPage() {
 //   }, [missionId]);
 useEffect(() => {
   if (!missionId) return;
-
+localStorage.setItem("currentMissionId", missionId);
   const fetchMissionData = async () => {
     const token = localStorage.getItem("login-accessToken");
 
@@ -73,7 +73,7 @@ useEffect(() => {
 
       const allMissions = response.data.data;
 
-      console.log("Fetched Mission Data:----------", response.data.data);
+      console.log("Fetched Mission Data everything:----------", response.data.data);
 
     //   const matchedMission = allMissions.find(
     //     (mission) => mission.mission === missionId

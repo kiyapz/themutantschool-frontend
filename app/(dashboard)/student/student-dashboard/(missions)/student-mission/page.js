@@ -51,7 +51,7 @@ export default function Page() {
           error.response?.data || error.message
         );
       } finally {
-        setLoading(false); // ✅ end loading whether success or error
+        setLoading(false);
       }
     };
 

@@ -230,7 +230,7 @@ console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
                 <LevelQuiz />
               </div>
 
-              <div className=" flex justify-between items-center w-full h-[10%] px-4">
+              {/* <div className=" flex justify-between items-center w-full h-[10%] px-4">
                 <button
                   onClick={() => setChangeStages((prev) => prev - 1)}
                   className="text-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[100px] sm:w-[177.14px] font-[700] sm:text-[31px] leading-[100%]  rounded-[10px]  "
@@ -245,7 +245,7 @@ console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
                 >
                   Submit Quiz
                 </button>
-              </div>
+              </div> */}
             </div>
           </div>
         );
