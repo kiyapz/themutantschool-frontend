@@ -6,10 +6,12 @@ import LoadingBar from "./LodingBar";
 import MissionVideo from "./MissionVideos";
 import LevelQuiz from "./LevelQuiz";
 import { CourseGuideContext } from "./course-guild-contex/Contex";
+import { StudentContext } from "@/app/(dashboard)/student/component/Context/StudentContext";
 
 export default function Capsels({id}) {
   const [changeStages, setChangeStages] = useState(1);
 const [missionsCapsels, setMissionsCapsels] = useState([]);
+const { currentCapsule, setCurrentCapsule } = useContext(StudentContext);
   const {
     showVideo,
     setShowVideo,
@@ -19,6 +21,7 @@ const [missionsCapsels, setMissionsCapsels] = useState([]);
     
   } = useContext(CourseGuideContext);
 
+console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
 
 
            useEffect(() => {
@@ -52,99 +55,107 @@ const [missionsCapsels, setMissionsCapsels] = useState([]);
     switch (changeStages) {
       case 1:
         return (
-          <div
-            style={{ padding: "10px" }}
-            className="w-full    relative flex-1 h-[90vh] flexcenter flex-col bg-[#0A0A0A] m "
-          >
-            <div className="max-w-[1261px]  w-full h-full flex flex-col items-end justify-between">
-              <div className="h-10 w-full  ">
+          <div className="w-full h-[82vh]  flexcenter bg-[#0A0A0A] p-[10px]">
+            <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
+              {/* Loading Bar - Fixed height */}
+              <div className="h-[60px] w-full flex items-center">
                 <LoadingBar width={"w-[10%]"} />
               </div>
-              {/* text */}
-              <div className="h-fit sm:h-[80%] w-full flex flex-col justify-center ">
-                <p className="font-[700] sm:text-[25px] sm:leading-[43px] ">
+
+              {/* Content - Takes remaining space */}
+              <div className="flex-1 flex flex-col justify-center overflow-y-auto">
+                <p className="font-[700] text-[20px] sm:text-[25px] sm:leading-[43px] mb-6">
                   After successfully completing this module, you will be able
                   to:
                 </p>
-                <div style={{ paddingLeft: "20px" }}>
-                  <ul className="list-disc pl-5">
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
+                <div className="pl-5">
+                  <ul className="list-disc pl-5 space-y-2">
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
                       Understand the basics of web development
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
                       Create a simple web page using HTML and CSS
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
                       Implement basic JavaScript functionality
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
-                      Understand the basics of web development
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
+                      Understand responsive web design principles
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
-                      Create a simple web page using HTML and CSS
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
+                      Work with modern development tools
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
-                      Implement basic JavaScript functionality
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
+                      Debug and troubleshoot common issues
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
-                      Understand the basics of web development
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
+                      Apply best practices in coding
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
-                      Create a simple web page using HTML and CSS
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
+                      Build interactive user interfaces
                     </li>
-                    <li className="sm:text-[20px] leading-[30px] font-[400] ">
-                      Implement basic JavaScript functionality
+                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
+                      Deploy applications to production
                     </li>
                   </ul>
                 </div>
               </div>
 
-              <button
-                onClick={() => setChangeStages((prev) => prev + 1)}
-                className="bg-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[177.14px] font-[700] text-[31px] leading-[100%] text-white rounded-[10px]  "
-              >
-                Next
-              </button>
+              {/* Button - Fixed height */}
+              <div className="h-[100px] flex items-center justify-end">
+                <button
+                  onClick={() => setChangeStages((prev) => prev + 1)}
+                  className="bg-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] text-white rounded-[10px]"
+                >
+                  Next
+                </button>
+              </div>
             </div>
           </div>
         );
 
       case 2:
         return (
-          <div
-            style={{ padding: "10px" }}
-            className="w-full max-w-[1800px]   relative flex-1 h-[90vh]  flexcenter flex-col bg-[#0A0A0A] m "
-          >
-            <div className="max-w-[1261px] w-full h-full flex flex-col items-end justify-between">
-              <div className="h-10 w-full  ">
+          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
+            <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
+              {/* Loading Bar - Fixed height */}
+              <div className="h-[60px] w-full flex items-center">
                 <LoadingBar width={"w-[20%]"} />
               </div>
-              {/* text */}
-              <div className="h-[80%] w-full flex max-w-[1800px]  flex-col justify-center">
-                <video
-                  controls
-                  className="w-full h-full object-contain"
-                  preload="metadata"
-                  poster={
-                    missionsCapsels[0].thumbnailUrl || "/default-poster.jpg"
-                  } // image URL here
-                >
-                  <source src={missionsCapsels[0].videoUrl.url} type="video/mp4" />
-                  Your browser does not support the video tag.
-                </video>
+
+              
+              <div className="flex-1 flex items-center justify-center min-h-0">
+                <div className="w-full h-full max-h-[calc(100vh-160px)] flex items-center justify-center">
+                  <video
+                    controls
+                    className="w-full h-full max-h-full object-contain rounded-lg"
+                    preload="metadata"
+                    poster={
+                      currentCapsule[capselIndex]?.thumbnailUrl ||
+                      "/default-poster.jpg"
+                    }
+                  >
+                    <source
+                      src={currentCapsule[capselIndex]?.videoUrl?.url}
+                      type="video/mp4"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
+                </div>
               </div>
 
-              <div className=" flex justify-between items-center w-full h-[10%] px-4">
+              {/* Buttons - Fixed height */}
+              <div className="h-[100px] flex justify-between items-center">
                 <button
                   onClick={() => setChangeStages((prev) => prev - 1)}
-                  className="text-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[100px] sm:w-[177.14px] font-[700] sm:text-[31px] leading-[100%]  rounded-[10px]  "
+                  className="text-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] rounded-[10px] border border-[#840B94]"
                 >
                   Previous
                 </button>
 
                 <button
                   onClick={() => setChangeStages((prev) => prev + 1)}
-                  className="bg-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[100px] sm:w-[177.14px] font-[700] sm:text-[31px] leading-[100%] text-white rounded-[10px]  "
+                  className="bg-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] text-white rounded-[10px]"
                 >
                   Next
                 </button>
@@ -154,53 +165,55 @@ const [missionsCapsels, setMissionsCapsels] = useState([]);
         );
 
       case 3:
-        return (
-          <div
-            style={{ padding: "10px" }}
-            className="w-full   relative   flex-1 h-[90vh] flexcenter flex-col bg-[#0A0A0A] m "
-          >
-            <div className="max-w-[1261px] w-full h-full flex flex-col items-end justify-between">
-              <div className="h-10 w-full flex items-center gap-4  ">
-                <LoadingBar width={"w-[40%]"} />
-              </div>
-              {/* text */}
-              <div className="h-[80%] w-full max-w-[1800px]  flexcenter">
-                <video
-                  controls
-                  className="w-full h-full object-contain"
-                  preload="metadata"
-                  poster={
-                    missionsCapsels[capselIndex].thumbnailUrl ||
-                    "/default-poster.jpg"
-                  } // image URL here
-                >
-                  <source
-                    src={missionsCapsels[0].videoUrl.url}
-                    type="video/mp4"
-                  />
-                  Your browser does not support the video tag.
-                </video>
-              </div>
+              return (
+                <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
+                  <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
+                    {/* Loading Bar - Fixed height */}
+                    <div className="h-[60px] w-full flex items-center">
+                      <LoadingBar width={"w-[40%]"} />
+                    </div>
 
-              <div className=" flex justify-between items-center w-full h-[10%] px-4">
-                <button
-                  onClick={() => setChangeStages((prev) => prev - 1)}
-                  className="text-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[100px] sm:w-[177.14px] font-[700] sm:text-[31px] leading-[100%]  rounded-[10px]  "
-                >
-                  Previous
-                </button>
+                    {/* Video - Takes remaining space with fixed aspect ratio */}
+                    <div className="flex-1 flex items-center justify-center min-h-0">
+                      <div className="w-full  h-full max-h-[calc(100vh-160px)] flex items-center justify-center">
+                        <video
+                          controls
+                          className="w-full h-full max-h-full object-contain rounded-lg"
+                          preload="metadata"
+                          poster={
+                            currentCapsule[capselIndex]?.thumbnailUrl ||
+                            "/default-poster.jpg"
+                          }
+                        >
+                          <source
+                            src={currentCapsule[capselIndex]?.videoUrl?.url}
+                            type="video/mp4"
+                          />
+                          Your browser does not support the video tag.
+                        </video>
+                      </div>
+                    </div>
 
-                <button
-                  //   disabled
-                  onClick={() => setChangeStages((prev) => prev + 1)}
-                  className="bg-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[100px] sm:w-[177.14px] font-[700] sm:text-[31px] leading-[100%] text-white rounded-[10px]  "
-                >
-                  Start Quiz
-                </button>
-              </div>
-            </div>
-          </div>
-        );
+                    {/* Buttons - Fixed height */}
+                    <div className="h-[100px] flex justify-between items-center">
+                      <button
+                        onClick={() => setChangeStages((prev) => prev - 1)}
+                        className="text-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] rounded-[10px] border border-[#840B94]"
+                      >
+                        Previous
+                      </button>
+
+                      <button
+                        onClick={() => setChangeStages((prev) => prev + 1)}
+                        className="bg-[#840B94] cursor-pointer p-2 h-[71px] w-[140px] sm:w-[200px] font-[700] text-[18px] sm:text-[28px] leading-[100%] text-white rounded-[10px]"
+                      >
+                        Start Quiz
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              );
+
 
       default:
         return (
@@ -208,7 +221,7 @@ const [missionsCapsels, setMissionsCapsels] = useState([]);
             style={{ padding: "10px" }}
             className="w-full   relative flex-1 h-fit flexcenter flex-col bg-[#0A0A0A]  "
           >
-            <div className="max-w-[1261px] w-full h-full flex flex-col items-end justify-between">
+            <div className="max-w-[1261px] w-full h-[85vh]  flex flex-col items-end justify-between">
               <div className="h-10 w-full  ">
                 <LoadingBar width={"w-[70%]"} />
               </div>

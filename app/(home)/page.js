@@ -61,10 +61,10 @@ export default function Home() {
           className="max-w-[376.97px]   herosection-mb flexcenter flex-col gap-5  sm:max-w-[1750.59px]  w-full  px-4"
         >
           <div className="relative z-40">
-            <h2 className="Xirod text-[40px] sm:text-[40px] leading-[37px] sm:leading-[42px] text-center  ">
+            <h2 className="Xirod text-[30px] sm:text-[40px] leading-[30px] sm:leading-[42px] text-center  ">
               YOU AIN’T{" "}
             </h2>
-            <h2 className="text-white   sm:bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text sm:text-transparent Xirod text-[40px] leading-[40px] sm:text-[40px] sm:leading-[42px] text-center ">
+            <h2 className="text-white   sm:bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text sm:text-transparent Xirod text-[30px] leading-[30px] sm:text-[40px] sm:leading-[42px] text-center ">
               LIKE THE{" "}
               <span className="bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text text-transparent Xirod">
                 OTHERS

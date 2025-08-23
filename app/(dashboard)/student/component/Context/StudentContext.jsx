@@ -8,6 +8,7 @@ export const StudentProvider = ({ children }) => {
 
 const [viewStudentName,setViewStudentName] = useState(true)
 const [menuOpen, setMenuOpen] = useState(false);
+ const [currentCapsule, setCurrentCapsule] = useState([]);
 
   
   
@@ -18,6 +19,8 @@ const [menuOpen, setMenuOpen] = useState(false);
         setViewStudentName,
         menuOpen,
         setMenuOpen,
+        currentCapsule,
+        setCurrentCapsule,
       }}
     >
       {children}

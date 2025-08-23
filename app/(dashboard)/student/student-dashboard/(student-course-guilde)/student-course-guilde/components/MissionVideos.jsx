@@ -4,10 +4,13 @@ import { CourseGuideContext } from "./course-guild-contex/Contex";
 import { useContext, useEffect, useState } from "react";
 import { FaPlay, FaPause, FaLock, FaLockOpen } from "react-icons/fa";
 import { FaTimes } from "react-icons/fa";
+import { StudentContext } from "@/app/(dashboard)/student/component/Context/StudentContext";
 
 export default function MissionVideo({id}) {
     const { showVideo, setShowVideo, capselIndex, setCapselIndex } =
       useContext(CourseGuideContext);
+
+      const { currentCapsule, setCurrentCapsule } = useContext(StudentContext);
     const [missionsCapsels, setMissionsCapsels] = useState([]);
 
  useEffect(() => {
@@ -52,7 +55,7 @@ export default function MissionVideo({id}) {
               </p>
             </div>
             <div className="grid grid-cols-1 h-[80vh]   gap-4 ">
-              {missionsCapsels.map((el, i) => (
+              {currentCapsule.map((el, i) => (
                 <div
                   key={i}
                   onClick={() => {

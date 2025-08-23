@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 
 export default function LevelsPath({ level }) {
+  const [currentCapsule, setCurrentCapsule] = useState(null); 
   const [mission, setMission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [quizbtn, setQuizbtn] = useState(false);
@@ -14,6 +15,8 @@ export default function LevelsPath({ level }) {
   });
 
   console.log("Levels Path:", levelState.id);
+
+  
 
   const positions = [
     { top: "0px", left: "50%" },
@@ -39,8 +42,10 @@ export default function LevelsPath({ level }) {
           }
         );
 
-        const allMissions = response.data.data;
-        console.log("Fetched Capsels nnnnnnnnnn", response.data.data);
+        // const allCapsels = response.data.data;
+        // setCurrentCapsule(allCapsels.capsules || []);
+        // console.log("Fetched Capsels nnnnnnnnnn   new oo", response.data.data);
+        //   console.log(currentCapsule, "currentCapsulezzzzzzzzzzzzz");
       } catch (error) {
         console.log(
           "Error fetching missions:",

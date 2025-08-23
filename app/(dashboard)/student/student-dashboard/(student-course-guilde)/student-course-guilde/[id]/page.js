@@ -1,14 +1,20 @@
 'use client';
 import axios from 'axios';
 import { useParams } from "next/navigation";
-import { useEffect } from "react";
+import { useContext, useEffect, useState } from "react";
 import Capsels from '../components/Capsels';
 import MissionVideo from '../components/MissionVideos';
 import LevelQuiz from '../components/LevelQuiz';
+import { StudentContext } from '@/app/(dashboard)/student/component/Context/StudentContext';
 
-export default function Page(params) {
+export default function Page() {
+  // this is the current level id
       const { id: id} = useParams();
-
+      console.log("Current Level ID:", id);
+      // const [] = useState([]);
+       const { currentCapsule, setCurrentCapsule } = useContext(StudentContext);
+      
+console.log(currentCapsule, "currentCapsulellllllllllllllllllllllllll");
     useEffect(() => {
         if (!id) return;
       const fetchMissionData = async () => {
@@ -25,16 +31,18 @@ export default function Page(params) {
             }
           );
 
-          const allMissions = response.data.data;
+          const allCapsels = response.data.data;
+           setCurrentCapsule(allCapsels.capsules);
 
-          localStorage.setItem(
-            "missionsCapsels",
-            JSON.stringify(allMissions.capsules)
-          );
-          console.log("Fetched Capsels nnnnnnnnnn", response.data.data);
+          
+          
+
+          
+          console.log("Capsels", allCapsels.capsules);
         } catch (error) {
+          console.log("Error fetching missions capsels nnnnnnnnnnnnnnnn:");
           console.log(
-            "Error fetching missions:",
+            "Error fetching missions nnnnnnnnnnnnnnnn:",
             error.response?.data || error.message
           );
         } finally {
