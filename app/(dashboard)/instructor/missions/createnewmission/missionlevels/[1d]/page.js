@@ -2,13 +2,11 @@
 
 import { useParams, useRouter } from "next/navigation";
 import MutationProcess from "../_components/MutationProcess";
-import { FiDownload } from "react-icons/fi";
-import { FiSave } from "react-icons/fi";
+import { FiDownload, FiSave, FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaLessThan } from "react-icons/fa";
 import Link from "next/link";
-import { FiEdit, FiTrash2 } from "react-icons/fi";
-import { useEffect, useState } from "react";
-import axios from "axios"; // Add this import
+import { useEffect, useState, useCallback } from "react";
+import axios from "axios";
 
 const actions = [
   { text: "Delete", icon: <FiTrash2 /> },
@@ -25,18 +23,17 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  console.log("Full params object:", params);
-  console.log("Router object:", router);
+  // Expect your route folder to be: .../missionlevels/[id]/page.js
+  // If it's [1d] right now, rename it to [id]
+  const { id } = params || {};
 
-  // Fix the parameter extraction - use the correct dynamic route parameter name
-  const id = params["1d"] || params.id || params._id; 
-
-  console.log("Extracted ID:", id);
-
-  // Token refresh function
-  const refreshAuthToken = async () => {
+  // --- Token refresh, memoized so callers stay stable ---
+  const refreshAuthToken = useCallback(async () => {
     try {
-      const refreshToken = localStorage.getItem("refreshToken");
+      const refreshToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("refreshToken")
+          : null;
       if (!refreshToken) {
         console.warn("No refresh token found");
         router.push("/Login");
@@ -45,15 +42,11 @@ export default function Page() {
 
       const response = await fetch("/api/auth/refresh-token", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ refreshToken }),
       });
 
-      if (!response.ok) {
-        throw new Error("Failed to refresh token");
-      }
+      if (!response.ok) throw new Error("Failed to refresh token");
 
       const data = await response.json();
 
@@ -61,48 +54,47 @@ export default function Page() {
       if (data.refreshToken) {
         localStorage.setItem("refreshToken", data.refreshToken);
       }
-
       return data.accessToken;
-    } catch (error) {
-      console.error("Token refresh failed:", error);
+    } catch (err) {
+      console.error("Token refresh failed:", err);
       localStorage.removeItem("login-accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("USER");
       router.push("/Login");
       return null;
     }
-  };
+  }, [router]);
 
-  // Enhanced API call function with token refresh
-  const makeAuthenticatedRequest = async (url, options = {}) => {
-    let accessToken = localStorage.getItem("login-accessToken");
+  // --- Authenticated GET wrapper, memoized ---
+  const makeAuthenticatedRequest = useCallback(
+    async (url, options = {}) => {
+      const accessToken =
+        typeof window !== "undefined"
+          ? localStorage.getItem("login-accessToken")
+          : null;
 
-    if (!accessToken) {
-      console.warn("No access token found");
-      router.push("/Login");
-      return null;
-    }
+      if (!accessToken) {
+        console.warn("No access token found");
+        router.push("/Login");
+        return null;
+      }
 
-    try {
-      const response = await axios.get(url, {
-        ...options,
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${accessToken}`,
-          ...options.headers,
-        },
-      });
-
-      return response;
-    } catch (error) {
-      if (error.response?.status === 401 || error.response?.status === 403) {
-        console.log("Token expired, attempting to refresh...");
-
-        const newAccessToken = await refreshAuthToken();
-
-        if (newAccessToken) {
-          try {
-            const retryResponse = await axios.get(url, {
+      try {
+        const response = await axios.get(url, {
+          ...options,
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+            ...options.headers,
+          },
+        });
+        return response;
+      } catch (err) {
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          console.log("Token expired, attempting to refresh...");
+          const newAccessToken = await refreshAuthToken();
+          if (newAccessToken) {
+            const retry = await axios.get(url, {
               ...options,
               headers: {
                 "Content-Type": "application/json",
@@ -110,29 +102,27 @@ export default function Page() {
                 ...options.headers,
               },
             });
-
-            return retryResponse;
-          } catch (retryError) {
-            console.error(
-              "Request failed even after token refresh:",
-              retryError
-            );
-            throw retryError;
+            return retry;
           }
         }
+        throw err;
       }
-
-      throw error;
-    }
-  };
+    },
+    [refreshAuthToken, router]
+  );
 
   useEffect(() => {
+    let isMounted = true;
+
     const fetchMissionLevels = async () => {
       try {
         setLoading(true);
         setError(null);
 
-        const storedMissionId = localStorage.getItem("missionId");
+        const storedMissionId =
+          typeof window !== "undefined"
+            ? localStorage.getItem("missionId")
+            : null;
 
         if (!storedMissionId) {
           console.log("Missing missionId in localStorage");
@@ -140,31 +130,27 @@ export default function Page() {
           return;
         }
 
-        console.log("Stored Mission ID:", storedMissionId);
-
         const response = await makeAuthenticatedRequest(
           `https://themutantschool-backend.onrender.com/api/mission-level/mission/${storedMissionId}`
         );
 
-        if (response && response.data) {
-          console.log(
-            "Mission data retrieved successfully:",
-            response.data.data
-          );
+        if (isMounted && response?.data?.data) {
           setLevels(response.data.data);
         }
-      } catch (error) {
-        console.error("Error retrieving mission data:", error);
-        setError("Failed to load mission data");
+      } catch (err) {
+        console.error("Error retrieving mission data:", err);
+        if (isMounted) setError("Failed to load mission data");
       } finally {
-        setLoading(false);
+        if (isMounted) setLoading(false);
       }
     };
 
     fetchMissionLevels();
+    return () => {
+      isMounted = false;
+    };
   }, [makeAuthenticatedRequest, router]);
 
-  // Handle loading state
   if (loading) {
     return (
       <div className="p-5 text-white">
@@ -175,7 +161,6 @@ export default function Page() {
     );
   }
 
-  // Handle error state
   if (error) {
     return (
       <div className="p-5 text-white">
@@ -186,11 +171,9 @@ export default function Page() {
     );
   }
 
-  // Find the response based on the ID
-  const respone = levels.find((el) => el._id === id);
+  const responseLevel = levels.find((el) => el._id === id);
 
-  // Handle case when no matching level is found
-  if (!respone) {
+  if (!responseLevel) {
     return (
       <div className="p-5 text-white">
         <div className="flex items-center justify-center h-64">
@@ -213,11 +196,11 @@ export default function Page() {
                 <FaLessThan />
               </span>
             </Link>
-            {` ${respone.title}`}
+            {` ${responseLevel.title}`}
           </p>
           <p className="text-[var(--link-color)] font-[500] text-[14px] leading-[57px]">
             Mission: Web Development Mastery .
-            <span>{`Level ${respone.level}: ${respone.title}`}</span>
+            <span>{`Level ${responseLevel.level}: ${responseLevel.title}`}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -242,17 +225,17 @@ export default function Page() {
           className="xl:col-span-2 gap-10 flex flex-col bg-[var(--black-bg)] rounded-[20px]"
           style={{ padding: "20px" }}
         >
-          <div className="">
-            <p className="text-[42px] font-[600] leading-[40px]">{`Capsule:${respone.title}`}</p>
+          <div>
+            <p className="text-[42px] font-[600] leading-[40px]">{`Capsule: ${responseLevel.title}`}</p>
             <p className="text-[var(--link-color)] font-[500] text-[14px] leading-[57px]">
-              Duration: 25 Minutes .
+              Duration: 25 Minutes .{" "}
               <span>
                 Difficulty: Intermediate . Last Edited: Today, 2:30 PM
               </span>
             </p>
 
             <div className="flex flex-col gap-5">
-              <div className="w-full h-[438px] rounded-[30px] bg-[#604196]"></div>
+              <div className="w-full h-[438px] rounded-[30px] bg-[#604196]" />
 
               <div className="flex flex-col gap-5">
                 <h1 className="text-[27px] leading-[57px] font-[600] text-[var(--sidebar-hovercolor)]">
@@ -260,7 +243,7 @@ export default function Page() {
                 </h1>
 
                 <p className="text-[16px]">
-                  {respone.description ||
+                  {responseLevel.description ||
                     `Welcome to your first step into the web! In this lesson, you'll uncover the building blocks of every website: HTML tags. Learn how to structure content using tags like <html>, <head>, <body>, <h1>–<h6>, <p>, <a>, <img>, and more. Discover how these magical brackets tell browsers what to display and how to organize it. Whether you're creating mutant mission logs or super-powered portfolios, mastering tags is your gateway to the web.`}
                 </p>
 

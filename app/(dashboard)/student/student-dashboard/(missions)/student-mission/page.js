@@ -3,24 +3,25 @@ import axios from "axios";
 import MissionCard from "./components/MissionCard";
 import { useEffect, useState } from "react";
 
+// ✅ Define missioncard outside the component
+const missioncard = [
+  {
+    bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
+  },
+  {
+    bg: "bg-gradient-to-r from-[#231926] to-[#194034]",
+  },
+  {
+    bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
+  },
+  {
+    bg: "bg-gradient-to-r from-[#231926] to-[#5D1D49]",
+  },
+];
+
 export default function Page() {
   const [missionPurchases, setMissionPurchases] = useState([]);
   const [loading, setLoading] = useState(true); // ✅ loading state
-
-  const missioncard = [
-    {
-      bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
-    },
-    {
-      bg: "bg-gradient-to-r from-[#231926] to-[#194034]",
-    },
-    {
-      bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
-    },
-    {
-      bg: "bg-gradient-to-r from-[#231926] to-[#5D1D49]",
-    },
-  ];
 
   useEffect(() => {
     const fetchStudentBreakdown = async () => {
@@ -55,7 +56,7 @@ export default function Page() {
     };
 
     fetchStudentBreakdown();
-  }, []);
+  }, []); // ✅ no more warning
 
   return (
     <>

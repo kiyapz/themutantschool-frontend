@@ -6,29 +6,25 @@ import MissionCard from "./student-mission/components/MissionCard";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
+// Move this outside so it doesn't need to be in the useEffect deps
+const missioncard = [
+  { bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]" },
+  { bg: "bg-gradient-to-r from-[#231926] to-[#194034]" },
+  { bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]" },
+  { bg: "bg-gradient-to-r from-[#231926] to-[#5D1D49]" },
+];
+
 export default function Page() {
   const [missionPurchases, setMissionPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const missioncard = [
-    {
-      bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
-    },
-    {
-      bg: "bg-gradient-to-r from-[#231926] to-[#194034]",
-    },
-    {
-      bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
-    },
-    {
-      bg: "bg-gradient-to-r from-[#231926] to-[#5D1D49]",
-    },
-  ];
-
   useEffect(() => {
     const fetchStudentBreakdown = async () => {
       try {
-        const token = localStorage.getItem("login-accessToken");
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("login-accessToken")
+            : null;
 
         const response = await axios.get(
           "https://themutantschool-backend.onrender.com/api/student/breakdown",
@@ -40,17 +36,19 @@ export default function Page() {
           }
         );
 
-        const missionsWithBg = response.data.data.map((mission, index) => ({
-          ...mission,
-          bg: missioncard[index % missioncard.length].bg,
-        }));
+        const missionsWithBg = (response?.data?.data ?? []).map(
+          (mission, index) => ({
+            ...mission,
+            bg: missioncard[index % missioncard.length].bg,
+          })
+        );
 
         setMissionPurchases(missionsWithBg);
         console.log("Mission Purchases:", missionsWithBg);
       } catch (error) {
         console.error(
           "Error fetching student breakdown:",
-          error.response?.data || error.message
+          error?.response?.data || error?.message
         );
       } finally {
         setLoading(false);
@@ -58,7 +56,7 @@ export default function Page() {
     };
 
     fetchStudentBreakdown();
-  }, []);
+  }, []); // safe, missioncard is module-scoped
 
   // Get the mission at index 0
   const firstMission = missionPurchases[0];
@@ -86,8 +84,9 @@ export default function Page() {
 
       <div className="w-full">
         <p className="text-[#909090] px font-[800] text-[27px] leading-[60px] ">
-          Let's Get You Started
+          Let&apos;s Get You Started
         </p>
+
         <div className="flex flex-col padding-left gap-5">
           <div>
             <SidePanelLayout
