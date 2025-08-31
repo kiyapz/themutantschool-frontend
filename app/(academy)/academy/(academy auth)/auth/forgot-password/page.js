@@ -27,31 +27,29 @@ export default function Forgotpassword() {
  
 
   useEffect(() => {
-    setsuccessvalue(false)
+    setsuccessvalue(false);
 
     if (registerStep === 1) {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isValidEmail = email ? emailRegex.test(email.trim()) : false;
-   
-    setsuccessvalue(isValidEmail)
-    setDisablebtn(!(isValidEmail));
+      const isValidEmail = email ? emailRegex.test(email.trim()) : false;
 
-    return;
+      setsuccessvalue(isValidEmail);
+      setDisablebtn(!isValidEmail);
+
+      return;
     }
-    
+
     if (registerStep === 2) {
-      setDisablebtn(true)
+      setDisablebtn(true);
       if (otpCode.trim().length === 6) {
         setDisablebtn(false);
       } else {
         setDisablebtn(true);
       }
-      
+
       return;
     }
-      
-    
-}, [email,otpCode, registerStep]);
+  }, [email, otpCode, registerStep, setsuccessvalue]);
  
 useEffect(() => {
   let interval;

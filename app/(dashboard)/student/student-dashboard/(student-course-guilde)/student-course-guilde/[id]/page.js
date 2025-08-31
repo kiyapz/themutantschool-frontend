@@ -16,7 +16,7 @@ export default function Page() {
       
 console.log(currentCapsule, "currentCapsulellllllllllllllllllllllllll");
     useEffect(() => {
-        if (!id) return;
+      if (!id) return;
       const fetchMissionData = async () => {
         const token = localStorage.getItem("login-accessToken");
 
@@ -32,12 +32,8 @@ console.log(currentCapsule, "currentCapsulellllllllllllllllllllllllll");
           );
 
           const allCapsels = response.data.data;
-           setCurrentCapsule(allCapsels.capsules);
+          setCurrentCapsule(allCapsels.capsules);
 
-          
-          
-
-          
           console.log("Capsels", allCapsels.capsules);
         } catch (error) {
           console.log("Error fetching missions capsels nnnnnnnnnnnnnnnn:");
@@ -46,12 +42,12 @@ console.log(currentCapsule, "currentCapsulellllllllllllllllllllllllll");
             error.response?.data || error.message
           );
         } finally {
-        //   setLoading(false);
+          //   setLoading(false);
         }
       };
 
       fetchMissionData();
-    }, [id]);
+    }, [id, setCurrentCapsule]);
 
     //  if (loading) return <div className="p-4">Loading mission...</div>;
     return (

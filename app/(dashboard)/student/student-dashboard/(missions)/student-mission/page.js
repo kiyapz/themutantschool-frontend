@@ -44,7 +44,6 @@ export default function Page() {
 
         setMissionPurchases(missionsWithBg);
         console.log("Mission Purchases:", missionsWithBg);
-        
       } catch (error) {
         console.error(
           "Error fetching student breakdown:",
@@ -56,7 +55,7 @@ export default function Page() {
     };
 
     fetchStudentBreakdown();
-  }, []);
+  }, [missioncard]);
 
   return (
     <>

@@ -6,7 +6,7 @@ import MissionCard from "./student-mission/components/MissionCard";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
-export default function page() {
+export default function Page() {
   const [missionPurchases, setMissionPurchases] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -58,7 +58,7 @@ export default function page() {
     };
 
     fetchStudentBreakdown();
-  }, []);
+  }, [missioncard]);
 
   // Get the mission at index 0
   const firstMission = missionPurchases[0];

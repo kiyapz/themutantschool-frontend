@@ -162,7 +162,7 @@ export default function Page() {
     };
 
     fetchMissionLevels();
-  }, []);
+  }, [makeAuthenticatedRequest]);
 
   // Handle loading state
   if (loading) {
