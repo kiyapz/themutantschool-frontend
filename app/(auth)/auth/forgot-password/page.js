@@ -47,7 +47,7 @@ export default function Forgotpassword() {
 
       return;
     }
-  }, [email, otpCode, registerStep]);
+  }, [email, otpCode, registerStep, setsuccessvalue]);
 
   useEffect(() => {
     let interval;

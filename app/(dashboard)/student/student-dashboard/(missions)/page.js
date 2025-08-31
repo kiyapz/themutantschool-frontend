@@ -58,7 +58,7 @@ export default function Page() {
     };
 
     fetchStudentBreakdown();
-  }, [missioncard]);
+  }, []);
 
   // Get the mission at index 0
   const firstMission = missionPurchases[0];
