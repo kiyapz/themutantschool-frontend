@@ -1,47 +1,188 @@
 "use client";
 
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import LoadingBar from "./LodingBar";
 
 import MissionVideo from "./MissionVideos";
 import LevelQuiz from "./LevelQuiz";
 import { CourseGuideContext } from "./course-guild-contex/Contex";
 import { StudentContext } from "@/app/(dashboard)/student/component/Context/StudentContext";
+import axios from "axios";
 
-export default function Capsels({id}) {
+export default function Capsels({ id }) {
+  const videoRef = useRef(null);
+  const [watchedDuration, setWatchedDuration] = useState(0);
+  const [videoDuration, setVideoDuration] = useState(0);
+
+  // Add loading state for progress updates
+  const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
+  const [progressUpdateError, setProgressUpdateError] = useState(null);
+
   const [changeStages, setChangeStages] = useState(1);
-const [missionsCapsels, setMissionsCapsels] = useState([]);
-const { currentCapsule, setCurrentCapsule } = useContext(StudentContext);
+  const [missionsCapsels, setMissionsCapsels] = useState([]);
+  const [missionDetails, setMissiondetail] = useState("");
+  console.log(missionDetails, "bbbbbbbbb");
+
+  const {
+    currentCapsule,
+    setCurrentCapsule,
+    watchedVideos,
+    setWatchedVideos,
+    setCurrentCapsuleTitle,
+    showQuiz,
+  } = useContext(StudentContext);
+
+  console.log("watchedVideoswatchedVideos", watchedVideos);
+
   const {
     showVideo,
     setShowVideo,
     showVideoLevels,
     setShowVideoLevels,
     capselIndex,
-    
   } = useContext(CourseGuideContext);
 
-console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
+  const capsuleId = currentCapsule[capselIndex]?._id;
 
+  console.log("curentcapselID", capsuleId);
+  console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
 
-           useEffect(() => {
-             const Capsels = localStorage.getItem("missionsCapsels");
-             console.log("Capsels from localStorage:", Capsels);
-             if (Capsels) {
-               try {
-                 const parsedCapsels = JSON.parse(Capsels);
-                 console.log("Parsed Capsels:", parsedCapsels);
-                 setMissionsCapsels(parsedCapsels);
-               } catch (e) {
-                 console.error(
-                   "Failed to parse missionsCapsels from localStorage",
-                   e
-                 );
-               }
-             }
-           }, []);
+  useEffect(() => {
+    setCurrentCapsuleTitle(currentCapsule[capselIndex]?.title || "Unknown");
+  }, [currentCapsule,capselIndex]);
 
-    
+  // Handle time update
+  const handleTimeUpdate = () => {
+    const currentTime = videoRef.current.currentTime;
+    setWatchedDuration(Math.floor(currentTime));
+  };
+
+  // Handle metadata load
+  const handleLoadedMetadata = () => {
+    const video = videoRef.current;
+    if (video && !isNaN(video.duration) && video.duration > 0) {
+      setVideoDuration(Math.floor(video.duration));
+    } else {
+      console.warn("Video metadata not fully loaded or duration is 0");
+    }
+  };
+
+  // Enhanced updateCapsuleProgress with loading state and validation
+  const updateCapsuleProgress = async () => {
+    // Validate required data before making request
+    if (!capsuleId) {
+      console.error("No capsule ID available for progress update");
+      setProgressUpdateError("No capsule ID available");
+      return;
+    }
+
+    if (watchedDuration <= 0 || videoDuration <= 0) {
+      console.warn("Invalid duration values for progress update", {
+        watchedDuration,
+        videoDuration,
+        capsuleId,
+      });
+      return;
+    }
+
+    setIsUpdatingProgress(true);
+    setProgressUpdateError(null);
+
+    try {
+      // Get token from localStorage
+      const accessToken = localStorage.getItem("login-accessToken");
+
+      if (!accessToken) {
+        throw new Error("No access token found");
+      }
+
+      console.log("Updating progress for capsule:", {
+        capsuleId,
+        watchedDuration,
+        videoDuration,
+        currentCapsule: currentCapsule[capselIndex]?.title || "Unknown",
+      });
+
+      // Make PUT request with Authorization header
+      const response = await axios.put(
+        `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}`,
+        {
+          watchedDuration,
+          videoDuration,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Progress update successful:", response.data);
+
+      // Optional: Show success feedback to user
+      if (response.data.success) {
+        console.log(
+          "✅ Progress updated successfully for:",
+          currentCapsule[capselIndex]?.title
+        );
+      }
+    } catch (err) {
+      console.error("Error updating progress:", err);
+
+      if (err.response?.status === 401) {
+        setProgressUpdateError("Authentication failed. Please login again.");
+      } else if (err.response?.status === 404) {
+        setProgressUpdateError("Capsule not found.");
+      } else if (err.response?.status >= 500) {
+        setProgressUpdateError("Server error. Please try again later.");
+      } else {
+        setProgressUpdateError(
+          "Failed to update progress. Please check your connection."
+        );
+      }
+
+      console.log("Will retry progress update in next interval...");
+    } finally {
+      setIsUpdatingProgress(false);
+    }
+  };
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (
+        watchedDuration > 0 &&
+        capsuleId &&
+        !isUpdatingProgress &&
+        videoDuration > 0
+      ) {
+        updateCapsuleProgress();
+      } else {
+        console.log("Skipping progress update:", {
+          hasWatchedDuration: watchedDuration > 0,
+          hasCapsuleId: !!capsuleId,
+          isUpdating: isUpdatingProgress,
+          hasVideoDuration: videoDuration > 0,
+        });
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [watchedDuration, capsuleId, isUpdatingProgress, videoDuration]);
+
+  useEffect(() => {
+    const Capsels = localStorage.getItem("missionsCapsels");
+    console.log("Capsels from localStorage:", Capsels);
+    if (Capsels) {
+      try {
+        const parsedCapsels = JSON.parse(Capsels);
+        console.log("Parsed Capsels:", parsedCapsels);
+        setMissionsCapsels(parsedCapsels);
+      } catch (e) {
+        console.error("Failed to parse missionsCapsels from localStorage", e);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (changeStages === 3) {
@@ -51,11 +192,83 @@ console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
     }
   }, [changeStages, setShowVideo]);
 
+  // watched videos
+  useEffect(() => {
+    const fetchWachedVideo = async () => {
+      const token = localStorage.getItem("login-accessToken");
+      const missionId = localStorage.getItem("currentMissionId");
+      const levelId = localStorage.getItem("currentLevelId");
+
+      try {
+        const response = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/level-progress/${missionId}/levels/${levelId}/capsules/watched`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log(
+          "Fetched Watched Video Data everything:----------",
+          response.data
+        );
+        const watchedData = response.data?.data?.watchedCapsules;
+        console.log("Fetched watched videos from server:", watchedData);
+        // setWatchedVideos([{'jji':'jj'}]);
+        setWatchedVideos(response.data.data.completedCapsules);
+      } catch (error) {
+        console.log(
+          "Error fetching missions:",
+          error.response?.data || error.message
+        );
+      } finally {
+        // setLoading(false);
+      }
+    };
+
+    fetchWachedVideo();
+  }, [watchedDuration]);
+
+  // get missions
+
+  useEffect(() => {
+    const missionId = localStorage.getItem("currentMissionId");
+    const token = localStorage.getItem("login-accessToken");
+
+    if (!missionId) return;
+
+    const fetchMissionData = async () => {
+      try {
+        const response = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const missions = response.data.data;
+        setMissiondetail(missions);
+      } catch (error) {
+        console.error("Error fetching mission data:", error);
+      }
+    };
+
+    fetchMissionData();
+  }, []);
+
   const courseGuide = () => {
     switch (changeStages) {
       case 1:
         return (
-          <div className="w-full h-[82vh]  flexcenter bg-[#0A0A0A] p-[10px]">
+          <div
+            style={{ padding: "15px" }}
+            className="w-full h-[82vh]  flexcenter bg-[#0A0A0A] p-[10px]"
+          >
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
               <div className="h-[60px] w-full flex items-center">
@@ -63,39 +276,18 @@ console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
               </div>
 
               {/* Content - Takes remaining space */}
-              <div className="flex-1 flex flex-col justify-center overflow-y-auto">
-                <p className="font-[700] text-[20px] sm:text-[25px] sm:leading-[43px] mb-6">
+              <div
+                style={{ marginLeft: "20px" }}
+                className="flex-1 flex flex-col  overflow-y-auto"
+              >
+                <p className="font-[700] text-[20px] sm:text-[20px] sm:leading-[20px] mb-6">
                   After successfully completing this module, you will be able
                   to:
                 </p>
                 <div className="pl-5">
-                  <ul className="list-disc pl-5 space-y-2">
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Understand the basics of web development
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Create a simple web page using HTML and CSS
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Implement basic JavaScript functionality
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Understand responsive web design principles
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Work with modern development tools
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Debug and troubleshoot common issues
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Apply best practices in coding
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Build interactive user interfaces
-                    </li>
-                    <li className="text-[16px] sm:text-[20px] leading-[30px] font-[400]">
-                      Deploy applications to production
+                  <ul className="list-disc space-y-2">
+                    <li className="pl-2 text-[10px] sm:text-[15px] leading-[20px] font-[400]">
+                      {missionDetails[0]?.summary}
                     </li>
                   </ul>
                 </div>
@@ -123,7 +315,6 @@ console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
                 <LoadingBar width={"w-[20%]"} />
               </div>
 
-              
               <div className="flex-1 flex items-center justify-center min-h-0">
                 <div className="w-full h-full max-h-[calc(100vh-160px)] flex items-center justify-center">
                   <video
@@ -165,55 +356,61 @@ console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
         );
 
       case 3:
-              return (
-                <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
-                  <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
-                    {/* Loading Bar - Fixed height */}
-                    <div className="h-[60px] w-full flex items-center">
-                      <LoadingBar width={"w-[40%]"} />
-                    </div>
+        return (
+          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
+            <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
+              {/* Loading Bar - Fixed height */}
+              <div className="h-[60px] w-full flex items-center justify-between">
+                <LoadingBar width={"w-[40%]"} />
+              </div>
 
-                    {/* Video - Takes remaining space with fixed aspect ratio */}
-                    <div className="flex-1 flex items-center justify-center min-h-0">
-                      <div className="w-full  h-full max-h-[calc(100vh-160px)] flex items-center justify-center">
-                        <video
-                          controls
-                          className="w-full h-full max-h-full object-contain rounded-lg"
-                          preload="metadata"
-                          poster={
-                            currentCapsule[capselIndex]?.thumbnailUrl ||
-                            "/default-poster.jpg"
-                          }
-                        >
-                          <source
-                            src={currentCapsule[capselIndex]?.videoUrl?.url}
-                            type="video/mp4"
-                          />
-                          Your browser does not support the video tag.
-                        </video>
-                      </div>
-                    </div>
-
-                    {/* Buttons - Fixed height */}
-                    <div className="h-[100px] flex justify-between items-center">
-                      <button
-                        onClick={() => setChangeStages((prev) => prev - 1)}
-                        className="text-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] rounded-[10px] border border-[#840B94]"
-                      >
-                        Previous
-                      </button>
-
-                      <button
-                        onClick={() => setChangeStages((prev) => prev + 1)}
-                        className="bg-[#840B94] cursor-pointer p-2 h-[71px] w-[140px] sm:w-[200px] font-[700] text-[18px] sm:text-[28px] leading-[100%] text-white rounded-[10px]"
-                      >
-                        Start Quiz
-                      </button>
-                    </div>
-                  </div>
+              <div className="flex-1 flex items-center justify-center min-h-0">
+                <div className="w-full h-[300px] max-h-[calc(100vh-160px)] flex items-center justify-center">
+                  <video
+                    key={currentCapsule[capselIndex]?._id}
+                    ref={videoRef}
+                    controls
+                    preload="metadata"
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
+                    onEnded={() => {
+                      updateCapsuleProgress();
+                    }}
+                    className="w-full h-full object-contain"
+                  >
+                    <source
+                      src={currentCapsule[capselIndex]?.videoUrl?.url}
+                      type="video/mp4"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
                 </div>
-              );
+              </div>
 
+              {/* Buttons - Fixed height */}
+              <div className="h-[100px] flex justify-between items-center">
+                <button
+                  onClick={() => setChangeStages((prev) => prev - 1)}
+                  className="text-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] rounded-[10px] border border-[#840B94]"
+                >
+                  Previous
+                </button>
+
+                <button
+                  disabled={!showQuiz}
+                  onClick={() => setChangeStages((prev) => prev + 1)}
+                  className={`${
+                    showQuiz
+                      ? " cursor-pointer opacity-100  "
+                      : "opacity-20 cursor-not-allowed "
+                  }  p-2 h-[71px] w-[140px] bg-[#840B94] sm:w-[200px] font-[700] text-[18px] sm:text-[28px] leading-[100%] text-white rounded-[10px]`}
+                >
+                  Start Quiz
+                </button>
+              </div>
+            </div>
+          </div>
+        );
 
       default:
         return (
@@ -229,23 +426,6 @@ console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
               <div className="h-fit w-full flex flex-col justify-center">
                 <LevelQuiz />
               </div>
-
-              {/* <div className=" flex justify-between items-center w-full h-[10%] px-4">
-                <button
-                  onClick={() => setChangeStages((prev) => prev - 1)}
-                  className="text-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[100px] sm:w-[177.14px] font-[700] sm:text-[31px] leading-[100%]  rounded-[10px]  "
-                >
-                  Previous
-                </button>
-
-                <button
-                  disabled
-                  //   onClick={() => setChangeStages((prev) => prev + 1)}
-                  className="bg-[#840B94]  cursor-pointer  m-4 p-2 h-[71.03px] w-[100px] sm:w-fit font-[700] sm:text-[31px] leading-[100%] text-white rounded-[10px]  "
-                >
-                  Submit Quiz
-                </button>
-              </div> */}
             </div>
           </div>
         );

@@ -29,7 +29,7 @@ export default function MissionCard({
   return (
     <div
       style={{ padding: "30px" }}
-      className={`h-fit ${bg} sm:h-[362.25px] w-full grid gap-5 sm:grid-cols-2 rounded-[20px] `}
+      className={`h-fit ${bg}  sm:h-[382.25px] w-full grid gap-5 sm:grid-cols-2 rounded-[20px] `}
     >
       <div className="flex flex-col gap-5 sm:gap-0 justify-between order-2 sm:order-1">
         <div>

@@ -1,6 +1,5 @@
 import axios from "axios";
-import Image from "next/image";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 
 export default function LevelQuiz({ width = "100%" }) {
   const [quizData, setQuizData] = useState(null);
@@ -8,11 +7,97 @@ export default function LevelQuiz({ width = "100%" }) {
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [timeLeft, setTimeLeft] = useState(20);
   const [isAnswered, setIsAnswered] = useState(false);
-  const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [showPerformanceDetails, setShowPerformanceDetails] = useState(false);
+console.log(quizData,'jjdnfnf');
 
-  // Timer effect
+  // Quiz state management
+  const [quizDuration, setQuizDuration] = useState(0);
+  const [quizStartTime, setQuizStartTime] = useState(null);
+  const [quizResult, setQuizResult] = useState(null);
+  const [updateError, setUpdateError] = useState(null);
+
+  // Store user answers
+  const [userAnswers, setUserAnswers] = useState([]);
+
+  // Quiz completion handler with proper answer storage
+  const handleQuizComplete = useCallback(
+    async (finalAnswers) => {
+      console.log(`DEBUG - Quiz completing with finalAnswers:`, finalAnswers);
+      console.log(`DEBUG - Total questions: ${quizData?.questions?.length}`);
+      console.log(
+        `DEBUG - Answered questions: ${
+          finalAnswers.filter((a) => a !== null && a !== undefined).length
+        }`
+      );
+      console.log(
+        `DEBUG - Null answers: ${
+          finalAnswers.filter((a) => a === null || a === undefined).length
+        }`
+      );
+
+      const finalDuration = Math.floor((Date.now() - quizStartTime) / 1000);
+      setQuizDuration(finalDuration);
+      setQuizCompleted(true);
+
+      try {
+        setLoading(true);
+        setUpdateError(null);
+
+        console.log("Submitting quiz to API...");
+        const apiResponse = await submitQuizAnswers(finalAnswers);
+
+        console.log("API Response received:", apiResponse);
+
+        // Get score and percentage from API response
+        const apiScore = apiResponse.score || 0;
+        const apiTotal = apiResponse.total || quizData.questions.length;
+        const percentage = Math.round((apiScore / apiTotal) * 100);
+
+        setQuizResult({
+          score: apiScore,
+          total: apiTotal,
+          percentage,
+          duration: finalDuration,
+          apiResponse,
+          submittedSuccessfully: true,
+        });
+
+        console.log("Quiz submitted successfully");
+      } catch (error) {
+        console.error("Failed to submit quiz to API:", error);
+        setUpdateError(`Quiz submission failed: ${error.message}`);
+
+        // Don't calculate local score, just show error
+        setQuizResult({
+          score: 0,
+          total: quizData.questions.length,
+          percentage: 0,
+          duration: finalDuration,
+          error: "Failed to submit to server",
+          submittedSuccessfully: false,
+        });
+      } finally {
+        setLoading(false);
+      }
+    },
+    [quizData, quizStartTime]
+  );
+
+  // Quiz duration timer
+  useEffect(() => {
+    if (quizStartTime && !quizCompleted) {
+      const interval = setInterval(() => {
+        const elapsed = Math.floor((Date.now() - quizStartTime) / 1000);
+        setQuizDuration(elapsed);
+      }, 1000);
+
+      return () => clearInterval(interval);
+    }
+  }, [quizStartTime, quizCompleted]);
+
+  // Question timer effect
   useEffect(() => {
     if (timeLeft > 0 && !isAnswered && !quizCompleted) {
       const timer = setTimeout(() => {
@@ -20,18 +105,25 @@ export default function LevelQuiz({ width = "100%" }) {
       }, 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !isAnswered) {
-      // Auto-move to next question when time runs out
       handleNextQuestion();
     }
   }, [timeLeft, isAnswered, quizCompleted]);
 
   // Reset timer when question changes
   useEffect(() => {
-    setTimeLeft(20);
+    if (quizData) {
+      const questionTimeLimit = quizData.durationMinutes
+        ? Math.floor(
+            (quizData.durationMinutes * 60) / quizData.questions.length
+          )
+        : 20;
+      setTimeLeft(questionTimeLimit);
+    }
     setIsAnswered(false);
     setSelectedAnswer(null);
-  }, [currentQuestionIndex]);
+  }, [currentQuestionIndex, quizData]);
 
+  // Fetch quiz data
   useEffect(() => {
     const missionId = localStorage.getItem("currentMissionId");
     if (!missionId) return;
@@ -51,18 +143,20 @@ export default function LevelQuiz({ width = "100%" }) {
         );
 
         const allquiz = response.data.data;
-        console.log("Fetched quiz Data new:----------", response.data.data);
+        console.log("Fetched quiz Data:", allquiz);
 
-        // Find the quiz data from the response
         const quizLevel = allquiz.find((level) => level.quiz);
         if (quizLevel) {
-          setQuizData(quizLevel.quiz);
+          const quiz = quizLevel.quiz;
+          setQuizData({ ...quiz, level: quizLevel._id });
+          setUserAnswers(new Array(quiz.questions.length).fill(null));
         }
       } catch (error) {
         console.log(
           "Error fetching missions:",
           error.response?.data || error.message
         );
+        setUpdateError("Failed to load quiz data");
       } finally {
         setLoading(false);
       }
@@ -71,39 +165,169 @@ export default function LevelQuiz({ width = "100%" }) {
     fetchMissionData();
   }, []);
 
+  // Submit quiz answers to API
+const submitQuizAnswers = async (chanswers) => {
+  const token = localStorage.getItem("login-accessToken");
+  const levelId = quizData.level;
+  const quizId = quizData._id;
+
+  if (!token || !levelId || !quizId) {
+    throw new Error("Missing authentication token, level ID, or quiz ID");
+  }
+
+  try {
+    // Format answers for API - include ALL questions, even unanswered ones
+    const formattedAnswers = [];
+
+    chanswers.forEach((answerIndex, questionIndex) => {
+      const question = quizData.questions[questionIndex];
+      const questionId = question._id;
+
+      // Only include questions that were actually answered
+      if (answerIndex !== null && answerIndex !== undefined) {
+        // Get the actual answer text from the selected option
+        const selectedAnswerText = question.options[answerIndex];
+
+        formattedAnswers.push({
+          questionId:questionId,
+          selectedOption: selectedAnswerText,
+        });
+
+        console.log(
+          `Question ${
+            questionIndex + 1
+          }: ID=${questionId}, Selected Option: "${selectedAnswerText}"`
+        );
+      } else {
+        console.log(
+          `Question ${
+            questionIndex + 1
+          }: ID=${questionId}, SKIPPED (no answer selected)`
+        );
+      }
+    });
+
+    console.log("DEBUG - User answers array:", chanswers);
+    console.log("DEBUG - Questions length:", quizData.questions.length);
+    console.log("DEBUG - Formatted answers:", formattedAnswers);
+
+    console.log("Submitting quiz answers:", {
+      levelId,
+      quizId,
+      chanswers: formattedAnswers,
+      totalQuestions: quizData.questions.length,
+      answeredQuestions: formattedAnswers.length,
+      unansweredQuestions: chanswers.filter((a) => a === null || a === undefined)
+        .length,
+    });
+
+    // Log the exact payload being sent
+    const answers = {answers:formattedAnswers };
+    console.log("Exact payload being sent:", JSON.stringify(answers, null, 2));
+
+    const response = await axios.post(
+      `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${quizId}/level/${levelId}`,
+      answers,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    console.log("Quiz submission response:", response.data);
+    return response.data;
+  } catch (error) {
+    console.error("Error submitting quiz:", error);
+
+    // Log more detailed error information
+    if (error.response) {
+      console.log("Error response status:", error.response.status);
+      console.log("Error response data:", error.response.data);
+      console.log("Error response headers:", error.response.headers);
+    } else if (error.request) {
+      console.log("Error request:", error.request);
+    } else {
+      console.log("Error message:", error.message);
+    }
+
+    throw error;
+  }
+};
+
   const handleAnswerSelect = (selectedIndex) => {
     if (isAnswered) return;
+
+    console.log(
+      `DEBUG - Answer selected for question ${currentQuestionIndex}: ${selectedIndex}`
+    );
 
     setSelectedAnswer(selectedIndex);
     setIsAnswered(true);
 
-    // Check if answer is correct
-    const currentQuestion = quizData.questions[currentQuestionIndex];
-    if (selectedIndex === currentQuestion.correctAnswerIndex) {
-      setScore(score + 1);
-    }
+    // Store user's answer immediately with functional update
+    setUserAnswers((prevAnswers) => {
+      const newUserAnswers = [...prevAnswers];
+      newUserAnswers[currentQuestionIndex] = selectedIndex;
 
-    // Immediately move to next question
-    setTimeout(() => {
-      handleNextQuestion();
-    }, 500); // Small delay for better UX
+      console.log(
+        `DEBUG - Updated userAnswers for question ${currentQuestionIndex}:`,
+        newUserAnswers
+      );
+
+      // Move to next question after storing the answer
+      setTimeout(() => {
+        handleNextQuestion(newUserAnswers);
+      }, 500);
+
+      return newUserAnswers;
+    });
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = (currentAnswers = null) => {
+    // Use the passed answers or fall back to current state
+    const answersToUse = currentAnswers || userAnswers;
+
+    console.log(
+      `DEBUG - Moving from question ${currentQuestionIndex} to next. Total questions: ${quizData.questions.length}`
+    );
+    console.log(`DEBUG - Current answers being used:`, answersToUse);
+
     if (currentQuestionIndex < quizData.questions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
+      console.log(`DEBUG - Moving to question ${currentQuestionIndex + 1}`);
     } else {
-      setQuizCompleted(true);
+      console.log(`DEBUG - Quiz completed. Final answers:`, answersToUse);
+      handleQuizComplete(answersToUse);
     }
+  };
+
+  const startQuiz = () => {
+    setQuizStartTime(Date.now());
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setQuizCompleted(false);
+    setQuizResult(null);
+    setUpdateError(null);
+    setUserAnswers(new Array(quizData.questions.length).fill(null));
+
+    // Set initial timer
+    const questionTimeLimit = quizData.durationMinutes
+      ? Math.floor((quizData.durationMinutes * 60) / quizData.questions.length)
+      : 20;
+    setTimeLeft(questionTimeLimit);
   };
 
   const restartQuiz = () => {
-    setCurrentQuestionIndex(0);
-    setSelectedAnswer(null);
-    setTimeLeft(20);
-    setIsAnswered(false);
-    setScore(0);
-    setQuizCompleted(false);
+    startQuiz();
+  };
+
+  const formatDuration = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, "0")}`;
   };
 
   if (loading) {
@@ -126,9 +350,68 @@ export default function LevelQuiz({ width = "100%" }) {
     );
   }
 
+  // Quiz start screen
+  if (!quizStartTime && !quizCompleted) {
+    return (
+      <div
+        style={{
+          backgroundColor: "#020202",
+          color: "white",
+          fontFamily: "sans-serif",
+          padding: "2rem",
+          borderRadius: "10px",
+          // border: "1px solid red",
+        }}
+      >
+        <div className="flex flex-col gap-4 h-[70vh] ">
+          <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
+            {quizData.title}
+          </h2>
+
+          <div
+            style={{ padding: "20px" }}
+            className="bg-[#131313] p-6 rounded-lg mb-6"
+          >
+            <div className="flex flex-col gap-4 text-left">
+              <div className="flex justify-between">
+                <span>Duration:</span>
+                <span>{quizData.durationMinutes || 15} minutes</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Questions:</span>
+                <span>{quizData.questions.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Passing Score:</span>
+                <span>{quizData.passingScore}%</span>
+              </div>
+            </div>
+          </div>
+
+          {updateError && (
+            <div className="bg-red-900 text-white p-3 rounded mb-4">
+              {updateError}
+            </div>
+          )}
+
+          <button
+            style={{ padding: "10px" }}
+            onClick={startQuiz}
+            className="bg-[#840B94] hover:bg-[#6a0876] px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+          >
+            Start Quiz
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Results Screen
   if (quizCompleted) {
-    const percentage = Math.round((score / quizData.questions.length) * 100);
-    const passed = percentage >= quizData.passingScore;
+    const resultData = quizResult || {};
+    const percentage = resultData.percentage || 0;
+    const displayScore = resultData.score || 0;
+    const totalQuestions = resultData.total || quizData.questions.length;
 
     return (
       <div
@@ -140,56 +423,127 @@ export default function LevelQuiz({ width = "100%" }) {
           padding: "2rem",
           borderRadius: "10px",
         }}
-        className="flex h-[80vh]  w-full flex-col items-start justify-between"
+        className="flex h-[80vh] w-full flex-col  gap-8 "
       >
         <div>
-          <p className="text-[#822A8D] font-[700] text-[50px] leading-[43px] ">
+          <p className="text-[#822A8D] font-[700] sm:text-[20px] leading-[21px]">
             Quiz Performance
           </p>
-          <p className=" font-[700] text-[25px] leading-[43px] ">
+          <p className="font-[700] sm:text-[15px] leading-[16px]">
             See how you scored, track your growth, and unlock new powers with
             every quiz.
           </p>
         </div>
-        <div className="bg-[#131313] flexcenter gap-5 flex-col h-[301.3779px] w-full rounded-[70px] ">
-          <h2 className="font-[500] text-[78px] leading-[43px] ">
-            ({percentage}%)
-          </h2>
 
-          <p className="font-[400] text-[20px] leading-[33px] ">
-            Here’s how you fared in your latest challenge. Remember, every wrong
-            answer is just training for your next evolution
-          </p>
+        <div
+          style={{ padding: "10px", margin: "auto" }}
+          className="bg-[#131313] items-center flex max-w-[600px] items-center gap-5 flex-col justify-center h-fit w-full rounded-[10px] xl:rounded-[20px] sm:rounded-[40px]"
+        >
+          <div className="flex flex-col h-[80%] items-center justify-center gap-3">
+            <div className="flex items-center gap-4">
+              <h2 className="font-[500] sm:text-[48px] leading-[43px]">
+                {percentage}%
+              </h2>
+            </div>
+            <p className="font-[400] sm:text-[20px] text-center leading-[33px]">
+              Here's how you fared in your latest challenge. Remember, every
+              wrong answer is just training for your next evolution
+            </p>
+
+            {resultData.apiResponse && (
+              <div className="text-green-400 text-sm">
+                ✓ Results verified by server
+              </div>
+            )}
+            {resultData.error && (
+              <div className="text-red-400 text-sm text-center">
+                ⚠️ {resultData.error.message}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="text-[#646464] font-[400] text-[14px] sm:text-[19px] leading-[43px]">
+              <button
+                onClick={() =>
+                  setShowPerformanceDetails(!showPerformanceDetails)
+                }
+                className="flex items-center gap-2 cursor-pointer w-[300px] hover:text-white transition-colors"
+              >
+                Performance Details
+                <span
+                  className={`transform transition-transform ${
+                    showPerformanceDetails ? "rotate-180" : ""
+                  }`}
+                >
+                  ▼
+                </span>
+              </button>
+
+              {showPerformanceDetails && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex items-center justify-between w-[300px]">
+                    <p>Attempted Questions</p>
+                    <p>
+                      {totalQuestions}/{totalQuestions}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between w-[300px]">
+                    <p>Correct Answers</p>
+                    <p>
+                      {displayScore}/{totalQuestions}
+                    </p>
+                  </div>
+                  <div className="flex items-center justify-between w-[300px]">
+                    <p>Duration</p>
+                    <p>{formatDuration(quizDuration)}</p>
+                  </div>
+                  <div className="flex items-center justify-between w-[300px]">
+                    <p>Passing Score</p>
+                    <p>{quizData.passingScore}%</p>
+                  </div>
+                  {resultData.apiResponse && (
+                    <div className="flex items-center justify-between w-[300px]">
+                      <p>Server Status</p>
+                      <p className="text-green-400">
+                        {resultData.apiResponse.status
+                          ? resultData.apiResponse.status.toUpperCase()
+                          : "COMPLETED"}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
-        <div className="flex  items-center justify-end mt-6 gap-4 w-full">
-          <div
-            style={{
-              marginBottom: "2rem",
-              color: passed ? "#4ade80" : "#ef4444",
-            }}
-          >
-            prev
+        {updateError && (
+          <div className="bg-red-900 text-white p-3 rounded w-full text-center">
+            {updateError}
           </div>
+        )}
+
+        <div className="flex items-center justify-end mt-6 gap-4 w-full">
           <button
             onClick={restartQuiz}
-            style={{
-              backgroundColor: "#3b82f6",
-              color: "white",
-              padding: "0.75rem 1.5rem",
-              borderRadius: "8px",
-              border: "none",
-              cursor: "pointer",
-              fontSize: "1rem",
-            }}
+            className="text-[#840B94] font-[700] sm:text-[31px] leading-[100%] hover:text-[#a020aa] transition-colors cursor-pointer"
           >
-            Restart Quiz
+            Retake Quiz
+          </button>
+          <button
+            style={{ padding: "16px 8px" }}
+            className="bg-[#840B94] hover:bg-[#6a0876] font-[700] sm:text-[31px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
+            disabled={loading}
+          >
+            {loading ? "Processing..." : "Continue"}
           </button>
         </div>
       </div>
     );
   }
 
+  // Quiz Question UI
   const currentQuestion = quizData.questions[currentQuestionIndex];
 
   return (
@@ -212,11 +566,10 @@ export default function LevelQuiz({ width = "100%" }) {
           marginBottom: "1rem",
         }}
       >
-        {/* time left */}
+        {/* Time left */}
         <div
           style={{
             color: timeLeft <= 5 ? "#ef4444" : "#840B94",
-            // color: "white",
             padding: "0.5rem 1rem",
             borderRadius: "50px",
             fontSize: "1.2rem",
@@ -228,8 +581,14 @@ export default function LevelQuiz({ width = "100%" }) {
         >
           {timeLeft}s
         </div>
-        <div style={{ fontSize: "0.9rem", color: "#840B94" }}>
-          {currentQuestionIndex + 1} / {quizData.questions.length}
+
+        <div className="text-center">
+          <div style={{ fontSize: "0.9rem", color: "#840B94" }}>
+            {currentQuestionIndex + 1} / {quizData.questions.length}
+          </div>
+          <div style={{ fontSize: "0.8rem", color: "#666" }}>
+            Duration: {formatDuration(quizDuration)}
+          </div>
         </div>
       </div>
 
@@ -266,7 +625,7 @@ export default function LevelQuiz({ width = "100%" }) {
           lineHeight: "1.4",
         }}
       >
-        {currentQuestionIndex + 1}.{currentQuestion.questionText}
+        {currentQuestionIndex + 1}. {currentQuestion.questionText}
       </h3>
 
       {/* Options */}
@@ -293,19 +652,6 @@ export default function LevelQuiz({ width = "100%" }) {
             {option}
           </div>
         ))}
-      </div>
-
-      {/* Score Display */}
-      <div
-        style={{
-          position: "absolute",
-          top: "1rem",
-          right: "1rem",
-          fontSize: "0.9rem",
-          color: "#888",
-        }}
-      >
-        Score: {score}/{currentQuestionIndex + (isAnswered ? 1 : 0)}
       </div>
     </div>
   );
