@@ -51,7 +51,7 @@ export default function Login() {
         setButtonvalue("Enter the Lab");
 
         if (user.role === "instructor") router.push("/instructor");
-        else if (user.role === "student") router.push("/student");
+        else if (user.role === "student") router.push("/student/student-dashboard");
         else router.push("/affiliate");
 
         return true;

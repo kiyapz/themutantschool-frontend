@@ -2,8 +2,9 @@
 import axios from "axios";
 import MissionCard from "./components/MissionCard";
 import { useEffect, useState } from "react";
+import Link from "next/link";
 
-// ✅ Define missioncard outside the component
+
 const missioncard = [
   {
     bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
@@ -56,17 +57,31 @@ export default function Page() {
     };
 
     fetchStudentBreakdown();
-  }, []); // ✅ no more warning
+  }, []); 
 
   return (
     <>
       {loading ? (
-        <div className="flex justify-center items-center min-h-[200px]">
-          {/* ✅ Replace this with your spinner component if you have one */}
-          <div className="loader ease-linear rounded-full border-4 border-t-4 border-gray-200 h-12 w-12"></div>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center text-gray-500">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto mb-2"></div>
+            Loading mission...
+          </div>
         </div>
       ) : missionPurchases.length === 0 ? (
-        <p>No Available Mission</p>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="text-gray-400 text-lg mb-2">
+              No recent mission recorded.
+            </div>
+            <Link
+              href="/missions"
+              className="text-blue-500 hover:text-blue-400 underline"
+            >
+              Buy a mission now
+            </Link>
+          </div>
+        </div>
       ) : (
         <div className="flex flex-col gap-5">
           {missionPurchases.map((item) => (

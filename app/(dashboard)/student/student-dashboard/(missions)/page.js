@@ -63,9 +63,14 @@ export default function Page() {
 
   return (
     <div className="flex flex-col justify-between h-full">
-      {/* Show loading state or the first mission */}
+      {/* Show loading state, first mission, or empty state */}
       {loading ? (
-        <div className="text-center text-gray-500">Loading mission...</div>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center text-gray-500">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto mb-2"></div>
+            Loading mission...
+          </div>
+        </div>
       ) : firstMission ? (
         <MissionCard
           image={
@@ -79,7 +84,19 @@ export default function Page() {
           missionId={firstMission.missionId}
         />
       ) : (
-        <div className="text-center text-gray-500">No missions available</div>
+        <div className="flex items-center justify-center py-8">
+          <div className="text-center">
+            <div className="text-gray-400 text-lg mb-2">
+              No recent mission recorded.
+            </div>
+            <Link
+              href="/missions" 
+              className="text-blue-500 hover:text-blue-400 underline"
+            >
+              Buy a mission now
+            </Link>
+          </div>
+        </div>
       )}
 
       <div className="w-full">

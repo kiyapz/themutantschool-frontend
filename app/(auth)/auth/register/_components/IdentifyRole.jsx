@@ -20,8 +20,7 @@ export default function IdentifyRole() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-  // const [firstName, setFirstName] = useState("");
-  // const [lastName, setLastName] = useState("");
+
 
   const [firstNameSuccess, setFirstNameSuccess] = useState(false);
   const [lastNameSuccess, setLastNameSuccess] = useState(false);
@@ -63,6 +62,12 @@ export default function IdentifyRole() {
   } = useContext(Globlaxcontex);
 
   useEffect(() => {
+     setSuccessmessage(
+       <span className="flex items-center gap-2">
+         <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
+         Checking...
+       </span>
+     );
     setsuccessvalue(false);
     setUserName(false);
     setdisablebtn(true);
@@ -73,12 +78,7 @@ export default function IdentifyRole() {
       return;
     }
 
-    setSuccessmessage(
-      <span className="flex items-center gap-2">
-        <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
-        Checking...
-      </span>
-    );
+   
 
     const abortController = new AbortController();
 
@@ -143,7 +143,7 @@ export default function IdentifyRole() {
           setErrormessage("");
         }, 1000);
       }
-    }, 300);
+    }, 100);
 
     return () => {
       clearTimeout(timeoutId);
@@ -278,6 +278,21 @@ export default function IdentifyRole() {
     }
   };
 
+const handleRedirectLogin = () => {
+  const getUserData = localStorage.getItem("USER");
+
+  if (getUserData) {
+    const user = JSON.parse(getUserData);
+    if (user.role === "student") {
+      router.push("/student");
+    } else {
+      router.push("/auth/login");
+    }
+  } else {
+   
+    router.push("/auth/login");
+  }
+};
   useEffect(() => {
     let interval;
     if (timeLeft > 0) {
@@ -315,22 +330,7 @@ export default function IdentifyRole() {
         return (
           <div className="flex items-center justify-center w-screen h-fit ">
             <div className="w-full max-w-[336.13px] hide-scrollbar px sm:max-w-[607.96px] mx-auto px-4 sm:px-0  flex flex-col  h-fit md:h-[70vh] xl:min-h-[90vh] gap-8 items-center justify-between ">
-              {/* <div className=" hidden sm:block w-full">
-        <div className=" h-[60.5px] sm:h-[72.56px] w-full max-w-[607.96px] grid grid-cols-2 bg-[#1D1D1D] rounded-[8px]">
-          <button 
-            onClick={() => setStack('Individual Account')} 
-            className={`rounded-[15px] h-[60.5px] text-[14px] font-[600] leading-[27px] text-center sm:h-[72.56px] w-full ${stack === 'Individual Account' ? 'bg-[#464646]' : ""} text-white`}
-          >
-            Individual Account
-          </button>
-          <button 
-            onClick={() => setStack('Academy')} 
-            className={`rounded-[15px] w-full h-[60.5px] text-[14px] font-[600] leading-[27px] text-center sm:h-[72.56px] ${stack === 'Academy' ? 'bg-[#464646]' : ""} text-white`}
-          >
-            Academy
-          </button>
-        </div>
-        </div> */}
+              
 
               <div className="flex flex-col gap-8 w-full max-w-[607.96px]">
                 {/* Hero section */}
@@ -553,7 +553,7 @@ export default function IdentifyRole() {
               <button
                 disabled={isValidEmail}
                 onClick={handleEmailVerification}
-                className={` text-white font-bold py-2 px-4 rounded w-full h-[57px] text-[18px] leading-[57px] ${
+                className={` text-white font-bold py-2 px-4 rounded-[10px] btn cursor-pointer w-full h-[57px] text-[18px] leading-[57px] ${
                   isValidEmail ? "bg-[#404040] cursor-not-allowed" : "btn"
                 }`}
               >
@@ -585,7 +585,7 @@ export default function IdentifyRole() {
               <div className="flex flex-col gap-1">
                 <button
                   onClick={verifyOtpWithBackend}
-                  className={`h-[60px] w-full rounded-[15px]  ${
+                  className={`h-[60px] w-full rounded-[10px] btn cursor-pointer  ${
                     otpCode.length === 6
                       ? "btn"
                       : "bg-[#404040] cursor-not-allowed disabled "
@@ -644,11 +644,15 @@ export default function IdentifyRole() {
               heading="Congratulations"
               subheading="You’ve been admmited"
             />
-            <Link href={"/auth/login"}>
-              <button style={{padding:' 6px 30px'}} className=" btn cursor-pointer  rounded-[10px] text-[18px] font-[700] leading-[57px]">
-                continue to the lab
-              </button>
-            </Link>
+            {/* <Link href={handleRedirectLogin}> */}
+            <button
+              onClick={ handleRedirectLogin }
+              style={{ padding: " 6px 30px" }}
+              className=" btn cursor-pointer w-full  rounded-[10px] text-[18px] font-[700] leading-[57px]"
+            >
+              continue to the lab
+            </button>
+            {/* </Link> */}
           </div>
         );
     }
