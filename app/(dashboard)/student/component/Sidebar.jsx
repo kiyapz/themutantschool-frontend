@@ -24,10 +24,23 @@ export default function Sidebar() {
             link={"/student/student-dashboard/student-mission"}
             text={"My Missions"}
           />
-          <Sidebtn text={"Mutation History"} />
-          <Sidebtn text={"Mutation Profile"} />
-          <Sidebtn text={"Certificates"} />
-          <Sidebtn text={"Settings"} />
+
+          <Sidebtn
+            link={"/student/student-dashboard/mutation-history"}
+            text={"Mutation History"}
+          />
+          <Sidebtn
+            link={"/student/student-dashboard/student-profile"}
+            text={"Mutation Profile"}
+          />
+          <Sidebtn
+            link={"/student/student-dashboard/student-achievements"}
+            text={"Achievements"}
+          />
+          <Sidebtn
+            link={"/student/student-dashboard/mutation-student-setting"}
+            text={"Settings"}
+          />
         </div>
       </div>
       <div>
