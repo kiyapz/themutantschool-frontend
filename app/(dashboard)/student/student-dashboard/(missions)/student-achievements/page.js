@@ -146,7 +146,7 @@ export default function Page(params) {
       </div>
 
       <div>
-        <div className="space-y-6">
+        <div className="flex flex-col gap-3">
           <CertificateCard
             title="Complete Mutation on Digital Marketing Course"
             date="30th June, 2025"

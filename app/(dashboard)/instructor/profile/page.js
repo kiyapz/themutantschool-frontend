@@ -128,10 +128,10 @@ export default function Profile() {
         username: userUpdatedValue.username || "",
         email: userUpdatedValue.email || "",
         gender: userUpdatedValue.gender || "",
-        phoneNumber: userUpdatedValue.phoneNumber || "", // FIX: Map Phone to phoneNumber
+        phoneNumber: userUpdatedValue.phoneNumber || "",
         role: userUpdatedValue.role || "",
         nationality: userUpdatedValue.nationality || "",
-        preferredLanguage: userUpdatedValue.preferredLanguage || "", // FIX: Use consistent field name
+        preferredLanguage: userUpdatedValue.preferredLanguage || "",
         dateOfBirth: userUpdatedValue.dateOfBirth || "",
         ExpertiseTags: userUpdatedValue.ExpertiseTags || [],
 
