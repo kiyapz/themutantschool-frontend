@@ -1,11 +1,12 @@
 "use client";
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { HiMenu, HiShoppingCart } from "react-icons/hi";
 
 export default function Navbar() {
   const [active, setActive] = useState("register");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [cartCount, setCartCount] = useState(0);
 
   const handleClick = (btn) => {
     setActive(btn);
@@ -18,6 +19,25 @@ export default function Navbar() {
   const closeMobileMenu = () => {
     setIsMobileMenuOpen(false);
   };
+
+  useEffect(() => {
+    const updateCount = () => {
+      try {
+        const stored = JSON.parse(localStorage.getItem("CART_ITEMS") || "[]");
+        setCartCount(Array.isArray(stored) ? stored.length : 0);
+      } catch (e) {
+        setCartCount(0);
+      }
+    };
+    updateCount();
+    const onChange = () => updateCount();
+    window.addEventListener("storage", onChange);
+    window.addEventListener("cart:changed", onChange);
+    return () => {
+      window.removeEventListener("storage", onChange);
+      window.removeEventListener("cart:changed", onChange);
+    };
+  }, []);
 
   return (
     <div className="w-full flexcenter  h-[70px] relative">
@@ -63,10 +83,15 @@ export default function Navbar() {
             <div>
               <Link href={"/mutantcart"}>
                 <div
-                  className="flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer"
+                  className="flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative"
                   aria-label="Cart"
                 >
                   <HiShoppingCart className="text-[18px]" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#844CDC] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
                 </div>
               </Link>
             </div>
@@ -102,19 +127,39 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            onClick={toggleMobileMenu}
-            className="md:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 focus:outline-none"
-            aria-label="Toggle mobile menu"
-          >
-            <span
-              className={`block w-5 h-0.5  transition-all duration-300 ${
-                isMobileMenuOpen ? "opacity-0" : ""
-              }`}
+          <div className=" sm:hidden  flex items-center gap-2">
+            <div className=" sm:hidden">
+              <Link href={"/mutantcart"}>
+                <div
+                  onClick={() => {
+                    closeMobileMenu();
+                  }}
+                  className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md relative"
+                  aria-label="Cart"
+                >
+                  <HiShoppingCart className="text-[18px]" />
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-[#844CDC] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </div>
+            <button
+              onClick={toggleMobileMenu}
+              className="md:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 focus:outline-none"
+              aria-label="Toggle mobile menu"
             >
-              <HiMenu />
-            </span>
-          </button>
+              <span
+                className={`block w-5 h-0.5  transition-all duration-300 ${
+                  isMobileMenuOpen ? "opacity-0" : ""
+                }`}
+              >
+                <HiMenu />
+              </span>
+            </button>
+          </div>
         </div>
       </div>
 
@@ -199,19 +244,6 @@ export default function Navbar() {
 
           {/* Mobile Auth Buttons */}
           <div className="flex flex-col gap-3 px-4 pb-4">
-            <div>
-              <Link href={"/mutantcart"}>
-                <div
-                  onClick={() => {
-                    closeMobileMenu();
-                  }}
-                  className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md"
-                  aria-label="Cart"
-                >
-                  <HiShoppingCart className="text-[18px]" />
-                </div>
-              </Link>
-            </div>
             <div className="cut-box3">
               <Link href={"/auth/login"}>
                 <div

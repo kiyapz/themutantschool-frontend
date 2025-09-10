@@ -1,27 +1,32 @@
 "use client";
+import { useEffect, useState } from "react";
 import ShoppingCart from "@/components/cart/ShoppingCart";
 
-const demoItems = [
-  {
-    id: "1",
-    title: "JavaScript Fundamentals",
-    by: "The Mutant School",
-    price: 80.1,
-    image: "/images/Rectangle 120.png",
-  },
-  {
-    id: "2",
-    title: "JavaScript Fundamentals",
-    by: "The Mutant School",
-    price: 120.15,
-    image: "/images/Rectangle 158.png",
-  },
-];
-
 export default function Page() {
+  const [items, setItems] = useState([]);
+
+  useEffect(() => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("CART_ITEMS") || "[]");
+      setItems(Array.isArray(stored) ? stored : []);
+    } catch (e) {
+      setItems([]);
+    }
+  }, []);
+
+  const handleRemove = (id) => {
+    try {
+      const stored = JSON.parse(localStorage.getItem("CART_ITEMS") || "[]");
+      const next = stored.filter((x) => x.id !== id);
+      localStorage.setItem("CART_ITEMS", JSON.stringify(next));
+      setItems(next);
+      window.dispatchEvent(new CustomEvent("cart:changed"));
+    } catch (e) {}
+  };
+
   return (
     <main className="min-h-screen px pt-[120px]">
-      <ShoppingCart items={demoItems} />
+      <ShoppingCart items={items} onRemove={handleRemove} />
     </main>
   );
 }

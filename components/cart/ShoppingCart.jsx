@@ -8,16 +8,21 @@ export default function ShoppingCart({
   items = [],
   onApplyCoupon,
   onCheckout,
+  onRemove,
 }) {
   const totals = useMemo(() => {
-    const subtotal = items.reduce((sum, item) => sum + item.price, 0);
+    const subtotal = items.reduce((sum, item) => {
+      const price =
+        typeof item.price === "number" ? item.price : Number(item.price) || 0;
+      return sum + price;
+    }, 0);
     return { subtotal, discount: 0, total: subtotal };
   }, [items]);
 
   return (
     <div className="w-full px py-6">
       <div
-        style={{ marginTop: "150px" }}
+        // style={{ marginTop: "150px" }}
         className="max-w-[1200px] mx-auto min-h-[60vh]"
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
@@ -38,7 +43,7 @@ export default function ShoppingCart({
                     {item.image && (
                       <Image
                         src={item.image}
-                        alt={item.title}
+                        alt={String(item.title || "Item")}
                         fill
                         className="object-cover"
                       />
@@ -46,16 +51,31 @@ export default function ShoppingCart({
                   </div>
                   <div className="flex-1 p-2 sm:p-4 self-center ">
                     <div className="text-white font-[700] text-[18px] leading-[24px] sm:text-[26px] sm:leading-[32px] ">
-                      {item.title}
+                      {String(item.title || "Item")}
                     </div>
                     <div className="text-[#767676] text-[13px] sm:text-[19px] mt-1 font-[400] leading-[20px] sm:leading-[32px]   ">
-                      By {item.by || "The Mutant School"}
+                      By{" "}
+                      {typeof item.by === "object"
+                        ? "The Mutant School"
+                        : item.by || "The Mutant School"}
                     </div>
                   </div>
                   <div className="p-2 sm:p-4 text-white text-[13px] sm:text-[16px] self-center">
-                    ${totals && item.price.toFixed(2)}
+                    $
+                    {(() => {
+                      const price =
+                        typeof item.price === "number"
+                          ? item.price
+                          : Number(item.price) || 0;
+                      return price.toFixed(2);
+                    })()}
                   </div>
-                  <div className="text-red-500 absolute top-5 right-5 cursor-pointer    ">
+                  <div
+                    className="text-red-500 absolute top-5 right-5 cursor-pointer    "
+                    onClick={() => onRemove?.(item.id)}
+                    aria-label="Remove from cart"
+                    role="button"
+                  >
                     <FaTrash />
                   </div>
                 </div>
