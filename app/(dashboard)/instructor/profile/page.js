@@ -41,7 +41,7 @@ export default function Profile() {
 
         if (!storedUser || !accessToken) {
           console.warn("User or token not found in localStorage");
-          router.push("/Login");
+          router.push("/auth/login");
           return;
         }
 
@@ -64,7 +64,7 @@ export default function Profile() {
         setError("Failed to load profile. Please try again.");
 
         if (error.response?.status === 401 || error.response?.status === 403) {
-          router.push("/Login");
+          router.push("/auth/login");
         }
       } finally {
         setIsLoading(false);
@@ -74,37 +74,37 @@ export default function Profile() {
     fetchProfile();
   }, [setUserProfile, router]);
 
- useEffect(() => {
-   if (userProfile) {
-     setUserUpdatedValue({
-       firstName: userProfile.firstName || "",
-       lastName: userProfile.lastName || "",
-       username: userProfile.username || "",
-       email: userProfile.email || "",
-       bio: userProfile.profile?.bio || "",
-       facebook: userProfile.profile?.socialLinks?.facebook || "",
-       linkedin: userProfile.profile?.socialLinks?.linkedin || "",
-       website: userProfile.profile?.socialLinks?.website || "",
+  useEffect(() => {
+    if (userProfile) {
+      setUserUpdatedValue({
+        firstName: userProfile.firstName || "",
+        lastName: userProfile.lastName || "",
+        username: userProfile.username || "",
+        email: userProfile.email || "",
+        bio: userProfile.profile?.bio || "",
+        facebook: userProfile.profile?.socialLinks?.facebook || "",
+        linkedin: userProfile.profile?.socialLinks?.linkedin || "",
+        website: userProfile.profile?.socialLinks?.website || "",
 
-       twitter: userProfile.profile?.socialLinks?.twitter || "",
-       instagram: userProfile.profile?.socialLinks?.instagram || "",
-       youtube: userProfile.profile?.socialLinks?.youtube || "",
-       url: userProfile.profile?.avatar?.url || "",
-       publicId: userProfile.profile?.avatar?.publicId || "",
-       Headline: userProfile.profile?.headline || "",
-       introVideo: userProfile.profile?.introVideo || "",
-       ExpertiseTags: userProfile.ExpertiseTags || [],
-       gender: userProfile.gender || "",
-       phoneNumber:userProfile.phoneNumber || "", // FIX: Map phoneNumber to Phone
-       role: userProfile.role || "",
-       nationality: userProfile.nationality || "",
-       preferredLanguage: userProfile.preferredLanguage || "", // FIX: Use consistent field name
-       dateOfBirth: userProfile.dateOfBirth
-         ? userProfile.dateOfBirth.split("T")[0]
-         : "", // FIX: Format date for input
-     });
-   }
- }, [userProfile, setUserUpdatedValue]);
+        twitter: userProfile.profile?.socialLinks?.twitter || "",
+        instagram: userProfile.profile?.socialLinks?.instagram || "",
+        youtube: userProfile.profile?.socialLinks?.youtube || "",
+        url: userProfile.profile?.avatar?.url || "",
+        publicId: userProfile.profile?.avatar?.publicId || "",
+        Headline: userProfile.profile?.headline || "",
+        introVideo: userProfile.profile?.introVideo || "",
+        ExpertiseTags: userProfile.ExpertiseTags || [],
+        gender: userProfile.gender || "",
+        phoneNumber: userProfile.phoneNumber || "", // FIX: Map phoneNumber to Phone
+        role: userProfile.role || "",
+        nationality: userProfile.nationality || "",
+        preferredLanguage: userProfile.preferredLanguage || "", // FIX: Use consistent field name
+        dateOfBirth: userProfile.dateOfBirth
+          ? userProfile.dateOfBirth.split("T")[0]
+          : "", // FIX: Format date for input
+      });
+    }
+  }, [userProfile, setUserUpdatedValue]);
 
   const updateUserProfile = async () => {
     setIsLoading(true);
@@ -179,14 +179,12 @@ export default function Profile() {
       setError("Failed to update profile. Please try again.");
 
       if (error.response?.status === 401 || error.response?.status === 403) {
-        router.push("/Login");
+        router.push("/auth/login");
       }
     } finally {
       setIsLoading(false);
     }
   };
-
-
 
   if (isLoading && !userProfile) {
     return (

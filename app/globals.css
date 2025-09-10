@@ -13,6 +13,7 @@
   --primary-light: #844cdc;
   --secondary: #4a00bc;
   --accent: #131313;
+  --card: #0f0f0f;
   --error: #d93025;
   --warning: #fbbc05;
   --success: #34a853;
@@ -41,10 +42,8 @@
 
 /* styles/globals.css */
 .scrollbar-hide {
-  scrollbar-width: none; 
+  scrollbar-width: none;
   -ms-overflow-style: none;
-
-
 }
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
@@ -106,11 +105,11 @@ body {
 }
 
 .studentbtn2 {
-  background: linear-gradient(to right, #840B94, #AF7B34);
+  background: linear-gradient(to right, #840b94, #af7b34);
 }
 
 .studentbtn2:hover {
-  background: linear-gradient(to right, #AF7B34, #840B94);
+  background: linear-gradient(to right, #af7b34, #840b94);
 }
 
 .evolution-button {
@@ -137,10 +136,10 @@ body {
   padding: 1.25rem;
   clip-path: polygon(
     20px 0%,
-   100% 0%,
+    100% 0%,
     100% calc(100% - 20px),
     calc(100% - 20px) 100%,
-   0% 100%,
+    0% 100%,
     0% 20px
   );
 }
@@ -152,14 +151,13 @@ body {
 
 .cut-box {
   position: relative;
- 
+
   clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
- 
+
   padding: 1px;
 }
 
 .cut-box-inner {
-
   clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
   padding: 1.25rem;
   color: white;
@@ -180,7 +178,6 @@ body {
 }
 
 .cut-box-inner2 {
-
   clip-path: polygon(
     0 0,
     100% 0%,
@@ -189,21 +186,12 @@ body {
     0 100%
   );
   padding: 1.25rem;
-  
 }
 
-
 .cut-box3 {
-  background:#FFFFFF;
+  background: #ffffff;
   padding: 2px;
-  clip-path: polygon(
-    0 0,
-    100% 0,
-    100% 100%,
-    20px 100%,
-    0 calc(100% - 20px)
-    
-  );
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
 }
 
 .cut-box-inner3 {
@@ -217,7 +205,7 @@ body {
 
 /* Second Box - Top Left Cut */
 .cut-box4 {
-  background:#FFFFFF;
+  background: #ffffff;
   padding: 2px;
   clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
 }
@@ -259,7 +247,6 @@ body {
   animation: marquee 20s linear infinite;
 }
 
-
 @media (max-width: 1024px) {
   .mt-mutantlogin {
     margin-top: 10%;
@@ -271,7 +258,7 @@ body {
 }
 
 @media (max-width: 640px) {
-  .padding-left  {
+  .padding-left {
     padding-left: 0px;
   }
   .margin-btn-smallScreen {
@@ -281,7 +268,7 @@ body {
     padding-left: 13px;
     padding-right: 13px;
   }
-.marginTopSSmall {
+  .marginTopSSmall {
     margin-top: 250px;
   }
   .py {
@@ -353,5 +340,3 @@ body {
     clip-path: none;
   }
 }
-
-

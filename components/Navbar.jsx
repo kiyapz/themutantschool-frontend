@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { HiMenu } from "react-icons/hi";
+import { HiMenu, HiShoppingCart } from "react-icons/hi";
 
 export default function Navbar() {
   const [active, setActive] = useState("register");
@@ -60,6 +60,16 @@ export default function Navbar() {
 
           {/* Desktop Auth Buttons */}
           <div className="hidden md:flex items-center gap-3 lg:gap-4">
+            <div>
+              <Link href={"/mutantcart"}>
+                <div
+                  className="flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer"
+                  aria-label="Cart"
+                >
+                  <HiShoppingCart className="text-[18px]" />
+                </div>
+              </Link>
+            </div>
             <div className="cut-box3">
               <Link href={"/auth/login"}>
                 <div
@@ -187,8 +197,21 @@ export default function Navbar() {
             </ul>
           </nav>
 
-          {/* Mobile Auth Buttons - FIXED: Removed hidden class */}
+          {/* Mobile Auth Buttons */}
           <div className="flex flex-col gap-3 px-4 pb-4">
+            <div>
+              <Link href={"/mutantcart"}>
+                <div
+                  onClick={() => {
+                    closeMobileMenu();
+                  }}
+                  className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md"
+                  aria-label="Cart"
+                >
+                  <HiShoppingCart className="text-[18px]" />
+                </div>
+              </Link>
+            </div>
             <div className="cut-box3">
               <Link href={"/auth/login"}>
                 <div

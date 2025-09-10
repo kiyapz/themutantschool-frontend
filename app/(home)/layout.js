@@ -40,7 +40,6 @@ export default function RootLayout({ children }) {
                   NOW
                 </span>
               </div>
-            
             </div>
 
             {/* Nav Bar */}
@@ -49,7 +48,7 @@ export default function RootLayout({ children }) {
             </div>
           </div>
         </header>
-        <main>{children}</main>
+        <main className="pt-[160px] sm:pt-[160px]">{children}</main>
         <Footer />
       </body>
     </html>

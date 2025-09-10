@@ -93,7 +93,7 @@ try {
             <>
               {Level === "AddQuize" ? (
                 <div className="flex items-center gap-1 text-[25px]">
-                  <Link href="/instructor/myMissions/createnewmission">
+                  <Link href="/instructor/missions/createnewmission">
                     <span
                       onClick={() => setLevel("AddLevel")}
                       className="cursor-pointer"
@@ -101,7 +101,10 @@ try {
                       <HiArrowNarrowLeft />
                     </span>
                   </Link>
-                  <p style={{marginTop:'10px'}} className="font-[600] text-[33px] leading-[40px] ">
+                  <p
+                    style={{ marginTop: "10px" }}
+                    className="font-[600] text-[33px] leading-[40px] "
+                  >
                     Final Quiz: {quiztitle}
                   </p>
                 </div>
@@ -113,7 +116,7 @@ try {
             </>
           ) : activeTab === "Preview and Launch" ? (
             <p className=" font-[600] text-[20px] sm:text-[25px] xl:text-[42px] flex items-center gap-1 leading-[40px] text-white ">
-              <Link href="/instructor/myMissions/createnewmission">
+              <Link href="/instructor/missions/createnewmission">
                 <span
                   className="cursor-pointer"
                   onClick={() => setActiveTab("Add Levels")}
@@ -148,7 +151,7 @@ try {
               ))}
             </div>
           ) : (
-            <Link href={`/instructor/myMissions/`}>
+            <Link href={`/instructor/missions/`}>
               <button
                 style={{ padding: "15px" }}
                 className="hidden sm:block  bg-[var(--purpel-btncolor)] rounded-[10px] "

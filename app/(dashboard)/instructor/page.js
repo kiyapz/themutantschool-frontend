@@ -159,7 +159,7 @@ export default function InstructorDashboard() {
       localStorage.removeItem("USER");
       localStorage.removeItem("login-accessToken");
       localStorage.removeItem("login-refreshToken");
-      router.push("/login");
+      router.push("/auth/login");
       throw error;
     }
   }, [router]);
@@ -220,7 +220,7 @@ export default function InstructorDashboard() {
 
       if (!storedUser || !accessToken) {
         console.log("No authentication found, redirecting to login");
-        router.push("/login");
+        router.push("/auth/login");
         return;
       }
 
@@ -231,7 +231,7 @@ export default function InstructorDashboard() {
         console.log("Invalid user data in localStorage, redirecting to login");
         localStorage.removeItem("USER");
         localStorage.removeItem("login-accessToken");
-        router.push("/login");
+        router.push("/auth/login");
         return;
       }
 
@@ -239,7 +239,7 @@ export default function InstructorDashboard() {
         console.log("Invalid user data structure, redirecting to login");
         localStorage.removeItem("USER");
         localStorage.removeItem("login-accessToken");
-        router.push("/login");
+        router.push("/auth/login");
         return;
       }
 
@@ -258,7 +258,7 @@ export default function InstructorDashboard() {
         console.log("Authentication failed, redirecting to login");
         localStorage.removeItem("USER");
         localStorage.removeItem("login-accessToken");
-        router.push("/login");
+        router.push("/auth/login");
         return;
       }
 

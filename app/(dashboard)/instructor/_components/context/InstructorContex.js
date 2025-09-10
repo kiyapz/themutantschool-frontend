@@ -1,11 +1,11 @@
 "use client";
 import { createContext, useEffect, useState, useCallback } from "react";
 import profilebase from "../../profile/_components/profilebase";
-import { useRouter } from "next/router";
+import { useRouter } from "next/navigation";
 
 export const InstructorContext = createContext();
-const router = useRouter;
 export default function InstructorContextProvider({ children }) {
+  const router = useRouter();
   const [profiledisplay, setprofiledisplay] = useState("Personal Information");
   const [openSmallScreenProfileDropDown, setopenSmallScreenProfileDropDown] =
     useState(false);

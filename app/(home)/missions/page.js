@@ -3,7 +3,7 @@ import DropDown from "@/components/Dropdown";
 import { FaSearch } from "react-icons/fa";
 import { FaClock } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -12,6 +12,35 @@ export default function Mission() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchMissions = async () => {
+      try {
+        const token = localStorage.getItem("token"); // make sure the key matches your storage
+        const res = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/admin/missions",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        setMissions(res.data);
+        console.log(missions, "missions");
+      } catch (err) {
+        setError(err.response?.data?.message || "Failed to fetch missions");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMissions();
+  }, []); //
 
   const options = [
     { label: "Design", value: "Design" },
@@ -842,7 +871,6 @@ export default function Mission() {
               EVERY MISSION IS A TEST. EVERY SKILL IS A POWER WAITING TO AWAKEN
             </p>
           </div>
-       
         </div>
 
         {/* main */}

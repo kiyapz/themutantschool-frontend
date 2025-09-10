@@ -23,9 +23,9 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Expect your route folder to be: .../missionlevels/[id]/page.js
-  // If it's [1d] right now, rename it to [id]
-  const { id } = params || {};
+  // Support both [id] and legacy [1d] dynamic route folders
+  const { id: idParam, ["1d"]: oneDeeParam } = params || {};
+  const id = idParam ?? oneDeeParam;
 
   // --- Token refresh, memoized so callers stay stable ---
   const refreshAuthToken = useCallback(async () => {
@@ -36,7 +36,7 @@ export default function Page() {
           : null;
       if (!refreshToken) {
         console.warn("No refresh token found");
-        router.push("/Login");
+        router.push("/auth/login");
         return null;
       }
 
@@ -60,7 +60,7 @@ export default function Page() {
       localStorage.removeItem("login-accessToken");
       localStorage.removeItem("refreshToken");
       localStorage.removeItem("USER");
-      router.push("/Login");
+      router.push("/auth/login");
       return null;
     }
   }, [router]);
@@ -75,7 +75,7 @@ export default function Page() {
 
       if (!accessToken) {
         console.warn("No access token found");
-        router.push("/Login");
+        router.push("/auth/login");
         return null;
       }
 

@@ -136,7 +136,7 @@ export default function PreviewandLaunch() {
         <div className="flex flex-col gap-5">
           {levels.map((level, index) => (
             <Link
-              href={`/instructor/myMissions/createnewmission/missionlevels/${level._id}`}
+              href={`/instructor/missions/createnewmission/missionlevels/${level._id}`}
               key={level._id}
             >
               <div
