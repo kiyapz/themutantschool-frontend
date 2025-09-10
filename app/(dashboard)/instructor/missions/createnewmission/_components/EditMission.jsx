@@ -5,8 +5,8 @@ import axios from "axios";
 const EditModal = ({
   showModal,
   onClose,
-  editingItem, // Can be mission or level
-  itemType, // "mission" or "level"
+  editingItem, 
+  itemType, 
   onSuccess,
 }) => {
   const [formData, setFormData] = useState({
@@ -78,10 +78,10 @@ const EditModal = ({
         `${itemType === "level" ? "Level" : "Mission"} updated successfully!`
       );
 
-      // Call success callback with updated data
+      
       onSuccess(formData);
 
-      // Close modal
+      
       onClose();
     } catch (error) {
       console.error("Error updating:", error);
@@ -91,7 +91,7 @@ const EditModal = ({
     }
   };
 
-  // Reset form when editingItem changes
+  
   useState(() => {
     if (editingItem) {
       setFormData({

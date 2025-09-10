@@ -21,13 +21,13 @@ export default function Createnewmission() {
   // Call specific functions based on action
   switch (actionText) {
     case "Edit":
-      handleEditMission(); // or handleEditLevel(item) if editing a level
+      handleEditMission(); 
       break;
     case "Delete":
-      setShowDeleteModal(true); // or handleDeleteLevel(levelId) if deleting a level
+      setShowDeleteModal(true); 
       break;
     case "Publish":
-      handlePublishMission(); // Add your publish function
+      handlePublishMission(); 
       break;
     default:
       break;
