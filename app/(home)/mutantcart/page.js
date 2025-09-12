@@ -171,18 +171,19 @@ export default function Page() {
       );
 
       const sessionId = paymentResponse.data.sessionId;
-      console.log("[Proceed] Created sessionId:", sessionId);
-      if (sessionId) {
-        console.log(sessionId, "sessionId from cart proceed");
-        const redirectUrl =
-          paymentResponse.data.url || paymentResponse.data.redirectUrl;
-        if (redirectUrl) {
-          window.location.href = redirectUrl;
-        } else {
-          // router.push(`/missions/checkout-success?sessionId=${sessionId}`);
-        }
-      } else {
+      const redirectUrl =
+        paymentResponse.data.url || paymentResponse.data.redirectUrl;
+      console.log("[Proceed] Payment session created:", {
+        sessionId,
+        redirectUrl,
+        data: paymentResponse.data,
+      });
+      if (!sessionId) {
         throw new Error("Failed to create payment session.");
+      }
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
       }
     } catch (err) {
       setError(

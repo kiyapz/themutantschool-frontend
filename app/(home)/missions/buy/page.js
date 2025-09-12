@@ -46,7 +46,7 @@ function BuyPageContent() {
   const handleCheckout = async () => {
     console.log("Starting checkout process...");
     setIsProcessing(true);
-    setError(null); // Clear previous errors
+    setError(null);
 
     const token = localStorage.getItem("login-accessToken");
     console.log("Retrieved auth token:", token ? "Found" : "Not Found");
@@ -109,15 +109,22 @@ function BuyPageContent() {
 
       console.log("Payment session response:", paymentResponse.data);
       const sessionId = paymentResponse.data.sessionId;
-
-      if (sessionId) {
-        console.log("Payment session created successfully with ID:", sessionId);
-        window.location.href = `/missions/checkout-success?sessionId=${sessionId}`;
-      } else {
+      const redirectUrl =
+        paymentResponse.data.url || paymentResponse.data.redirectUrl;
+      console.log("Checkout session prepared:", {
+        sessionId,
+        redirectUrl,
+        data: paymentResponse.data,
+      });
+      if (!sessionId) {
         throw new Error("Session ID not found in API response.");
       }
+      if (redirectUrl) {
+        window.location.href = redirectUrl;
+        return;
+      }
     } catch (err) {
-      console.error("💥 Checkout error:", err.response || err);
+      console.error("Checkout error:", err.response || err);
       const apiErrorMessage = err.response?.data?.message;
       setError(
         apiErrorMessage || "An unexpected error occurred during checkout."

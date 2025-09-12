@@ -5,7 +5,8 @@ import { Suspense } from "react";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
-  const sessionId = searchParams.get("sessionId");
+  const sessionId =
+    searchParams.get("sessionId") || searchParams.get("session_id");
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 text-center">
