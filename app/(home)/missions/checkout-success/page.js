@@ -1,12 +1,19 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { Suspense } from "react";
+import { Suspense, useEffect } from "react";
+
+export const dynamic = "force-dynamic";
 
 function SuccessContent() {
   const searchParams = useSearchParams();
   const sessionId =
     searchParams.get("sessionId") || searchParams.get("session_id");
+
+  useEffect(() => {
+    // Debug log to ensure this page rendered in production
+    console.log("[Checkout Success] Rendered with sessionId:", sessionId);
+  }, [sessionId]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-8 text-center">
