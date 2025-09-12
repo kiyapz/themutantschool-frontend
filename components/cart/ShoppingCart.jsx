@@ -33,7 +33,7 @@ export default function ShoppingCart({
             {items.map((item) => (
               <div
                 key={item.id}
-                className="bg-[var(--card)] sm:h-[233px] border border-[#6E5B8D] rounded-[20px] overflow-hidden flex flex-col gap-4 relative"
+                className="bg-[var(--card)] sm:h-[233px] border border-[var(--purple-border)] rounded-[20px] overflow-hidden flex flex-col gap-4 relative"
               >
                 <div
                   style={{ padding: "20px" }}
@@ -85,7 +85,7 @@ export default function ShoppingCart({
 
           <div
             style={{ padding: "20px" }}
-            className="bg-[#0E0E0E]  rounded-[20px] p-4 h-fit flex flex-col gap-10 self-start"
+            className="bg-[var(--bg-very-dark)]  rounded-[20px] p-4 h-fit flex flex-col gap-10 self-start"
           >
             <div className="text-white font-semibold mb-4 text-[18px] leading-[24px] sm:text-[22px] sm:leading-[32px] font-[800] ">
               Order Summary
@@ -103,7 +103,7 @@ export default function ShoppingCart({
                 <span className="text-[16px] leading-[24px] sm:text-[22px] sm:leading-[32px]  font-[800] ">
                   Discount
                 </span>
-                <span className="text-[#78AD89] text-[16px] leading-[24px] sm:text-[22px] sm:leading-[32px] font-[700] ">
+                <span className="text-[var(--success-soft)] text-[16px] leading-[24px] sm:text-[22px] sm:leading-[32px] font-[700] ">
                   -$0.00
                 </span>
               </div>
@@ -134,7 +134,7 @@ export default function ShoppingCart({
                 <button
                   style={{ padding: "10px" }}
                   onClick={() => onApplyCoupon?.()}
-                  className="px-4 py-2 cursor-pointer rounded-r-md bg-[#844CDC] text-white text-[12px]"
+                  className="px-4 py-2 cursor-pointer rounded-r-md bg-[var(--primary-light)] text-white text-[12px]"
                 >
                   Apply
                 </button>
@@ -144,7 +144,7 @@ export default function ShoppingCart({
             <button
               style={{ padding: "10px" }}
               onClick={() => onCheckout?.()}
-              className="w-full mt-5 py-3 rounded-md bg-[#844CDC] text-white font-semibold text-[12px]"
+              className="w-full mt-5 py-3 rounded-md bg-[var(--primary-light)] text-white font-semibold text-[12px]"
             >
               Proceed to checkout
             </button>

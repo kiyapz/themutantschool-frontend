@@ -4,11 +4,14 @@ import { FaSearch } from "react-icons/fa";
 import { FaClock } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
 import { useState, useMemo, useEffect } from "react";
+import { useCart } from "@/components/cart/CartContext";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 const ITEMS_PER_PAGE = 9;
 
 export default function Mission() {
+  const { setCartItems } = useCart();
   const [clickedButtons, setClickedButtons] = useState(new Set());
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("");
@@ -17,6 +20,7 @@ export default function Mission() {
   const [course, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchMissions = async () => {
@@ -39,6 +43,52 @@ export default function Mission() {
     };
 
     fetchMissions();
+  }, []);
+
+  useEffect(() => {
+    const fetchCartItems = async () => {
+      console.log("[Missions Page] Fetching initial cart items...");
+      const token = localStorage.getItem("login-accessToken");
+      if (!token) {
+        console.log("[Missions Page] No token, skipping cart fetch.");
+        return; // Not logged in, cart is empty
+      }
+      try {
+        const res = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/mission-cart",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (res.data && res.data.data) {
+          const cartMissionIds = new Set(
+            (res.data.cart?.missions || res.data.data || []).map((entry) => {
+              return entry?.mission?._id || entry?.missionId || entry?._id;
+            })
+          );
+          console.log(
+            "[Missions Page] Cart contains mission IDs:",
+            Array.from(cartMissionIds)
+          );
+          setClickedButtons(cartMissionIds);
+          // Also seed global cart items minimally for count
+          const minimalItems = (
+            res.data.cart?.missions ||
+            res.data.data ||
+            []
+          ).map((entry) => ({
+            id: entry?.mission?._id || entry?.missionId || entry?._id,
+          }));
+          setCartItems(minimalItems);
+        }
+      } catch (err) {
+        console.error("[Missions Page] Failed to fetch cart items:", err);
+      }
+    };
+
+    fetchCartItems();
   }, []);
 
   const options = [
@@ -104,8 +154,6 @@ export default function Mission() {
     if (hours <= 10) return "5hrs - 10hrs";
     return "11hrs - more";
   };
-
- 
 
   // Filter and sort courses based on selected criteria
   const filteredAndSortedCourses = useMemo(() => {
@@ -199,51 +247,67 @@ export default function Mission() {
     course,
   ]);
 
-  const handleButtonClick = (courseId) => {
-    setClickedButtons((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(courseId)) {
-        newSet.delete(courseId);
-      } else {
-        newSet.add(courseId);
+  const handleAddToCart = async (missionId) => {
+    console.log(
+      `%c[Add to Cart] Button clicked for missionId: ${missionId}`,
+      `color: var(--mutant-color); font-weight: bold;`
+    );
+    const token = localStorage.getItem("login-accessToken");
+    if (!token) {
+      console.log("[Add to Cart] No token found. Redirecting to login.");
+      router.push("/auth/login");
+      return;
+    }
+
+    if (clickedButtons.has(missionId)) {
+      console.log(
+        `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
+      );
+      router.push("/mutantcart");
+      return;
+    }
+
+    try {
+      console.log(
+        `[Add to Cart] Sending POST request for missionId: ${missionId}`
+      );
+      const response = await axios.post(
+        `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log("[Add to Cart] API Response:", response.data);
+
+      setClickedButtons((prev) => new Set(prev).add(missionId));
+      // Increment global cart (minimal add) and persist via context
+      setCartItems((prev) => {
+        const prevArray = Array.isArray(prev) ? prev : [];
+        const exists = prevArray.some((x) => x.id === missionId);
+        const next = exists ? prevArray : [...prevArray, { id: missionId }];
+        return next;
+      });
+      console.log(
+        "[Add to Cart] UI state updated. Broadcasting cart:changed event."
+      );
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("cart:changed"));
       }
-      return newSet;
-    });
+    } catch (err) {
+      console.error(
+        "[Add to Cart] API Error:",
+        err.response?.data || err.message
+      );
+      setError(err.response?.data?.message || "Failed to add mission to cart.");
+      setTimeout(() => setError(null), 3000);
+    }
   };
 
   const [currentPage, setCurrentPage] = useState(1);
-
-  const addToCart = (mission) => {
-    try {
-      const existing = JSON.parse(localStorage.getItem("CART_ITEMS") || "[]");
-      const authorRaw = mission.author || mission.instructor || null;
-      const authorName =
-        typeof authorRaw === "object" && authorRaw !== null
-          ? authorRaw.username ||
-            (authorRaw.firstName && authorRaw.lastName
-              ? `${authorRaw.firstName} ${authorRaw.lastName}`
-              : authorRaw.firstName || authorRaw.lastName || authorRaw.email) ||
-            "The Mutant School"
-          : authorRaw || "The Mutant School";
-      const item = {
-        id: mission._id,
-        title: mission.description || mission.title || "Mission",
-        by: authorName,
-        price: mission.isFree ? 0 : Number(mission.price) || 0,
-        image:
-          (mission && mission.thumbnail && mission.thumbnail.url) ||
-          "/images/Rectangle 120.png",
-      };
-      const alreadyInCart = existing.some((x) => x.id === item.id);
-      if (!alreadyInCart) {
-        existing.push(item);
-        localStorage.setItem("CART_ITEMS", JSON.stringify(existing));
-        try {
-          window.dispatchEvent(new CustomEvent("cart:changed"));
-        } catch (e) {}
-      }
-    } catch (e) {}
-  };
 
   // Reset to page 1 when filters change
   useEffect(() => {
@@ -263,6 +327,11 @@ export default function Mission() {
   return (
     <div className="w-screen h-full bg-white flexcenter ">
       <div className="max-w-[1800px] w-full  ">
+        {error && (
+          <div className="fixed top-20 right-5 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
+            {error}
+          </div>
+        )}
         {/* Herosection */}
         <div
           style={{
@@ -275,15 +344,15 @@ export default function Mission() {
             className="max-w-[336.97px] relative herosection-mb flexcenter flex-col gap-5 sm:max-w-[852.48px] w-full px-4"
           >
             <div className="relative z-40">
-              <h2 className="text-[#E2E2E2] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
+              <h2 className="text-[var(--text-light-2)] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
                 Choose Your Next
               </h2>
-              <h2 className="text-[#E2E2E2] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
+              <h2 className="text-[var(--text-light-2)] Xirod text-[24px] leading-[28px] xs:text-[32px] xs:leading-[36px] sm:text-[40px] sm:leading-[44px] md:text-[51px] md:leading-[57px] text-center">
                 Mutation Mission
               </h2>
             </div>
 
-            <p className="font-[500] text-[12px] xs:text-[14px] relative z-40 sm:text-[17px] leading-[14px] sm:leading-[24px] md:leading-[28px] text-[#CDE98D] text-center px-2">
+            <p className="font-[500] text-[12px] xs:text-[14px] relative z-40 sm:text-[17px] leading-[14px] sm:leading-[24px] md:leading-[28px] text-[var(--info)] text-center px-2">
               EVERY MISSION IS A TEST. EVERY SKILL IS A POWER WAITING TO AWAKEN
             </p>
           </div>
@@ -307,20 +376,20 @@ export default function Mission() {
               <div className="flex flex-col sm:flex-row items-center gap-2   w-full sm:w-auto">
                 <div
                   style={{ padding: "0 15px" }}
-                  className="border-[#C0C0C0] border text-black rounded-[38px] flex items-center h-[47.15px] w-full sm:max-w-[350px] md:max-w-[400px] lg:max-w-[446.1px]"
+                  className="border-[var(--coco-color)] border text-black rounded-[38px] flex items-center h-[47.15px] w-full sm:max-w-[350px] md:max-w-[400px] lg:max-w-[446.1px]"
                 >
-                  <FaSearch className="text-[#CCCCCC] flex-shrink-0" />
+                  <FaSearch className="text-[var(--gray-300)] flex-shrink-0" />
                   <input
                     style={{ padding: "7px" }}
                     type="text"
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     placeholder={`"Search Missions… Try "Growth hacking", "Figma", "Python""`}
-                    className="w-full h-full outline-none placeholder-[#B6B6B6] font-[700] text-black text-[8px] xs:text-[10px] leading-[30px]"
+                    className="w-full h-full outline-none placeholder-[var(--gray-350)] font-[700] text-black text-[8px] xs:text-[10px] leading-[30px]"
                   />
                 </div>
                 <div
-                  className="border-[#C0C0C0] text-[#B6B6B6] font-[500] leading-[30px] text-[10px] flexcenter border rounded-[38px] h-[47.15px] w-full sm:w-[120px] md:w-[150px] lg:w-[175.72px] relative cursor-pointer"
+                  className="border-[var(--coco-color)] text-[var(--gray-350)] font-[500] leading-[30px] text-[10px] flexcenter border rounded-[38px] h-[47.15px] w-full sm:w-[120px] md:w-[150px] lg:w-[175.72px] relative cursor-pointer"
                   onClick={() => setShowSortDropdown(!showSortDropdown)}
                 >
                   Sort by :
@@ -328,7 +397,7 @@ export default function Mission() {
                   {showSortDropdown && (
                     <div
                       style={{ padding: "2px" }}
-                      className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#C0C0C0]  rounded-[10px] shadow-lg z-50"
+                      className="absolute top-full left-0 right-0 mt-1 bg-white border border-[var(--coco-color)]  rounded-[10px] shadow-lg z-50"
                     >
                       <div
                         className="px-3 py-2 hover:bg-gray-100 cursor-pointer text-[10px] text-[10px]"
@@ -449,7 +518,7 @@ export default function Mission() {
             <div className="col-span-2">
               {currentItems.length === 0 ? (
                 <div className="flex items-center justify-center h-64">
-                  <p className="text-[#6D6D6D] text-lg">
+                  <p className="text-[var(--gray-450)] text-lg">
                     {loading ? "loading..." : "No missions found"}
                   </p>
                 </div>
@@ -458,7 +527,7 @@ export default function Mission() {
                   {currentItems.map((course, i) => (
                     <div
                       key={course._id}
-                      className="h-[516.72px] w-full max-w-[340.81px] border-[#A6A6A6] rounded-[20px] shadow-md "
+                      className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md "
                     >
                       <div
                         style={{
@@ -475,41 +544,42 @@ export default function Mission() {
                           <div className="flex items-center justify-between w-full">
                             <p
                               style={{ marginBottom: "3px", padding: "0 10px" }}
-                              className="w-fit h-[22.94px] border border-[#A6A6A6] text-[#A6A6A6] flexcenter font-[500] leading-[25px] text-[10px]  rounded-[5px]"
+                              className="w-fit h-[22.94px] border border-[var(--gray-400)] text-[var(--gray-400)] flexcenter font-[500] leading-[25px] text-[10px]  rounded-[5px]"
                             >
                               {course.category}
                             </p>
-                            <p className="w-[53.75px] flexcenter h-[22.94px] bg-[#D3D3D3] text-black font-[600] text-[8px] leading-[28px] rounded-[30px]">
-                              <AiFillStar className="text-[#FFA100] w-[12.19px]  " />
+                            <p className="w-[53.75px] flexcenter h-[22.94px] bg-[var(--gray-200)] text-black font-[600] text-[8px] leading-[28px] rounded-[30px]">
+                              <AiFillStar className="text-[var(--warning-strong)] w-[12.19px]  " />
                               <span>{course.averageRating}</span>
                             </p>
                           </div>
-                          <p className="text-[#292929] font-[700] text-[20px] leading-[23px] ">
+                          <p className="text-[var(--gray-800-ish)] font-[700] text-[20px] leading-[23px] ">
                             {course.description}
                           </p>
-                          <p className="text-[#288C4F] font-[800] text-[15px] leading-[28px]">
+                          <p className="text-[var(--green-strong)] font-[800] text-[15px] leading-[28px]">
                             {" "}
                             ${course.isFree ? "Free" : course.price}
                           </p>
                         </div>
 
                         <div className="">
-                          <p className="text-[#5C5C5C] font-[500] flex items-center gap-1 text-[10px] leading-[28px]">
+                          <p className="text-[var(--gray-500)] font-[500] flex items-center gap-1 text-[10px] leading-[28px]">
                             <FaClock className="w-[12.19px] mr-1" />
                             <span>{course.estimatedDuration}</span>
                           </p>
                           <button
                             onClick={() => {
-                              handleButtonClick(course._id);
-                              addToCart(course);
+                              handleAddToCart(course._id);
                             }}
                             className={`${
                               clickedButtons.has(course._id)
-                                ? "bg-[#7343B3] text-white"
-                                : "bg-[#C1C1C1] text-black"
+                                ? "bg-[var(--purple-dark-2)] text-white" // Different color for item in cart
+                                : "bg-[var(--mutant-color)] text-white"
                             } font-[700] cursor-pointer h-[42.52px] w-[138.44px] rounded-[8px] text-[13px] leading-[28px] transition-colors duration-200`}
                           >
-                            Enter Mission
+                            {clickedButtons.has(course._id)
+                              ? "View in Cart"
+                              : "Enter Mission"}
                           </button>
                         </div>
                       </div>
@@ -531,8 +601,8 @@ export default function Mission() {
                       }
                       className={`text-[20.5px] ${
                         currentPage > 1
-                          ? "text-[#6D6D6D] cursor-pointer hover:text-[#7343B3]"
-                          : "text-[#CCCCCC] cursor-not-allowed"
+                          ? "text-[var(--gray-450)] cursor-pointer hover:text-[var(--mutant-color)]"
+                          : "text-[var(--gray-300)] cursor-not-allowed"
                       }`}
                     >
                       {`<`}
@@ -547,8 +617,8 @@ export default function Mission() {
                         key={i}
                         className={`sm:h-[60px] h-[20px] w-[20px] flexcenter cursor-pointer sm:w-[60px] h-[20px] w-[20px] flexcenter font-[700] text-[10px] sm:text-[18px] leading-[30px] rounded-full transition-all duration-200 ${
                           currentPage === i + 1
-                            ? "bg-[#7343B3] text-white shadow-sm shadow-[#7C38FF]"
-                            : "bg-white text-[#6D6D6D] hover:bg-[#F5F5F5]"
+                            ? "bg-[var(--mutant-color)] text-white shadow-sm shadow-[var(--purple-glow)]"
+                            : "bg-white text-[var(--gray-450)] hover:bg-[var(--gray-100)]"
                         }`}
                         onClick={() => setCurrentPage(i + 1)}
                       >
@@ -567,8 +637,8 @@ export default function Mission() {
                       }
                       className={`text-[20.5px] ${
                         currentPage < totalPages
-                          ? "text-[#6D6D6D] cursor-pointer hover:text-[#7343B3]"
-                          : "text-[#CCCCCC] cursor-not-allowed"
+                          ? "text-[var(--gray-450)] cursor-pointer hover:text-[var(--mutant-color)]"
+                          : "text-[var(--gray-300)] cursor-not-allowed"
                       }`}
                     >
                       {`>`}

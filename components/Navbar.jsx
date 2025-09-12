@@ -1,12 +1,19 @@
 "use client";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useCart } from "@/components/cart/CartContext";
 import { HiMenu, HiShoppingCart } from "react-icons/hi";
 
 export default function Navbar() {
+  const { cartCount } = useCart();
+  const [bump, setBump] = useState(false);
+  const [sparkles, setSparkles] = useState([]);
+  const cartIconRef = useRef(null);
   const [active, setActive] = useState("register");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [cartCount, setCartCount] = useState(0);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.jpg");
+  const [profileHref, setProfileHref] = useState("/");
 
   const handleClick = (btn) => {
     setActive(btn);
@@ -20,23 +27,71 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
+  // cartCount now comes from context
+  // Trigger bump + sparkles when count increases
+  const previousCountRef = useRef(cartCount);
   useEffect(() => {
-    const updateCount = () => {
-      try {
-        const stored = JSON.parse(localStorage.getItem("CART_ITEMS") || "[]");
-        setCartCount(Array.isArray(stored) ? stored.length : 0);
-      } catch (e) {
-        setCartCount(0);
+    const previous = previousCountRef.current;
+    if (cartCount > previous) {
+      previousCountRef.current = cartCount;
+      setBump(true);
+      const timeout = setTimeout(() => setBump(false), 300);
+      // create sparkles
+      const now = Date.now();
+      const particles = Array.from(
+        { length: Math.min(6, cartCount - previous) || 4 },
+        (_, i) => ({
+          id: `${now}-${i}`,
+          left: Math.random() * 20 - 10,
+          top: Math.random() * -10 - 5,
+        })
+      );
+      setSparkles((prev) => [...prev, ...particles]);
+      setTimeout(() => {
+        setSparkles((prev) => prev.slice(particles.length));
+      }, 600);
+      return () => clearTimeout(timeout);
+    }
+    previousCountRef.current = cartCount;
+  }, [cartCount]);
+
+  useEffect(() => {
+    try {
+      const token =
+        typeof window !== "undefined"
+          ? localStorage.getItem("login-accessToken")
+          : null;
+      const rawUser =
+        typeof window !== "undefined" ? localStorage.getItem("USER") : null;
+
+      if (token && rawUser) {
+        setIsAuthenticated(true);
+        const user = JSON.parse(rawUser);
+        const role = user?.role;
+        setProfileHref(
+          role === "student"
+            ? "/student/student-dashboard"
+            : role === "instructor"
+            ? "/instructor"
+            : "/"
+        );
+        const possibleAvatar =
+          user?.profile?.avatar?.url ||
+          user?.avatar?.url ||
+          user?.profileImage ||
+          user?.profile?.photo?.url ||
+          "/images/default-avatar.jpg";
+        setAvatarUrl(possibleAvatar);
+      } else {
+        setIsAuthenticated(false);
+        setAvatarUrl("/images/default-avatar.jpg");
+        setProfileHref("/auth/login");
       }
-    };
-    updateCount();
-    const onChange = () => updateCount();
-    window.addEventListener("storage", onChange);
-    window.addEventListener("cart:changed", onChange);
-    return () => {
-      window.removeEventListener("storage", onChange);
-      window.removeEventListener("cart:changed", onChange);
-    };
+    } catch (e) {
+      setIsAuthenticated(false);
+      setAvatarUrl("/images/default-avatar.jpg");
+      setProfileHref("/auth/login");
+    }
   }, []);
 
   return (
@@ -78,52 +133,82 @@ export default function Navbar() {
             </ul>
           </nav>
 
-          {/* Desktop Auth Buttons */}
+          {/* Desktop Auth / Profile */}
           <div className="hidden md:flex items-center gap-3 lg:gap-4">
             <div>
               <Link href={"/mutantcart"}>
                 <div
-                  className="flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative"
+                  ref={cartIconRef}
+                  className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
+                    bump ? "cart-bump" : ""
+                  }`}
                   aria-label="Cart"
                 >
                   <HiShoppingCart className="text-[18px]" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#844CDC] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-[var(--primary-light)] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}
-                </div>
-              </Link>
-            </div>
-            <div className="cut-box3">
-              <Link href={"/auth/login"}>
-                <div
-                  onClick={() => handleClick("signup")}
-                  className={`cut-box-inner3 cursor-pointer  flex items-center justify-center text-[12px] lg:text-[13px] font-[700] px-3 py-2 ${
-                    active === "signup"
-                      ? "bg-white text-black"
-                      : "text-white bg-[var(--foreground)] "
-                  }`}
-                >
-                  <button>Login</button>
+                  {/* sparkles */}
+                  {sparkles.map((s) => (
+                    <span
+                      key={s.id}
+                      className="cart-sparkle"
+                      style={{
+                        transform: `translate(${s.left}px, ${s.top}px)`,
+                      }}
+                    >
+                      ✨
+                    </span>
+                  ))}
                 </div>
               </Link>
             </div>
 
-            <div className="cut-box4">
-              <Link href={"/auth/register"}>
-                <div
-                  onClick={() => handleClick("register")}
-                  className={`cut-box-inner4 flex items-center justify-center text-[12px] lg:text-[13px] font-[700] cursor-pointer px-3 py-2 ${
-                    active === "register"
-                      ? "bg-white text-black"
-                      : "text-white bg-[var(--foreground)]"
-                  }`}
-                >
-                  <button>Register</button>
+            {isAuthenticated ? (
+              <Link href={profileHref}>
+                <div className="w-9 h-9 rounded-full overflow-hidden border border-[#3A3A3A]">
+                  <img
+                    src={avatarUrl}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               </Link>
-            </div>
+            ) : (
+              <>
+                <div className="cut-box3">
+                  <Link href={"/auth/login"}>
+                    <div
+                      onClick={() => handleClick("signup")}
+                      className={`cut-box-inner3 cursor-pointer  flex items-center justify-center text-[12px] lg:text-[13px] font-[700] px-3 py-2 ${
+                        active === "signup"
+                          ? "bg-white text-black"
+                          : "text-white bg-[var(--foreground)] "
+                      }`}
+                    >
+                      <button>Login</button>
+                    </div>
+                  </Link>
+                </div>
+
+                <div className="cut-box4">
+                  <Link href={"/auth/register"}>
+                    <div
+                      onClick={() => handleClick("register")}
+                      className={`cut-box-inner4 flex items-center justify-center text-[12px] lg:text-[13px] font-[700] cursor-pointer px-3 py-2 ${
+                        active === "register"
+                          ? "bg-white text-black"
+                          : "text-white bg-[var(--foreground)]"
+                      }`}
+                    >
+                      <button>Register</button>
+                    </div>
+                  </Link>
+                </div>
+              </>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -139,7 +224,7 @@ export default function Navbar() {
                 >
                   <HiShoppingCart className="text-[18px]" />
                   {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[#844CDC] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
+                    <span className="absolute -top-1 -right-1 bg-[var(--primary-light)] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
                       {cartCount}
                     </span>
                   )}
@@ -242,43 +327,65 @@ export default function Navbar() {
             </ul>
           </nav>
 
-          {/* Mobile Auth Buttons */}
+          {/* Mobile Auth / Profile */}
           <div className="flex flex-col gap-3 px-4 pb-4">
-            <div className="cut-box3">
-              <Link href={"/auth/login"}>
+            {isAuthenticated ? (
+              <Link href={profileHref}>
                 <div
-                  onClick={() => {
-                    handleClick("signup");
-                    closeMobileMenu();
-                  }}
-                  className={`cut-box-inner3 cursor-pointer flex items-center justify-center text-[12px] font-[700] px-3 py-2 ${
-                    active === "signup"
-                      ? "bg-white text-black"
-                      : "text-white bg-[var(--foreground)] "
-                  }`}
+                  onClick={closeMobileMenu}
+                  className="flex items-center gap-3"
                 >
-                  <button>Login</button>
+                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[#3A3A3A]">
+                    <img
+                      src={avatarUrl}
+                      alt="Profile"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <span className="text-[13px] font-[700] text-white">
+                    Profile
+                  </span>
                 </div>
               </Link>
-            </div>
+            ) : (
+              <>
+                <div className="cut-box3">
+                  <Link href={"/auth/login"}>
+                    <div
+                      onClick={() => {
+                        handleClick("signup");
+                        closeMobileMenu();
+                      }}
+                      className={`cut-box-inner3 cursor-pointer flex items-center justify-center text-[12px] font-[700] px-3 py-2 ${
+                        active === "signup"
+                          ? "bg-white text-black"
+                          : "text-white bg-[var(--foreground)] "
+                      }`}
+                    >
+                      <button>Login</button>
+                    </div>
+                  </Link>
+                </div>
 
-            <div className="cut-box4">
-              <Link href={"/auth/register"}>
-                <div
-                  onClick={() => {
-                    handleClick("register");
-                    closeMobileMenu();
-                  }}
-                  className={`cut-box-inner4 flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 ${
-                    active === "register"
-                      ? "bg-white text-black"
-                      : "text-white bg-[var(--foreground)]"
-                  }`}
-                >
-                  <button>Register</button>
+                <div className="cut-box4">
+                  <Link href={"/auth/register"}>
+                    <div
+                      onClick={() => {
+                        handleClick("register");
+                        closeMobileMenu();
+                      }}
+                      className={`cut-box-inner4 flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 ${
+                        active === "register"
+                          ? "bg-white text-black"
+                          : "text-white bg-[var(--foreground)]"
+                      }`}
+                    >
+                      <button>Register</button>
+                    </div>
+                  </Link>
                 </div>
-              </Link>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>
