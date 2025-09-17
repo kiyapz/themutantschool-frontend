@@ -9,6 +9,7 @@ function PaymentSuccessContent() {
   const searchParams = useSearchParams();
   const [purchasedCourse, setPurchasedCourse] = useState(null);
   const [orderInfo, setOrderInfo] = useState(null);
+  const [recommendedMissions, setRecommendedMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -106,7 +107,26 @@ function PaymentSuccessContent() {
       }
     };
 
+    const fetchMissions = async () => {
+      try {
+        const res = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/mission",
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+        // Take the first 3 missions for recommendation
+        setRecommendedMissions(res.data.data.slice(0, 3));
+      } catch (err) {
+        console.error("Failed to fetch recommended missions:", err);
+        // Don't block the page, just log the error
+      }
+    };
+
     fetchData();
+    fetchMissions();
   }, [searchParams]);
 
   if (loading) {
@@ -373,57 +393,86 @@ function PaymentSuccessContent() {
             className="grid grid-cols-1 sm:grid-cols-3"
             style={{ gap: "0.75rem" }}
           >
-            {[1, 2, 3].map((index) => (
-              <div
-                key={index}
-                className="rounded-lg"
-                style={{
-                  backgroundColor: "var(--card)",
-                  padding: "0.75rem",
-                }}
-              >
-                <div
-                  className="w-full h-20 bg-gray-700 rounded-lg flex items-center justify-center"
-                  style={{ marginBottom: "0.75rem" }}
-                >
-                  <span className="text-lg">🎯</span>
-                </div>
-                <h3
-                  className="text-sm font-semibold text-white"
-                  style={{ marginBottom: "0.5rem" }}
-                >
-                  Design Principles: Beginners Course
-                </h3>
-                <div className="flex justify-between items-center">
-                  <span
-                    className="text-sm font-bold"
-                    style={{ color: "var(--success)" }}
-                  >
-                    $50
-                  </span>
-                  <Link
-                    href="/missions"
-                    className="rounded-lg text-xs font-semibold transition-colors"
+            {recommendedMissions.length > 0
+              ? recommendedMissions.map((mission) => (
+                  <div
+                    key={mission._id}
+                    className="rounded-lg"
                     style={{
-                      backgroundColor: "var(--success)",
-                      color: "white",
-                      paddingLeft: "0.75rem",
-                      paddingRight: "0.75rem",
-                      paddingTop: "0.25rem",
-                      paddingBottom: "0.25rem",
+                      backgroundColor: "var(--card)",
+                      padding: "0.75rem",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.target.style.backgroundColor = "var(--success-soft)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.target.style.backgroundColor = "var(--success)")
-                    }
                   >
-                    Enter Mission
-                  </Link>
-                </div>
-              </div>
-            ))}
+                    <img
+                      src={
+                        mission.thumbnail?.url ||
+                        "https://placehold.co/600x400/1a1a1a/ffffff?text=Mutant+School"
+                      }
+                      alt={mission.title}
+                      className="w-full h-20 bg-gray-700 rounded-lg object-cover"
+                      style={{ marginBottom: "0.75rem" }}
+                    />
+                    <h3
+                      className="text-sm font-semibold text-white"
+                      style={{ marginBottom: "0.5rem" }}
+                    >
+                      {mission.title || "Design Principles"}
+                    </h3>
+                    <div className="flex justify-between items-center">
+                      <span
+                        className="text-sm font-bold"
+                        style={{ color: "var(--success)" }}
+                      >
+                        ${mission.price || "50"}
+                      </span>
+                      <Link
+                        href={`/missions/buy?missionId=${mission._id}`}
+                        className="rounded-lg text-xs font-semibold transition-colors"
+                        style={{
+                          backgroundColor: "var(--success)",
+                          color: "white",
+                          paddingLeft: "0.75rem",
+                          paddingRight: "0.75rem",
+                          paddingTop: "0.25rem",
+                          paddingBottom: "0.25rem",
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.target.style.backgroundColor =
+                            "var(--success-soft)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.target.style.backgroundColor = "var(--success)")
+                        }
+                      >
+                        Enter Mission
+                      </Link>
+                    </div>
+                  </div>
+                ))
+              : // Fallback for when missions are not loaded yet
+                [1, 2, 3].map((index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg"
+                    style={{
+                      backgroundColor: "var(--card)",
+                      padding: "0.75rem",
+                    }}
+                  >
+                    <div
+                      className="w-full h-20 bg-gray-700 rounded-lg animate-pulse"
+                      style={{ marginBottom: "0.75rem" }}
+                    ></div>
+                    <div
+                      className="h-4 w-3/4 bg-gray-700 rounded animate-pulse"
+                      style={{ marginBottom: "0.5rem" }}
+                    ></div>
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 w-1/4 bg-gray-700 rounded animate-pulse"></div>
+                      <div className="h-6 w-1/3 bg-gray-700 rounded animate-pulse"></div>
+                    </div>
+                  </div>
+                ))}
           </div>
         </div>
       </div>

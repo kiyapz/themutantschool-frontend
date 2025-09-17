@@ -111,13 +111,15 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden xl:block">
+          <nav className="hidden md:block">
             <ul className="flex gap-4 xl:gap-6">
-              <Link href={"/missions"}>
-                <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
-                  MISSIONS
-                </li>
-              </Link>
+              {isAuthenticated && (
+                <Link href={"/missions"}>
+                  <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
+                    MISSIONS
+                  </li>
+                </Link>
+              )}
               <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
                 THE LAB
               </li>
@@ -282,16 +284,18 @@ export default function Navbar() {
           {/* Mobile Navigation Links */}
           <nav className="flex-1 px-4 py-6">
             <ul className="space-y-8">
-              <Link href={"/missions"}>
-                <li>
-                  <button
-                    onClick={closeMobileMenu}
-                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
-                  >
-                    MISSIONS
-                  </button>
-                </li>
-              </Link>
+              {isAuthenticated && (
+                <Link href={"/missions"}>
+                  <li>
+                    <button
+                      onClick={closeMobileMenu}
+                      className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                    >
+                      MISSIONS
+                    </button>
+                  </li>
+                </Link>
+              )}
               <li>
                 <button
                   onClick={closeMobileMenu}

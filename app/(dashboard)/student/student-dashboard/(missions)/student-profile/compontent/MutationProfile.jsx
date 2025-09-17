@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import UpdateProfileModal from "./UpdateProfileModal";
@@ -18,6 +18,75 @@ function MutationProfile() {
   const [userProfile, setUserProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const avatarInputRef = useRef(null);
+
+  const handleAvatarUpdate = async (event) => {
+    console.log("Avatar update process started...");
+    const file = event.target.files?.[0];
+    if (!file) {
+      console.log("No file selected. Aborting update.");
+      return;
+    }
+    console.log(
+      "File selected:",
+      file.name,
+      `(${Math.round(file.size / 1024)} KB)`
+    );
+
+    try {
+      setIsUpdating(true);
+      console.log("Set isUpdating to true.");
+      const accessToken = localStorage.getItem("login-accessToken");
+      if (!accessToken) {
+        console.log("No access token found. Redirecting to login.");
+        router.push("/auth/login");
+        return;
+      }
+
+      const form = new FormData();
+      form.append("avatar", file); // Server expects the key "avatar"
+
+      const url = `https://themutantschool-backend.onrender.com/api/user-profile/${userProfile?._id}`;
+      console.log(`Sending PUT request to: ${url}`);
+
+      const res = await axios.put(url, form, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+      });
+
+      console.log("API request successful. Response:", res.data);
+
+      // Force a complete refresh of the profile from the server
+      const storedUser = localStorage.getItem("USER");
+      const id = JSON.parse(storedUser)._id;
+
+      console.log("Fetching fresh profile data to ensure avatar is updated...");
+      const freshProfileResponse = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/user-profile/${id}`,
+        { headers: { Authorization: `Bearer ${accessToken}` } }
+      );
+
+      // Update state with the freshly fetched profile data
+      setUserProfile(freshProfileResponse.data?.data);
+      console.log("User profile state updated with fresh data from server.");
+
+      // Show success message
+      alert("Profile picture updated successfully!");
+    } catch (err) {
+      console.error(
+        "API Error: Failed to update profile picture.",
+        err.response?.data || err.message
+      );
+      alert("Failed to update profile picture. Please try again.");
+    } finally {
+      setIsUpdating(false);
+      console.log("Set isUpdating to false.");
+      // Clear the file input value so the user can select the same file again
+      if (avatarInputRef.current) {
+        avatarInputRef.current.value = "";
+      }
+      console.log("Avatar update process finished.");
+    }
+  };
 
   const handleUpdate = async (updatedData) => {
     try {
@@ -179,13 +248,11 @@ function MutationProfile() {
 
   const bio = userProfile?.profile?.bio || "";
 
-  // Cache-busted avatar URL (prevents stale browser cache after update)
+  // Cache-busted avatar URL with aggressive cache-busting
   const rawAvatar = userProfile?.profile?.avatar?.url || DEFAULT_AVATAR;
-  const avatarUrl =
-    rawAvatar +
-    (userProfile?.updatedAt
-      ? `?v=${encodeURIComponent(userProfile.updatedAt)}`
-      : "");
+  const avatarUrl = `${rawAvatar}?v=${Math.random()
+    .toString(36)
+    .substring(2, 15)}${Date.now()}`;
 
   if (isLoading) {
     return (
@@ -259,7 +326,18 @@ function MutationProfile() {
         className="flex flex-col lg:flex-row items-center"
         style={{ gap: "24px", padding: "16px" }}
       >
-        <div className="w-[200px] h-[200px] lg:w-[189px] lg:h-[140px] border-[4px] border-[#840B94] rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden">
+        <div
+          className="w-[200px] h-[200px] lg:w-[189px] lg:h-[140px] border-[4px] border-[#840B94] rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden cursor-pointer relative"
+          onClick={() => !isUpdating && avatarInputRef.current?.click()}
+          title="Click to change profile picture"
+        >
+          <input
+            type="file"
+            ref={avatarInputRef}
+            onChange={handleAvatarUpdate}
+            accept="image/png, image/jpeg, image/gif"
+            style={{ display: "none" }}
+          />
           {isUpdating ? (
             <div className="relative w-full h-full">
               <img
