@@ -48,18 +48,29 @@ function PaymentSuccessContent() {
 
             console.log("Full API Response:", orderResponse.data);
 
+            const responseData = orderResponse.data;
+
             if (
-              orderResponse.data?.success &&
-              typeof orderResponse.data?.data?.amount === "number"
+              responseData?.status === "paid" &&
+              typeof responseData?.amount === "number"
             ) {
-              // Amount from API is in cents, convert to dollars
-              const newAmount = (orderResponse.data.data.amount / 100).toFixed(
-                2
-              );
+              // Handle the new structure: { status: 'paid', amount: 100, currency: 'usd' }
+              const newAmount = (responseData.amount / 100).toFixed(2);
+              setOrderInfo((prevInfo) => ({
+                ...prevInfo,
+                amount: newAmount,
+                currency: responseData.currency,
+              }));
+            } else if (
+              responseData?.success &&
+              typeof responseData?.data?.amount === "number"
+            ) {
+              // Handle previous structure: { success: true, data: { amount: 5000 } }
+              const newAmount = (responseData.data.amount / 100).toFixed(2);
               setOrderInfo((prevInfo) => ({ ...prevInfo, amount: newAmount }));
-            } else if (orderResponse.data && orderResponse.data.order) {
-              // Fallback to existing logic if the new structure isn't present
-              setOrderInfo(orderResponse.data.order);
+            } else if (responseData && responseData.order) {
+              // Fallback to original logic
+              setOrderInfo(responseData.order);
             }
           } catch (err) {
             console.log("Could not fetch order details:", err);
@@ -237,7 +248,10 @@ function PaymentSuccessContent() {
                   className="font-semibold"
                   style={{ color: "var(--success)" }}
                 >
-                  ${orderInfo?.amount || "390.25"}
+                  {orderInfo?.currency?.toLowerCase() === "usd"
+                    ? "$"
+                    : orderInfo?.currency || "$"}
+                  {orderInfo?.amount || "390.25"}
                 </p>
               </div>
             </>
@@ -277,7 +291,10 @@ function PaymentSuccessContent() {
                   className="font-semibold"
                   style={{ color: "var(--success)" }}
                 >
-                  ${orderInfo?.amount || "390.25"}
+                  {orderInfo?.currency?.toLowerCase() === "usd"
+                    ? "$"
+                    : orderInfo?.currency || "$"}
+                  {orderInfo?.amount || "390.25"}
                 </p>
               </div>
             </>
