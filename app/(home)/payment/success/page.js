@@ -46,6 +46,8 @@ function PaymentSuccessContent() {
               }
             );
 
+            console.log("Full API Response:", orderResponse.data);
+
             if (
               orderResponse.data?.success &&
               typeof orderResponse.data?.data?.amount === "number"
