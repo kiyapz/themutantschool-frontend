@@ -4,7 +4,6 @@ import MissionCard from "./components/MissionCard";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
-
 const missioncard = [
   {
     bg: "bg-gradient-to-r from-[#0E0E0E] to-[#0F060F]",
@@ -57,26 +56,36 @@ export default function Page() {
     };
 
     fetchStudentBreakdown();
-  }, []); 
+  }, []);
 
   return (
     <>
       {loading ? (
         <div className="flex items-center justify-center py-8">
-          <div className="text-center text-gray-500">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto mb-2"></div>
+          <div className="text-center" style={{ color: "var(--text)" }}>
+            <div
+              className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2"
+              style={{ borderColor: "var(--success)" }}
+            ></div>
             Loading mission...
           </div>
         </div>
       ) : missionPurchases.length === 0 ? (
         <div className="flex items-center justify-center py-8">
           <div className="text-center">
-            <div className="text-gray-400 text-lg mb-2">
+            <div className="text-lg mb-2" style={{ color: "var(--text)" }}>
               No recent mission recorded.
             </div>
             <Link
               href="/missions"
-              className="text-blue-500 hover:text-blue-400 underline"
+              className="underline transition-colors"
+              style={{
+                color: "var(--primary)",
+              }}
+              onMouseEnter={(e) =>
+                (e.target.style.color = "var(--primary-light)")
+              }
+              onMouseLeave={(e) => (e.target.style.color = "var(--primary)")}
             >
               Buy a mission now
             </Link>

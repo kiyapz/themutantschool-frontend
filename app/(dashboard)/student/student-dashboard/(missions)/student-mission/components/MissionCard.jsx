@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import { imageConfigDefault } from "next/dist/shared/lib/image-config";
 import Image from "next/image";
 import Link from "next/link";
@@ -33,10 +33,16 @@ export default function MissionCard({
     >
       <div className="flex flex-col gap-5 sm:gap-0 justify-between order-2 sm:order-1">
         <div>
-          <p className="font-[800] text-[21px] xl:text-[38px] leading-[39px] ">
+          <p
+            className="font-[800] text-[21px] xl:text-[38px] leading-[39px]"
+            style={{ color: "var(--text-light-2)" }}
+          >
             {text1}
           </p>
-          <p className="font-[500] text-[15px] xl:text-[23px] leading-[20px] ">
+          <p
+            className="font-[500] text-[15px] xl:text-[23px] leading-[20px]"
+            style={{ color: "var(--text)" }}
+          >
             {text2} Levels
           </p>
         </div>
@@ -44,9 +50,15 @@ export default function MissionCard({
         <div className="w-full  flex items-center">
           <div className="flex items-center  w-full">
             <span className="w-[50%]  ">
-              <p className="w-[50%] bg-[#F9D336] rounded-[5px] h-[5px]"></p>
+              <p
+                className="w-[50%] rounded-[5px] h-[5px]"
+                style={{ backgroundColor: "var(--warning)" }}
+              ></p>
             </span>
-            <span className="text-[#AFAFAF] font-[700]  text-[11px] leading-[20px] ">
+            <span
+              className="font-[700] text-[11px] leading-[20px]"
+              style={{ color: "var(--text)" }}
+            >
               {level}/{text2}
             </span>
           </div>
