@@ -29,7 +29,7 @@ export default function Page() {
         const token = localStorage.getItem("login-accessToken");
 
         const response = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/student/breakdown",
+          "https://themutantschool-backend.onrender.com/api/student/dashboard",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -37,6 +37,9 @@ export default function Page() {
             },
           }
         );
+
+        console.log("API Response:", response.data);
+        
 
         const missionsWithBg = response.data.data.map((mission, index) => ({
           ...mission,
