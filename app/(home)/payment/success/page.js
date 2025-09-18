@@ -64,11 +64,11 @@ function PaymentSuccessContent() {
             },
           }
         );
-        // Take the first 3 missions for recommendation
+      
         setRecommendedMissions(res.data.data.slice(0, 3));
       } catch (err) {
         console.error("Failed to fetch recommended missions:", err);
-        // Don't block the page, just log the error
+       
       }
     };
 
