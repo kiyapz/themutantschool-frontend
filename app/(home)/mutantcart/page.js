@@ -151,7 +151,7 @@ export default function Page() {
     try {
       const orderResponse = await axios.post(
         "https://themutantschool-backend.onrender.com/api/mission-orders",
-        { missionId, quantity: 1 },
+        // { missionId},
         {
           headers: {
             Authorization: `Bearer ${token}`,
