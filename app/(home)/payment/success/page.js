@@ -3,6 +3,7 @@ import { useEffect, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+import currencySymbolMap from "currency-symbol-map";
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -13,96 +14,42 @@ function PaymentSuccessContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const validateToken = (token) => {
+    try {
+      const payload = JSON.parse(atob(token.split(".")[1]));
+      return payload.exp * 1000 > Date.now();
+    } catch (err) {
+      console.error("Invalid token format:", err);
+      return false;
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const sessionId =
-          searchParams.get("session_id") || searchParams.get("sessionId");
-        console.log("Payment Success - Session ID:", sessionId);
-
         const token = localStorage.getItem("login-accessToken");
-        if (!token) {
-          setError("Please log in to view your purchase");
+        if (!token || !validateToken(token)) {
+          setError("Your session has expired. Please log in again.");
           setLoading(false);
           return;
         }
 
-        // Set default order info
-        setOrderInfo({
-          amount: 390.25,
-          currency: "USD",
-          orderId: sessionId || "MTN2203-01",
-        });
-
-        // Try to fetch order information if session ID is available
-        if (sessionId) {
-          try {
-            const orderResponse = await axios.get(
-              `https://themutantschool-backend.onrender.com/api/payment/session/${sessionId}`,
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-
-            console.log("Full API Response:", orderResponse.data);
-
-            const responseData = orderResponse.data;
-
-            if (
-              responseData?.status === "paid" &&
-              typeof responseData?.amount === "number"
-            ) {
-              // Handle the new structure: { status: 'paid', amount: 100, currency: 'usd' }
-              const newAmount = (responseData.amount / 100).toFixed(2);
-              setOrderInfo((prevInfo) => ({
-                ...prevInfo,
-                amount: newAmount,
-                currency: responseData.currency,
-              }));
-            } else if (
-              responseData?.success &&
-              typeof responseData?.data?.amount === "number"
-            ) {
-              // Handle previous structure: { success: true, data: { amount: 5000 } }
-              const newAmount = (responseData.data.amount / 100).toFixed(2);
-              setOrderInfo((prevInfo) => ({ ...prevInfo, amount: newAmount }));
-            } else if (responseData && responseData.order) {
-              // Fallback to original logic
-              setOrderInfo(responseData.order);
-            }
-          } catch (err) {
-            console.log("Could not fetch order details:", err);
+        const response = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/payment/session/${searchParams.get(
+            "session_id"
+          )}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           }
-        }
+        );
 
-        // Try to fetch the latest purchased course from student breakdown
-        setTimeout(async () => {
-          try {
-            const response = await axios.get(
-              "https://themutantschool-backend.onrender.com/api/student/breakdown",
-              {
-                headers: {
-                  Authorization: `Bearer ${token}`,
-                  "Content-Type": "application/json",
-                },
-              }
-            );
-
-            const purchasedCourses = response?.data?.data || [];
-            if (purchasedCourses.length > 0) {
-              setPurchasedCourse(purchasedCourses[0]);
-            }
-          } catch (err) {
-            console.error("Error fetching purchased course:", err);
-          } finally {
-            setLoading(false);
-          }
-        }, 2000);
+        setOrderInfo(response.data);
       } catch (err) {
-        console.error("Error in fetchData:", err);
+        console.error("Error fetching order details:", err);
+        setError("Unable to fetch order details. Please try again later.");
+      } finally {
         setLoading(false);
       }
     };
@@ -169,6 +116,14 @@ function PaymentSuccessContent() {
         >
           Go to Dashboard
         </Link>
+      </div>
+    );
+  }
+
+  if (recommendedMissions.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <p>No recommended missions available at the moment.</p>
       </div>
     );
   }
@@ -268,9 +223,7 @@ function PaymentSuccessContent() {
                   className="font-semibold"
                   style={{ color: "var(--success)" }}
                 >
-                  {orderInfo?.currency?.toLowerCase() === "usd"
-                    ? "$"
-                    : orderInfo?.currency || "$"}
+                  {currencySymbolMap(orderInfo?.currency) || "$"}
                   {orderInfo?.amount || "390.25"}
                 </p>
               </div>
@@ -311,9 +264,7 @@ function PaymentSuccessContent() {
                   className="font-semibold"
                   style={{ color: "var(--success)" }}
                 >
-                  {orderInfo?.currency?.toLowerCase() === "usd"
-                    ? "$"
-                    : orderInfo?.currency || "$"}
+                  {currencySymbolMap(orderInfo?.currency) || "$"}
                   {orderInfo?.amount || "390.25"}
                 </p>
               </div>
