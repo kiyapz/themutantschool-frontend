@@ -4,6 +4,7 @@ import ShoppingCart from "@/components/cart/ShoppingCart";
 import { useCart } from "@/components/cart/CartContext";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import { AiFillZhihuSquare } from "react-icons/ai";
 
 export default function Page() {
   const { setCartItems } = useCart();
@@ -153,7 +154,7 @@ export default function Page() {
     try {
       const orderResponse = await axios.post(
         "https://themutantschool-backend.onrender.com/api/mission-orders",
-        { missionId},
+        { missionId, quantity: 1 },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -168,7 +169,7 @@ export default function Page() {
 
       const paymentResponse = await axios.post(
         `https://themutantschool-backend.onrender.com/api/payment/create-session/order/${orderId}`,
-        { currency: "USD" },
+        {  },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
