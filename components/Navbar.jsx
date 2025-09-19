@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/components/cart/CartContext";
 import { HiMenu, HiShoppingCart } from "react-icons/hi";
+import Image from "next/image";
 
 export default function Navbar() {
   const { cartCount } = useCart();
@@ -113,30 +114,27 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:block">
             <ul className="flex gap-4 xl:gap-6">
-            
-                <Link href={"/missions"}>
-                  <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
-                    MISSIONS
-                  </li>
-                </Link>
-            
-              <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
-                THE LAB
-              </li>
-              <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
-                HALL OF MUTANTS
-              </li>
-              <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
-                ROADMAP
-              </li>
-              <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
-                ABOUT
-              </li>
+              <Link href={"/missions"}>
+                <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
+                  MISSIONS
+                </li>
+              </Link>
+
+              <Link href={"the-lab"}>
+                <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
+                  THE LAB
+                </li>
+              </Link>
+              <Link href={"hall-of-the-mutants"}>
+                <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
+                  HALL OF MUTANTS
+                </li>
+              </Link>
             </ul>
           </nav>
 
           {/* Desktop Auth / Profile */}
-          <div className="hidden md:flex items-center gap-3 lg:gap-4">
+          <div className="hidden md:flex items-center gap-1 lg:gap-4">
             <div>
               <Link href={"/mutantcart"}>
                 <div
@@ -146,12 +144,13 @@ export default function Navbar() {
                   }`}
                   aria-label="Cart"
                 >
-                  <HiShoppingCart className="text-[18px]" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[var(--primary-light)] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
+                  {/* <HiShoppingCart className="text-[18px]" /> */}
+                  <Image
+                    src={"/images/cart.png"}
+                    alt="cart"
+                    width={18}
+                    height={18}
+                  />
                   {/* sparkles */}
                   {sparkles.map((s) => (
                     <span
@@ -214,7 +213,7 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className=" sm:hidden  flex items-center gap-2">
+          <div className=" sm:hidden  flex items-center justify-end gap-2">
             <div className=" sm:hidden">
               <Link href={"/mutantcart"}>
                 <div
@@ -224,12 +223,13 @@ export default function Navbar() {
                   className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md relative"
                   aria-label="Cart"
                 >
-                  <HiShoppingCart className="text-[18px]" />
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-[var(--primary-light)] text-white text-[10px] leading-[16px] min-w-[16px] h-[16px] px-1 rounded-full flex items-center justify-center">
-                      {cartCount}
-                    </span>
-                  )}
+                  <Image
+                    src={"/images/cart.png"}
+                    alt="cart"
+                    width={18}
+                    height={18}
+                  />
+                 
                 </div>
               </Link>
             </div>
@@ -284,50 +284,37 @@ export default function Navbar() {
           {/* Mobile Navigation Links */}
           <nav className="flex-1 px-4 py-6">
             <ul className="space-y-8">
-              {isAuthenticated && (
-                <Link href={"/missions"}>
-                  <li>
-                    <button
-                      onClick={closeMobileMenu}
-                      className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
-                    >
-                      MISSIONS
-                    </button>
-                  </li>
-                </Link>
-              )}
-              <li>
-                <button
-                  onClick={closeMobileMenu}
-                  className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
-                >
-                  THE LAB
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={closeMobileMenu}
-                  className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
-                >
-                  HALL OF MUTANTS
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={closeMobileMenu}
-                  className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
-                >
-                  ROADMAP
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={closeMobileMenu}
-                  className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
-                >
-                  ABOUT
-                </button>
-              </li>
+              <Link href={"/missions"}>
+                <li>
+                  <button
+                    onClick={closeMobileMenu}
+                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                  >
+                    MISSIONS
+                  </button>
+                </li>
+              </Link>
+
+              <Link href={"the-lab"}>
+                <li>
+                  <button
+                    onClick={closeMobileMenu}
+                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                  >
+                    THE LAB
+                  </button>
+                </li>
+              </Link>
+              <Link href={"hall-of-the-mutants"}>
+                <li>
+                  <button
+                    onClick={closeMobileMenu}
+                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                  >
+                    HALL OF MUTANTS
+                  </button>
+                </li>
+              </Link>
             </ul>
           </nav>
 
