@@ -168,7 +168,7 @@ export default function Page() {
 
       const paymentResponse = await axios.post(
         `https://themutantschool-backend.onrender.com/api/payment/create-session/order/${orderId}`,
-        { currency: "NGN" },
+        { currency: "USD" },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
