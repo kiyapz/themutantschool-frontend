@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
-import ShoppingCart from "@/components/cart/ShoppingCart";
-import { useCart } from "@/components/cart/CartContext";
+import ShoppingCart from "@/components/mutantcart/ShoppingCart";
+import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import { AiFillZhihuSquare } from "react-icons/ai";
@@ -134,7 +134,7 @@ export default function Page() {
     if (!token) {
       setError("You must be logged in to proceed. Redirecting...");
       console.log("provide token");
-      
+
       setTimeout(() => {
         router.push("/auth/login");
       }, 1500);
@@ -169,7 +169,7 @@ export default function Page() {
 
       const paymentResponse = await axios.post(
         `https://themutantschool-backend.onrender.com/api/payment/create-session/order/${orderId}`,
-        { },
+        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 

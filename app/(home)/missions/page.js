@@ -4,7 +4,7 @@ import { FaSearch } from "react-icons/fa";
 import { FaClock } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
 import { useState, useMemo, useEffect } from "react";
-import { useCart } from "@/components/cart/CartContext";
+import { useCart } from "@/components/mutantcart/CartContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 

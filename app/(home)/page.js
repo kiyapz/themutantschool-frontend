@@ -4,9 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { useState, useEffect } from "react";
 import axios from "axios";
-import { useCart } from "@/components/cart/CartContext";
+import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
-
 
 export default function Home() {
   const [missions, setMissions] = useState([]);

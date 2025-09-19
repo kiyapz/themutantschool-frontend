@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { useCart } from "@/components/cart/CartContext";
+import { useCart } from "@/components/mutantcart/CartContext";
 import { HiMenu, HiShoppingCart } from "react-icons/hi";
 import Image from "next/image";
 
@@ -136,7 +136,7 @@ export default function Navbar() {
           {/* Desktop Auth / Profile */}
           <div className="hidden md:flex items-center gap-1 lg:gap-4">
             <div>
-              <Link href={"/mutantcart"}>
+              <Link href={"/cart"}>
                 <div
                   ref={cartIconRef}
                   className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
@@ -215,7 +215,7 @@ export default function Navbar() {
           {/* Mobile Menu Button */}
           <div className=" sm:hidden  flex items-center justify-end gap-2">
             <div className=" sm:hidden">
-              <Link href={"/mutantcart"}>
+              <Link href={"/cart"}>
                 <div
                   onClick={() => {
                     closeMobileMenu();
@@ -229,7 +229,6 @@ export default function Navbar() {
                     width={18}
                     height={18}
                   />
-                 
                 </div>
               </Link>
             </div>
