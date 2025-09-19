@@ -29,7 +29,7 @@ function PaymentSuccessContent() {
 
         // Set default order info
         setOrderInfo({
-          amount: 390.25,
+          amount: 0.00,
           currency: "USD",
           orderId: sessionId || "MTN2203-01",
         });
@@ -56,7 +56,7 @@ function PaymentSuccessContent() {
               typeof responseData?.amount === "number"
             ) {
               // Handle the new structure: { status: 'paid', amount: 100, currency: 'usd' }
-              const newAmount = (responseData.amount / 100).toFixed(2);
+              const newAmount = (responseData.amount );
               setOrderInfo((prevInfo) => ({
                 ...prevInfo,
                 amount: newAmount,
