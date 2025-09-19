@@ -533,7 +533,7 @@ export default function Mission() {
                         style={{
                           backgroundImage: `url(${course.thumbnail.url})`,
                         }}
-                        className="h-[294.71px] w-full bg-pink-100 rounded-t-[20px] bg-cover bg-center"
+                        className="h-[294.71px] w-full bg-[#2A2A2A] rounded-t-[20px] bg-cover bg-center"
                       ></div>
 
                       <div
@@ -553,7 +553,7 @@ export default function Mission() {
                               <span>{course.averageRating}</span>
                             </p>
                           </div>
-                          <p className="text-[var(--gray-800-ish)] font-[700] text-[20px] leading-[23px] ">
+                          <p className="text-[var(--gray-800-ish)] ibm-plex-mono-bold font-[700] text-[20px] leading-[23px] ">
                             {course.description}
                           </p>
                           <p className="text-[var(--green-strong)] font-[800] text-[15px] leading-[28px]">
@@ -573,9 +573,9 @@ export default function Mission() {
                             }}
                             className={`${
                               clickedButtons.has(course._id)
-                                ? "bg-[var(--purple-dark-2)] text-white" // Different color for item in cart
-                                : "bg-[var(--mutant-color)] text-white"
-                            } font-[700] cursor-pointer h-[42.52px] w-[138.44px] rounded-[8px] text-[13px] leading-[28px] transition-colors duration-200`}
+                                ? " bg-[var(--mutant-color)] text-white"
+                                : "bg-[#C1C1C1] text-[#2A2A2A] "
+                            } font-[700] cursor-pointer h-[42.52px] w-[138.44px] rounded-[8px] sm:text-[13px] sm:leading-[28px] transition-colors duration-200`}
                           >
                             {clickedButtons.has(course._id)
                               ? "View in Cart"

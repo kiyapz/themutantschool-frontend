@@ -113,13 +113,13 @@ export default function Navbar() {
           {/* Desktop Navigation */}
           <nav className="hidden md:block">
             <ul className="flex gap-4 xl:gap-6">
-              {isAuthenticated && (
+            
                 <Link href={"/missions"}>
                   <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
                     MISSIONS
                   </li>
                 </Link>
-              )}
+            
               <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
                 THE LAB
               </li>

@@ -7,47 +7,7 @@ import axios from "axios";
 import { useCart } from "@/components/cart/CartContext";
 import { useRouter } from "next/navigation";
 
-const studentcourse = [
-  {
-    id: 1,
-    category: "Design",
-    rating: 4.5,
-    title: "Design Principles:",
-    subtitle: "Beginners Course",
-    duration: "5hr 22mins",
-    instructor: "BEGINNER  - MUTANT PRO LEVEL",
-    students: 1250,
-    bg: "#71C7E7",
-    image:
-      "https://images.unsplash.com/photo-1558655146-9f40138edfeb?w=400&h=200&fit=crop",
-  },
-  {
-    id: 2,
-    category: "Development",
-    rating: 4.8,
-    title: "React Fundamentals:",
-    subtitle: "Complete Guide",
-    duration: "8hr 45mins",
-    instructor: "MUTANT PRO LEVEL",
-    students: 2340,
-    bg: "#AE71E7",
-    image:
-      "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=200&fit=crop",
-  },
-  {
-    id: 3,
-    category: "Marketing",
-    rating: 4.3,
-    title: "Digital Marketing:",
-    subtitle: "Strategy & Analytics",
-    duration: "6hr 15mins",
-    instructor: "INTERMEDIATE",
-    students: 890,
-    bg: "#71E775",
-    image:
-      "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=400&h=200&fit=crop",
-  },
-];
+
 export default function Home() {
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
