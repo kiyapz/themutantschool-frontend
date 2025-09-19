@@ -132,6 +132,8 @@ export default function Page() {
     const token = localStorage.getItem("login-accessToken");
     if (!token) {
       setError("You must be logged in to proceed. Redirecting...");
+      console.log("provide token");
+      
       setTimeout(() => {
         router.push("/auth/login");
       }, 1500);
@@ -151,7 +153,7 @@ export default function Page() {
     try {
       const orderResponse = await axios.post(
         "https://themutantschool-backend.onrender.com/api/mission-orders",
-        // { missionId},
+        { missionId},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -166,7 +168,7 @@ export default function Page() {
 
       const paymentResponse = await axios.post(
         `https://themutantschool-backend.onrender.com/api/payment/create-session/order/${orderId}`,
-        { currency: "NGN" },
+        // { currency: "NGN" },q  az
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
