@@ -3,6 +3,7 @@ import { useEffect, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+import Image from "next/image";
 
 function PaymentSuccessContent() {
   const router = useRouter();
@@ -29,7 +30,7 @@ function PaymentSuccessContent() {
 
         // Set default order info
         setOrderInfo({
-          amount: 0.00,
+          amount: 0.0,
           currency: "USD",
           orderId: sessionId || "MTN2203-01",
         });
@@ -56,7 +57,7 @@ function PaymentSuccessContent() {
               typeof responseData?.amount === "number"
             ) {
               // Handle the new structure: { status: 'paid', amount: 100, currency: 'usd' }
-              const newAmount = (responseData.amount );
+              const newAmount = responseData.amount;
               setOrderInfo((prevInfo) => ({
                 ...prevInfo,
                 amount: newAmount,
@@ -101,6 +102,13 @@ function PaymentSuccessContent() {
             setLoading(false);
           }
         }, 2000);
+
+        // If no sessionId, set loading to false after a short delay to show the page
+        if (!sessionId) {
+          setTimeout(() => {
+            setLoading(false);
+          }, 1000);
+        }
       } catch (err) {
         console.error("Error in fetchData:", err);
         setLoading(false);
@@ -238,12 +246,14 @@ function PaymentSuccessContent() {
           {purchasedCourse ? (
             <>
               <div className="flex items-center">
-                <img
+                <Image
                   src={
                     purchasedCourse.thumbnail?.url ||
                     "https://files.ably.io/ghost/prod/2023/12/choosing-the-best-javascript-frameworks-for-your-next-project.png"
                   }
                   alt={purchasedCourse.missionTitle}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 rounded-lg object-cover"
                 />
                 <div className="flex-1" style={{ marginLeft: "1rem" }}>
@@ -403,12 +413,14 @@ function PaymentSuccessContent() {
                       padding: "0.75rem",
                     }}
                   >
-                    <img
+                    <Image
                       src={
                         mission.thumbnail?.url ||
                         "https://placehold.co/600x400/1a1a1a/ffffff?text=Mutant+School"
                       }
                       alt={mission.title}
+                      width={400}
+                      height={80}
                       className="w-full h-20 bg-gray-700 rounded-lg object-cover"
                       style={{ marginBottom: "0.75rem" }}
                     />

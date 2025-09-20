@@ -25,7 +25,7 @@ export default function Page(params) {
     return () => {
       setShowLevelCkallenge(true);
     };
-  }, []);
+  }, [setShowLevelCkallenge]);
 
   useEffect(() => {
     // Staggered animation sequence

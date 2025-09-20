@@ -81,7 +81,7 @@ export default function Page() {
     };
 
     fetchCartAndMissions();
-  }, [router]);
+  }, [router, setCartItems]);
 
   const handleRemove = async (missionId) => {
     console.log(
@@ -220,7 +220,7 @@ export default function Page() {
   }
 
   return (
-    <main style={{ marginTop: "120px" }} className="min-h-screen px pt-[120px]">
+    <main style={{ margin: "auto" }} className="min-h-screen px pt-[120px] w-screen flex justify-center  overflow-x-auto">
       <ShoppingCart
         items={items}
         onRemove={handleRemove}

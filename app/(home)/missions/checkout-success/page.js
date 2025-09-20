@@ -3,6 +3,7 @@ import { useEffect, Suspense, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 import Link from "next/link";
+import Image from "next/image";
 
 function CheckoutSuccessContent() {
   const router = useRouter();
@@ -153,12 +154,14 @@ function CheckoutSuccessContent() {
             Your New Course
           </h2>
           <div className="flex items-center space-x-4">
-            <img
+            <Image
               src={
                 purchasedCourse.thumbnail?.url ||
                 "https://files.ably.io/ghost/prod/2023/12/choosing-the-best-javascript-frameworks-for-your-next-project.png"
               }
               alt={purchasedCourse.missionTitle}
+              width={64}
+              height={64}
               className="w-16 h-16 rounded-lg object-cover"
             />
             <div className="flex-1">

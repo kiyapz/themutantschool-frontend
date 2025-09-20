@@ -85,7 +85,7 @@ export default function InstructorContextProvider({ children }) {
       router.push("/auth/login");
       return null;
     }
-  }, []);
+  }, [router]);
 
   const makeAuthenticatedRequest = useCallback(
     async (url, options = {}) => {
@@ -137,7 +137,7 @@ export default function InstructorContextProvider({ children }) {
         throw error;
       }
     },
-    [refreshAuthToken]
+    [refreshAuthToken, router]
   );
 
   useEffect(() => {
@@ -170,7 +170,7 @@ export default function InstructorContextProvider({ children }) {
     };
 
     getUser();
-  }, [makeAuthenticatedRequest]);
+  }, [makeAuthenticatedRequest, router]);
 
   useEffect(() => {
     if (userProfile) {
@@ -247,7 +247,7 @@ export default function InstructorContextProvider({ children }) {
     }, 50 * 60 * 1000);
 
     return () => clearInterval(interval);
-  }, [refreshAuthToken]);
+  }, [refreshAuthToken, router]);
 
   const FetchUserProfile = async () => {
     console.log("Clicked user profile");

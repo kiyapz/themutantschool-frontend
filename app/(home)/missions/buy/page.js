@@ -1,5 +1,6 @@
 "use client";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import axios from "axios";
@@ -159,9 +160,11 @@ function BuyPageContent() {
       </p>
 
       <div className="rounded-lg border border-gray-800 bg-[var(--panel-bg-dark)] p-4 mb-6">
-        <img
+        <Image
           src={mission.thumbnail?.url || "/images/placeholder.png"}
           alt={mission.title}
+          width={800}
+          height={192}
           className="h-48 w-full object-cover bg-[var(--panel-bg-darker)] rounded mb-3"
         />
         <div className="flex items-center justify-between">

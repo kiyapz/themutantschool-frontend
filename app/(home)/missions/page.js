@@ -89,7 +89,7 @@ export default function Mission() {
     };
 
     fetchCartItems();
-  }, []);
+  }, [setCartItems]);
 
   const options = [
     { label: "Design", value: "Design" },

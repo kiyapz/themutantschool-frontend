@@ -154,7 +154,7 @@ export default function Home() {
         >
           <div className="relative z-40">
             <h2 className="Xirod text-[30px] sm:text-[40px] leading-[30px] sm:leading-[42px] text-center  ">
-              YOU AIN'T{" "}
+              YOU AIN&apos;T{" "}
             </h2>
             <h2 className="text-white   sm:bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text sm:text-transparent Xirod text-[30px] leading-[30px] sm:text-[40px] sm:leading-[42px] text-center ">
               LIKE THE{" "}

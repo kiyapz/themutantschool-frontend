@@ -22,8 +22,8 @@ export default function ShoppingCart({
   return (
     <div className="w-full px py-6">
       <div
-        // style={{ marginTop: "150px" }}
-        className="max-w-[1200px] mx-auto min-h-[60vh]"
+        style={{ margin: "auto", marginTop: "150px" }}
+        className="max-w-[1200px] h-full "
       >
         <div className="grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6">
           <div className="flex flex-col gap-4">
