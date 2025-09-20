@@ -20,8 +20,6 @@ export default function IdentifyRole() {
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
 
-
-
   const [firstNameSuccess, setFirstNameSuccess] = useState(false);
   const [lastNameSuccess, setLastNameSuccess] = useState(false);
   const [isusername, setUserName] = useState(false);
@@ -62,12 +60,12 @@ export default function IdentifyRole() {
   } = useContext(Globlaxcontex);
 
   useEffect(() => {
-     setSuccessmessage(
-       <span className="flex items-center gap-2">
-         <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
-         Checking...
-       </span>
-     );
+    setSuccessmessage(
+      <span className="flex items-center gap-2">
+        <span className="w-4 h-4 border-2 border-t-transparent border-green-500 rounded-full animate-spin inline-block" />
+        Checking...
+      </span>
+    );
     setsuccessvalue(false);
     setUserName(false);
     setdisablebtn(true);
@@ -77,8 +75,6 @@ export default function IdentifyRole() {
     if (username.length === 0) {
       return;
     }
-
-   
 
     const abortController = new AbortController();
 
@@ -278,21 +274,20 @@ export default function IdentifyRole() {
     }
   };
 
-const handleRedirectLogin = () => {
-  const getUserData = localStorage.getItem("USER");
+  const handleRedirectLogin = () => {
+    const getUserData = localStorage.getItem("USER");
 
-  if (getUserData) {
-    const user = JSON.parse(getUserData);
-    if (user.role === "student") {
-      router.push("/student");
+    if (getUserData) {
+      const user = JSON.parse(getUserData);
+      if (user.role === "student") {
+        router.push("/student");
+      } else {
+        router.push("/auth/login");
+      }
     } else {
       router.push("/auth/login");
     }
-  } else {
-   
-    router.push("/auth/login");
-  }
-};
+  };
   useEffect(() => {
     let interval;
     if (timeLeft > 0) {
@@ -328,10 +323,8 @@ const handleRedirectLogin = () => {
     switch (registerStep) {
       case 1:
         return (
-          <div className="flex items-center justify-center w-screen h-fit ">
-            <div className="w-full max-w-[336.13px] hide-scrollbar px sm:max-w-[607.96px] mx-auto px-4 sm:px-0  flex flex-col  h-fit md:h-[70vh] xl:min-h-[90vh] gap-8 items-center justify-between ">
-              
-
+          <div className="flex items-center justify-center w-screen h-full ">
+            <div className="w-full max-w-[336.13px] hide-scrollbar px sm:max-w-[607.96px] mx-auto px-4 sm:px-0  flex flex-col  h-fit gap-8 items-center  ">
               <div className="flex flex-col gap-8 w-full max-w-[607.96px]">
                 {/* Hero section */}
                 <Registerherosection
@@ -353,7 +346,7 @@ const handleRedirectLogin = () => {
                     <div
                       className={`cut-box-inner flex items-center sm:flex-col sm:justify-center gap-3 sm:gap-1 h-full w-full px-4 ${
                         selectedRole === "student"
-                          ? "bg-[#1B0932]"
+                          ? "bg-[var(--role-selected-bg)]"
                           : "bg-[var(--foreground)]"
                       }`}
                     >
@@ -381,7 +374,7 @@ const handleRedirectLogin = () => {
                       onClick={() => setSelectedRole("instructor")}
                       className={`cursor-pointer px-radio flex items-center sm:justify-center sm:flex-col gap-3 sm:gap-1 h-[70.31px] sm:h-[96.03px]  rounded-[5px] px-4 ${
                         selectedRole === "instructor"
-                          ? "bg-[#1B0932] border border-[var(--secondary)]"
+                          ? "bg-[var(--role-selected-bg)] border border-[var(--secondary)]"
                           : "border border-[var(--text-light)] bg-[var(--foreground)]"
                       }`}
                     >
@@ -413,7 +406,7 @@ const handleRedirectLogin = () => {
                       <div
                         className={`cut-box-inner2 flex items-center sm:flex-col sm:justify-center gap-3 sm:gap-1 h-full w-full px-4  ${
                           selectedRole === "affiliate"
-                            ? "bg-[#1B0932]"
+                            ? "bg-[var(--role-selected-bg)]"
                             : "bg-[var(--foreground)]"
                         }  `}
                       >
@@ -534,7 +527,7 @@ const handleRedirectLogin = () => {
                 placeholder=" password"
               />
               {registerStep === 4 && password && password.length < 8 && (
-                <p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center">
+                <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
                   {" "}
                   Password must be at least 8 characters{" "}
                 </p>
@@ -546,7 +539,7 @@ const handleRedirectLogin = () => {
                 placeholder="Confirm Password"
               />
               {registerStep === 4 && password !== confirmpassword && (
-                <p className="text-red-500 font-[300] leading-[57px] text-[16px] text-center">
+                <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
                   Passwords do not match
                 </p>
               )}
@@ -554,13 +547,15 @@ const handleRedirectLogin = () => {
                 disabled={isValidEmail}
                 onClick={handleEmailVerification}
                 className={` text-white font-bold py-2 px-4 rounded-[10px] btn cursor-pointer w-full h-[57px] text-[18px] leading-[57px] ${
-                  isValidEmail ? "bg-[#404040] cursor-not-allowed" : "btn"
+                  isValidEmail
+                    ? "bg-[var(--disabled-button-bg)] cursor-not-allowed"
+                    : "btn"
                 }`}
               >
                 {buttonDisabledtext}
               </button>
               {errormessage && (
-                <p className="text-[#FF5D5D] font-[300] leading-[57px] text-[16px] text-center">
+                <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
                   {errormessage}
                 </p>
               )}
@@ -588,13 +583,13 @@ const handleRedirectLogin = () => {
                   className={`h-[60px] w-full rounded-[10px] btn cursor-pointer  ${
                     otpCode.length === 6
                       ? "btn"
-                      : "bg-[#404040] cursor-not-allowed disabled "
+                      : "bg-[var(--disabled-button-bg)] cursor-not-allowed disabled "
                   }`}
                 >
                   {otpbtn}{" "}
                 </button>
                 {errormessage && (
-                  <p className="text-[#FF5D5D] font-[300] leading-[57px] text-[16px] text-center">
+                  <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
                     {errormessage}
                   </p>
                 )}
@@ -628,7 +623,7 @@ const handleRedirectLogin = () => {
       default:
         return (
           <div className="w-full h-full flexcenter flex-col gap-5  max-w-[330px] sm:max-w-[561px] ">
-            <div className="h-[130px] border w-[130px] rounded-full bg-green-300 flexcenter  ">
+            <div className="h-[130px] border w-[130px] rounded-full bg-[var(--success-bg-light)] flexcenter  ">
               <Image
                 src="/images/markgood.png"
                 alt="markgood"
@@ -646,7 +641,7 @@ const handleRedirectLogin = () => {
             />
             {/* <Link href={handleRedirectLogin}> */}
             <button
-              onClick={ handleRedirectLogin }
+              onClick={handleRedirectLogin}
               style={{ padding: " 6px 30px" }}
               className=" btn cursor-pointer w-full  rounded-[10px] text-[18px] font-[700] leading-[57px]"
             >

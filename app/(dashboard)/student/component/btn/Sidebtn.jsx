@@ -1,21 +1,30 @@
-'use client'
+"use client";
 import Link from "next/link";
 import { StudentContext } from "../Context/StudentContext";
 import { useContext } from "react";
 
-export default function Sidebtn({text, link}) {
-   const { menuOpen, setMenuOpen } = useContext(StudentContext);
-    return (
-      <Link href={`${link} `}>
-        <div
-          onClick={() => setMenuOpen(false)}
-          className="flex items-center cursor-pointer gap-3"
-        >
-          <div className="h-[22.25px] w-[22.25px] bg-[#D9D9D9] "></div>
-          <p className="text-[#9B9B9B] font-[500] text-[21px] leading-[40px] ">
-            {text}
-          </p>
+export default function Sidebtn({ text, link, icon: Icon }) {
+  const { menuOpen, setMenuOpen } = useContext(StudentContext);
+  return (
+    <Link href={`${link} `} className="">
+      <div
+        onClick={() => setMenuOpen(false)}
+        className="flex items-center cursor-pointer gap-8 transition-colors duration-200"
+        style={{
+          color: "var(--sidebar-linkcolor)",
+        }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.color = "var(--sidebar-hovercolor)";
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.color = "var(--sidebar-linkcolor)";
+        }}
+      >
+        <div className="h-[22.25px] w-[22.25px] flexcenter">
+          {Icon && <Icon size={18} className="text-current" />}
         </div>
-      </Link>
-    );
+        <p className=" font-[500] text-[21px] leading-[40px] ">{text}</p>
+      </div>
+    </Link>
+  );
 }

@@ -29,7 +29,7 @@ export default function Navbar() {
       className="h-[10vh] flex w-full  justify-between items-center"
     >
       <div>
-        <p className="text-[#919191] font-[300] text-[20px] sm:text-[48px] leading-[40px]">
+        <p className="text-[#919191] font-[300] text-[20px] sm:text-[38px] leading-[40px]">
           Hello {name}
         </p>
       </div>

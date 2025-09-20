@@ -4,7 +4,7 @@ import Registerbtn from "./_components/Registerbtn";
 
 export default function Register() {
   return (
- <div className="flexcenter px w-full h-[90vh]   ">
+ <div className="flex justify-center items-center px w-full h-[90vh]   ">
    <IdentifyRole />
  </div>
   );

@@ -90,7 +90,7 @@ export default function Page() {
               No recent mission recorded.
             </div>
             <Link
-              href="/missions" 
+              href="/missions"
               className="text-blue-500 hover:text-blue-400 underline"
             >
               Buy a mission now
@@ -108,6 +108,7 @@ export default function Page() {
           <div>
             <SidePanelLayout
               text1={"Create your mutant account"}
+              index={1}
               text2={"Welcome to Mutant School!"}
               text3={"+15 XP"}
               style={
@@ -119,8 +120,10 @@ export default function Page() {
           <div>
             <SidePanelLayout
               text1={"Complete your first mission"}
+              index={2}
               text2={"Pick a beginner-friendly course to start for 20XP"}
               text3={"Start now"}
+              link={"/student/student-dashboard/student-mission"}
               style={
                 "text-[#AF2BC6] font-[700] xl:text-[17px] leading-[30px] bg-[#1F0D1F] "
               }
@@ -132,6 +135,8 @@ export default function Page() {
               text1={"Complete your profile"}
               text2={"Finish your profile setup to get 5XP"}
               text3={"Start now"}
+              index={3}
+              link={"/student/student-dashboard/student-profile"}
               style={
                 "text-[#2B61C6] font-[700] xl:text-[17px] leading-[30px] bg-[#0D141F] "
               }

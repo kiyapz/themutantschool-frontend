@@ -1,14 +1,19 @@
 "use client";
 import Image from "next/image";
 import Changebtn from "./btn/Changebtn";
-import {  useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
+import { useRouter } from "next/navigation";
+import axios from "axios";
 
 export default function LevelChallange() {
+  const [studentxp, setStudentxp] = useState(0);
+  const [loading, setLoading] = useState(true);
   const { showLevelCkallenge, setShowLevelCkallenge } =
     useContext(StudentContext);
   const [isAnimated, setIsAnimated] = useState(false);
-  
+  const router = useRouter();
+
   const [showElements, setShowElements] = useState({
     topIcons: false,
     character: false,
@@ -17,6 +22,36 @@ export default function LevelChallange() {
     button: false,
     bottomText: false,
   });
+
+  useEffect(() => {
+    const fetchStudentxp = async () => {
+      try {
+        const token = localStorage.getItem("login-accessToken");
+
+        const response = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/student/dashboard",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("API Response:", response.data);
+        setStudentxp(response.data.data.xp);
+      } catch (error) {
+        console.error(
+          "Error fetching student breakdown:",
+          error.response?.data || error.message
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentxp();
+  }, []);
 
   useEffect(() => {
     // Staggered animation sequence
@@ -56,7 +91,7 @@ export default function LevelChallange() {
       {showLevelCkallenge && (
         <div
           style={{ padding: "20px 0" }}
-          className="w-full h-full justify-between flex flex-col items-center"
+          className=" max-w-[504.15625px] w-full h-full justify-between flex flex-col items-center"
         >
           <div>
             {/* Top Icons with staggered knockout animation */}
@@ -121,7 +156,7 @@ export default function LevelChallange() {
                       : "opacity-0 translate-x-[-10px]"
                   }`}
                 >
-                  15xp
+                  {studentxp}xp
                 </span>
               </div>
 
@@ -208,15 +243,14 @@ export default function LevelChallange() {
                     XP Progress
                   </p>
                   <p className="text-[#505BAA] font-[800] text-[14px] leading-[40px]">
-                    15/100
+                    {studentxp}/100
                   </p>
                 </div>
                 <div className="w-full h-[15px] bg-[#3b435c] rounded-[10px] z-20 relative mb-4 overflow-hidden">
                   <div
-                    className={`h-[15px] rounded-full relative z-30 bg-gradient-to-r from-[#2b70bb] to-[#4a8de8] transition-all duration-1500 ease-out shadow-lg ${
-                      isAnimated ? "w-[35px]" : "w-0"
-                    }`}
+                    className="h-[15px] rounded-full relative z-30 bg-gradient-to-r from-[#2b70bb] to-[#4a8de8] transition-all duration-1500 ease-out shadow-lg"
                     style={{
+                      width: isAnimated ? `${studentxp}%` : "0%",
                       boxShadow: isAnimated
                         ? "0 0 10px rgba(43, 112, 187, 0.5)"
                         : "none",
@@ -239,6 +273,11 @@ export default function LevelChallange() {
                 <Changebtn
                   sm="sm:text-[7px] xl:text-[10px]"
                   text={"VIEW ACHIEVEMENTS"}
+                  onclick={() =>
+                    router.push(
+                      "/student/student-dashboard/student-achievements"
+                    )
+                  }
                 />
               </div>
             </div>

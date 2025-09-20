@@ -106,8 +106,36 @@ export default function Home() {
     }
   };
 
+  // Function to determine background color based on index
+  const getBackgroundColor = (index) => {
+    switch (index) {
+      case 0:
+        return "#71C7E7";
+      case 1:
+        return "#AE71E7";
+      case 2:
+        return "#71E775";
+      default:
+        return "#71C7E7";
+    }
+  };
+
+  // Function to determine text color based on index
+  const getTextColor = (index) => {
+    switch (index) {
+      case 0:
+        return "#003453"; // Dark blue
+      case 1:
+        return "#350053"; // Dark purple
+      case 2:
+        return "#005319"; // Dark green
+      default:
+        return "#350053"; // Default color
+    }
+  };
+
   return (
-    <div className="flex flex-col gap-20 items-center ">
+    <div className="flex flex-col items-center">
       {error && (
         <div className="fixed top-20 right-5 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
           {error}
@@ -126,7 +154,7 @@ export default function Home() {
         >
           <div className="relative z-40">
             <h2 className="Xirod text-[30px] sm:text-[40px] leading-[30px] sm:leading-[42px] text-center  ">
-              YOU AIN’T{" "}
+              YOU AIN'T{" "}
             </h2>
             <h2 className="text-white   sm:bg-gradient-to-r from-[#7CD668] via-[#BDE75D] to-[#F5FFDF] bg-clip-text sm:text-transparent Xirod text-[30px] leading-[30px] sm:text-[40px] sm:leading-[42px] text-center ">
               LIKE THE{" "}
@@ -156,7 +184,7 @@ export default function Home() {
 
       {/* main section */}
       <div
-        style={{ padding: "20px" }}
+        style={{ padding: "20px", marginTop: "100px" }}
         className=" w-full max-w-[1440px] gap-10 sm:gap-0 flex flex-col sm:flex-row items-center justify-between "
       >
         <p className="font-[400] text-[23px] w-full Xirod max-w-[301.56px] xl:text-[45px] leading-[27px] sm:leading-[52px] ">
@@ -172,7 +200,7 @@ export default function Home() {
       {/* courses */}
 
       <div
-        style={{ padding: "0 20px" }}
+        style={{ padding: "0 20px", marginBottom: "180px" }}
         className="max-w-[350px] sm:max-w-[1440px] w-full h-fit "
       >
         <div className="w-full grid sm:grid-cols-3 gap-6  ">
@@ -210,7 +238,7 @@ export default function Home() {
                 </div>
               ))
             : // Real mission data
-              missions.map((mission) => (
+              missions.map((mission, index) => (
                 <div
                   key={mission._id}
                   className="h-[529px] rounded-[20px] bg-[#0B1021] overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
@@ -225,10 +253,13 @@ export default function Home() {
                     }}
                   >
                     <div
-                      style={{ backgroundColor: "#71C7E7" }} // Default or dynamic bg color
-                      className={`absolute  h-[33.69px] text-[#350053] font-[900] text-[9px] leading-[10px] w-[70%] left-0 flexcenter rounded-br-[20px] top-0 `}
+                      style={{
+                        backgroundColor: getBackgroundColor(index),
+                        color: getTextColor(index),
+                      }}
+                      className={`absolute  h-[33.69px] font-[900] text-[9px] leading-[10px] w-[70%] left-0 flexcenter rounded-br-[20px] top-0 `}
                     >
-                      {mission.level || "BEGINNER"} - MUTANT PRO LEVEL
+                      {mission.skillLevel} - MUTANT PRO LEVEL
                     </div>
                   </div>
 
@@ -240,7 +271,7 @@ export default function Home() {
                       <div className="flex w-full items-center justify-between">
                         <span
                           style={{ padding: "0 8px" }}
-                          className="bg-[#393D4E] rounded-[8px] text-[#ABABAB] font-medium text-sm px-3 py-2"
+                          className="bg-[#393D4E]  h-[25.86px] w-[108.33px] rounded-[5px] text-[#ABABAB] font-medium text-sm sm:text-[15px] sm:leading-[25px] px-3 py-2"
                         >
                           {mission.category || "Design"}
                         </span>
@@ -255,26 +286,26 @@ export default function Home() {
                         </div>
                       </div>
 
-                      <div>
-                        <h3 className="text-[#E8EDF6] font-semibold text-2xl leading-tight">
+                      <div className="flex flex-col gap-2">
+                        <h3 className="text-[#E8EDF6] font-[600] text-[32px] leading-[35px] ">
                           {mission.title || "Mission Title"}
                         </h3>
                         <h4 className="text-[#E8EDF6] font-semibold text-2xl leading-tight">
-                          {mission.subtitle || ""}
+                          {mission.shortDescription || ""}
                         </h4>
                         <div className="flex items-center gap-4 mt-3">
-                          <div className="flex items-center gap-1 text-[#6B6B6B]">
+                          <div className="flex items-center gap-1 text-[#6B6B6B] font-[500] text-[15px] leading-[28px] ">
                             <Clock className="w-4 h-4" />
                             <span className="font-medium text-sm">
                               {mission.estimatedDuration || "5hr"}
                             </span>
                           </div>
-                          <div className="flex items-center gap-1 text-[#6B6B6B]">
+                          {/* <div className="flex items-center gap-1 text-[#6B6B6B]">
                             <User className="w-4 h-4" />
                             <span className="font-medium text-sm">
                               {mission.studentsEnrolled || 0} students
                             </span>
-                          </div>
+                          </div> */}
                         </div>
                       </div>
                     </div>
@@ -287,12 +318,12 @@ export default function Home() {
                       </div>
                       <button
                         onClick={() => handleAddToCart(mission._id)}
-                        style={{ padding: "0 8px" }}
+                        // style={{ padding: "0 8px" }}
                         className={`${
                           clickedButtons.has(mission._id)
                             ? "bg-gray-500 text-white"
                             : "bg-[#08E595]"
-                        } px-6 py-2 rounded-[10px] font-medium transition-all duration-200 cursor-pointer hover:shadow-lg`}
+                        } px-6 py-2 rounded-[10px] font-[800] text-[17px] leading-[25px] transition-all duration-200 cursor-pointer hover:shadow-lg h-[51.91px] w-full max-w-[224.645px]`}
                       >
                         {clickedButtons.has(mission._id)
                           ? "View in Cart"
@@ -308,7 +339,10 @@ export default function Home() {
       {/* CHOOSE MUTANT SECTION */}
 
       <div
-        style={{ backgroundImage: `url("/images/Rectangle 158.png")` }}
+        style={{
+          backgroundImage: `url("/images/Rectangle 158.png")`,
+          marginTop: "180px",
+        }}
         className=" h-[230vh] sm:h-[65vh] xl:h-[120vh] w-full relative max-w-[1400px]  bg-center bg-cover pb-[100px]" // 👈 Added bottom padding
       >
         <div className="absolute flexcenter  w-full h-fit bg-[rgba(0,0,0,0.6)] z-20 pt-[80px]">
@@ -357,18 +391,23 @@ export default function Home() {
               </div>
             </div>
 
-            <button
-              style={{ padding: "5px 20px" }}
-              className="font-[800] sm:leading-[80px] bg-white rounded-[10px] sm:text-[27px] text-black mt-10"
-            >
-              Explore More Powers
-            </button>
+            <Link href="/the-lab">
+              <button
+                style={{ padding: "5px 20px" }}
+                className="font-[800] cursor-pointer sm:leading-[80px] bg-white rounded-[10px] sm:text-[27px] text-black mt-10"
+              >
+                Explore More Powers
+              </button>
+            </Link>
           </div>
         </div>
       </div>
 
       {/* WHAT AWAITS SECTION */}
-      <div className="w-full h-auto px-4 sm:px-8 py-16 bg-black">
+      <div
+        className="w-full h-auto px-4 sm:px-8 py-16 bg-black"
+        style={{ marginTop: "180px" }}
+      >
         <div
           style={{ padding: "0 20px" }}
           className="w-full max-w-[1440px] mx-auto flex flex-col items-center gap-10"
@@ -403,7 +442,10 @@ export default function Home() {
       </div>
 
       <div
-        style={{ backgroundImage: `url("/images/group.png")` }}
+        style={{
+          backgroundImage: `url("/images/group.png")`,
+          marginTop: "180px",
+        }}
         className="w-full max-w-[1440px] bg-cover bg-center flexcenter h-[90vh]  "
       >
         <div className="flexcenter flex-col gap-5">

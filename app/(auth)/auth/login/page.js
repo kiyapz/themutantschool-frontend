@@ -16,9 +16,11 @@ export default function Login() {
   const [errormessage, setErrormessage] = useState("");
   const [Successmessage, setSuccessmessage] = useState("");
   const [buttonvalue, setButtonvalue] = useState("Enter the Lab");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handlelogin = async () => {
     console.log("Clicked login...");
+    setIsLoading(true);
     setButtonvalue(
       <span className="flex items-center gap-2">
         <span className="w-4 h-4 border-2 border-t-transparent border-[var(--secondary)] rounded-full animate-spin inline-block" />
@@ -31,6 +33,7 @@ export default function Login() {
       setErrormessage("Please enter your email and password.");
       setTimeout(() => setErrormessage(""), 2000);
       setButtonvalue("Enter the Lab");
+      setIsLoading(false);
       return;
     }
 
@@ -49,9 +52,11 @@ export default function Login() {
 
         setTimeout(() => setSuccessmessage(""), 2000);
         setButtonvalue("Enter the Lab");
+        setIsLoading(false);
 
         if (user.role === "instructor") router.push("/instructor");
-        else if (user.role === "student") router.push("/student/student-dashboard");
+        else if (user.role === "student")
+          router.push("/student/student-dashboard");
         else router.push("/affiliate");
 
         return true;
@@ -59,21 +64,22 @@ export default function Login() {
         setErrormessage(response.data.message || "Login failed.");
         setTimeout(() => setErrormessage(""), 2000);
         setButtonvalue("Enter the Lab");
+        setIsLoading(false);
         return false;
       } else {
         // setErrormessage(response.data.message || "Login failed.");
         setErrormessage("invalid email or Password Login failed.");
         setTimeout(() => setErrormessage(""), 2000);
         setButtonvalue("Enter the Lab");
+        setIsLoading(false);
         return false;
       }
     } catch (error) {
       console.error("Login error:", error);
       setErrormessage(error.response.data.message || "Login failed.");
       setButtonvalue("Enter the Lab");
+      setIsLoading(false);
       setTimeout(() => setErrormessage(""), 2000);
-
-      
     }
   };
 
@@ -120,8 +126,12 @@ export default function Login() {
                   />
                   <div className="grid grid-cols-[1.5fr_1fr] xl:grid-cols-3 h-[75.16px] gap-3 xl:gap-4 w-full   ">
                     <div
-                      onClick={handlelogin}
-                      className="h-[60.5px] w-full xl:col-span-2  flex items-center justify-between px    rounded-[8px] btn cursor-pointer "
+                      onClick={!isLoading ? handlelogin : undefined}
+                      className={`h-[60.5px] w-full xl:col-span-2  flex items-center justify-between px rounded-[8px] btn ${
+                        isLoading
+                          ? "opacity-50 cursor-not-allowed"
+                          : "cursor-pointer"
+                      }`}
                     >
                       <p className="font-[600] text-[15px] leading-[57px] text-[var(--background)] ">
                         {buttonvalue}
@@ -146,12 +156,12 @@ export default function Login() {
                     </div>
                   </div>
                   {errormessage && (
-                    <div className="text-red-500 text-center mt-2">
+                    <div className="text-[var(--error-text-color)] text-center mt-2">
                       {errormessage}
                     </div>
                   )}
                   {Successmessage && (
-                    <div className="text-green-500 text-center mt-2">
+                    <div className="text-[var(--success-text-color)] text-center mt-2">
                       {Successmessage}
                     </div>
                   )}

@@ -3,13 +3,17 @@
 import { Globlaxcontex } from "@/context/Globlaxcontex";
 import { useContext } from "react";
 import { FiArrowLeft } from "react-icons/fi";
+import { useRouter } from "next/navigation";
 
 export default function Authnav() {
   const { registerStep, setRegisterStep } = useContext(Globlaxcontex);
+  const router = useRouter();
 
   const handleClick = () => {
     if (registerStep > 1) {
       setRegisterStep((prev) => prev - 1);
+    } else if (registerStep === 1) {
+      router.push("/");
     }
   };
 
@@ -19,11 +23,7 @@ export default function Authnav() {
       <div
         onClick={handleClick}
         className={`absolute h-[30px] top-[3%]  w-[44px] sm:left-[5%] xl:left-[10%] cursor-pointer flex items-center justify-center
-          ${
-            registerStep === 1
-              ? "opacity-40 cursor-not-allowed"
-              : "opacity-100 hover:opacity-70"
-          }`}
+         `}
       >
         <FiArrowLeft className="text-xl" />
       </div>
