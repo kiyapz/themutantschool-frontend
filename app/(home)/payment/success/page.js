@@ -168,7 +168,7 @@ function PaymentSuccessContent() {
           {error}
         </p>
         <Link
-          href="/dashboard/student/student-dashboard/(missions)"
+          href="/dashboard/student/student-dashboard"
           className="px-6 py-2 rounded-lg transition-colors font-semibold"
           style={{
             backgroundColor: "var(--success)",
@@ -249,7 +249,7 @@ function PaymentSuccessContent() {
                 <Image
                   src={
                     purchasedCourse.thumbnail?.url ||
-                    "https://files.ably.io/ghost/prod/2023/12/choosing-the-best-javascript-frameworks-for-your-next-project.png"
+                    "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop&crop=center"
                   }
                   alt={purchasedCourse.missionTitle}
                   width={64}
@@ -343,7 +343,7 @@ function PaymentSuccessContent() {
         {/* Start Mutation Button */}
         <div className="text-center" style={{ marginBottom: "1.5rem" }}>
           <Link
-            href="/dashboard/student/student-dashboard/(missions)"
+            href="/dashboard/student/student-dashboard"
             className="inline-block rounded-xl transition-colors font-bold text-base"
             style={{
               backgroundColor: "var(--primary)",
@@ -416,7 +416,7 @@ function PaymentSuccessContent() {
                     <Image
                       src={
                         mission.thumbnail?.url ||
-                        "https://placehold.co/600x400/1a1a1a/ffffff?text=Mutant+School"
+                        "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=400&h=300&fit=crop&crop=center"
                       }
                       alt={mission.title}
                       width={400}
