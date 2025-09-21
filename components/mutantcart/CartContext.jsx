@@ -1,92 +1,87 @@
 "use client";
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import axios from "axios";
 
 const CartContext = createContext({
   cartItems: [],
   setCartItems: () => {},
   cartCount: 0,
   setCartCount: () => {},
+  refreshCart: () => {},
 });
 
 export function CartProvider({ children }) {
-  const [cartItems, _setCartItems] = useState([]);
-  const [cartCount, _setCartCount] = useState(0);
+  const [cartItems, setCartItems] = useState([]);
+  const [cartCount, setCartCount] = useState(0);
 
-  // Initialize from localStorage on mount
-  useEffect(() => {
+  // Fetch cart from backend only
+  const fetchCartFromBackend = async () => {
     try {
-      if (typeof window !== "undefined") {
-        const raw = localStorage.getItem("CART_ITEMS");
-        const initial = raw ? JSON.parse(raw) : [];
-        const normalized = Array.isArray(initial) ? initial : [];
-        _setCartItems(normalized);
-        _setCartCount(normalized.length);
+      const token = localStorage.getItem("login-accessToken");
+      if (!token) {
+        setCartItems([]);
+        setCartCount(0);
+        return;
       }
-    } catch (_) {
-      // ignore malformed localStorage
+
+      const response = await axios.get(
+        "https://themutantschool-backend.onrender.com/api/mission-cart",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const cartItemsData = response.data.cart.missions || [];
+      const mappedItems = cartItemsData.map((entry) => {
+        const mission = entry?.mission || {};
+        return {
+          id: mission._id || entry?._id,
+          image: mission.thumbnail?.url || "/images/placeholder.png",
+          title: mission.title || "",
+          by: "The Mutant School",
+          price:
+            typeof mission.price === "number"
+              ? mission.price
+              : Number(mission.price) || 0,
+        };
+      });
+
+      setCartItems(mappedItems);
+      setCartCount(mappedItems.length);
+    } catch (error) {
+      console.error("[CartContext] Error fetching cart:", error);
+      // Don't throw error, just set empty cart
+      setCartItems([]);
+      setCartCount(0);
     }
+  };
+
+  // Initialize cart from backend on mount
+  useEffect(() => {
+    fetchCartFromBackend();
   }, []);
 
-  // Accept array or functional updater, persist to localStorage, and keep count in sync
-  const setCartItems = (itemsOrUpdater) => {
-    _setCartItems((previousItems) => {
-      const computed =
-        typeof itemsOrUpdater === "function"
-          ? itemsOrUpdater(previousItems)
-          : itemsOrUpdater;
-      const next = Array.isArray(computed) ? computed : [];
-      _setCartCount(next.length);
-      try {
-        if (typeof window !== "undefined") {
-          localStorage.setItem("CART_ITEMS", JSON.stringify(next));
-        }
-      } catch (_) {
-        // ignore persistence errors
-      }
-      return next;
-    });
-  };
-
-  const setCartCount = (countOrUpdater) => {
-    if (typeof countOrUpdater === "function") {
-      _setCartCount((prev) => {
-        const next = Number(countOrUpdater(prev)) || 0;
-        return next < 0 ? 0 : next;
-      });
-    } else {
-      const next = Number(countOrUpdater) || 0;
-      _setCartCount(next < 0 ? 0 : next);
-    }
-  };
-
-  // Listen for cross-tab or external updates
+  // Listen for cart changes from other components
   useEffect(() => {
-    const syncFromStorage = () => {
-      try {
-        const raw = localStorage.getItem("CART_ITEMS");
-        const items = raw ? JSON.parse(raw) : [];
-        const normalized = Array.isArray(items) ? items : [];
-        _setCartItems(normalized);
-        _setCartCount(normalized.length);
-      } catch (_) {
-        // ignore
-      }
+    const onCartChanged = () => {
+      console.log("[CartContext] Cart changed event received, refreshing...");
+      fetchCartFromBackend();
     };
 
-    const onCartChanged = () => syncFromStorage();
     window.addEventListener("cart:changed", onCartChanged);
-    const onStorage = (e) => {
-      if (e.key === "CART_ITEMS") syncFromStorage();
-    };
-    window.addEventListener("storage", onStorage);
     return () => {
       window.removeEventListener("cart:changed", onCartChanged);
-      window.removeEventListener("storage", onStorage);
     };
   }, []);
 
   const value = useMemo(
-    () => ({ cartItems, setCartItems, cartCount, setCartCount }),
+    () => ({
+      cartItems,
+      setCartItems,
+      cartCount,
+      setCartCount,
+      refreshCart: fetchCartFromBackend,
+    }),
     [cartItems, cartCount]
   );
 

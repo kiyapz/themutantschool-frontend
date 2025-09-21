@@ -4,84 +4,69 @@ import ShoppingCart from "@/components/mutantcart/ShoppingCart";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-import { AiFillZhihuSquare } from "react-icons/ai";
 
 export default function Page() {
-  const { setCartItems } = useCart();
+  const { setCartItems, setCartCount } = useCart();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const router = useRouter();
 
-  useEffect(() => {
-    const fetchCartAndMissions = async () => {
-      console.log("[Cart Page] Starting to fetch cart and mission data...");
-      const token = localStorage.getItem("login-accessToken");
-      if (!token) {
-        console.log("[Cart Page] No token found. Redirecting to login.");
+  // Fetch cart items from backend only
+  const fetchCartItems = async () => {
+    console.log("[Cart Page] Fetching cart items from backend...");
+    const token = localStorage.getItem("login-accessToken");
+    if (!token) {
+      console.log("[Cart Page] No token found. Redirecting to login.");
+      router.push("/auth/login");
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      const cartRes = await axios.get(
+        "https://themutantschool-backend.onrender.com/api/mission-cart",
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      const cartItemsData = cartRes.data.cart.missions || [];
+      console.log("[Cart Page] Backend cart data:", cartItemsData);
+
+      const mappedItems = cartItemsData.map((entry) => {
+        const mission = entry?.mission || {};
+        return {
+          id: mission._id || entry?._id,
+          image: mission.thumbnail?.url || "/images/placeholder.png",
+          title: mission.title || "",
+          by: "The Mutant School",
+          price:
+            typeof mission.price === "number"
+              ? mission.price
+              : Number(mission.price) || 0,
+        };
+      });
+
+      setItems(mappedItems);
+      setCartItems(mappedItems); // Update context (backend-only)
+      setCartCount(mappedItems.length);
+      setError(null);
+    } catch (error) {
+      console.error("[Cart Page] Error fetching cart:", error);
+      setError("Failed to load cart items.");
+      if (error.response?.status === 401) {
         router.push("/auth/login");
-        return;
       }
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-      try {
-        // Fetch cart items
-        console.log("[Cart Page] Fetching cart items from API...");
-        const cartRes = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/mission-cart",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
-        const cartItemsData = cartRes.data.cart.missions || [];
-        console.log(cartItemsData, "cartItemsData 000000000000");
-
-        const mappedItems = cartItemsData.map((entry) => {
-          const mission = entry?.mission || {};
-          return {
-            id: mission._id || entry?._id,
-            image: mission.thumbnail?.url || "/images/placeholder.png",
-            title: mission.title || "",
-            by: "The Mutant School",
-            price:
-              typeof mission.price === "number"
-                ? mission.price
-                : Number(mission.price) || 0,
-          };
-        });
-        setItems(mappedItems);
-        setCartItems(mappedItems);
-        localStorage.setItem("CART_ITEMS", JSON.stringify(mappedItems));
-        setError(null);
-        setIsLoading(false);
-
-        // Fetch missions (example endpoint, adjust as needed)
-        // console.log("[Cart Page] Fetching missions from API...");
-        // const missionsRes = await axios.get(
-        //   "https://themutantschool-backend.onrender.com/api/missions",
-        //   {
-        //     headers: { Authorization: `Bearer ${token}` },
-        //   }
-        // );
-        // const missionsData = missionsRes.data.data || [];
-        // console.log("[Cart Page] Received missions data:", missionsData);
-
-        // // ✅ You might want to store both in state
-        // setCartItems(cartItemsData);
-        // setMissions(missionsData);
-      } catch (error) {
-        console.error("[Cart Page] Error fetching data:", error);
-        setError("Failed to load cart items.");
-        setIsLoading(false);
-        // Optional: handle unauthorized (token expired)
-        // if (error.response?.status === 401) {
-        // router.push("/auth/login");
-        // }
-      }
-    };
-
-    fetchCartAndMissions();
-  }, [router, setCartItems]);
+  useEffect(() => {
+    fetchCartItems();
+  }, [router]);
 
   // Handle Stripe localization errors
   useEffect(() => {
@@ -90,7 +75,6 @@ export default function Page() {
         console.warn(
           "Stripe localization error caught, but payment should still work"
         );
-        // Don't show this error to users as it's usually non-critical
         event.preventDefault();
       }
     };
@@ -105,44 +89,37 @@ export default function Page() {
   }, []);
 
   const handleRemove = async (missionId) => {
-    console.log(
-      `%c[Remove from Cart] Button clicked for missionId: ${missionId}`,
-      "color: #F87171; font-weight: bold;"
-    );
+    console.log(`[Remove from Cart] Removing missionId: ${missionId}`);
     const token = localStorage.getItem("login-accessToken");
     if (!token) {
       console.log("[Remove from Cart] No token found.");
       return;
     }
 
-    const originalItems = [...items];
-    const updatedItems = items.filter((item) => item.id !== missionId);
-    setItems(updatedItems);
-    setCartItems(updatedItems);
-    localStorage.setItem("CART_ITEMS", JSON.stringify(updatedItems));
-
     try {
-      console.log(
-        `[Remove from Cart] Sending DELETE request for missionId: ${missionId}`
-      );
+      // Remove from backend first
       await axios.delete(
         `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
         {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+
       console.log(
-        `[Remove from Cart] Successfully removed missionId: ${missionId}. Firing cart:changed event.`
+        `[Remove from Cart] Successfully removed missionId: ${missionId}`
       );
+
+      // Refresh cart from backend to get updated state
+      await fetchCartItems();
+
+      // Fire cart changed event for other components
       window.dispatchEvent(new CustomEvent("cart:changed"));
     } catch (err) {
       console.error(
         "[Remove from Cart] API Error:",
         err.response?.data || err.message
       );
-      setError("Failed to remove item.");
-      setItems(originalItems);
-      localStorage.setItem("CART_ITEMS", JSON.stringify(originalItems));
+      setError("Failed to remove item. Please try again.");
     }
   };
 
@@ -179,7 +156,6 @@ export default function Page() {
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            // "Content-Type": "application/json",
           },
         }
       );
@@ -214,13 +190,9 @@ export default function Page() {
         throw new Error("No payment URL received from server.");
       }
 
-      // Clear cart before redirect
-      console.log("[Checkout] Clearing cart and redirecting to:", redirectUrl);
-      setItems([]);
-      setCartItems([]);
-      localStorage.removeItem("CART_ITEMS");
+      // DON'T clear cart here - let backend handle it after successful payment
+      console.log("[Checkout] Redirecting to payment:", redirectUrl);
 
-      // Add error handling for the redirect
       try {
         window.location.href = redirectUrl;
       } catch (redirectError) {
@@ -270,7 +242,7 @@ export default function Page() {
   return (
     <main
       style={{ margin: "auto" }}
-      className="min-h-screen px pt-[120px] w-screen flex justify-center  overflow-x-auto"
+      className="min-h-screen px pt-[120px] w-screen flex justify-center overflow-x-auto"
     >
       <ShoppingCart
         items={items}

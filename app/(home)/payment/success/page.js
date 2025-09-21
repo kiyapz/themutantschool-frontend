@@ -343,7 +343,7 @@ function PaymentSuccessContent() {
         {/* Start Mutation Button */}
         <div className="text-center" style={{ marginBottom: "1.5rem" }}>
           <Link
-            href="/dashboard/student/student-dashboard"
+            href="/student/student-dashboard/student-mission"
             className="inline-block rounded-xl transition-colors font-bold text-base"
             style={{
               backgroundColor: "var(--primary)",
