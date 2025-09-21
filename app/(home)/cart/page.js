@@ -154,7 +154,7 @@ export default function Page() {
     try {
       const orderResponse = await axios.post(
         "https://themutantschool-backend.onrender.com/api/mission-orders",
-        { missionId :items.map(item => item._id), quantity: items.length },
+        { missionId: items.map((item) => item.id), quantity: items.length },
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -175,7 +175,7 @@ export default function Page() {
 
       const sessionId = paymentResponse.data.sessionId;
       console.log(sessionId, "sessionId");
-      
+
       const redirectUrl =
         paymentResponse.data.url || paymentResponse.data.redirectUrl;
       console.log("[Proceed] Payment session created:", {
@@ -222,7 +222,10 @@ export default function Page() {
   }
 
   return (
-    <main style={{ margin: "auto" }} className="min-h-screen px pt-[120px] w-screen flex justify-center  overflow-x-auto">
+    <main
+      style={{ margin: "auto" }}
+      className="min-h-screen px pt-[120px] w-screen flex justify-center  overflow-x-auto"
+    >
       <ShoppingCart
         items={items}
         onRemove={handleRemove}
