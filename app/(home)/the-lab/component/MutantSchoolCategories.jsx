@@ -183,7 +183,7 @@ const Categories = () => {
           currentCategories.map((category, index) => (
             <div
               key={index}
-              className={`${category.bgColor} flex rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 hover:shadow-lg h-[529px]`}
+              className={`${category.bgColor} flex rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 hover:shadow-lg h-[529px] w-full`}
               style={{ padding: "24px" }}
             >
               {/* Category Title */}
