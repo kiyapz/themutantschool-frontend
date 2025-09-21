@@ -132,7 +132,7 @@ const Categories = () => {
     <div className="w-full bg-white" style={{ padding: "40px 60px" }}>
       {/* Header */}
       <div
-        className="flex justify-between items-center"
+        className="flex justify-between items-center flex-col sm:flex-row gap-4"
         style={{ marginBottom: "32px" }}
       >
         <h1 className=" font-[700] text-black text-[43px]">Categories</h1>
