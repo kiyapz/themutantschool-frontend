@@ -9,7 +9,7 @@ export default function Labs() {
         style={{
           backgroundImage: "url('/images/Rectangle 120.png')",
         }}
-        className=" h-[92vh] sm:h-screen relative z-20 flex items-center justify-center flex-col w-full bg-cover bg-center"
+        className=" h-[80vh] sm:h-screen relative z-20 flex items-center justify-center flex-col w-full bg-cover bg-center"
       >
         <div
           style={{ paddingTop: "10%" }}

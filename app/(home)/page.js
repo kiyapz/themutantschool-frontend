@@ -146,7 +146,7 @@ export default function Home() {
         style={{
           backgroundImage: "url('/images/Mask group (17).png')",
         }}
-        className=" h-[90vh] flex items-center justify-center flex-col w-full bg-cover bg-center"
+        className=" h-[80vh] flex items-center justify-center flex-col w-full bg-cover bg-center"
       >
         <div
           style={{ paddingTop: "10%" }}
