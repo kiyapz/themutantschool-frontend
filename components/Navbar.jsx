@@ -99,7 +99,7 @@ export default function Navbar() {
     <div className="w-full flexcenter  h-[70px] relative">
       <div
         style={{ border: "none" }}
-        className="max-w-[350px] px sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8"
+        className="max-w-[350px] sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8"
       >
         <div className="flex items-center justify-between w-full">
           {/* Logo */}
@@ -213,8 +213,8 @@ export default function Navbar() {
           </div>
 
           {/* Mobile Menu Button */}
-          <div className=" sm:hidden  flex items-center justify-end gap-2">
-            <div className=" sm:hidden">
+          <div className="sm:hidden flex items-center justify-end gap-2">
+            <div>
               <Link href={"/cart"}>
                 <div
                   onClick={() => {
@@ -261,7 +261,7 @@ export default function Navbar() {
       <div
         style={{ padding: "20px" }}
         className={`
-                fixed top-0 right-0 px h-full w-[280px] sm:w-[320px]  shadow-xl transform transition-transform duration-300 ease-in-out z-50 md:hidden
+                fixed top-0 right-0 h-full w-[280px] sm:w-[320px] bg-black shadow-xl transform transition-transform duration-300 ease-in-out z-50 md:hidden overflow-y-auto
                 ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
             `}
       >

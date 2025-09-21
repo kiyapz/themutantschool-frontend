@@ -1,6 +1,5 @@
 import Categories from "./component/MutantSchoolCategories";
 
-
 export default function Labs() {
   return (
     <div className="">
@@ -9,7 +8,7 @@ export default function Labs() {
         style={{
           backgroundImage: "url('/images/Rectangle 120.png')",
         }}
-        className=" h-[80vh] sm:h-screen relative z-20 flex items-center justify-center flex-col w-full bg-cover bg-center"
+        className="min-h-screen relative z-20 flex items-center justify-center flex-col w-full bg-cover bg-center"
       >
         <div
           style={{ paddingTop: "10%" }}
@@ -36,9 +35,7 @@ export default function Labs() {
         style={{ padding: "20px 30px" }}
         className="w-screen flexcenter mx-auto bg-white flex-col h-fit "
       >
-        
-          <Categories />
-      
+        <Categories />
       </div>
     </div>
   );
