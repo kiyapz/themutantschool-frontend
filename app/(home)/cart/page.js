@@ -83,6 +83,27 @@ export default function Page() {
     fetchCartAndMissions();
   }, [router, setCartItems]);
 
+  // Handle Stripe localization errors
+  useEffect(() => {
+    const handleGlobalError = (event) => {
+      if (event.error?.message?.includes("Cannot find module './en'")) {
+        console.warn(
+          "Stripe localization error caught, but payment should still work"
+        );
+        // Don't show this error to users as it's usually non-critical
+        event.preventDefault();
+      }
+    };
+
+    window.addEventListener("error", handleGlobalError);
+    window.addEventListener("unhandledrejection", handleGlobalError);
+
+    return () => {
+      window.removeEventListener("error", handleGlobalError);
+      window.removeEventListener("unhandledrejection", handleGlobalError);
+    };
+  }, []);
+
   const handleRemove = async (missionId) => {
     console.log(
       `%c[Remove from Cart] Button clicked for missionId: ${missionId}`,
@@ -133,8 +154,6 @@ export default function Page() {
     const token = localStorage.getItem("login-accessToken");
     if (!token) {
       setError("You must be logged in to proceed. Redirecting...");
-      console.log("provide token");
-
       setTimeout(() => {
         router.push("/auth/login");
       }, 1500);
@@ -148,52 +167,79 @@ export default function Page() {
       return;
     }
 
-    const firstItem = items[0];
-    const missionId = firstItem.id;
-
     try {
+      console.log(
+        "[Checkout] Creating order for items:",
+        items.map((item) => item.id)
+      );
+
       const orderResponse = await axios.post(
         "https://themutantschool-backend.onrender.com/api/mission-orders",
         { missionId: items.map((item) => item.id), quantity: items.length },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
+            // "Content-Type": "application/json",
           },
         }
       );
 
-      const orderId = orderResponse.data.order?._id;
-      console.log("[Proceed] Created orderId:", orderId);
-      if (!orderId) throw new Error("Failed to create order.");
+      const orderId =
+        orderResponse.data.order?._id || orderResponse.data.data?._id;
+      console.log("[Checkout] Created orderId:", orderId);
+      if (!orderId)
+        throw new Error("Failed to create order - no order ID returned.");
 
+      console.log("[Checkout] Creating payment session for order:", orderId);
       const paymentResponse = await axios.post(
         `https://themutantschool-backend.onrender.com/api/payment/create-session/order/${orderId}`,
-        {},
+        {
+          currency: "USD",
+          locale: "en",
+        },
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const sessionId = paymentResponse.data.sessionId;
-      console.log(sessionId, "sessionId");
-
       const redirectUrl =
         paymentResponse.data.url || paymentResponse.data.redirectUrl;
-      console.log("[Proceed] Payment session created:", {
+
+      console.log("[Checkout] Payment session created:", {
         sessionId,
         redirectUrl,
-        data: paymentResponse.data,
+        fullResponse: paymentResponse.data,
       });
-      if (!sessionId) {
-        throw new Error("Failed to create payment session.");
+
+      if (!redirectUrl) {
+        throw new Error("No payment URL received from server.");
       }
-      if (redirectUrl) {
+
+      // Clear cart before redirect
+      console.log("[Checkout] Clearing cart and redirecting to:", redirectUrl);
+      setItems([]);
+      setCartItems([]);
+      localStorage.removeItem("CART_ITEMS");
+
+      // Add error handling for the redirect
+      try {
         window.location.href = redirectUrl;
-        return;
+      } catch (redirectError) {
+        console.error("[Checkout] Redirect failed:", redirectError);
+        setError("Failed to redirect to payment. Please try again.");
       }
     } catch (err) {
-      setError(
-        err.response?.data?.message || "Payment failed. Please try again."
-      );
+      console.error("[Checkout] Full error:", err);
+      console.error("[Checkout] Error response:", err.response?.data);
+
+      let errorMessage = "Payment failed. Please try again.";
+
+      if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     } finally {
       setIsProcessing(false);
     }
