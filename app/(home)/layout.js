@@ -50,7 +50,7 @@ export default function RootLayout({ children }) {
               </div>
             </div>
           </header>
-          <main className="pt-[160px] sm:pt-[160px]">{children}</main>
+          <main className="">{children}</main>
           <Footer />
         </CartProvider>
       </body>
