@@ -59,18 +59,20 @@ export function CartProvider({ children }) {
       setCartItems(mappedItems);
       setCartCount(mappedItems.length);
     } catch (error) {
-      console.error("[CartContext] Error fetching cart:", error);
+      // Silently handle errors to prevent "mission not found" on non-mission pages
+      console.log(
+        "[CartContext] Cart fetch failed (this is normal on non-mission pages):",
+        error.message
+      );
 
-      // Handle specific error cases
+      // Handle specific error cases silently
       if (error.response?.status === 401 || error.response?.status === 403) {
         console.log("[CartContext] Authentication error, clearing cart");
         localStorage.removeItem("login-accessToken");
         localStorage.removeItem("USER");
-      } else if (error.response?.status === 500) {
-        console.log("[CartContext] Server error, will retry on next render");
       }
 
-      // Don't throw error, just set empty cart
+      // Don't throw error, just set empty cart silently
       setCartItems([]);
       setCartCount(0);
     }

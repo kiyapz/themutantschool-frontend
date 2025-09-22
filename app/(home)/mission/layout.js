@@ -1,6 +1,6 @@
 "use client";
 import { CartProvider } from "@/components/mutantcart/CartContext";
 
-export default function MissionsLayout({ children }) {
+export default function MissionLayout({ children }) {
   return <CartProvider>{children}</CartProvider>;
 }

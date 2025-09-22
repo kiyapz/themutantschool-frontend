@@ -49,6 +49,7 @@ export default function InstructorContextProvider({ children }) {
     dateOfBirth: "",
     publicId: "",
     introVideo: "",
+    displayFullName: true, // Set to true by default
   });
 
   const refreshAuthToken = useCallback(async () => {
@@ -219,6 +220,7 @@ export default function InstructorContextProvider({ children }) {
         role: userProfile.role || "Instructor",
         nationality: userProfile.nationality || "",
         preferredLanguage: userProfile.preferredLanguage || "",
+        displayFullName: userProfile.displayFullName !== false, // true by default unless explicitly set to false
         dateOfBirth: userProfile.dateOfBirth
           ? userProfile.dateOfBirth.split("T")[0]
           : "",

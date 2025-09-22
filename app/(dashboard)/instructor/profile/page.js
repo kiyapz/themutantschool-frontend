@@ -111,6 +111,7 @@ export default function Profile() {
         role: userProfile.role || "",
         nationality: userProfile.nationality || "",
         preferredLanguage: userProfile.preferredLanguage || "",
+        displayFullName: userProfile.displayFullName !== false, // true by default unless explicitly set to false
         dateOfBirth:
           userProfile.dateOfBirth && userProfile.dateOfBirth !== null
             ? userProfile.dateOfBirth.split("T")[0]
@@ -192,6 +193,7 @@ export default function Profile() {
         nationality: userUpdatedValue.nationality,
         preferredLanguage: userUpdatedValue.preferredLanguage || "",
         dateOfBirth: userUpdatedValue.dateOfBirth || null,
+        displayFullName: userUpdatedValue.displayFullName !== false, // true by default unless explicitly set to false
 
         profile: {
           bio: userUpdatedValue.bio,
@@ -276,6 +278,7 @@ export default function Profile() {
         role: response.data.data.role || "",
         nationality: response.data.data.nationality || "",
         preferredLanguage: response.data.data.preferredLanguage || "",
+        displayFullName: response.data.data.displayFullName !== false, // true by default unless explicitly set to false
         dateOfBirth:
           response.data.data.dateOfBirth &&
           response.data.data.dateOfBirth !== null
@@ -304,6 +307,8 @@ export default function Profile() {
     phoneNumber: userUpdatedValue?.phoneNumber,
     email: userUpdatedValue?.email,
     firstName: userUpdatedValue?.firstName,
+    lastName: userUpdatedValue?.lastName,
+    displayFullName: userUpdatedValue?.displayFullName,
   });
 
   // Check if userUpdatedValue has been properly initialized
@@ -414,8 +419,11 @@ export default function Profile() {
 
                 <div>
                   <p className="font-[600] text-[26px] sm:text-[35px] leading-[150%]">
-                    {userUpdatedValue?.firstName || "First"}{" "}
-                    <span>{userUpdatedValue?.lastName || "Last"}</span>
+                    {userUpdatedValue?.firstName || "First"}
+                    {userUpdatedValue?.displayFullName &&
+                    userUpdatedValue?.lastName ? (
+                      <span> {userUpdatedValue.lastName}</span>
+                    ) : null}
                   </p>
                   <p className="text-[17px] text-[var(--button-border-color)] sm:text-[24px] leading-[150%] sm:text-[var(--greencolor)]">
                     {userUpdatedValue?.headline || "Product Designer || Tutor"}
@@ -716,7 +724,16 @@ export default function Profile() {
                   </div>
                 </div>
                 <div className="mt-4">
-                  <ToggleButton label="Display Full Name" />
+                  <ToggleButton
+                    label="Display Full Name"
+                    initialState={userUpdatedValue?.displayFullName !== false}
+                    onToggle={(state) => {
+                      setUserUpdatedValue({
+                        ...userUpdatedValue,
+                        displayFullName: state,
+                      });
+                    }}
+                  />
                 </div>
               </div>
             )}

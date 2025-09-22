@@ -527,7 +527,11 @@ export default function Mission() {
                   {currentItems.map((course, i) => (
                     <div
                       key={course._id}
-                      className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md "
+                      className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md cursor-pointer"
+                      onClick={() => {
+                        console.log("Navigating to mission:", course._id);
+                        router.push(`/mission/${course._id}`);
+                      }}
                     >
                       <div
                         style={{
@@ -569,7 +573,15 @@ export default function Mission() {
                           </p>
                           <button
                             onClick={() => {
-                              handleAddToCart(course._id);
+                              if (clickedButtons.has(course._id)) {
+                                router.push("/cart");
+                              } else {
+                                console.log(
+                                  "Navigating to mission from button:",
+                                  course._id
+                                );
+                                router.push(`/mission/${course._id}`);
+                              }
                             }}
                             className={`${
                               clickedButtons.has(course._id)

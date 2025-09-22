@@ -46,8 +46,11 @@ export default function InstructorDropdown() {
               {userUpdatedValue?.role || "Instructor"}
             </p>
             <p className="text-[#D2D2D2] font-bold text-[15px] leading-[20px]">
-              {userUpdatedValue?.firstName || "User"}{" "}
-              <span>{userUpdatedValue?.lastName || ""}</span>
+              {userUpdatedValue?.firstName || "User"}
+              {userUpdatedValue?.displayFullName &&
+              userUpdatedValue?.lastName ? (
+                <span> {userUpdatedValue.lastName}</span>
+              ) : null}
             </p>
           </div>
           <div>

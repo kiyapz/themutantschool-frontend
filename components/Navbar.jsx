@@ -6,16 +6,19 @@ import { HiMenu, HiShoppingCart } from "react-icons/hi";
 import Image from "next/image";
 
 export default function Navbar() {
-  const { cartCount } = useCart();
-  const [bump, setBump] = useState(false);
-  const [sparkles, setSparkles] = useState([]);
-  const cartIconRef = useRef(null);
   const [active, setActive] = useState("register");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isStudent, setIsStudent] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.jpg");
   const [profileHref, setProfileHref] = useState("/");
+  const [isMissionPage, setIsMissionPage] = useState(false);
+
+  // Only use cart functionality on mission-related pages
+  const [cartCount, setCartCount] = useState(0);
+  const [bump, setBump] = useState(false);
+  const [sparkles, setSparkles] = useState([]);
+  const cartIconRef = useRef(null);
 
   const handleClick = (btn) => {
     setActive(btn);
@@ -29,72 +32,74 @@ export default function Navbar() {
     setIsMobileMenuOpen(false);
   };
 
-  // cartCount now comes from context
-  // Trigger bump + sparkles when count increases
-  const previousCountRef = useRef(cartCount);
   useEffect(() => {
-    const previous = previousCountRef.current;
-    if (cartCount > previous) {
-      previousCountRef.current = cartCount;
-      setBump(true);
-      const timeout = setTimeout(() => setBump(false), 300);
-      // create sparkles
-      const now = Date.now();
-      const particles = Array.from(
-        { length: Math.min(6, cartCount - previous) || 4 },
-        (_, i) => ({
-          id: `${now}-${i}`,
-          left: Math.random() * 20 - 10,
-          top: Math.random() * -10 - 5,
-        })
-      );
-      setSparkles((prev) => [...prev, ...particles]);
-      setTimeout(() => {
-        setSparkles((prev) => prev.slice(particles.length));
-      }, 600);
-      return () => clearTimeout(timeout);
-    }
-    previousCountRef.current = cartCount;
-  }, [cartCount]);
+    // Check if we're on a mission-related page
+    const pathname = window.location.pathname;
+    const isMissionPath =
+      pathname.includes("/mission") || pathname.includes("/missions");
+    setIsMissionPage(isMissionPath);
 
-  useEffect(() => {
-    try {
-      const token =
-        typeof window !== "undefined"
-          ? localStorage.getItem("login-accessToken")
-          : null;
-      const rawUser =
-        typeof window !== "undefined" ? localStorage.getItem("USER") : null;
+    const initializeUser = async () => {
+      try {
+        const token =
+          typeof window !== "undefined"
+            ? localStorage.getItem("login-accessToken")
+            : null;
+        const rawUser =
+          typeof window !== "undefined" ? localStorage.getItem("USER") : null;
 
-      if (token && rawUser) {
-        setIsAuthenticated(true);
-        const user = JSON.parse(rawUser);
-        const role = user?.role;
-        setIsStudent(role === "student");
-        setProfileHref(
-          role === "student"
-            ? "/student/student-dashboard"
-            : role === "instructor"
-            ? "/instructor"
-            : "/"
-        );
-        const possibleAvatar =
-          user?.profile?.avatar?.url ||
-          user?.avatar?.url ||
-          user?.profileImage ||
-          user?.profile?.photo?.url ||
-          "/images/default-avatar.jpg";
-        setAvatarUrl(possibleAvatar);
-      } else {
+        if (token && rawUser) {
+          setIsAuthenticated(true);
+          const user = JSON.parse(rawUser);
+          const role = user?.role;
+          setIsStudent(role === "student");
+          setProfileHref(
+            role === "student"
+              ? "/student/student-dashboard"
+              : role === "instructor"
+              ? "/instructor"
+              : "/"
+          );
+          const possibleAvatar =
+            user?.profile?.avatar?.url ||
+            user?.avatar?.url ||
+            user?.profileImage ||
+            user?.profile?.photo?.url ||
+            "/images/default-avatar.jpg";
+          setAvatarUrl(possibleAvatar);
+
+          // Only fetch cart data on mission pages
+          if (isMissionPath && role === "student") {
+            try {
+              const response = await fetch(
+                "https://themutantschool-backend.onrender.com/api/mission-cart",
+                {
+                  headers: { Authorization: `Bearer ${token}` },
+                }
+              );
+              const data = await response.json();
+              const cartItemsData = data.cart.missions || [];
+              setCartCount(cartItemsData.length);
+            } catch (error) {
+              console.log(
+                "Cart fetch failed (this is normal on non-mission pages):",
+                error.message
+              );
+            }
+          }
+        } else {
+          setIsAuthenticated(false);
+          setAvatarUrl("/images/default-avatar.jpg");
+          setProfileHref("/auth/login");
+        }
+      } catch (e) {
         setIsAuthenticated(false);
         setAvatarUrl("/images/default-avatar.jpg");
         setProfileHref("/auth/login");
       }
-    } catch (e) {
-      setIsAuthenticated(false);
-      setAvatarUrl("/images/default-avatar.jpg");
-      setProfileHref("/auth/login");
-    }
+    };
+
+    initializeUser();
   }, []);
 
   return (
@@ -122,12 +127,12 @@ export default function Navbar() {
                 </li>
               </Link>
 
-              <Link href={"the-lab"}>
+              <Link href="/the-lab">
                 <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
                   THE LAB
                 </li>
               </Link>
-              <Link href={"hall-of-the-mutants"}>
+              <Link href="/hall-of-the-mutants">
                 <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
                   HALL OF MUTANTS
                 </li>
@@ -137,7 +142,7 @@ export default function Navbar() {
 
           {/* Desktop Auth / Profile */}
           <div className="hidden md:flex items-center gap-1 lg:gap-4">
-            {isStudent && (
+            {isStudent && isMissionPage && (
               <div>
                 <Link href={"/cart"}>
                   <div
@@ -218,7 +223,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <div className="sm:hidden flex items-center justify-end gap-2">
-            {isStudent && (
+            {isStudent && isMissionPage && (
               <div>
                 <Link href={"/cart"}>
                   <div
@@ -300,7 +305,7 @@ export default function Navbar() {
                 </li>
               </Link>
 
-              <Link href={"the-lab"}>
+              <Link href="/the-lab">
                 <li>
                   <button
                     onClick={closeMobileMenu}
@@ -310,7 +315,7 @@ export default function Navbar() {
                   </button>
                 </li>
               </Link>
-              <Link href={"hall-of-the-mutants"}>
+              <Link href="/hall-of-the-mutants">
                 <li>
                   <button
                     onClick={closeMobileMenu}
