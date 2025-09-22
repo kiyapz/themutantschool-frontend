@@ -13,6 +13,7 @@ export default function Navbar() {
   const [active, setActive] = useState("register");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isStudent, setIsStudent] = useState(false);
   const [avatarUrl, setAvatarUrl] = useState("/images/default-avatar.jpg");
   const [profileHref, setProfileHref] = useState("/");
 
@@ -69,6 +70,7 @@ export default function Navbar() {
         setIsAuthenticated(true);
         const user = JSON.parse(rawUser);
         const role = user?.role;
+        setIsStudent(role === "student");
         setProfileHref(
           role === "student"
             ? "/student/student-dashboard"
@@ -135,37 +137,39 @@ export default function Navbar() {
 
           {/* Desktop Auth / Profile */}
           <div className="hidden md:flex items-center gap-1 lg:gap-4">
-            <div>
-              <Link href={"/cart"}>
-                <div
-                  ref={cartIconRef}
-                  className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
-                    bump ? "cart-bump" : ""
-                  }`}
-                  aria-label="Cart"
-                >
-                  {/* <HiShoppingCart className="text-[18px]" /> */}
-                  <Image
-                    src={"/images/cart.png"}
-                    alt="cart"
-                    width={18}
-                    height={18}
-                  />
-                  {/* sparkles */}
-                  {sparkles.map((s) => (
-                    <span
-                      key={s.id}
-                      className="cart-sparkle"
-                      style={{
-                        transform: `translate(${s.left}px, ${s.top}px)`,
-                      }}
-                    >
-                      ✨
-                    </span>
-                  ))}
-                </div>
-              </Link>
-            </div>
+            {isStudent && (
+              <div>
+                <Link href={"/cart"}>
+                  <div
+                    ref={cartIconRef}
+                    className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
+                      bump ? "cart-bump" : ""
+                    }`}
+                    aria-label="Cart"
+                  >
+                    {/* <HiShoppingCart className="text-[18px]" /> */}
+                    <Image
+                      src={"/images/cart.png"}
+                      alt="cart"
+                      width={18}
+                      height={18}
+                    />
+                    {/* sparkles */}
+                    {sparkles.map((s) => (
+                      <span
+                        key={s.id}
+                        className="cart-sparkle"
+                        style={{
+                          transform: `translate(${s.left}px, ${s.top}px)`,
+                        }}
+                      >
+                        ✨
+                      </span>
+                    ))}
+                  </div>
+                </Link>
+              </div>
+            )}
 
             {isAuthenticated ? (
               <Link href={profileHref}>
@@ -214,24 +218,26 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <div className="sm:hidden flex items-center justify-end gap-2">
-            <div>
-              <Link href={"/cart"}>
-                <div
-                  onClick={() => {
-                    closeMobileMenu();
-                  }}
-                  className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md relative"
-                  aria-label="Cart"
-                >
-                  <Image
-                    src={"/images/cart.png"}
-                    alt="cart"
-                    width={18}
-                    height={18}
-                  />
-                </div>
-              </Link>
-            </div>
+            {isStudent && (
+              <div>
+                <Link href={"/cart"}>
+                  <div
+                    onClick={() => {
+                      closeMobileMenu();
+                    }}
+                    className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md relative"
+                    aria-label="Cart"
+                  >
+                    <Image
+                      src={"/images/cart.png"}
+                      alt="cart"
+                      width={18}
+                      height={18}
+                    />
+                  </div>
+                </Link>
+              </div>
+            )}
             <button
               onClick={toggleMobileMenu}
               className="md:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 focus:outline-none"

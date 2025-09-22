@@ -35,16 +35,20 @@ export default function InstructorContextProvider({ children }) {
     facebook: "",
     linkedin: "",
     website: "",
-    Twitter: "",
+    twitter: "",
     url: "",
     youtube: "",
     instagram: "",
-    Headline: "",
-    ExpertiseTags: "",
+    headline: "",
+    expertiseTags: "",
     gender: "",
-    Phone: "",
+    phoneNumber: "",
     role: "",
     nationality: "",
+    preferredLanguage: "",
+    dateOfBirth: "",
+    publicId: "",
+    introVideo: "",
   });
 
   const refreshAuthToken = useCallback(async () => {
@@ -172,32 +176,6 @@ export default function InstructorContextProvider({ children }) {
     getUser();
   }, [makeAuthenticatedRequest, router]);
 
-  useEffect(() => {
-    if (userProfile) {
-      setUserUpdatedValue({
-        firstName: userProfile.firstName || "",
-        lastName: userProfile.lastName || "",
-        username: userProfile.username || "",
-        email: userProfile.email || "",
-        bio: userProfile.profile?.bio || "",
-        facebook: userProfile.profile?.socialLinks?.facebook || "",
-        linkedin: userProfile.profile?.socialLinks?.linkedin || "",
-        website: userProfile.profile?.socialLinks?.website || "",
-        Twitter: userProfile.profile?.socialLinks?.Twitter || "",
-        url: userProfile.profile?.avatar?.url || "",
-        youtube: userProfile.profile?.avatar?.publicId || "",
-        instagram: userProfile.profile?.socialLinks?.instagram || "",
-        Headline: userProfile.Headline || "",
-        ExpertiseTags: userProfile.ExpertiseTags || "",
-        gender: userProfile.gender || "",
-        Phone: userProfile.phone || "",
-        role: userProfile.role || "",
-        nationality: userProfile.nationality || "",
-        id: userProfile._id || "",
-      });
-    }
-  }, [userProfile]);
-
   const refreshUserData = useCallback(async () => {
     try {
       const storedUser = localStorage.getItem("USER");
@@ -215,6 +193,38 @@ export default function InstructorContextProvider({ children }) {
       console.error("Failed to refresh user data:", error);
     }
   }, [makeAuthenticatedRequest]);
+
+  // Update userUpdatedValue when userProfile changes
+  useEffect(() => {
+    if (userProfile) {
+      setUserUpdatedValue({
+        firstName: userProfile.firstName || "",
+        lastName: userProfile.lastName || "",
+        username: userProfile.username || "",
+        email: userProfile.email || "",
+        bio: userProfile.profile?.bio || "",
+        facebook: userProfile.profile?.socialLinks?.facebook || "",
+        linkedin: userProfile.profile?.socialLinks?.linkedin || "",
+        website: userProfile.profile?.socialLinks?.website || "",
+        twitter: userProfile.profile?.socialLinks?.twitter || "",
+        instagram: userProfile.profile?.socialLinks?.instagram || "",
+        youtube: userProfile.profile?.socialLinks?.youtube || "",
+        url: userProfile.profile?.avatar?.url || "",
+        publicId: userProfile.profile?.avatar?.key || "",
+        headline: userProfile.profile?.headline || "",
+        introVideo: userProfile.profile?.introVideo || "",
+        expertiseTags: userProfile.profile?.expertiseTags || [],
+        gender: userProfile.gender || "",
+        phoneNumber: userProfile.phoneNumber || "",
+        role: userProfile.role || "Instructor",
+        nationality: userProfile.nationality || "",
+        preferredLanguage: userProfile.preferredLanguage || "",
+        dateOfBirth: userProfile.dateOfBirth
+          ? userProfile.dateOfBirth.split("T")[0]
+          : "",
+      });
+    }
+  }, [userProfile]);
 
   useEffect(() => {
     const storedUser = localStorage.getItem("USER");

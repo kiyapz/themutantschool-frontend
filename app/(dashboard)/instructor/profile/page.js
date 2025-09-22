@@ -76,6 +76,19 @@ export default function Profile() {
 
   useEffect(() => {
     if (userProfile) {
+      console.log(
+        "useEffect: userProfile.phoneNumber =",
+        userProfile.phoneNumber
+      );
+      console.log(
+        "useEffect: typeof userProfile.phoneNumber =",
+        typeof userProfile.phoneNumber
+      );
+      console.log(
+        "useEffect: userProfile.phoneNumber || '' =",
+        userProfile.phoneNumber || ""
+      );
+
       setUserUpdatedValue({
         firstName: userProfile.firstName || "",
         lastName: userProfile.lastName || "",
@@ -85,26 +98,72 @@ export default function Profile() {
         facebook: userProfile.profile?.socialLinks?.facebook || "",
         linkedin: userProfile.profile?.socialLinks?.linkedin || "",
         website: userProfile.profile?.socialLinks?.website || "",
-
         twitter: userProfile.profile?.socialLinks?.twitter || "",
         instagram: userProfile.profile?.socialLinks?.instagram || "",
         youtube: userProfile.profile?.socialLinks?.youtube || "",
         url: userProfile.profile?.avatar?.url || "",
-        publicId: userProfile.profile?.avatar?.publicId || "",
-        Headline: userProfile.profile?.headline || "",
+        publicId: userProfile.profile?.avatar?.key || "",
+        headline: userProfile.profile?.headline || "",
         introVideo: userProfile.profile?.introVideo || "",
-        ExpertiseTags: userProfile.ExpertiseTags || [],
+        expertiseTags: userProfile.profile?.expertiseTags || [],
         gender: userProfile.gender || "",
-        phoneNumber: userProfile.phoneNumber || "", // FIX: Map phoneNumber to Phone
+        phoneNumber: userProfile.phoneNumber || "",
         role: userProfile.role || "",
         nationality: userProfile.nationality || "",
-        preferredLanguage: userProfile.preferredLanguage || "", // FIX: Use consistent field name
-        dateOfBirth: userProfile.dateOfBirth
-          ? userProfile.dateOfBirth.split("T")[0]
-          : "", // FIX: Format date for input
+        preferredLanguage: userProfile.preferredLanguage || "",
+        dateOfBirth:
+          userProfile.dateOfBirth && userProfile.dateOfBirth !== null
+            ? userProfile.dateOfBirth.split("T")[0]
+            : "",
+      });
+
+      console.log("Just set userUpdatedValue to:", {
+        phoneNumber: userProfile.phoneNumber || "",
+        email: userProfile.email || "",
+        firstName: userProfile.firstName || "",
+      });
+
+      console.log("Initialized userUpdatedValue with social links:", {
+        twitter: userProfile.profile?.socialLinks?.twitter,
+        youtube: userProfile.profile?.socialLinks?.youtube,
+        facebook: userProfile.profile?.socialLinks?.facebook,
+        instagram: userProfile.profile?.socialLinks?.instagram,
+        linkedin: userProfile.profile?.socialLinks?.linkedin,
+        website: userProfile.profile?.socialLinks?.website,
+      });
+
+      console.log("Initialized userUpdatedValue with personal info:", {
+        phoneNumber: userProfile.phoneNumber,
+        email: userProfile.email,
+        firstName: userProfile.firstName,
+        lastName: userProfile.lastName,
+        gender: userProfile.gender,
+        nationality: userProfile.nationality,
+        preferredLanguage: userProfile.preferredLanguage,
+        dateOfBirth: userProfile.dateOfBirth,
+      });
+
+      console.log("Initialized userUpdatedValue with profile fields:", {
+        headline: userProfile.profile?.headline,
+        bio: userProfile.profile?.bio,
+        expertiseTags: userProfile.profile?.expertiseTags,
+        introVideo: userProfile.profile?.introVideo,
       });
     }
-  }, [userProfile, setUserUpdatedValue]);
+  }, [userProfile]);
+
+  // Debug: Log userUpdatedValue changes
+  useEffect(() => {
+    if (userUpdatedValue && userUpdatedValue.email) {
+      console.log("userUpdatedValue updated - key fields:", {
+        headline: userUpdatedValue.headline,
+        preferredLanguage: userUpdatedValue.preferredLanguage,
+        dateOfBirth: userUpdatedValue.dateOfBirth,
+        expertiseTags: userUpdatedValue.expertiseTags,
+        phoneNumber: userUpdatedValue.phoneNumber,
+      });
+    }
+  }, [userUpdatedValue]);
 
   const updateUserProfile = async () => {
     setIsLoading(true);
@@ -123,22 +182,22 @@ export default function Profile() {
       const id = parsedUser._id;
 
       const updateData = {
-        firstName: userUpdatedValue.firstName || "",
-        lastName: userUpdatedValue.lastName || "",
-        username: userUpdatedValue.username || "",
-        email: userUpdatedValue.email || "",
-        gender: userUpdatedValue.gender || "",
+        firstName: userUpdatedValue.firstName,
+        lastName: userUpdatedValue.lastName,
+        username: userUpdatedValue.username,
+        email: userUpdatedValue.email,
+        gender: userUpdatedValue.gender,
         phoneNumber: userUpdatedValue.phoneNumber || "",
-        role: userUpdatedValue.role || "",
-        nationality: userUpdatedValue.nationality || "",
+        role: userUpdatedValue.role,
+        nationality: userUpdatedValue.nationality,
         preferredLanguage: userUpdatedValue.preferredLanguage || "",
-        dateOfBirth: userUpdatedValue.dateOfBirth || "",
-        ExpertiseTags: userUpdatedValue.ExpertiseTags || [],
+        dateOfBirth: userUpdatedValue.dateOfBirth || null,
 
         profile: {
-          bio: userUpdatedValue.bio || "",
-          headline: userUpdatedValue.Headline || "",
-          introVideo: userUpdatedValue.introVideo || "",
+          bio: userUpdatedValue.bio,
+          headline: userUpdatedValue.headline,
+          introVideo: userUpdatedValue.introVideo,
+          expertiseTags: userUpdatedValue.expertiseTags || [],
           socialLinks: {
             facebook: userUpdatedValue.facebook || "",
             linkedin: userUpdatedValue.linkedin || "",
@@ -148,13 +207,22 @@ export default function Profile() {
             youtube: userUpdatedValue.youtube || "",
           },
           avatar: {
-            url: userUpdatedValue.url || "",
-            publicId: userUpdatedValue.publicId || "",
+            url: userUpdatedValue.url,
+            key: userUpdatedValue.publicId,
           },
         },
       };
 
       console.log("Sending update data:", updateData);
+      console.log("Current userUpdatedValue:", userUpdatedValue);
+      console.log("Social links in userUpdatedValue:", {
+        twitter: userUpdatedValue.twitter,
+        youtube: userUpdatedValue.youtube,
+        facebook: userUpdatedValue.facebook,
+        instagram: userUpdatedValue.instagram,
+        linkedin: userUpdatedValue.linkedin,
+        website: userUpdatedValue.website,
+      });
 
       const response = await profilebase.put(
         `/user-profile/${id}`,
@@ -168,8 +236,53 @@ export default function Profile() {
       );
 
       console.log("Profile updated successfully:", response.data.data);
+      console.log("Updated fields comparison:", {
+        sent: {
+          phoneNumber: updateData.phoneNumber,
+          dateOfBirth: updateData.dateOfBirth,
+          twitter: updateData.profile.socialLinks.twitter,
+          youtube: updateData.profile.socialLinks.youtube,
+        },
+        received: {
+          phoneNumber: response.data.data.phoneNumber,
+          dateOfBirth: response.data.data.dateOfBirth,
+          twitter: response.data.data.profile?.socialLinks?.twitter,
+          youtube: response.data.data.profile?.socialLinks?.youtube,
+        },
+      });
 
       setUserProfile(response.data.data);
+
+      // Manually update userUpdatedValue to reflect the new data immediately
+      setUserUpdatedValue({
+        firstName: response.data.data.firstName || "",
+        lastName: response.data.data.lastName || "",
+        username: response.data.data.username || "",
+        email: response.data.data.email || "",
+        bio: response.data.data.profile?.bio || "",
+        facebook: response.data.data.profile?.socialLinks?.facebook || "",
+        linkedin: response.data.data.profile?.socialLinks?.linkedin || "",
+        website: response.data.data.profile?.socialLinks?.website || "",
+        twitter: response.data.data.profile?.socialLinks?.twitter || "",
+        instagram: response.data.data.profile?.socialLinks?.instagram || "",
+        youtube: response.data.data.profile?.socialLinks?.youtube || "",
+        url: response.data.data.profile?.avatar?.url || "",
+        publicId: response.data.data.profile?.avatar?.key || "",
+        headline: response.data.data.profile?.headline || "",
+        introVideo: response.data.data.profile?.introVideo || "",
+        expertiseTags: response.data.data.profile?.expertiseTags || [],
+        gender: response.data.data.gender || "",
+        phoneNumber: response.data.data.phoneNumber || "",
+        role: response.data.data.role || "",
+        nationality: response.data.data.nationality || "",
+        preferredLanguage: response.data.data.preferredLanguage || "",
+        dateOfBirth:
+          response.data.data.dateOfBirth &&
+          response.data.data.dateOfBirth !== null
+            ? response.data.data.dateOfBirth.split("T")[0]
+            : "",
+      });
+
       setEditProfile(false);
     } catch (error) {
       console.error(
@@ -185,6 +298,17 @@ export default function Profile() {
       setIsLoading(false);
     }
   };
+
+  // Debug: Log current userUpdatedValue
+  console.log("Current userUpdatedValue in render:", {
+    phoneNumber: userUpdatedValue?.phoneNumber,
+    email: userUpdatedValue?.email,
+    firstName: userUpdatedValue?.firstName,
+  });
+
+  // Check if userUpdatedValue has been properly initialized
+  const isUserUpdatedValueInitialized =
+    userUpdatedValue && userUpdatedValue.email;
 
   if (isLoading && !userProfile) {
     return (
@@ -284,7 +408,7 @@ export default function Profile() {
           >
             <div className="w-full flex items-end xl:items-center justify-between">
               <div className="flex flex-col xl:flex-row xl:items-center gap-3">
-                <div className="h-[100px] w-[100px] relative left-[10px] sm:left-0 xl:h-[190px] xl:w-[190px] rounded-full border-[11px] bg-pink-200">
+                <div className="h-[100px] w-[100px] relative left-[10px] sm:left-0 xl:h-[190px] xl:w-[190px] rounded-full border-[11px]">
                   <UserProfileImage />
                 </div>
 
@@ -294,7 +418,7 @@ export default function Profile() {
                     <span>{userUpdatedValue?.lastName || "Last"}</span>
                   </p>
                   <p className="text-[17px] text-[var(--button-border-color)] sm:text-[24px] leading-[150%] sm:text-[var(--greencolor)]">
-                    {userUpdatedValue?.Headline || "Product Designer || Tutor"}
+                    {userUpdatedValue?.headline || "Product Designer || Tutor"}
                   </p>
                 </div>
               </div>
@@ -342,37 +466,38 @@ export default function Profile() {
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Email Address
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.email || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Phone Number
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.phoneNumber || "N/A"}
+                  {/* Debug: {JSON.stringify({phoneNumber: userUpdatedValue?.phoneNumber})} */}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Gender
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.gender || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Nationality
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.nationality || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Date Of Birth
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.dateOfBirth || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Preferred Language
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[8px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.preferredLanguage || "N/A"}
                 </div>
               </div>
@@ -387,31 +512,31 @@ export default function Profile() {
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Personal Website
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.website || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   LinkedIn
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.linkedin || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px] text-[12px]">
                   Instagram
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.instagram || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   X
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.twitter || "N/A"}
                 </div>
                 <div className="text-[#ADA5A5] font-[700] text-[13px] xl:text-[19px] leading-[40px]">
                   Facebook
                 </div>
-                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px]">
+                <div className="text-[#818181] xl:text-[18px] leading-[20px] text-[12px] sm:text-[14px]">
                   {userUpdatedValue?.facebook || "N/A"}
                 </div>
               </div>
@@ -499,9 +624,8 @@ export default function Profile() {
                         })
                       }
                       // placeholder={"12345"}
-                      label="phoneNumber
-"
-                      type="number"
+                      label="Phone Number"
+                      type="tel"
                     />
                     <Editprofilebtn
                       value={userUpdatedValue?.nationality || ""}
@@ -578,6 +702,17 @@ export default function Profile() {
                       label="Date Of Birth"
                       type="date"
                     />
+                    <Editprofilebtn
+                      value={userUpdatedValue?.preferredLanguage || ""}
+                      onChange={(e) =>
+                        setUserUpdatedValue({
+                          ...userUpdatedValue,
+                          preferredLanguage: e.target.value,
+                        })
+                      }
+                      label="Preferred Language"
+                      placeholder="e.g. English (UK)"
+                    />
                   </div>
                 </div>
                 <div className="mt-4">
@@ -615,22 +750,22 @@ export default function Profile() {
                 </div>
                 <div>
                   <Editprofilebtn
-                    value={userUpdatedValue?.Headline || ""}
+                    value={userUpdatedValue?.headline || ""}
                     onChange={(e) =>
                       setUserUpdatedValue({
                         ...userUpdatedValue,
-                        Headline: e.target.value,
+                        headline: e.target.value,
                       })
                     }
                     label="Headline"
                     placeholder="Product Designer || Tutor"
                   />
                   <Editprofilebtn
-                    value={userUpdatedValue?.ExpertiseTags || ""}
+                    value={userUpdatedValue?.expertiseTags || ""}
                     onChange={(e) =>
                       setUserUpdatedValue({
                         ...userUpdatedValue,
-                        ExpertiseTags: e.target.value,
+                        expertiseTags: e.target.value,
                       })
                     }
                     label="Expertise Tags"
@@ -649,10 +784,10 @@ export default function Profile() {
                     onChange={(e) =>
                       setUserUpdatedValue({
                         ...userUpdatedValue,
-                        youtube: e.target.value,
+                        introVideo: e.target.value,
                       })
                     }
-                    value={userUpdatedValue?.youtube || ""}
+                    value={userUpdatedValue?.introVideo || ""}
                     placeholder="e.g youtube.com/etienoekanem"
                   />
                 </div>

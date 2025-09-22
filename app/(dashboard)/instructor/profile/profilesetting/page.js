@@ -6,6 +6,7 @@ import { useContext, useState } from "react";
 import { set } from "zod";
 import { Editprofilebtn } from "./_components/Editprofilebtn";
 import ChangePasswordValue from "./_components/ChangePassword";
+import UserProfileImage from "../_components/UserProfileImage";
 
 export default function Profilesetting() {
   const {
@@ -13,6 +14,7 @@ export default function Profilesetting() {
     setprofiledisplay,
     ChangePassword,
     setChangePassword,
+    userUpdatedValue,
   } = useContext(InstructorContext);
 
   return (
@@ -45,14 +47,17 @@ export default function Profilesetting() {
             className="bg-[var(--black-background)] xl:flex flex-col gap-5 hidden"
           >
             <div className="flexcenter w-full h-fit flex-col gap-3">
-              <div className="h-[100px] w-[100px] relative left-[10px] sm:left-0 xl:h-[150px] xl:w-[150px] rounded-full border-[11px] bg-pink-200"></div>
+              <div className="h-[100px] w-[100px] relative left-[10px] sm:left-0 xl:h-[150px] xl:w-[150px] rounded-full border-[11px]">
+                <UserProfileImage />
+              </div>
 
               <div>
                 <p className="font-[600] text-[26px] sm:text-[25px] leading-[150%]">
-                  Etieno Ekanem
+                  {userUpdatedValue?.firstName || "First"}{" "}
+                  <span>{userUpdatedValue?.lastName || "Last"}</span>
                 </p>
                 <p className="text-[17px] text-[var(--button-border-color)] sm:text-[15px] leading-[150%]">
-                  Product Designer || Tutor
+                  {userUpdatedValue?.headline || "Product Designer || Tutor"}
                 </p>
               </div>
             </div>

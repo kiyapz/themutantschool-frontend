@@ -18,7 +18,17 @@ export function CartProvider({ children }) {
   const fetchCartFromBackend = async () => {
     try {
       const token = localStorage.getItem("login-accessToken");
-      if (!token) {
+      const storedUser = localStorage.getItem("USER");
+
+      if (!token || !storedUser) {
+        setCartItems([]);
+        setCartCount(0);
+        return;
+      }
+
+      // Only fetch cart for students
+      const user = JSON.parse(storedUser);
+      if (user.role !== "student") {
         setCartItems([]);
         setCartCount(0);
         return;
@@ -50,6 +60,16 @@ export function CartProvider({ children }) {
       setCartCount(mappedItems.length);
     } catch (error) {
       console.error("[CartContext] Error fetching cart:", error);
+
+      // Handle specific error cases
+      if (error.response?.status === 401 || error.response?.status === 403) {
+        console.log("[CartContext] Authentication error, clearing cart");
+        localStorage.removeItem("login-accessToken");
+        localStorage.removeItem("USER");
+      } else if (error.response?.status === 500) {
+        console.log("[CartContext] Server error, will retry on next render");
+      }
+
       // Don't throw error, just set empty cart
       setCartItems([]);
       setCartCount(0);

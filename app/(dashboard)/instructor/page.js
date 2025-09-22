@@ -299,33 +299,7 @@ export default function InstructorDashboard() {
     }
   }, [makeAuthenticatedRequest, setMission]);
 
-  // Update user values when profile is loaded
-  useEffect(() => {
-    if (userProfile) {
-      setUserUpdatedValue({
-        firstName: userProfile.firstName || "",
-        lastName: userProfile.lastName || "",
-        username: userProfile.username || "",
-        email: userProfile.email || "",
-        bio: userProfile.profile?.bio || "",
-        facebook: userProfile.profile?.socialLinks?.facebook || "",
-        linkedin: userProfile.profile?.socialLinks?.linkedin || "",
-        website: userProfile.profile?.socialLinks?.website || "",
-        Twitter: userProfile.profile?.socialLinks?.twitter || "",
-        url: userProfile.profile?.avatar?.url || "",
-        publicId: userProfile.profile?.avatar?.publicId || "",
-        instagram: userProfile.profile?.socialLinks?.instagram || "",
-        Headline: userProfile.profile?.headline || "",
-        ExpertiseTags: userProfile.ExpertiseTags || [],
-        gender: userProfile.gender || "",
-        Phone: userProfile.phoneNumber || "",
-        role: userProfile.role || "",
-        nationality: userProfile.nationality || "",
-        preferredLanguage: userProfile.preferredLanguage || "",
-        dateOfBirth: userProfile.dateOfBirth || "",
-      });
-    }
-  }, [userProfile, setUserUpdatedValue]);
+  // Note: userUpdatedValue is now managed only in the profile page to avoid conflicts
 
   // Check auth and fetch profile on component mount
   useEffect(() => {
