@@ -151,7 +151,7 @@ export default function Profile() {
         introVideo: userProfile.profile?.introVideo,
       });
     }
-  }, [userProfile]);
+  }, [userProfile, setUserUpdatedValue]);
 
   // Debug: Log userUpdatedValue changes
   useEffect(() => {

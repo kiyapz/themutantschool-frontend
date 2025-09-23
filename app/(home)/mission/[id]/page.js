@@ -18,6 +18,15 @@ export default function MissionDetails() {
   const router = useRouter();
   const [isInCart, setIsInCart] = useState(false);
 
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const options = { month: "short", day: "numeric", year: "numeric" };
+    return new Date(dateString)
+      .toLocaleDateString("en-US", options)
+      .replace(",", "")
+      .toLowerCase();
+  };
+
   useEffect(() => {
     const fetchMissions = async () => {
       try {
@@ -74,7 +83,7 @@ export default function MissionDetails() {
       setError("No mission ID provided");
       setLoading(false);
     }
-  }, [id]);
+  }, [id, router]);
 
   // Check if mission is in cart
   useEffect(() => {
@@ -188,16 +197,25 @@ export default function MissionDetails() {
     certificateAvailable: mission.certificateAvailable || false,
     tags: Array.isArray(mission.tags) ? mission.tags.join(", ") : "",
     averageRating: mission.averageRating || 0,
+    createdAt: formatDate(mission.createdAt),
+    updatedAt: formatDate(mission.updatedAt),
   };
 
   return (
-    <div className="bg-black min-h-screen text-white">
+    <div
+      style={{ marginTop: "100px" }}
+      className="bg-black min-h-screen text-white"
+    >
       {/* Hero section with mission title and author */}
       <div
-        style={{ padding: "64px 32px 32px 32px" }}
+        style={{
+          padding: "64px 32px 32px 32px",
+          margin: "0 auto",
+          backgroundImage: "url('/images/Rectangle 120.png')",
+        }}
         className="max-w-[1400px] mx-auto"
       >
-        <div style={{ gap: "32px" }} className="flex flex-col md:flex-row">
+        <div style={{ gap: "32px" }} className="flex flex-col md:flex-row ">
           {/* Left side - Mission info */}
           <div className="w-full md:w-1/2">
             <h1
@@ -213,12 +231,6 @@ export default function MissionDetails() {
               <p className="text-[var(--purple-glow)]">
                 {safeData.instructor.name}
               </p>
-              <div style={{ gap: "4px" }} className="flex items-center">
-                <AiFillStar className="text-[var(--warning-strong)]" />
-                <span className="text-[var(--text-light-2)]">
-                  {safeData.averageRating.toFixed(1)}
-                </span>
-              </div>
             </div>
             <p
               style={{ marginBottom: "24px" }}
@@ -233,7 +245,13 @@ export default function MissionDetails() {
             >
               <span
                 style={{ padding: "4px 12px" }}
-                className="bg-[var(--gray-800)] rounded-[20px] text-[12px]"
+                className="bg-[#FFEE00] rounded-[20px] text-black text-[12px]"
+              >
+                {safeData.skillLevel}
+              </span>
+              <span
+                style={{ padding: "4px 12px" }}
+                className="bg-[#7D7D7D] text-black rounded-[20px] text-[12px]"
               >
                 {safeData.category}
               </span>
@@ -244,12 +262,7 @@ export default function MissionDetails() {
                 <FaClock style={{ marginRight: "4px" }} />
                 {safeData.estimatedDuration}
               </span>
-              <span
-                style={{ padding: "4px 12px" }}
-                className="bg-[var(--gray-800)] rounded-[20px] text-[12px]"
-              >
-                {safeData.skillLevel}
-              </span>
+
               {safeData.certificateAvailable && (
                 <span
                   style={{ padding: "4px 12px" }}
@@ -260,27 +273,26 @@ export default function MissionDetails() {
               )}
             </div>
 
-            <div style={{ marginBottom: "16px" }}>
-              <p
-                style={{ marginBottom: "8px" }}
-                className="text-[var(--gray-400)] text-[14px]"
-              >
-                {safeData.bio}
-              </p>
-              {safeData.tags && (
-                <p className="text-[var(--purple-glow)] text-[12px]">
-                  Tags: {safeData.tags}
-                </p>
-              )}
+            <div
+              style={{ gap: "4px", marginBottom: "16px" }}
+              className="flex items-center"
+            >
+              <AiFillStar className="text-[var(--warning-strong)] text-[10px]" />
+              <span className="text-[var(--text-light-2) text-[10px]">
+                {safeData.averageRating.toFixed(1)}
+              </span>
+              <span className="text-[var(--text-light-2)] text-[10px]">
+                Created: {safeData.createdAt}
+              </span>
+              <span className="text-[var(--text-light-2)] text-[10px]">
+                Last Updated: {safeData.updatedAt}
+              </span>
             </div>
 
             <div
               style={{ marginBottom: "24px", gap: "16px" }}
               className="flex items-center"
             >
-              <div className="text-[24px] font-[700] text-[var(--text-light-2)]">
-                ${safeData.price}
-              </div>
               <button
                 onClick={handleAddToCart}
                 style={{ padding: "8px 24px" }}
@@ -288,17 +300,20 @@ export default function MissionDetails() {
                   isInCart
                     ? "bg-[var(--purple-glow)] hover:bg-[var(--purple-glow-hover)]"
                     : "bg-[var(--mutant-color)] hover:bg-[var(--mutant-color-hover)]"
-                } transition-colors text-[var(--text-light-2)]`}
+                } transition-colors text-[var(--text-light-2)] btn`}
               >
                 {isInCart ? "View in cart" : "Add to cart"}
               </button>
+              <div className="text-[24px] font-[700] text-[var(--text-light-2)]">
+                ${safeData.price}
+              </div>
             </div>
           </div>
 
           {/* Right side - Mission image */}
-          <div className="w-full md:w-1/2 relative rounded-[12px] overflow-hidden">
+          <div className="w-full md:w-1/2 relative rounded-[12px] border border-[var(--gray-800)] overflow-hidden">
             {safeData.thumbnail?.url ? (
-              <img
+              <Image
                 src={safeData.thumbnail.url}
                 alt={safeData.title}
                 style={{ height: "300px" }}
@@ -323,38 +338,38 @@ export default function MissionDetails() {
 
       {/* What you'll learn section */}
       <div style={{ padding: "40px 32px", backgroundColor: "white" }}>
-        <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
+        <div
+          style={{ maxWidth: "1400px", margin: "0 auto", padding: "54px" }}
+          className="border border-[#CACACA] rounded-[20px]"
+        >
           <h2
             style={{ marginBottom: "24px" }}
-            className="text-[24px] font-[700] text-black"
+            className="sm:text-[46px] font-[800] text-[#8B4CC2] "
           >
-            What you'll learn?
+            What you&apos;ll learn?
           </h2>
-          <ul
-            style={{ gap: "16px" }}
-            className="grid grid-cols-1 md:grid-cols-2"
-          >
-            <li style={{ gap: "8px" }} className="flex items-start">
-              <span className="text-[var(--green-strong)]">✓</span>
+          <ul className="grid grid-cols-1 gap-4">
+            <li className="flex items-start gap-2">
+              <span className="text-[#000000]">•</span>
               <span className="text-black">
                 Understand the basics of Javascript and how it powers modern
                 websites.
               </span>
             </li>
-            <li style={{ gap: "8px" }} className="flex items-start">
-              <span className="text-[var(--green-strong)]">✓</span>
+            <li className="flex items-start gap-2">
+              <span className="text-[#000000]">•</span>
               <span className="text-black">
                 Work with variables, data types, functions, and operators.
               </span>
             </li>
-            <li style={{ gap: "8px" }} className="flex items-start">
-              <span className="text-[var(--green-strong)]">✓</span>
+            <li className="flex items-start gap-2">
+              <span className="text-[#000000]">•</span>
               <span className="text-black">
                 Learn ES6+ features like arrow functions and modules.
               </span>
             </li>
-            <li style={{ gap: "8px" }} className="flex items-start">
-              <span className="text-[var(--green-strong)]">✓</span>
+            <li className="flex items-start gap-2">
+              <span className="text-[#000000]">•</span>
               <span className="text-black">
                 Debug Javascript code and use dev tools.
               </span>
@@ -368,13 +383,13 @@ export default function MissionDetails() {
         <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
           <h2
             style={{ marginBottom: "24px" }}
-            className="text-[24px] font-[700] text-black"
+            className="sm:text-[46px] font-[700] text-black"
           >
             This Mission includes:
           </h2>
           <div
             style={{ gap: "24px" }}
-            className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4"
+            className="grid grid-cols-1 sm:grid-cols-2 "
           >
             <div style={{ gap: "12px" }} className="flex items-center">
               <div
@@ -478,16 +493,16 @@ export default function MissionDetails() {
         <div style={{ maxWidth: "1400px", margin: "0 auto" }}>
           <h2
             style={{ marginBottom: "24px" }}
-            className="text-[24px] font-[700] text-black"
+            className=" sm:text-[46px] font-[800] text-black"
           >
             Course Levels:
           </h2>
           <div style={{ gap: "16px" }} className="flex flex-col">
-            <div
-              style={{ padding: "16px", border: "1px solid var(--gray-700)" }}
-              className="rounded-[8px]"
-            >
-              <div className="flex items-center justify-between">
+            <div>
+              <div
+                style={{ padding: "16px 8px" }}
+                className="flex items-center justify-between border border-[#CACACA] rounded-[12px] p-4"
+              >
                 <h3 className="font-[600] text-black">
                   Understand the basics of Javascript and how it powers modern
                   websites.
@@ -508,11 +523,11 @@ export default function MissionDetails() {
                 </svg>
               </div>
             </div>
-            <div
-              style={{ padding: "16px", border: "1px solid var(--gray-700)" }}
-              className="rounded-[8px]"
-            >
-              <div className="flex items-center justify-between">
+            <div>
+              <div
+                style={{ padding: "16px 8px" }}
+                className="flex items-center justify-between border border-[#CACACA] rounded-[12px] p-4"
+              >
                 <h3 className="font-[600] text-black">
                   Work with variables, data types, functions, and operators.
                 </h3>
@@ -532,11 +547,11 @@ export default function MissionDetails() {
                 </svg>
               </div>
             </div>
-            <div
-              style={{ padding: "16px", border: "1px solid var(--gray-700)" }}
-              className="rounded-[8px]"
-            >
-              <div className="flex items-center justify-between">
+            <div>
+              <div
+                style={{ padding: "16px 8px" }}
+                className="flex items-center justify-between border border-[#CACACA] rounded-[12px] p-4"
+              >
                 <h3 className="font-[600] text-black">
                   Learn ES6+ features like arrow functions and modules.
                 </h3>
@@ -556,11 +571,11 @@ export default function MissionDetails() {
                 </svg>
               </div>
             </div>
-            <div
-              style={{ padding: "16px", border: "1px solid var(--gray-700)" }}
-              className="rounded-[8px]"
-            >
-              <div className="flex items-center justify-between">
+            <div>
+              <div
+                style={{ padding: "16px 8px" }}
+                className="flex items-center justify-between border border-[#CACACA] rounded-[12px] p-4"
+              >
                 <h3 className="font-[600] text-black">
                   Debug Javascript code and use dev tools.
                 </h3>

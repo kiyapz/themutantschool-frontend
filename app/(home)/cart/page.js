@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import ShoppingCart from "@/components/mutantcart/ShoppingCart";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
@@ -14,7 +14,7 @@ export default function Page() {
   const router = useRouter();
 
   // Fetch cart items from backend only
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     console.log("[Cart Page] Fetching cart items from backend...");
     const token = localStorage.getItem("login-accessToken");
     if (!token) {
@@ -62,11 +62,11 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [router, setCartCount, setCartItems]);
 
   useEffect(() => {
     fetchCartItems();
-  }, [router]);
+  }, [fetchCartItems]);
 
   // Handle Stripe localization errors
   useEffect(() => {
