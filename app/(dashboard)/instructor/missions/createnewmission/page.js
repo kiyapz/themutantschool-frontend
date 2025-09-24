@@ -42,7 +42,7 @@ export default function Createnewmission() {
   const actions = [
     { text: "Delete", icon: <FiTrash2 /> },
     { text: "Edit", icon: <FiEdit /> },
-    { text: "Publish", icon: null },
+    // { text: "Publish", icon: null },
   ];
 
  const editMission =async ()=> {

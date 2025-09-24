@@ -29,33 +29,35 @@ export default function FilterableCoursesDashboard() {
           },
         });
 
-        if (response.status === 401) {
-          console.log("Unauthorized access. Please log in again.");
+   
 
-          const refreshToken = localStorage.getItem("login-refreshToken");
-          // make a reques to get new token
-          const getToken = await profilebase.post(
-            "auth/refresh-token",
-            { refreshToken },
-            {
-              headers: {
-                Authorization: `Bearer ${localStorage.getItem(
-                  "login-accessToken"
-                )}`,
-              },
-            }
-          );
+        // if (response.status === 401) {
+        //   console.log("Unauthorized access. Please log in again.");
 
-          if (getToken.status === 200) {
-            localStorage.setItem(
-              "login-accessToken",
-              getToken.data.accessToken
-            );
-            console.log("Access token refreshed successfully.");
+        //   const refreshToken = localStorage.getItem("login-refreshToken");
+        //   // make a reques to get new token
+        //   const getToken = await profilebase.post(
+        //     "auth/refresh-token",
+        //     { refreshToken },
+        //     {
+        //       headers: {
+        //         Authorization: `Bearer ${localStorage.getItem(
+        //           "login-accessToken"
+        //         )}`,
+        //       },
+        //     }
+        //   );
 
-            return getAllMission();
-          }
-        }
+        //   if (getToken.status === 200) {
+        //     localStorage.setItem(
+        //       "login-accessToken",
+        //       getToken.data.accessToken
+        //     );
+        //     console.log("Access token refreshed successfully.");
+
+        //     return getAllMission();
+        //   }
+        // }
 
         console.log("fetched mission response", response.data.missions);
         setMission(response.data.missions);

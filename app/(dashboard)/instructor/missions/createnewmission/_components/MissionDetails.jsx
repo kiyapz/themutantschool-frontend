@@ -53,9 +53,12 @@ export default function MissionDetails() {
   const [category, setCategory] = useState("");
   const [difficulty, setDifficulty] = useState("");
   const [language, setLanguage] = useState("English (uk)");
+  const [estimatedDuration, setEstimatedDuration] = useState("");
+  const [certificateAvailable, setCertificateAvailable] = useState(true);
+  const [price, setPrice] = useState("");
   const [image, setImage] = useState(null);
   const [video, setVideo] = useState(null);
-  const [previewUrl, setPreviewUrl] = useState(null); 
+  const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
 
   const handleImageChange = (e) => {
@@ -75,13 +78,11 @@ export default function MissionDetails() {
       console.log("Access token:", accessToken ? "Found" : "Not found");
 
       if (!accessToken) {
-       
         alert("Please login first to create a mission");
         setLoading(false);
         return;
       }
 
-      
       if (!title.trim()) {
         alert("Mission title is required");
         setLoading(false);
@@ -108,15 +109,32 @@ export default function MissionDetails() {
 
       const formData = new FormData();
 
-    
+      // Validate price
+      if (!price || isNaN(price) || price <= 0) {
+        alert("Please enter a valid price");
+        setLoading(false);
+        return;
+      }
+
+      // Validate estimated duration
+      if (
+        !estimatedDuration ||
+        isNaN(estimatedDuration) ||
+        Number(estimatedDuration) <= 0
+      ) {
+        alert("Please enter a valid duration in hours (greater than 0)");
+        setLoading(false);
+        return;
+      }
+
       formData.append("title", title.trim());
       formData.append("description", description.trim());
       formData.append("shortDescription", description.trim());
-      formData.append("estimatedDuration", "24 hours");
-      formData.append("certificateAvailable", "true");
-      formData.append("price", "50");
+      formData.append("estimatedDuration", `${estimatedDuration} hours`);
+      formData.append("certificateAvailable", certificateAvailable.toString());
+      formData.append("price", price);
+      formData.append("status", "pending Review");
 
-    
       if (detailedDescription.trim()) {
         formData.append("bio", detailedDescription.trim());
       }
@@ -125,11 +143,9 @@ export default function MissionDetails() {
       formData.append("skillLevel", difficulty);
       formData.append("Language", language);
 
-     
       const tags = [category.toLowerCase(), "mission", "course"];
       formData.append("tags", JSON.stringify(tags));
 
-      
       if (image) {
         formData.append("thumbnail", image);
       }
@@ -156,18 +172,17 @@ export default function MissionDetails() {
         }
       );
 
-      console.log(response,'Response received from server');
-      
+      console.log(response, "Response received from server");
+
       console.log("Response status:", response.status);
       console.log("Response headers:", response.headers);
 
-      
       const responseText = await response.text();
       console.log("Raw response:", responseText);
 
       if (response.status === 401) {
         alert("Authentication failed. Please login again.");
-        
+
         return;
       }
 
@@ -179,7 +194,6 @@ export default function MissionDetails() {
       if (!response.ok) {
         console.log("Error response:", responseText);
 
-        
         try {
           const errorData = JSON.parse(responseText);
           throw new Error(
@@ -190,7 +204,6 @@ export default function MissionDetails() {
         }
       }
 
-      
       let result;
       try {
         result = JSON.parse(responseText);
@@ -201,20 +214,21 @@ export default function MissionDetails() {
 
       console.log("Mission created successfully:", result);
 
-      localStorage.removeItem('missionId')
+      localStorage.removeItem("missionId");
 
-      
       if (result.data && result.data._id) {
         localStorage.setItem("missionId", result.data._id);
       }
 
-      
       setTitle("");
       setDescription("");
       setDetailedDescription("");
       setCategory("");
       setDifficulty("");
       setLanguage("English (uk)");
+      setEstimatedDuration("");
+      setCertificateAvailable(true);
+      setPrice("");
       setImage(null);
       setVideo(null);
       setPreviewUrl(null);
@@ -223,7 +237,6 @@ export default function MissionDetails() {
     } catch (error) {
       console.log("Error creating mission:", error);
 
-      
       if (error.message.includes("402")) {
         alert(
           "Network error. Please check your internet connection and try again."
@@ -369,6 +382,58 @@ export default function MissionDetails() {
         />
       </div>
 
+      <div className="w-full grid xl:grid-cols-3 sm:gap-5 mt-5">
+        <div className="w-full">
+          <label className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]">
+            Estimated Duration (hours)
+          </label>
+          <div className="flex items-center">
+            <input
+              type="number"
+              min="1"
+              value={estimatedDuration}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (
+                  value === "" ||
+                  (Number(value) > 0 && Number(value) <= 1000)
+                ) {
+                  setEstimatedDuration(value);
+                }
+              }}
+              className="rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white w-full"
+              placeholder="Enter duration in hours"
+            />
+          </div>
+        </div>
+
+        <div className="w-full">
+          <label className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]">
+            Certificate Available
+          </label>
+          <div className="flex items-center mt-2">
+            <input
+              type="checkbox"
+              checked={certificateAvailable}
+              onChange={(e) => setCertificateAvailable(e.target.checked)}
+              className="w-5 h-5 rounded bg-[#1F1F1F] border-gray-600"
+            />
+            <span className="ml-2 text-white">Certificate upon completion</span>
+          </div>
+        </div>
+
+        <MockEditprofilebtn
+          value={price}
+          onChange={(e) => {
+            const value = e.target.value;
+            if (value === "" || /^\d+$/.test(value)) {
+              setPrice(value);
+            }
+          }}
+          label="Price (USD)"
+        />
+      </div>
+
       <div className="w-full grid gap-5  ">
         <div className="flex flex-col gap-3">
           <label
@@ -383,12 +448,23 @@ export default function MissionDetails() {
             onClick={() => document.getElementById("imageInput").click()}
           >
             {previewUrl ? (
-              <div className="w-full h-full flex items-center justify-center">
+              <div className="w-full h-full relative">
                 <img
                   src={previewUrl}
                   alt="Preview"
-                  className="w-full max-h-full object-contain rounded-[22px]"
+                  className="absolute inset-0 w-full h-full object-cover rounded-[22px]"
+                  style={{ objectPosition: "center" }}
                 />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setPreviewUrl(null);
+                    setImage(null);
+                  }}
+                  className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                >
+                  ×
+                </button>
               </div>
             ) : (
               <>

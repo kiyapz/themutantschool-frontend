@@ -26,8 +26,8 @@ export default function PreviewandLaunch() {
 
       if (!storedMissionId) {
         console.log("No missionId found in localStorage");
-        // alert("Please create a mission first.");
-        // router.push("/instructor/myMissions/createnewmission");
+     
+        router.push("/instructor/missions/createnewmission");
         return;
       }
 
@@ -68,7 +68,7 @@ export default function PreviewandLaunch() {
        alert("No mission ID found. Redirecting to create new mission.");
        setActiveTab("Mission Details");
 
-       router.push("/instructor/myMissions/createnewmission");
+       router.push("/instructor/missions/createnewmission");
        return;
      }
    }, []);
