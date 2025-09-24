@@ -263,7 +263,7 @@ export default function Mission() {
       console.log(
         `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
       );
-      router.push("/mutantcart");
+      router.push("/cart");
       return;
     }
 

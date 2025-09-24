@@ -74,7 +74,7 @@ export default function Home() {
     }
 
     if (clickedButtons.has(missionId)) {
-      router.push("/mutantcart");
+      router.push("/cart");
       return;
     }
 

@@ -152,7 +152,7 @@ export default function Page() {
 
       const orderResponse = await axios.post(
         "https://themutantschool-backend.onrender.com/api/mission-orders",
-        { missionId: items.map((item) => item.id), quantity: items.length },
+        {},
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -169,20 +169,16 @@ export default function Page() {
       console.log("[Checkout] Creating payment session for order:", orderId);
       const paymentResponse = await axios.post(
         `https://themutantschool-backend.onrender.com/api/payment/create-session/order/${orderId}`,
-        {
-          currency: "USD",
-          locale: "en",
-        },
+        {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const sessionId = paymentResponse.data.sessionId;
       const redirectUrl =
-        paymentResponse.data.url || paymentResponse.data.redirectUrl;
+        paymentResponse.data.url ;
 
       console.log("[Checkout] Payment session created:", {
-        sessionId,
-        redirectUrl,
+      
         fullResponse: paymentResponse.data,
       });
 
@@ -190,8 +186,7 @@ export default function Page() {
         throw new Error("No payment URL received from server.");
       }
 
-      // DON'T clear cart here - let backend handle it after successful payment
-      console.log("[Checkout] Redirecting to payment:", redirectUrl);
+    
 
       try {
         window.location.href = redirectUrl;

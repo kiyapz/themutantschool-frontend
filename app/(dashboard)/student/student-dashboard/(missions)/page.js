@@ -27,7 +27,7 @@ export default function Page() {
             : null;
 
         const response = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/student/breakdown",
+          "https://themutantschool-backend.onrender.com/api/student/dashboard",
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -36,12 +36,19 @@ export default function Page() {
           }
         );
 
-        const missionsWithBg = (response?.data?.data ?? []).map(
-          (mission, index) => ({
-            ...mission,
-            bg: missioncard[index % missioncard.length].bg,
-          })
-        );
+        const missionsWithBg = (
+          response?.data?.data?.enrolledCourses ?? []
+        ).map((course, index) => ({
+          missionId: course._id,
+          missionTitle: course.mission.title,
+          thumbnail: course.mission.thumbnail,
+          progress: course.progress.completedLevels || [],
+          progressPercentage: course.progressToNextLevel?.percent || 0,
+          bg: missioncard[index % missioncard.length].bg,
+        }));
+
+        // Sort missions by the most recent purchase date or other criteria
+        missionsWithBg.sort((a, b) => new Date(b._id) - new Date(a._id));
 
         setMissionPurchases(missionsWithBg);
         console.log("Mission Purchases:", missionsWithBg);

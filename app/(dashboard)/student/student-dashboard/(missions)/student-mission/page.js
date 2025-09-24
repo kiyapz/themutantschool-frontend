@@ -38,13 +38,23 @@ export default function Page() {
           }
         );
 
-        console.log("API Response:", response.data);
-        
+        console.log("API Response:", response.data.data.enrolledCourses);
 
-        const missionsWithBg = response.data.data.map((mission, index) => ({
-          ...mission,
-          bg: missioncard[index % missioncard.length].bg,
-        }));
+        const missionsWithBg = response.data.data.enrolledCourses.map(
+          (course, index) => ({
+            missionId: course._id,
+            missionTitle: course.mission.title,
+            thumbnail: course.mission.thumbnail,
+            progress: course.progress.completedLevels || [],
+            progressPercentage: course.progressToNextLevel?.percent || 0,
+            bg: missioncard[index % missioncard.length].bg,
+          })
+        );
+
+        // Sort missions by the most recent purchase date
+        missionsWithBg.sort(
+          (a, b) => new Date(b.enrolledAt) - new Date(a.enrolledAt)
+        );
 
         setMissionPurchases(missionsWithBg);
         console.log("Mission Purchases:", missionsWithBg);
@@ -100,7 +110,7 @@ export default function Page() {
             <MissionCard
               key={item.missionId}
               missionId={item.missionId}
-              image={item.thumbnail.url}
+              image={item.thumbnail?.url}
               text1={item.missionTitle}
               text2={item.progress.length}
               text3={item.progressPercentage}
