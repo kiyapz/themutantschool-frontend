@@ -68,8 +68,8 @@ export default function Navbar() {
             "/images/default-avatar.jpg";
           setAvatarUrl(possibleAvatar);
 
-          // Only fetch cart data on mission pages
-          if (isMissionPath && role === "student") {
+          // Fetch cart data for all authenticated students
+          if (role === "student") {
             try {
               const response = await fetch(
                 "https://themutantschool-backend.onrender.com/api/mission-cart",
@@ -81,10 +81,7 @@ export default function Navbar() {
               const cartItemsData = data.cart.missions || [];
               setCartCount(cartItemsData.length);
             } catch (error) {
-              console.log(
-                "Cart fetch failed (this is normal on non-mission pages):",
-                error.message
-              );
+              console.log("Cart fetch failed:", error.message);
             }
           }
         } else {
@@ -142,7 +139,7 @@ export default function Navbar() {
 
           {/* Desktop Auth / Profile */}
           <div className="hidden md:flex items-center gap-1 lg:gap-4">
-            {isStudent && isMissionPage && (
+            {isStudent && (
               <div>
                 <Link href={"/cart"}>
                   <div
@@ -159,6 +156,14 @@ export default function Navbar() {
                       width={18}
                       height={18}
                     />
+
+                    {/* Cart count badge */}
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {cartCount}
+                      </span>
+                    )}
+
                     {/* sparkles */}
                     {sparkles.map((s) => (
                       <span
@@ -223,7 +228,7 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <div className="sm:hidden flex items-center justify-end gap-2">
-            {isStudent && isMissionPage && (
+            {isStudent && (
               <div>
                 <Link href={"/cart"}>
                   <div
@@ -239,6 +244,13 @@ export default function Navbar() {
                       width={18}
                       height={18}
                     />
+
+                    {/* Cart count badge */}
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {cartCount}
+                      </span>
+                    )}
                   </div>
                 </Link>
               </div>

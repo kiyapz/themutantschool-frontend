@@ -131,9 +131,10 @@ export default function MissionDetails() {
       formData.append("description", description.trim());
       formData.append("shortDescription", description.trim());
       formData.append("estimatedDuration", `${estimatedDuration} hours`);
+      formData.append("status", "pending Review");
       formData.append("certificateAvailable", certificateAvailable.toString());
       formData.append("price", price);
-      formData.append("status", "pending Review");
+      
 
       if (detailedDescription.trim()) {
         formData.append("bio", detailedDescription.trim());

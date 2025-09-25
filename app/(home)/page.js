@@ -78,32 +78,8 @@ export default function Home() {
       return;
     }
 
-    try {
-      await axios.post(
-        `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      setClickedButtons((prev) => new Set(prev).add(missionId));
-      setCartItems((prev) => {
-        const prevArray = Array.isArray(prev) ? prev : [];
-        const exists = prevArray.some((x) => x.id === missionId);
-        const next = exists ? prevArray : [...prevArray, { id: missionId }];
-        return next;
-      });
-      if (typeof window !== "undefined") {
-        window.dispatchEvent(new CustomEvent("cart:changed"));
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to add mission to cart.");
-      setTimeout(() => setError(null), 3000);
-    }
+    // Navigate to mission details page instead of adding to cart
+    router.push(`/mission/${missionId}`);
   };
 
   // Function to determine background color based on index

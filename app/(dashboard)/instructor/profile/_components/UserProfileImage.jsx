@@ -98,14 +98,15 @@ export default function UserProfileImage() {
   const [preloadedUrl, setPreloadedUrl] = useState(null);
   const [imageKey, setImageKey] = useState(0); // Force re-render key
   const [defaultImageError, setDefaultImageError] = useState(false);
-  const [useProxy, setUseProxy] = useState(false); // Track if we should use proxy
+  const [proxyAttempt, setProxyAttempt] = useState(0); // Track proxy attempts
+  const PROXY_COUNT = 3; // Number of available proxies
 
   // Set the URL for display immediately when available
   useEffect(() => {
     if (!userUpdatedValue?.url) {
       setPreloadedUrl(null);
       setImageError(false);
-      setUseProxy(false); // Reset proxy state
+      setProxyAttempt(0); // Reset proxy attempts
       return;
     }
 
@@ -120,25 +121,28 @@ export default function UserProfileImage() {
     console.log("Setting preloaded URL for display:", validatedUrl);
     setPreloadedUrl(validatedUrl);
     setImageError(false); // Always reset error state when we have a valid URL
-    setUseProxy(false); // Reset proxy state for new URL
+    setProxyAttempt(0); // Reset proxy attempts for new URL
     setImageKey((prev) => prev + 1); // Force re-render immediately
-  }, [userUpdatedValue?.url]);
+  }, []);
 
   // Determine the best URL to display with CORS workaround
-  const getDisplayUrl = () => {
-    // If we have a preloaded URL, use it (regardless of error state)
-    if (preloadedUrl) {
-      return useProxy ? createProxyUrl(preloadedUrl) : preloadedUrl;
+  const getDisplayUrl = useCallback(() => {
+    const urlToUse = preloadedUrl || validateImageUrl(userUpdatedValue?.url);
+    if (!urlToUse) return null;
+
+    // If direct loading failed, try proxies
+    if (proxyAttempt > 0) {
+      // Stop trying if we've exhausted all proxies
+      if (proxyAttempt > PROXY_COUNT) {
+        return null; // Triggers fallback to default image
+      }
+      // Return the next proxy URL to try
+      return createProxyUrl(urlToUse, proxyAttempt - 1);
     }
 
-    // Otherwise, validate the current URL and use it immediately
-    const validatedUrl = validateImageUrl(userUpdatedValue?.url);
-    if (validatedUrl) {
-      return useProxy ? createProxyUrl(validatedUrl) : validatedUrl;
-    }
-
-    return null;
-  };
+    // Initially, try to load the URL directly
+    return urlToUse;
+  }, []);
 
   const displayUrl = getDisplayUrl();
 
@@ -288,22 +292,38 @@ export default function UserProfileImage() {
     }
   };
 
-  // Enhanced debugging for image URL and state
-  console.log("UserProfileImage render - Original URL:", userUpdatedValue?.url);
-  console.log("UserProfileImage render - Preloaded URL:", preloadedUrl);
-  console.log("UserProfileImage render - Display URL:", displayUrl);
-  console.log("UserProfileImage render - Image error state:", imageError);
-  console.log("UserProfileImage render - Is preloading:", isPreloading);
-  console.log(
-    "UserProfileImage render - Should show image:",
-    !!displayUrl && !imageError
-  );
+  // Debug logging only when values change
+  useEffect(() => {
+    console.log(
+      "UserProfileImage state change - Original URL:",
+      userUpdatedValue?.url
+    );
+    console.log("UserProfileImage state change - Preloaded URL:", preloadedUrl);
+    console.log("UserProfileImage state change - Display URL:", displayUrl);
+    console.log(
+      "UserProfileImage state change - Image error state:",
+      imageError
+    );
+    console.log("UserProfileImage state change - Is preloading:", isPreloading);
+    console.log(
+      "UserProfileImage state change - Should show image:",
+      !!displayUrl && !imageError
+    );
+  }, [
+    // userUpdatedValue?.url,
+    // preloadedUrl,
+    // displayUrl,
+    // imageError,
+    // isPreloading,
+  ]);
 
   // Force reset error state if we have a valid display URL
-  if (displayUrl && imageError) {
-    console.log("Force resetting image error for valid display URL");
-    setImageError(false);
-  }
+  useEffect(() => {
+    if (displayUrl && imageError) {
+      console.log("Force resetting image error for valid display URL");
+      setImageError(false);
+    }
+  }, [displayUrl, imageError]);
 
   // Let Next.js Image component handle the loading and errors
   // We'll only set imageError to true when the Image component's onError fires
@@ -337,41 +357,25 @@ export default function UserProfileImage() {
             onError={(e) => {
               const currentSrc = e.target.src;
               console.log("Next.js Image load error for URL:", currentSrc);
-              console.log("Current displayUrl:", displayUrl);
-              console.log(
-                "Is external image:",
-                !currentSrc.includes("default-avatar.jpg")
-              );
 
+              // Handle failure of the default avatar itself
               if (currentSrc.includes("default-avatar.jpg")) {
                 console.log("Default avatar failed to load, using fallback");
                 setDefaultImageError(true);
                 return;
               }
 
-              // Only set error if this is actually the external image failing
-              if (currentSrc === displayUrl) {
-                // If it's an S3 URL and we haven't tried all proxies yet, try the next one
-                if (
-                  currentSrc.includes("s3.eu-central-2.wasabisys.com") &&
-                  !useProxy
-                ) {
-                  console.log("S3 image failed, trying next proxy URL...");
-                  setUseProxy(true);
-                  setImageError(false);
-                  setImageKey((prev) => prev + 1); // Force re-render with next proxy URL
-                  return;
-                }
-
-                console.log("External image failed to load, marking as error");
-                setImageError(true);
-
-                // If it's a 403 error, show the warning message
-                if (currentSrc.includes("s3.eu-central-2.wasabisys.com")) {
-                  console.warn(
-                    "S3 image access forbidden - likely bucket policy issue"
-                  );
-                }
+              // An external image failed (either direct or proxy)
+              if (proxyAttempt < PROXY_COUNT) {
+                console.log(
+                  `Image load failed. Attempting proxy ${proxyAttempt + 1}...`
+                );
+                setProxyAttempt((prev) => prev + 1);
+              } else {
+                console.log(
+                  "All image load attempts (direct and proxy) have failed."
+                );
+                setImageError(true); // All retries failed, now set final error state
               }
             }}
             onLoad={() => {
