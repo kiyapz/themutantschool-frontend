@@ -152,7 +152,7 @@ export default function UserProfileImage() {
       console.log("Resetting image error state for valid URL:", displayUrl);
       setImageError(false);
     }
-  }, [displayUrl, imageError]);
+  }, []);
 
   const handleImageClick = () => {
     // Clear any previous error or success messages
@@ -323,7 +323,7 @@ export default function UserProfileImage() {
       console.log("Force resetting image error for valid display URL");
       setImageError(false);
     }
-  }, [displayUrl, imageError]);
+  }, []);
 
   // Let Next.js Image component handle the loading and errors
   // We'll only set imageError to true when the Image component's onError fires

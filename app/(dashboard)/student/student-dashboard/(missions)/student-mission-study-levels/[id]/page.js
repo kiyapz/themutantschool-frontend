@@ -7,7 +7,7 @@ import LevelsPath from "@/app/(dashboard)/student/component/LevelsPath";
 
 export default function MissionPage() {
   const { id: missionId } = useParams();
-  const [mission, setMission] = useState(null);
+  const [mission, setMission] = useState([]);
   const [loading, setLoading] = useState(true);
 
 //   useEffect(() => {
@@ -62,7 +62,7 @@ localStorage.setItem("currentMissionId", missionId);
 
     try {
       const response = await axios.get(
-        `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
+        `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -71,7 +71,8 @@ localStorage.setItem("currentMissionId", missionId);
         }
       );
 
-      const allMissions = response.data.data;
+      const allMissions = response.data.data.levels
+;
 
       console.log("Fetched Mission Data everything:----------", response.data.data);
 

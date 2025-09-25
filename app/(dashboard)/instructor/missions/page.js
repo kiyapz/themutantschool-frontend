@@ -10,7 +10,7 @@ import { InstructorContext } from "../_components/context/InstructorContex";
 
 export default function FilterableCoursesDashboard() {
   // const [courses, setMission] = useState([]);
-    const { courses, setMission } = useContext(InstructorContext);
+  const { courses, setMission } = useContext(InstructorContext);
 
   useEffect(() => {
     console.log("use effect for fetching missions");
@@ -28,8 +28,6 @@ export default function FilterableCoursesDashboard() {
             )}`,
           },
         });
-
-   
 
         // if (response.status === 401) {
         //   console.log("Unauthorized access. Please log in again.");
@@ -76,7 +74,6 @@ export default function FilterableCoursesDashboard() {
     sortBy: "popularity",
   });
 
-  
   const filterOptions = {
     duration: [
       { label: "24 hours", value: "24 hours" },
@@ -113,7 +110,6 @@ export default function FilterableCoursesDashboard() {
     }));
   };
 
-  
   const filteredCourses = useMemo(() => {
     let filtered = courses.filter((course) => {
       return (
@@ -126,7 +122,6 @@ export default function FilterableCoursesDashboard() {
       );
     });
 
-  
     switch (filters.sortBy) {
       case "rating":
         filtered.sort(
@@ -233,8 +228,6 @@ export default function FilterableCoursesDashboard() {
             />
           </div>
         </div>
-
-       
       </div>
 
       {/* Course Grid */}
@@ -253,9 +246,24 @@ export default function FilterableCoursesDashboard() {
                 <div className="px w-full flex-1 flex flex-col justify-between py">
                   <div className="flex flex-col gap-3">
                     <div className="w-full flex items-center justify-between">
-                      <button className="bg-[#393D4E] rounded-[5px] px text-[#ABABAB] font-[500] text-[13px] leading-[25px] ">
-                        {el.category}
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button className="bg-[#393D4E] rounded-[5px] px text-[#ABABAB] font-[500] text-[13px] leading-[25px] ">
+                          {el.category}
+                        </button>
+                        <span
+                        style={{padding:'0 8px'}}
+                          className={`px-2 py-1 rounded-[5px] text-[11px] font-[500] ${
+                            el.status === "Pending Review"
+                              ? "bg-yellow-600 text-yellow-100"
+                              : el.status === "draft"
+                              ? "bg-red-600 text-red-100"
+                              : "bg-green-600 text-gray-100"
+                          }`}
+                        >
+                          {el.status?.charAt(0).toUpperCase() +
+                            el.status?.slice(1) || "Unknown"}
+                        </span>
+                      </div>
 
                       <div className="flex space-x-1">
                         {[1, 2, 3, 4, 5].map((star) => (

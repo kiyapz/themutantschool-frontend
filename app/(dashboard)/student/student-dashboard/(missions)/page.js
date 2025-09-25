@@ -36,6 +36,8 @@ export default function Page() {
           }
         );
 
+        console.log("Response:lllllllllllllll", response.data);
+
         const missionsWithBg = (
           response?.data?.data?.enrolledCourses ?? []
         ).map((course, index) => ({

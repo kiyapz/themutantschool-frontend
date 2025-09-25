@@ -38,13 +38,13 @@ export default function Page() {
           }
         );
 
-        console.log("API Response:", response.data.data.enrolledCourses);
+        console.log("API Response:pppppppppp", response.data);
 
         const missionsWithBg = response.data.data.enrolledCourses.map(
           (course, index) => ({
-            missionId: course._id,
+            missionId: course.mission._id,
             missionTitle: course.mission.title,
-            thumbnail: course.mission.thumbnail,
+            thumbnail: course.mission.thumbnail.url,
             progress: course.progress.completedLevels || [],
             progressPercentage: course.progressToNextLevel?.percent || 0,
             bg: missioncard[index % missioncard.length].bg,

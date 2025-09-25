@@ -608,91 +608,6 @@ export default function AddLevels() {
     });
   };
 
-  // REPLACE the JSX for CapsuleEditModal with this:
-  <CapsuleEditModal
-    isOpen={capsuleEditModal.isOpen}
-    onClose={() =>
-      setCapsuleEditModal({
-        isOpen: false,
-        capsule: null,
-        levelIndex: null,
-        capsuleIndex: null,
-      })
-    }
-    capsule={capsuleEditModal.capsule}
-    onSave={async (updatedData) => {
-      console.log("Saving capsule with data:", updatedData);
-      console.log("Current modal state:", capsuleEditModal);
-
-      try {
-        const result = await handleUpdateCapsule(
-          capsuleEditModal.capsule._id,
-          updatedData
-        );
-        return result;
-      } catch (error) {
-        console.error("Error in onSave:", error);
-        return false;
-      }
-    }}
-  />;
-
-  // DEBUGGING: Add this console.log in your levels.map to verify data structure
-  {
-    levels.map((level, index) => {
-      console.log(
-        `Level ${index}:`,
-        level.title,
-        "Capsules:",
-        level.capsules?.length
-      );
-      return (
-        <div
-          key={level._id}
-          className="w-full bg-[#0F0F0F] px-[30px] py-[20px] rounded-lg flex flex-col gap-3"
-        >
-          {/* ... rest of your level JSX ... */}
-
-          {level.capsules?.map((capsule, i) => {
-            console.log(`Capsule ${i}:`, capsule.title); // Add this for debugging
-            return (
-              <div
-                style={{ padding: "0px 10px" }}
-                key={capsule._id || i}
-                className="w-full flex items-center justify-between h-[73.64px] rounded-[12px] bg-[#1C1C1C] px-4"
-              >
-                <div className="flex items-center gap-2">
-                  <p className="text-[#737373] sm:text-[25px] sm:leading-[40px] text-[10px] leading-[150%] font-[300]">
-                    {`Capsule ${i + 1}:`}
-                  </p>
-                  <p className="text-[#CCCCCC] sm:text-[25px] sm:leading-[40px] font-[400] text-[10px] leading-[150%]">
-                    {capsule.title}
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <FaEdit
-                    className="cursor-pointer text-[#747474] hover:text-[#BDE75D] transition-colors"
-                    onClick={() => handleEditCapsule(capsule, index, i)}
-                    title="Edit Capsule"
-                  />
-                  <FaTrash
-                    className="cursor-pointer text-[#FF6363] hover:text-red-500 transition-colors"
-                    onClick={() => handleDeleteCapsule(capsule, index, i)}
-                    title="Delete Capsule"
-                  />
-                  <FaEye
-                    className="cursor-pointer hover:text-blue-500 transition-colors"
-                    onClick={() => handleViewCapsule(capsule)}
-                    title="View Capsule"
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      );
-    });
-  }
   const handleDeleteCapsule = (capsule, levelIndex, capsuleIndex) => {
     setConfirmModal({
       isOpen: true,
@@ -704,16 +619,20 @@ export default function AddLevels() {
   };
 
   const handleViewCapsule = (capsule) => {
+    console.log("Viewing capsule:", capsule);
     setVideoPreviewModal({ isOpen: true, capsule });
   };
 
-  // Fixed handleUpdateCapsule function with local state update
+  // Fixed handleUpdateCapsule function with simplified state management
   const handleUpdateCapsule = async (capsuleId, updatedData) => {
     const accessToken = localStorage.getItem("login-accessToken");
     if (!accessToken) {
       showToast("Please login first", "error");
       return false;
     }
+
+    console.log("Updating capsule with ID:", capsuleId);
+    console.log("Update data being sent:", updatedData);
 
     try {
       let response;
@@ -753,69 +672,13 @@ export default function AddLevels() {
         );
       }
 
+      console.log("Server response:", response.status, response.data);
+
       if (response.status === 200 || response.status === 201) {
         showToast("Capsule updated successfully!", "success");
 
-        // Update local state immediately for better UX
-        const { levelIndex, capsuleIndex } = capsuleEditModal;
-
-        console.log(
-          "Updating capsule at levelIndex:",
-          levelIndex,
-          "capsuleIndex:",
-          capsuleIndex
-        );
-        console.log("Response data:", response.data);
-
-        if (
-          levelIndex !== null &&
-          capsuleIndex !== null &&
-          levelIndex >= 0 &&
-          capsuleIndex >= 0
-        ) {
-          setLevels((prevLevels) => {
-            const newLevels = [...prevLevels];
-
-            // Check if the indices are valid
-            if (
-              newLevels[levelIndex] &&
-              newLevels[levelIndex].capsules &&
-              newLevels[levelIndex].capsules[capsuleIndex]
-            ) {
-              // Update the capsule data
-              newLevels[levelIndex].capsules[capsuleIndex] = {
-                ...newLevels[levelIndex].capsules[capsuleIndex],
-                title: updatedData.title,
-                description: updatedData.description,
-                // Try different response data structures
-                ...(response.data?.videoUrl && {
-                  videoUrl: response.data.videoUrl,
-                }),
-                ...(response.data?.data?.videoUrl && {
-                  videoUrl: response.data.data.videoUrl,
-                }),
-              };
-
-              console.log(
-                "Updated capsule locally:",
-                newLevels[levelIndex].capsules[capsuleIndex]
-              );
-            } else {
-              console.warn("Invalid indices for capsule update:", {
-                levelIndex,
-                capsuleIndex,
-                levels: newLevels.length,
-                capsules: newLevels[levelIndex]?.capsules?.length,
-              });
-            }
-
-            return newLevels;
-          });
-        } else {
-          console.warn("Invalid modal indices:", { levelIndex, capsuleIndex });
-        }
-
-        // Always refresh from server to ensure data consistency
+        // Simply refresh from server to ensure data consistency
+        // This avoids complex local state management issues
         await getAllLevel();
         return true;
       } else {
@@ -986,7 +849,22 @@ export default function AddLevels() {
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
       setLevels(response.data.data || []);
-      console.log("Fetched levels:", response.data.data);
+      console.log("Fetched levels after update:", response.data.data);
+
+      // Log specific capsule data for debugging
+      if (response.data.data && response.data.data.length > 0) {
+        response.data.data.forEach((level, levelIndex) => {
+          if (level.capsules && level.capsules.length > 0) {
+            level.capsules.forEach((capsule, capsuleIndex) => {
+              console.log(`Level ${levelIndex}, Capsule ${capsuleIndex}:`, {
+                id: capsule._id,
+                title: capsule.title,
+                description: capsule.description,
+              });
+            });
+          }
+        });
+      }
     } catch (error) {
       console.error("Failed to fetch levels:", error);
       showToast("Failed to fetch levels", "error");
@@ -1152,9 +1030,21 @@ export default function AddLevels() {
           })
         }
         capsule={capsuleEditModal.capsule}
-        onSave={(updatedData) =>
-          handleUpdateCapsule(capsuleEditModal.capsule._id, updatedData)
-        }
+        onSave={async (updatedData) => {
+          console.log("Saving capsule with data:", updatedData);
+          console.log("Current modal state:", capsuleEditModal);
+
+          try {
+            const result = await handleUpdateCapsule(
+              capsuleEditModal.capsule._id,
+              updatedData
+            );
+            return result;
+          } catch (error) {
+            console.error("Error in onSave:", error);
+            return false;
+          }
+        }}
       />
 
       {Level === "AddLevel" && (

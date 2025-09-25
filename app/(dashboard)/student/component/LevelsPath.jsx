@@ -4,11 +4,11 @@ import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
 
-export default function LevelsPath({ level }) {
+export default function LevelsPath({ level: levelProp }) {
   const [currentCapsule, setCurrentCapsule] = useState(null);
   const [mission, setMission] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [quizStates, setQuizStates] = useState({}); 
+  const [quizStates, setQuizStates] = useState({});
   const [curentcapselID, setCurentcapselID] = useState(0);
   const [watchedData, setWatchedData] = useState(null);
   const [levelState, setLevelState] = useState({
@@ -16,6 +16,12 @@ export default function LevelsPath({ level }) {
     level: null,
     id: null,
   });
+
+  const level = Array.isArray(levelProp)
+    ? levelProp
+    : levelProp
+    ? [levelProp]
+    : [];
 
   const { missionsCapsels, setMissionsCapsels } = useContext(StudentContext);
 
@@ -58,6 +64,8 @@ export default function LevelsPath({ level }) {
             },
           }
         );
+        console.log(response, "all response");
+        console.log(levelState.id);
       } catch (error) {
         console.log(
           "Error fetching missions:",
@@ -215,7 +223,7 @@ export default function LevelsPath({ level }) {
 
   return (
     <div className="h-fit flex flex-col gap-15 max-w-[800px] w-full ">
-      {level.map((currentlevel, containerIndex) => {
+      {level?.map((currentlevel, containerIndex) => {
         // Calculate quiz enabled state for this level
         const quizEnabled = isQuizEnabled(containerIndex);
         const quizSelected = isQuizSelected(containerIndex);
@@ -240,7 +248,7 @@ export default function LevelsPath({ level }) {
                       </div>
 
                       <p className="font-[300] text-[15px] xl:text-[23px] leading-[20px]">
-                        {currentlevel.capsules.length} Capsules • 1 Quiz
+                        {currentlevel.capsules?.length} Capsules • 1 Quiz
                       </p>
                     </div>
                   </div>
@@ -261,8 +269,6 @@ export default function LevelsPath({ level }) {
               >
                 Level {containerIndex + 1}
               </p>
-
-             
 
               {/* Render capsules */}
               {currentlevel.capsules &&
