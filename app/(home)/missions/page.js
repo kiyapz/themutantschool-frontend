@@ -7,6 +7,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useCart } from "@/components/mutantcart/CartContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -21,6 +22,9 @@ export default function Mission() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+
+
+
 
   useEffect(() => {
     const fetchMissions = async () => {
@@ -324,8 +328,10 @@ export default function Mission() {
     startIndex + ITEMS_PER_PAGE
   );
 
+
+  console.log(course.thumbnail?.url, "course.thumbnail.url");
   return (
-    <div className="w-screen h-full bg-white flexcenter ">
+    <div className="w-screen h-full bg-black flexcenter ">
       <div className="max-w-[1800px] w-full  ">
         {error && (
           <div className="fixed top-20 right-5 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
@@ -337,7 +343,7 @@ export default function Mission() {
           style={{
             backgroundImage: "url('/images/Rectangle 120.png')",
           }}
-          className="min-h-screen relative z-20 flex items-center justify-center flex-col w-full bg-cover bg-center py-20"
+          className="min-h-screen bg-black relative z-20 flex items-center justify-center flex-col w-full bg-cover bg-center py-20"
         >
           <div className="max-w-[336.97px] relative flexcenter flex-col gap-5 sm:max-w-[852.48px] w-full px-4">
             <div className="relative z-40">
@@ -520,6 +526,7 @@ export default function Mission() {
                 ) : (
                   <div className="w-full sm:grid md:grid-cols-3 gap-5 ">
                     {currentItems.map((course, i) => (
+                      
                       <div
                         key={course._id}
                         className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md cursor-pointer"
@@ -535,6 +542,9 @@ export default function Mission() {
                           className="h-[294.71px] w-full bg-[#2A2A2A] rounded-t-[20px] bg-cover bg-center"
                         ></div>
 
+                       
+
+                         
                         <div
                           className="flex flex-col  justify-between flex-1 h-[222.01px]  "
                           style={{ padding: "20px" }}

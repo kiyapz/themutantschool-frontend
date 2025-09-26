@@ -1,22 +1,17 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  reactStrictMode: true,
   images: {
     remotePatterns: [
       {
         protocol: "https",
-        hostname: "s3.eu-central-2.wasabisys.com",
+        hostname: "*",
         port: "",
         pathname: "/**",
       },
       {
-        protocol: "https",
-        hostname: "files.ably.io",
-        port: "",
-        pathname: "/**",
-      },
-      {
-        protocol: "https",
-        hostname: "placehold.co",
+        protocol: "http",
+        hostname: "*",
         port: "",
         pathname: "/**",
       },

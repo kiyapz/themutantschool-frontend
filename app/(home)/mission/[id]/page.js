@@ -226,10 +226,11 @@ export default function MissionDetails() {
             </h1>
             <div
               style={{ marginBottom: "16px" }}
-              className="flex items-center justify-between"
+              className="flex flex-col gap-2"
             >
+              <p className="text-[var(--purple-glow)]">{safeData.bio}</p>
               <p className="text-[var(--purple-glow)]">
-                {safeData.instructor.name}
+                Instructor : {safeData.instructor.name}
               </p>
             </div>
             <p
@@ -313,15 +314,16 @@ export default function MissionDetails() {
           {/* Right side - Mission image */}
           <div className="w-full md:w-1/2 relative rounded-[12px] border border-[var(--gray-800)] overflow-hidden">
             {safeData.thumbnail?.url ? (
-              <Image
-                src={safeData.thumbnail.url}
+              <img
+                src={safeData.thumbnail?.url}
                 alt={safeData.title}
-                style={{ height: "300px" }}
                 className="w-full md:h-[400px] object-cover rounded-[12px]"
                 onError={(e) => {
-                  console.log("Image failed to load, using fallback");
-                  e.target.onerror = null;
-                  e.target.src = "/images/default-course.jpg";
+                  if (!e.target.getAttribute("data-error-handled")) {
+                    console.log("Image failed to load, using fallback");
+                    e.target.setAttribute("data-error-handled", "true");
+                    e.target.src = "/images/default-course.jpg";
+                  }
                 }}
               />
             ) : (
