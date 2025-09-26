@@ -332,7 +332,7 @@ export default function Mission() {
   console.log(course.thumbnail?.url, "course.thumbnail.url");
   return (
     <div className="w-screen h-full bg-black flexcenter ">
-      <div className="max-w-[1800px] w-full  ">
+      <div className="max-w-[2000px] w-full  ">
         {error && (
           <div className="fixed top-20 right-5 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
             {error}

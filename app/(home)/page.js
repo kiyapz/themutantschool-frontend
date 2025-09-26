@@ -293,8 +293,10 @@ export default function Home() {
                         </p>
                       </div>
                       <button
-                        onClick={() => handleAddToCart(mission._id)}
-                        // style={{ padding: "0 8px" }}
+                        onClick={() => {
+                          console.log("Navigating to mission:", mission._id);
+                          router.push(`/mission/${mission._id}`);
+                        }}
                         className={`${
                           clickedButtons.has(mission._id)
                             ? "bg-gray-500 text-white"
