@@ -38,6 +38,10 @@ export default function Mission() {
           }
         );
         setMissions(res.data.data);
+        // Log course thumbnails for debugging
+        res.data.data.forEach((course, index) => {
+          console.log(`Course ${index} thumbnail:`, course.thumbnail?.url);
+        });
         console.log(res.data.data, "missionssssssssssssssssssss");
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch missions");
@@ -332,7 +336,7 @@ export default function Mission() {
   console.log(course.thumbnail?.url, "course.thumbnail.url");
   return (
     <div className="w-screen h-full bg-black flexcenter ">
-      <div className="max-w-[2000px] w-full  ">
+      <div className=" w-full  ">
         {error && (
           <div className="fixed top-20 right-5 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
             {error}
@@ -533,7 +537,10 @@ export default function Mission() {
                       >
                         <div
                           style={{
-                            backgroundImage: `url(${course.thumbnail.url})`,
+                            backgroundImage: course.thumbnail?.url ? `url(${course.thumbnail.url})` : 'none',
+                          }}
+                          onError={(e) => {
+                            console.error('Error loading background image:', course.thumbnail?.url);
                           }}
                           onClick={() => {
                             console.log("Navigating to mission:", course._id);
