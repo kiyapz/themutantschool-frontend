@@ -193,7 +193,7 @@ function PaymentSuccessContent() {
         className="max-w-2xl w-full"
         style={{ marginLeft: "auto", marginRight: "auto" }}
       >
-        {/* Success Header */}
+       
         <div className="text-center" style={{ marginBottom: "1.5rem" }}>
           <div
             className="h-[80px] w-[80px] flex items-center justify-center rounded-full"
@@ -227,7 +227,7 @@ function PaymentSuccessContent() {
           </p>
         </div>
 
-        {/* Order Summary Card */}
+     
         <div
           className="rounded-xl"
           style={{
@@ -364,7 +364,7 @@ function PaymentSuccessContent() {
           </Link>
         </div>
 
-        {/* Recommended Missions Section */}
+      
         <div style={{ marginBottom: "1rem" }}>
           <div
             className="flex justify-between items-center"
