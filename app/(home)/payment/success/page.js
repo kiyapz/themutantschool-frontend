@@ -56,7 +56,7 @@ function PaymentSuccessContent() {
               responseData?.status === "paid" &&
               typeof responseData?.amount === "number"
             ) {
-              // Handle the new structure: { status: 'paid', amount: 100, currency: 'usd' }
+             
               const newAmount = responseData.amount;
               setOrderInfo((prevInfo) => ({
                 ...prevInfo,
@@ -67,11 +67,11 @@ function PaymentSuccessContent() {
               responseData?.success &&
               typeof responseData?.data?.amount === "number"
             ) {
-              // Handle previous structure: { success: true, data: { amount: 5000 } }
+              
               const newAmount = (responseData.data.amount / 100).toFixed(2);
               setOrderInfo((prevInfo) => ({ ...prevInfo, amount: newAmount }));
             } else if (responseData && responseData.order) {
-              // Fallback to original logic
+              
               setOrderInfo(responseData.order);
             }
           } catch (err) {
@@ -79,7 +79,7 @@ function PaymentSuccessContent() {
           }
         }
 
-        // Try to fetch the latest purchased course from student breakdown
+       
         setTimeout(async () => {
           try {
             const response = await axios.get(
@@ -103,7 +103,7 @@ function PaymentSuccessContent() {
           }
         }, 2000);
 
-        // If no sessionId, set loading to false after a short delay to show the page
+       
         if (!sessionId) {
           setTimeout(() => {
             setLoading(false);
@@ -125,11 +125,11 @@ function PaymentSuccessContent() {
             },
           }
         );
-        // Take the first 3 missions for recommendation
+       
         setRecommendedMissions(res.data.data.slice(0, 3));
       } catch (err) {
         console.error("Failed to fetch recommended missions:", err);
-        // Don't block the page, just log the error
+        
       }
     };
 

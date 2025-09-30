@@ -78,7 +78,7 @@ export default function Home() {
       return;
     }
 
-    // Navigate to mission details page instead of adding to cart
+    
     router.push(`/mission/${missionId}`);
   };
 
@@ -100,13 +100,13 @@ export default function Home() {
   const getTextColor = (index) => {
     switch (index) {
       case 0:
-        return "#003453"; // Dark blue
+        return "#003453"; 
       case 1:
-        return "#350053"; // Dark purple
+        return "#350053"; 
       case 2:
-        return "#005319"; // Dark green
+        return "#005319"; 
       default:
-        return "#350053"; // Default color
+        return "#350053"; 
     }
   };
 
