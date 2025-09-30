@@ -5,7 +5,7 @@ import Image from "next/image";
 
 import ProfiledropDown from "../profile/_components/ProfiledropDown";
 import { InstructorContext } from "./context/InstructorContex";
-import UserProfileImage from "../profile/_components/UserProfileImage";
+import InstructorProfileImage from "./InstructorProfileImage";
 
 export default function InstructorDropdown() {
   const {
@@ -37,7 +37,7 @@ export default function InstructorDropdown() {
         className="cursor-pointer flex items-center xl:justify-between gap-2 w-full rounded-[12px] bg-[#1A1A1A] px-4 py-2"
       >
         <div className="w-[47px] h-[47px] rounded-full">
-          <UserProfileImage />
+          <InstructorProfileImage />
         </div>
 
         <div className="flex items-center xl:justify-between gap-2 xl:gap-5">

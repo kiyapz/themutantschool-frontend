@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { HiMenu, HiShoppingCart } from "react-icons/hi";
 import Image from "next/image";
+import StudentProfileDropdown from "./StudentProfileDropdown";
 
 export default function Navbar() {
   const [active, setActive] = useState("register");
@@ -182,15 +183,10 @@ export default function Navbar() {
             )}
 
             {isAuthenticated ? (
-              <Link href={profileHref}>
-                <div className="w-9 h-9 rounded-full overflow-hidden border border-[#3A3A3A]">
-                  <img
-                    src={avatarUrl}
-                    alt="Profile"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              </Link>
+              <StudentProfileDropdown
+                avatarUrl={avatarUrl}
+                profileHref={profileHref}
+              />
             ) : (
               <>
                 <div className="cut-box3">
@@ -343,23 +339,11 @@ export default function Navbar() {
           {/* Mobile Auth / Profile */}
           <div className="flex flex-col gap-3 px-4 pb-4">
             {isAuthenticated ? (
-              <Link href={profileHref}>
-                <div
-                  onClick={closeMobileMenu}
-                  className="flex items-center gap-3"
-                >
-                  <div className="w-10 h-10 rounded-full overflow-hidden border border-[#3A3A3A]">
-                    <img
-                      src={avatarUrl}
-                      alt="Profile"
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  <span className="text-[13px] font-[700] text-white">
-                    Profile
-                  </span>
-                </div>
-              </Link>
+              <StudentProfileDropdown
+                avatarUrl={avatarUrl}
+                profileHref={profileHref}
+                onItemClick={closeMobileMenu}
+              />
             ) : (
               <>
                 <div className="cut-box3">

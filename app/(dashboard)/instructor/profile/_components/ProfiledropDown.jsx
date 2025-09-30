@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { useContext, useEffect, useRef, useState } from "react";
 import { InstructorContext } from "../../_components/context/InstructorContex";
-import UserProfileImage from "./UserProfileImage";
+import InstructorProfileImage from "../../_components/InstructorProfileImage";
 
 export default function ProfiledropDown() {
   const {
@@ -22,8 +22,7 @@ export default function ProfiledropDown() {
     >
       <div className="flex flex-col items-center gap-1 p-2">
         <div className="w-[82px] h-[82px] rounded-full mb-2">
-          {" "}
-          <UserProfileImage />
+          <InstructorProfileImage />
         </div>
         <p className="font-[700] leading-[40px] text-[13px]">
           @<span> {userUpdatedValue.username}</span>{" "}

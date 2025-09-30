@@ -57,7 +57,8 @@ export default function Login() {
         if (user.role === "instructor") router.push("/instructor");
         else if (user.role === "student")
           router.push("/student/student-dashboard");
-        else router.push("/affiliate");
+        else if (user.role === "affiliate") router.push("/affiliate");
+        else router.push("/");
 
         return true;
       } else if (!response.status === 200) {
