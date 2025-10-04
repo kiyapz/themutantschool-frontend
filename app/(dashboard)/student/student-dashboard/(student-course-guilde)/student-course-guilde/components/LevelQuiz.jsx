@@ -1,7 +1,8 @@
 import axios from "axios";
 import React, { useEffect, useState, useCallback } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
-export default function LevelQuiz({ width = "100%" }) {
+export default function LevelQuiz({ width = "100%", onQuizComplete }) {
   const [quizData, setQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -10,7 +11,11 @@ export default function LevelQuiz({ width = "100%" }) {
   const [quizCompleted, setQuizCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [showPerformanceDetails, setShowPerformanceDetails] = useState(false);
-console.log(quizData,'jjdnfnf');
+  const [showAnswerReview, setShowAnswerReview] = useState(false);
+  const [resumedFromSaved, setResumedFromSaved] = useState(false);
+  const [quizAlreadyTaken, setQuizAlreadyTaken] = useState(false);
+  const [previousQuizResult, setPreviousQuizResult] = useState(null);
+  console.log(quizData, "jjdnfnf");
 
   // Quiz state management
   const [quizDuration, setQuizDuration] = useState(0);
@@ -20,6 +25,72 @@ console.log(quizData,'jjdnfnf');
 
   // Store user answers
   const [userAnswers, setUserAnswers] = useState([]);
+
+  // Load saved quiz state from localStorage on component mount
+  useEffect(() => {
+    const savedQuizState = localStorage.getItem("quizState");
+    const savedAlreadyTaken = localStorage.getItem("quizAlreadyTaken");
+
+    if (savedAlreadyTaken === "true") {
+      setQuizAlreadyTaken(true);
+      setPreviousQuizResult({
+        message: "You have already completed this quiz!",
+        alreadyTaken: true,
+        canRetake: true,
+      });
+    } else if (savedQuizState) {
+      try {
+        const parsedState = JSON.parse(savedQuizState);
+        if (parsedState.quizStartTime && !parsedState.quizCompleted) {
+          setQuizStartTime(parsedState.quizStartTime);
+          setCurrentQuestionIndex(parsedState.currentQuestionIndex || 0);
+          setUserAnswers(parsedState.userAnswers || []);
+          setQuizDuration(parsedState.quizDuration || 0);
+          setIsAnswered(parsedState.isAnswered || false);
+          setSelectedAnswer(parsedState.selectedAnswer);
+          setTimeLeft(parsedState.timeLeft || 20);
+          setResumedFromSaved(true);
+
+          // Hide the resume notification after 3 seconds
+          setTimeout(() => {
+            setResumedFromSaved(false);
+          }, 3000);
+        }
+      } catch (error) {
+        console.error("Error loading saved quiz state:", error);
+        localStorage.removeItem("quizState");
+      }
+    }
+  }, []);
+
+  // Save quiz state to localStorage whenever it changes
+  useEffect(() => {
+    if (quizStartTime && !quizCompleted) {
+      const quizState = {
+        quizStartTime,
+        currentQuestionIndex,
+        userAnswers,
+        quizDuration,
+        isAnswered,
+        selectedAnswer,
+        timeLeft,
+        quizCompleted: false,
+      };
+      localStorage.setItem("quizState", JSON.stringify(quizState));
+    } else if (quizCompleted) {
+      // Clear saved state when quiz is completed
+      localStorage.removeItem("quizState");
+    }
+  }, [
+    quizStartTime,
+    currentQuestionIndex,
+    userAnswers,
+    quizDuration,
+    isAnswered,
+    selectedAnswer,
+    timeLeft,
+    quizCompleted,
+  ]);
 
   // Quiz completion handler with proper answer storage
   const handleQuizComplete = useCallback(
@@ -65,6 +136,11 @@ console.log(quizData,'jjdnfnf');
         });
 
         console.log("Quiz submitted successfully");
+
+        // Call the completion callback to advance to next stage
+        if (onQuizComplete) {
+          onQuizComplete();
+        }
       } catch (error) {
         console.error("Failed to submit quiz to API:", error);
         setUpdateError(`Quiz submission failed: ${error.message}`);
@@ -105,9 +181,12 @@ console.log(quizData,'jjdnfnf');
       }, 1000);
       return () => clearTimeout(timer);
     } else if (timeLeft === 0 && !isAnswered) {
-      handleNextQuestion();
+      // Add a guard to ensure quizData is available
+      if (quizData) {
+        handleNextQuestion();
+      }
     }
-  }, [timeLeft, isAnswered, quizCompleted]);
+  }, [timeLeft, isAnswered, quizCompleted, quizData]);
 
   // Reset timer when question changes
   useEffect(() => {
@@ -166,95 +245,132 @@ console.log(quizData,'jjdnfnf');
   }, []);
 
   // Submit quiz answers to API
-const submitQuizAnswers = async (chanswers) => {
-  const token = localStorage.getItem("login-accessToken");
-  const levelId = quizData.level;
-  const quizId = quizData._id;
+  const submitQuizAnswers = async (chanswers) => {
+    const token = localStorage.getItem("login-accessToken");
+    const levelId = quizData.level;
+    const quizId = quizData._id;
+    const missionId = localStorage.getItem("currentMissionId");
 
-  if (!token || !levelId || !quizId) {
-    throw new Error("Missing authentication token, level ID, or quiz ID");
-  }
-
-  try {
-    // Format answers for API - include ALL questions, even unanswered ones
-    const formattedAnswers = [];
-
-    chanswers.forEach((answerIndex, questionIndex) => {
-      const question = quizData.questions[questionIndex];
-      const questionId = question._id;
-
-      // Only include questions that were actually answered
-      if (answerIndex !== null && answerIndex !== undefined) {
-        // Get the actual answer text from the selected option
-        const selectedAnswerText = question.options[answerIndex];
-
-        formattedAnswers.push({
-          questionId:questionId,
-          selectedOption: selectedAnswerText,
-        });
-
-        console.log(
-          `Question ${
-            questionIndex + 1
-          }: ID=${questionId}, Selected Option: "${selectedAnswerText}"`
-        );
-      } else {
-        console.log(
-          `Question ${
-            questionIndex + 1
-          }: ID=${questionId}, SKIPPED (no answer selected)`
-        );
-      }
-    });
-
-    console.log("DEBUG - User answers array:", chanswers);
-    console.log("DEBUG - Questions length:", quizData.questions.length);
-    console.log("DEBUG - Formatted answers:", formattedAnswers);
-
-    console.log("Submitting quiz answers:", {
-      levelId,
-      quizId,
-      chanswers: formattedAnswers,
-      totalQuestions: quizData.questions.length,
-      answeredQuestions: formattedAnswers.length,
-      unansweredQuestions: chanswers.filter((a) => a === null || a === undefined)
-        .length,
-    });
-
-    // Log the exact payload being sent
-    const answers = {answers:formattedAnswers };
-    console.log("Exact payload being sent:", JSON.stringify(answers, null, 2));
-
-    const response = await axios.post(
-      `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${quizId}/level/${levelId}`,
-      answers,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-      }
-    );
-
-    console.log("Quiz submission response:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error submitting quiz:", error);
-
-    // Log more detailed error information
-    if (error.response) {
-      console.log("Error response status:", error.response.status);
-      console.log("Error response data:", error.response.data);
-      console.log("Error response headers:", error.response.headers);
-    } else if (error.request) {
-      console.log("Error request:", error.request);
-    } else {
-      console.log("Error message:", error.message);
+    if (!token || !levelId || !quizId || !missionId) {
+      throw new Error(
+        "Missing authentication token, level ID, quiz ID, or mission ID"
+      );
     }
 
-    throw error;
-  }
-};
+    try {
+      // Format answers for API - include ALL questions, even unanswered ones
+      const formattedAnswers = [];
+
+      chanswers.forEach((answerIndex, questionIndex) => {
+        const question = quizData.questions[questionIndex];
+        const questionId = question._id;
+
+        // Only include questions that were actually answered
+        if (answerIndex !== null && answerIndex !== undefined) {
+          // Get the actual answer text from the selected option
+          const selectedAnswerText = question.options[answerIndex];
+
+          formattedAnswers.push({
+            questionId: questionId,
+            selectedOption: selectedAnswerText,
+          });
+
+          console.log(
+            `Question ${
+              questionIndex + 1
+            }: ID=${questionId}, Selected Option: "${selectedAnswerText}"`
+          );
+        } else {
+          console.log(
+            `Question ${
+              questionIndex + 1
+            }: ID=${questionId}, SKIPPED (no answer selected)`
+          );
+        }
+      });
+
+      console.log("DEBUG - User answers array:", chanswers);
+      console.log("DEBUG - Questions length:", quizData.questions.length);
+      console.log("DEBUG - Formatted answers:", formattedAnswers);
+
+      console.log("Submitting quiz answers:", {
+        levelId,
+        quizId,
+        chanswers: formattedAnswers,
+        totalQuestions: quizData.questions.length,
+        answeredQuestions: formattedAnswers.length,
+        unansweredQuestions: chanswers.filter(
+          (a) => a === null || a === undefined
+        ).length,
+      });
+
+      // Log the exact payload being sent
+      const answers = { answers: formattedAnswers };
+      console.log(
+        "Exact payload being sent:",
+        JSON.stringify(answers, null, 2)
+      );
+
+      const response = await axios.post(
+        `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`,
+        answers,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Quiz submission response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.error("Error submitting quiz:", error);
+
+      // Log more detailed error information
+      if (error.response) {
+        console.log("Error response status:", error.response.status);
+        console.log("Error response data:", error.response.data);
+        console.log("Error response headers:", error.response.headers);
+
+        // Check if quiz was already taken (404 with "Quiz not found" message)
+        if (
+          error.response.status === 404 &&
+          error.response.data?.message === "Quiz not found"
+        ) {
+          console.log("Quiz already taken - showing previous results");
+          setQuizAlreadyTaken(true);
+          setQuizCompleted(true);
+          setLoading(false);
+
+          // Save the "already taken" state to localStorage
+          localStorage.setItem("quizAlreadyTaken", "true");
+
+          // Create a mock result to show the user they've already taken the quiz
+          setPreviousQuizResult({
+            message: "You have already completed this quiz!",
+            alreadyTaken: true,
+            canRetake: true,
+          });
+
+          return {
+            status: "already_taken",
+            message: "Quiz already completed",
+            data: {
+              alreadyTaken: true,
+              canRetake: true,
+            },
+          };
+        }
+      } else if (error.request) {
+        console.log("Error request:", error.request);
+      } else {
+        console.log("Error message:", error.message);
+      }
+
+      throw error;
+    }
+  };
 
   const handleAnswerSelect = (selectedIndex) => {
     if (isAnswered) return;
@@ -286,6 +402,12 @@ const submitQuizAnswers = async (chanswers) => {
   };
 
   const handleNextQuestion = (currentAnswers = null) => {
+    // Add a guard to ensure quizData exists before proceeding
+    if (!quizData || !quizData.questions) {
+      console.error("handleNextQuestion called without quizData.");
+      return;
+    }
+
     // Use the passed answers or fall back to current state
     const answersToUse = currentAnswers || userAnswers;
 
@@ -304,6 +426,9 @@ const submitQuizAnswers = async (chanswers) => {
   };
 
   const startQuiz = () => {
+    // Clear any saved state when starting a new quiz
+    localStorage.removeItem("quizState");
+
     setQuizStartTime(Date.now());
     setCurrentQuestionIndex(0);
     setSelectedAnswer(null);
@@ -333,9 +458,10 @@ const submitQuizAnswers = async (chanswers) => {
   if (loading) {
     return (
       <div
-        style={{ width, textAlign: "center", color: "white", padding: "2rem" }}
+        style={{ width }}
+        className="flex items-center justify-center h-[70vh]"
       >
-        Loading quiz...
+        <LoadingSpinner size="large" color="mutant" />
       </div>
     );
   }
@@ -346,6 +472,67 @@ const submitQuizAnswers = async (chanswers) => {
         style={{ width, textAlign: "center", color: "white", padding: "2rem" }}
       >
         No quiz data available
+      </div>
+    );
+  }
+
+  // Quiz already taken screen
+  if (quizAlreadyTaken && previousQuizResult) {
+    return (
+      <div
+        style={{
+          backgroundColor: "#020202",
+          color: "white",
+          fontFamily: "sans-serif",
+          padding: "2rem",
+          borderRadius: "10px",
+          textAlign: "center",
+        }}
+      >
+        <div className="flex flex-col gap-6 h-[70vh] justify-center items-center">
+          <div className="text-6xl mb-4">🎯</div>
+
+          <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
+            Quiz Already Completed
+          </h2>
+
+          <div
+            style={{ padding: "20px" }}
+            className="bg-[#131313] p-6 rounded-lg mb-6 max-w-md"
+          >
+            <p className="text-lg mb-4">{previousQuizResult.message}</p>
+            <p className="text-gray-400 text-sm">
+              You can retake this quiz if you want to improve your score or
+              refresh your knowledge.
+            </p>
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              onClick={() => {
+                setQuizAlreadyTaken(false);
+                setPreviousQuizResult(null);
+                localStorage.removeItem("quizAlreadyTaken");
+                startQuiz();
+              }}
+              style={{ padding: "10px" }}
+              className="bg-[#840B94] hover:bg-[#6a0876] px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+            >
+              Retake Quiz
+            </button>
+
+            <button
+              onClick={() => {
+                // Navigate back or close quiz
+                window.history.back();
+              }}
+              style={{ padding: "10px" }}
+              className="bg-gray-600 hover:bg-gray-700 px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+            >
+              Go Back
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
@@ -441,13 +628,31 @@ const submitQuizAnswers = async (chanswers) => {
         >
           <div className="flex flex-col h-[80%] items-center justify-center gap-3">
             <div className="flex items-center gap-4">
-              <h2 className="font-[500] sm:text-[48px] leading-[43px]">
+              <h2
+                className={`font-[500] sm:text-[48px] leading-[43px] ${
+                  resultData.apiResponse?.passed
+                    ? "text-green-400"
+                    : "text-red-400"
+                }`}
+              >
                 {percentage}%
               </h2>
+              {resultData.apiResponse && (
+                <div
+                  className={`text-4xl ${
+                    resultData.apiResponse.passed
+                      ? "text-green-400"
+                      : "text-red-400"
+                  }`}
+                >
+                  {resultData.apiResponse.passed ? "🎉" : "💪"}
+                </div>
+              )}
             </div>
             <p className="font-[400] sm:text-[20px] text-center leading-[33px]">
-              Here's how you fared in your latest challenge. Remember, every
-              wrong answer is just training for your next evolution
+              {resultData.apiResponse?.passed
+                ? "🎉 Congratulations! You've successfully completed this challenge and evolved your skills!"
+                : "💪 Here's how you fared in your latest challenge. Remember, every wrong answer is just training for your next evolution"}
             </p>
 
             {resultData.apiResponse && (
@@ -503,20 +708,124 @@ const submitQuizAnswers = async (chanswers) => {
                     <p>{quizData.passingScore}%</p>
                   </div>
                   {resultData.apiResponse && (
-                    <div className="flex items-center justify-between w-[300px]">
-                      <p>Server Status</p>
-                      <p className="text-green-400">
-                        {resultData.apiResponse.status
-                          ? resultData.apiResponse.status.toUpperCase()
-                          : "COMPLETED"}
-                      </p>
-                    </div>
+                    <>
+                      <div className="flex items-center justify-between w-[300px]">
+                        <p>Server Status</p>
+                        <p className="text-green-400">
+                          {resultData.apiResponse.status
+                            ? resultData.apiResponse.status.toUpperCase()
+                            : "COMPLETED"}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between w-[300px]">
+                        <p>Quiz Result</p>
+                        <p
+                          className={
+                            resultData.apiResponse.passed
+                              ? "text-green-400"
+                              : "text-red-400"
+                          }
+                        >
+                          {resultData.apiResponse.passed
+                            ? "✅ PASSED"
+                            : "❌ FAILED"}
+                        </p>
+                      </div>
+                      <div className="flex items-center justify-between w-[300px]">
+                        <p>Attempt ID</p>
+                        <p className="text-xs text-gray-400">
+                          {resultData.apiResponse.attemptId?.slice(-8) || "N/A"}
+                        </p>
+                      </div>
+                    </>
                   )}
                 </div>
               )}
             </div>
           </div>
         </div>
+
+        {/* Answer Review Section */}
+        {resultData.apiResponse && resultData.apiResponse.data && (
+          <div className="w-full max-w-[800px] mx-auto">
+            <button
+              onClick={() => setShowAnswerReview(!showAnswerReview)}
+              className="flex items-center gap-2 cursor-pointer w-full justify-center text-[#646464] hover:text-white transition-colors py-4 border-t border-gray-700"
+            >
+              <span className="font-[400] text-[14px] sm:text-[19px]">
+                {showAnswerReview ? "Hide" : "Show"} Answer Review
+              </span>
+              <span
+                className={`transform transition-transform ${
+                  showAnswerReview ? "rotate-180" : ""
+                }`}
+              >
+                ▼
+              </span>
+            </button>
+
+            {showAnswerReview && (
+              <div className="mt-4 space-y-4 max-h-[400px] overflow-y-auto">
+                {resultData.apiResponse.data.answers.map((answer, index) => (
+                  <div
+                    key={answer.questionId}
+                    className={`p-4 rounded-lg border-l-4 ${
+                      answer.isCorrect
+                        ? "bg-green-900/20 border-green-500"
+                        : "bg-red-900/20 border-red-500"
+                    }`}
+                  >
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-white">
+                        Question {index + 1}
+                      </h4>
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-bold ${
+                          answer.isCorrect
+                            ? "bg-green-600 text-white"
+                            : "bg-red-600 text-white"
+                        }`}
+                      >
+                        {answer.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                      </span>
+                    </div>
+
+                    <div className="space-y-2 text-sm">
+                      <div>
+                        <span className="text-gray-400">Your Answer:</span>
+                        <span
+                          className={`ml-2 ${
+                            answer.isCorrect ? "text-green-300" : "text-red-300"
+                          }`}
+                        >
+                          {answer.selectedOption}
+                        </span>
+                      </div>
+
+                      {!answer.isCorrect && (
+                        <div>
+                          <span className="text-gray-400">Correct Answer:</span>
+                          <span className="ml-2 text-green-300">
+                            {answer.correctOption}
+                          </span>
+                        </div>
+                      )}
+
+                      {answer.explanation && (
+                        <div>
+                          <span className="text-gray-400">Explanation:</span>
+                          <span className="ml-2 text-gray-300">
+                            {answer.explanation}
+                          </span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {updateError && (
           <div className="bg-red-900 text-white p-3 rounded w-full text-center">
@@ -533,6 +842,11 @@ const submitQuizAnswers = async (chanswers) => {
           </button>
           <button
             style={{ padding: "16px 8px" }}
+            onClick={() => {
+              if (onQuizComplete) {
+                onQuizComplete();
+              }
+            }}
             className="bg-[#840B94] hover:bg-[#6a0876] font-[700] sm:text-[31px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
             disabled={loading}
           >
@@ -555,8 +869,15 @@ const submitQuizAnswers = async (chanswers) => {
         fontFamily: "sans-serif",
         padding: "2rem",
         borderRadius: "10px",
+        position: "relative",
       }}
     >
+      {/* Resume notification */}
+      {resumedFromSaved && (
+        <div className="absolute top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
+          🔄 Quiz resumed from where you left off
+        </div>
+      )}
       {/* Quiz Header */}
       <div
         style={{

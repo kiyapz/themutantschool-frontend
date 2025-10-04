@@ -85,17 +85,17 @@ export default function Login() {
   };
 
   return (
-    <div className="flex py flex-col items-center  justify-between  h-[90vh]    sm:h-screen w-full">
-      <div className="mt-mutantlogin grid  grid-cols-1 sm:grid-cols-2 sm:gap-4  w-full max-w-[350px] md:max-w-[90%]   px  xl:max-w-[1200px] h-fit">
+    <div className="flex flex-col items-center justify-between h-screen w-full p-6 sm:p-0">
+      <div className="grid grid-cols-1 sm:grid-cols-2 sm:gap-0 w-full h-full">
         <div
           style={{ backgroundImage: `url('/images/loginimg.png')` }}
-          className="hidden sm:block bg-cover h-full   rounded-r-[30px] bg-center"
+          className="hidden sm:block bg-cover h-full w-full rounded-r-[30px] bg-center bg-no-repeat"
         >
           {" "}
         </div>
 
-        <div className=" w-full flex  justify-center h-fit">
-          <div className="  py mt-mutantlogin max-w-[500px]   flex flex-col gap-8 w-full h-full  ">
+        <div className="w-full flex justify-center items-center h-full p-6 sm:p-8">
+          <div className="max-w-[500px] flex flex-col gap-6 sm:gap-8 w-full">
             <h2 className="hidden sm:block  text-center Xirod text-[26px] leading-[41px] text-[var(--secondary)]  ">
               MUTANT
             </h2>
@@ -110,7 +110,7 @@ export default function Login() {
                 </p>
               </div>
 
-              <div className="flex w-full h-full  flex-col justify-around gap-4">
+              <div style={{padding:'0 25px'}} className="flex w-full h-full  flex-col justify-around gap-4">
                 <div className="flex flex-col gap-4">
                   <input
                     type="email"
@@ -180,7 +180,7 @@ export default function Login() {
                 </Link>
 
                 <div>
-                  <div className="h-[60.5px] w-full flexcenter font-[600] text-[12px] sm:text-[14px] leading-[40px] text-[var(--background)]  border-[1px] px rounded-[8px] border-[var(--primary)] sm:h-[75.16px] ">
+                  <div className="h-[60.5px] w-full flex-col flexcenter font-[600] text-[12px] sm:text-[14px] leading-[40px] text-[var(--background)]  border-[1px] px rounded-[8px] border-[var(--primary)] sm:h-[75.16px] ">
                     <p>
                       New here?{" "}
                       <Link href="/auth/register">
@@ -190,6 +190,9 @@ export default function Login() {
                       </Link>{" "}
                     </p>
                   </div>
+                  <p className="text-center text-[var(--text-light)] text-[14px] font-[500] leading-[40px] ">
+                    Copyright©Themutantschool2025
+                  </p>
                 </div>
               </div>
             </div>
@@ -197,11 +200,7 @@ export default function Login() {
         </div>
       </div>
 
-      <div>
-        <p className="text-center text-[var(--text-light)] text-[14px] font-[500] leading-[40px] ">
-          Copyright©Themutantschool2025
-        </p>
-      </div>
+      <div></div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import Actionbtn from "../createnewmission/_components/Actionbtn";
 import Analitiesbtn from "../createnewmission/_components/Analitiesbtn";
 import Link from "next/link";
 import { InstructorContext } from "../../_components/context/InstructorContex";
+import EditMissionModal from "./EditMissionModal";
 
 const getIconComponent = (iconType) => {
   switch (iconType) {
@@ -282,6 +283,7 @@ const renderTabContent = (activeTab, course, handleAddLevelId) => {
 
 export default function MissionCourseOverview({ course }) {
   const [activeTab, setActiveTab] = useState("Curriculum");
+  const [showEditModal, setShowEditModal] = useState(false);
   const { setActiveTab: setContextActiveTab } = useContext(InstructorContext);
 
   const handleAddLevelId = (courseId) => {
@@ -289,6 +291,15 @@ export default function MissionCourseOverview({ course }) {
     setContextActiveTab("Add Levels");
     localStorage.removeItem("missionId");
     localStorage.setItem("missionId", courseId);
+  };
+
+  const handleEditMission = () => {
+    setShowEditModal(true);
+  };
+
+  const handleEditSuccess = (updatedMission) => {
+    // Refresh the page or update the course data
+    window.location.reload();
   };
 
   return (
@@ -328,7 +339,14 @@ export default function MissionCourseOverview({ course }) {
                 {course.status}
               </button>
               <p className="text-[#728C51] font-[600] text-[12px]">
-                Created: {course.createdAt} / Last updated: {course.updatedAt}
+                Created:{" "}
+                {course.createdAt
+                  ? new Date(course.createdAt).toLocaleDateString()
+                  : "N/A"}{" "}
+                / Last updated:{" "}
+                {course.updatedAt
+                  ? new Date(course.updatedAt).toLocaleDateString()
+                  : "N/A"}
               </p>
             </div>
           </div>
@@ -393,20 +411,33 @@ export default function MissionCourseOverview({ course }) {
             </div>
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-4">
-          <button className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer ">
+        <div className="flex gap-4">
+          <button
+            onClick={handleEditMission}
+            style={{ padding: "15px 20px", margin: "0" }}
+            className="font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer hover:bg-[#7052a8] transition-colors"
+          >
             Edit Mission
           </button>
           <Link href={`/instructor/missions/createnewmission`}>
             <button
               onClick={() => handleAddLevelId(course._id)}
-              className="h-[62.74px] w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer "
+              style={{ padding: "15px 20px", margin: "0" }}
+              className="font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer hover:bg-[#7052a8] transition-colors"
             >
               + Level
             </button>
           </Link>
         </div>
       </div>
+
+      {/* Edit Mission Modal */}
+      <EditMissionModal
+        mission={course}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={handleEditSuccess}
+      />
     </div>
   );
 }

@@ -114,12 +114,12 @@ export default function InstructorDashboard() {
     {
       id: 2,
       sub: "Total Recruits",
-      qunatity: 248,
+      qunatity: userProfile?.completedMissions?.length || 0,
     },
     {
       id: 3,
       sub: "Total Revenue",
-      qunatity: "$4,285",
+      qunatity: `$${userProfile?.earningsBalance || 0}`,
     },
     {
       id: 4,
@@ -478,14 +478,14 @@ export default function InstructorDashboard() {
                     className="border-t-[1px] h-fit border-[#3C3C3C]"
                   >
                     <div className="grid py h-fit rounded-[15px] bg-[#0F0F0F] grid-cols-5">
-                      <div className="col-span-2 ">
+                      <div className="col-span-2 overflow-hidden">
                         <div className="flex items-center gap-2">
-                          <div className="h-[45.59px] sm:h-[62px] w-[45.59px] sm:w-[62px] bg-pink-100 rounded-[10px] "></div>
-                          <div>
-                            <p className="font-[700] text-[12px] leading-[20px] sm:text-[16px] sm:leadig-[20px] ">
+                          <div className="h-[45.59px] sm:h-[62px] w-[45.59px] sm:w-[62px] bg-pink-100 rounded-[10px] flex-shrink-0"></div>
+                          <div className="min-w-0 flex-1 overflow-hidden">
+                            <p className="font-[700] text-[12px] leading-[20px] sm:text-[12px] sm:leadig-[20px] truncate max-w-[150px] sm:max-w-[200px]">
                               {el.purpose}
                             </p>
-                            <p className="font-[700] text-[12px] leading-[20px] sm:text-[16px] sm:leadig-[20px] ">
+                            <p className="font-[700] text-[12px] leading-[30px] sm:text-[16px] sm:leadig-[20px] truncate max-w-[150px] sm:max-w-[200px]">
                               {el.type}
                             </p>
                           </div>
@@ -567,9 +567,9 @@ export default function InstructorDashboard() {
                     </div>
                     <div>
                       <p className="text-[#E8EDF6] font-[600] text-[15px] sm:text-[27px] leading-[35px] ">
-                        {el.description}:
+                        {el.title}:
                       </p>
-                      <p className="text-[#E8EDF6] font-[600] text-[27px] leading-[35px] ">
+                      <p className="text-[#E8EDF6] h-[50px] font-[600] text-[27px] leading-[35px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
                         {el.shortDescription}
                       </p>
                       <p className="text-[#ABABAB] text-[12px] mt-1">

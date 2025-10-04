@@ -91,7 +91,7 @@ export default function LevelChallange() {
       {showLevelCkallenge && (
         <div
           style={{ padding: "20px 0" }}
-          className=" max-w-[504.15625px] w-full h-full justify-between flex flex-col items-center"
+          className=" max-w-[804.15625px] w-full h-full justify-between flex flex-col items-center"
         >
           <div>
             {/* Top Icons with staggered knockout animation */}

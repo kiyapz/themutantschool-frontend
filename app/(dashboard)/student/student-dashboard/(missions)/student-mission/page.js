@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
 import MissionCard from "./components/MissionCard";
+import LoadingSpinner from "./components/LoadingSpinner";
 import { useEffect, useState } from "react";
 import Link from "next/link";
 
@@ -44,9 +45,30 @@ export default function Page() {
           (course, index) => ({
             missionId: course.mission._id,
             missionTitle: course.mission.title,
-            thumbnail: course.mission.thumbnail.url,
+            thumbnail: course.mission.thumbnail,
             progress: course.progress.completedLevels || [],
             progressPercentage: course.progressToNextLevel?.percent || 0,
+            category: course.mission.category || "Course",
+            price: course.mission.price || course.paymentInfo?.amount || 0,
+            isFree: course.mission.isFree || course.paymentInfo?.amount === 0,
+            estimatedDuration:
+              course.mission.estimatedDuration || "Duration not specified",
+            averageRating: course.mission.averageRating || 0,
+            instructor: course.mission.instructor || {
+              name: "Unknown Instructor",
+            },
+            levels: course.mission.levels || [],
+            shortDescription:
+              course.mission.shortDescription ||
+              course.mission.description ||
+              "No description available",
+            description:
+              course.mission.description || "No description available",
+            difficulty:
+              course.mission.difficulty || course.mission.level || "Beginner",
+            enrolledAt: course.enrolledAt,
+            paymentStatus: course.paymentStatus,
+            paymentInfo: course.paymentInfo,
             bg: missioncard[index % missioncard.length].bg,
           })
         );
@@ -74,14 +96,8 @@ export default function Page() {
   return (
     <>
       {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-center" style={{ color: "var(--text)" }}>
-            <div
-              className="animate-spin rounded-full h-8 w-8 border-b-2 mx-auto mb-2"
-              style={{ borderColor: "var(--success)" }}
-            ></div>
-            Loading mission...
-          </div>
+        <div className="flex items-center justify-center py-16">
+          <LoadingSpinner size="large" color="primary" />
         </div>
       ) : missionPurchases.length === 0 ? (
         <div className="flex items-center justify-center py-8">
@@ -112,9 +128,23 @@ export default function Page() {
               missionId={item.missionId}
               image={item.thumbnail?.url}
               text1={item.missionTitle}
-              text2={item.progress.length}
-              text3={item.progressPercentage}
+              text2={item.estimatedDuration}
+              text3={`${item.progressPercentage || 0}% Complete`}
               bg={item.bg}
+              isAvailable={false}
+              instructor={item.instructor}
+              levels={item.levels}
+              shortDescription={item.shortDescription}
+              price={item.price}
+              isFree={item.isFree}
+              category={item.category}
+              averageRating={item.averageRating}
+              difficulty={item.difficulty}
+              progress={item.progress}
+              progressPercentage={item.progressPercentage}
+              paymentStatus={item.paymentStatus}
+              paymentInfo={item.paymentInfo}
+              enrolledAt={item.enrolledAt}
             />
           ))}
         </div>

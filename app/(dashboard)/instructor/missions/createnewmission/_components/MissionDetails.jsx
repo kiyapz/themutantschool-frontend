@@ -60,6 +60,8 @@ export default function MissionDetails() {
   const [video, setVideo] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [youtubeLink, setYoutubeLink] = useState("");
+  const [coursePurposes, setCoursePurposes] = useState(["", "", "", ""]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -67,6 +69,18 @@ export default function MissionDetails() {
       setImage(file);
       setPreviewUrl(URL.createObjectURL(file));
     }
+  };
+
+  const handleCoursePurposeChange = (index, value) => {
+    const newPurposes = [...coursePurposes];
+    newPurposes[index] = value;
+    setCoursePurposes(newPurposes);
+  };
+
+  const validateYouTubeLink = (url) => {
+    const youtubeRegex =
+      /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
+    return youtubeRegex.test(url);
   };
 
   const CreateNewMission = async () => {
@@ -107,6 +121,29 @@ export default function MissionDetails() {
         return;
       }
 
+      // Validate YouTube link (required)
+      if (!youtubeLink.trim()) {
+        alert("Course intro video (YouTube link) is required");
+        setLoading(false);
+        return;
+      }
+
+      if (!validateYouTubeLink(youtubeLink)) {
+        alert("Please enter a valid YouTube URL");
+        setLoading(false);
+        return;
+      }
+
+      // Validate course purposes (at least one should be filled)
+      const validPurposes = coursePurposes.filter(
+        (purpose) => purpose.trim() !== ""
+      );
+      if (validPurposes.length === 0) {
+        alert("Please add at least one course purpose");
+        setLoading(false);
+        return;
+      }
+
       const formData = new FormData();
 
       // Validate price
@@ -131,10 +168,8 @@ export default function MissionDetails() {
       formData.append("description", description.trim());
       formData.append("shortDescription", description.trim());
       formData.append("estimatedDuration", `${estimatedDuration} hours`);
-      // formData.append("status", "Pending Review");
       formData.append("certificateAvailable", certificateAvailable.toString());
       formData.append("price", price);
-      
 
       if (detailedDescription.trim()) {
         formData.append("bio", detailedDescription.trim());
@@ -145,7 +180,9 @@ export default function MissionDetails() {
       formData.append("Language", language);
 
       const tags = [category.toLowerCase(), "mission", "course"];
-      formData.append("tags", JSON.stringify(tags));
+      tags.forEach((tag, index) => {
+        formData.append(`tags[${index}]`, tag);
+      });
 
       if (image) {
         formData.append("thumbnail", image);
@@ -155,12 +192,36 @@ export default function MissionDetails() {
         formData.append("video", video);
       }
 
+      // Add YouTube intro video
+      if (youtubeLink.trim()) {
+        formData.append("video", youtubeLink);
+      }
+
+      // Add learning outcomes
+      const coursePurposesToSubmit = coursePurposes.filter(
+        (purpose) => purpose.trim() !== ""
+      );
+      if (coursePurposesToSubmit.length > 0) {
+        coursePurposesToSubmit.forEach((outcome, index) => {
+          formData.append(`learningOutcomes[${index}]`, outcome);
+        });
+      }
+
       console.log("FormData contents being sent:");
       for (let [key, value] of formData.entries()) {
         console.log(`${key}:`, value);
       }
 
       console.log("Sending request to create mission...");
+      console.log(
+        "Request URL:",
+        "https://themutantschool-backend.onrender.com/api/mission/create"
+      );
+      console.log("Request method: POST");
+      console.log(
+        "Authorization header:",
+        `Bearer ${accessToken ? "Present" : "Missing"}`
+      );
 
       const response = await fetch(
         "https://themutantschool-backend.onrender.com/api/mission/create",
@@ -194,13 +255,17 @@ export default function MissionDetails() {
 
       if (!response.ok) {
         console.log("Error response:", responseText);
+        console.log("Response status:", response.status);
+        console.log("Response status text:", response.statusText);
 
         try {
           const errorData = JSON.parse(responseText);
+          console.log("Parsed error data:", errorData);
           throw new Error(
             errorData.message || `HTTP ${response.status}: ${responseText}`
           );
         } catch (parseError) {
+          console.log("Failed to parse error response as JSON");
           throw new Error(`HTTP ${response.status}: ${responseText}`);
         }
       }
@@ -221,6 +286,7 @@ export default function MissionDetails() {
         localStorage.setItem("missionId", result.data._id);
       }
 
+      // Reset all form fields
       setTitle("");
       setDescription("");
       setDetailedDescription("");
@@ -233,6 +299,21 @@ export default function MissionDetails() {
       setImage(null);
       setVideo(null);
       setPreviewUrl(null);
+      setYoutubeLink("");
+      setCoursePurposes(["", "", "", ""]);
+
+      // Clear any file inputs
+      const imageInput = document.getElementById("imageInput");
+      if (imageInput) {
+        imageInput.value = "";
+      }
+
+      const videoInput = document.getElementById("videoInput");
+      if (videoInput) {
+        videoInput.value = "";
+      }
+
+      console.log("Form reset completed");
 
       alert("Mission created successfully!");
     } catch (error) {
@@ -270,6 +351,36 @@ export default function MissionDetails() {
     alert("Draft saved successfully!");
   };
 
+  const resetForm = () => {
+    setTitle("");
+    setDescription("");
+    setDetailedDescription("");
+    setCategory("");
+    setDifficulty("");
+    setLanguage("English (uk)");
+    setEstimatedDuration("");
+    setCertificateAvailable(true);
+    setPrice("");
+    setImage(null);
+    setVideo(null);
+    setPreviewUrl(null);
+    setYoutubeLink("");
+    setCoursePurposes(["", "", "", ""]);
+
+    // Clear file inputs
+    const imageInput = document.getElementById("imageInput");
+    if (imageInput) {
+      imageInput.value = "";
+    }
+
+    const videoInput = document.getElementById("videoInput");
+    if (videoInput) {
+      videoInput.value = "";
+    }
+
+    console.log("Form manually reset");
+  };
+
   return (
     <div
       style={{ padding: "30px" }}
@@ -297,6 +408,13 @@ export default function MissionDetails() {
             onClick={saveDraft}
           >
             Save Draft
+          </button>
+          <button
+            style={{ padding: "15px" }}
+            className="text-[#8C8C8C] font-[600] text-[18px] leading-[40px] "
+            onClick={resetForm}
+          >
+            Reset Form
           </button>
         </div>
       </div>
@@ -333,6 +451,70 @@ export default function MissionDetails() {
             onChange={(e) => setDetailedDescription(e.target.value)}
             className="w-full rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white resize-none"
           ></textarea>
+        </div>
+      </div>
+
+      {/* YouTube Link Section */}
+      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+        <MockEditprofilebtn
+          value={youtubeLink}
+          onChange={(e) => setYoutubeLink(e.target.value)}
+          label="Course Intro Video (YouTube Link) *"
+        />
+        <p style={{ color: "#787878", fontSize: "13px", marginTop: "4px" }}>
+          Enter a YouTube URL for your course introduction video
+        </p>
+      </div>
+
+      {/* Course Purposes Section */}
+      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
+        <label
+          style={{
+            color: "#8C8C8C",
+            fontWeight: "600",
+            fontSize: "13px",
+            lineHeight: "40px",
+          }}
+        >
+          Course Purposes (Add up to 4 key purposes) *
+        </label>
+        <p style={{ color: "#787878", fontSize: "13px", marginBottom: "12px" }}>
+          Describe what students will learn or achieve from this course
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+          {coursePurposes.map((purpose, index) => (
+            <div
+              key={index}
+              style={{ display: "flex", alignItems: "center", gap: "12px" }}
+            >
+              <span
+                style={{
+                  color: "#8C8C8C",
+                  fontWeight: "600",
+                  fontSize: "13px",
+                  minWidth: "20px",
+                }}
+              >
+                {index + 1}.
+              </span>
+              <input
+                value={purpose}
+                onChange={(e) =>
+                  handleCoursePurposeChange(index, e.target.value)
+                }
+                placeholder={`Enter purpose ${index + 1}...`}
+                style={{
+                  flex: 1,
+                  borderRadius: "6px",
+                  backgroundColor: "#1F1F1F",
+                  outline: "none",
+                  padding: "12px 16px",
+                  color: "white",
+                  border: "none",
+                }}
+              />
+            </div>
+          ))}
         </div>
       </div>
 
@@ -402,7 +584,8 @@ export default function MissionDetails() {
                   setEstimatedDuration(value);
                 }
               }}
-              className="rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white w-full"
+              style={{ padding: "12px 16px" }}
+              className="rounded-[6px] bg-[#1F1F1F] outline-none text-white w-full"
               placeholder="Enter duration in hours"
             />
           </div>
@@ -481,11 +664,6 @@ export default function MissionDetails() {
                 </p>
               </>
             )}
-            {/* {image && (
-              <p className="text-green-500 text-sm mt-2">
-                Selected: {image.name}
-              </p>
-            )} */}
           </div>
 
           <input
@@ -496,44 +674,6 @@ export default function MissionDetails() {
             style={{ display: "none" }}
           />
         </div>
-
-        {/* <div className="flex flex-col gap-3">
-          <label
-            htmlFor="video"
-            className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
-          >
-            Mission Promo Video (optional)
-          </label>
-
-          <div
-            className="w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] cursor-pointer border-2 border-dashed border-gray-600 hover:border-gray-400"
-            onClick={() => document.getElementById("videoInput").click()}
-          >
-            <p className="text-center ">
-              <FaVideo size={90} title="Video Icon" />
-            </p>
-            <p className="font-[400] text-[17px] leading-[40px] ">
-              Drag and drop a video, or{" "}
-              <span className="text-[#19569C] "> Browse</span>
-            </p>
-            <p className="text-[#787878] text-[13px]  ">
-              MP4 (4:3, 60 seconds)
-            </p>
-            {video && (
-              <p className="text-green-500 text-sm mt-2">
-                Selected: {video.name}
-              </p>
-            )}
-          </div>
-
-          <input
-            id="videoInput"
-            type="file"
-            accept="video/*"
-            onChange={(e) => setVideo(e.target.files[0])}
-            style={{ display: "none" }}
-          />
-        </div> */}
       </div>
     </div>
   );

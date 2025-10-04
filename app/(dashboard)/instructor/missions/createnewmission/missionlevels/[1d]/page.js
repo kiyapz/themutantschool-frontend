@@ -19,6 +19,9 @@ export default function Page() {
   const router = useRouter();
 
   const [levels, setLevels] = useState([]);
+  const [levelData, setLevelData] = useState(null);
+  const [levelProgress, setLevelProgress] = useState(null);
+  const [missionData, setMissionData] = useState(null);
   const [buttonAction, setbuttonAction] = useState("Publish");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -35,8 +38,7 @@ export default function Page() {
           ? localStorage.getItem("refreshToken")
           : null;
       if (!refreshToken) {
-        console.warn("No refresh token found");
-        router.push("/auth/login");
+        console.warn("No refresh token found - skipping refresh");
         return null;
       }
 
@@ -46,7 +48,10 @@ export default function Page() {
         body: JSON.stringify({ refreshToken }),
       });
 
-      if (!response.ok) throw new Error("Failed to refresh token");
+      if (!response.ok) {
+        console.warn("Token refresh failed - response not ok");
+        return null;
+      }
 
       const data = await response.json();
 
@@ -57,10 +62,7 @@ export default function Page() {
       return data.accessToken;
     } catch (err) {
       console.error("Token refresh failed:", err);
-      localStorage.removeItem("login-accessToken");
-      localStorage.removeItem("refreshToken");
-      localStorage.removeItem("USER");
-      router.push("/auth/login");
+      // Don't clear tokens or redirect immediately - just return null
       return null;
     }
   }, [router]);
@@ -74,8 +76,7 @@ export default function Page() {
           : null;
 
       if (!accessToken) {
-        console.warn("No access token found");
-        router.push("/auth/login");
+        console.warn("No access token found - skipping request");
         return null;
       }
 
@@ -90,8 +91,12 @@ export default function Page() {
         });
         return response;
       } catch (err) {
+        console.error("API request failed:", err);
+        
+        // Only try to refresh token for 401/403 errors
         if (err.response?.status === 401 || err.response?.status === 403) {
           console.log("Token expired, attempting to refresh...");
+          try {
           const newAccessToken = await refreshAuthToken();
           if (newAccessToken) {
             const retry = await axios.get(url, {
@@ -103,13 +108,81 @@ export default function Page() {
               },
             });
             return retry;
+            }
+          } catch (refreshError) {
+            console.error("Token refresh failed:", refreshError);
+            // Don't redirect to login immediately, just log the error
           }
         }
-        throw err;
+        
+        // Return null instead of throwing to prevent crashes
+        return null;
       }
     },
     [refreshAuthToken, router]
   );
+
+  // Fetch specific level data
+  const fetchLevelData = async (levelId) => {
+    try {
+      console.log("Fetching level data for ID:", levelId);
+      const response = await makeAuthenticatedRequest(
+        `https://themutantschool-backend.onrender.com/api/mission-level/${levelId}`
+      );
+      
+      if (response?.data?.data) {
+        console.log("Level data response:", response.data);
+        setLevelData(response.data.data);
+        console.log("Level data set:", response.data.data);
+      } else {
+        console.log("No level data received or request failed");
+      }
+    } catch (err) {
+      console.error("Error fetching level data:", err);
+      // Don't set error state, just log it
+    }
+  };
+
+  // Fetch level progress for mission
+  const fetchLevelProgress = async (missionId) => {
+    try {
+      console.log("Fetching level progress for mission ID:", missionId);
+      const response = await makeAuthenticatedRequest(
+        `https://themutantschool-backend.onrender.com/api/mission-level/${missionId}/progress`
+      );
+      
+      if (response?.data?.data) {
+        console.log("Level progress response:", response.data);
+        setLevelProgress(response.data.data);
+        console.log("Level progress set:", response.data.data);
+      } else {
+        console.log("No level progress received or request failed");
+      }
+    } catch (err) {
+      console.error("Error fetching level progress:", err);
+      // Don't set error for progress as it's optional
+    }
+  };
+
+  // Fetch mission data to get thumbnail
+  const fetchMissionData = async (missionId) => {
+    try {
+      console.log("Fetching mission data for ID:", missionId);
+      const response = await makeAuthenticatedRequest(
+        `https://themutantschool-backend.onrender.com/api/mission/${missionId}`
+      );
+      
+      if (response?.data?.data) {
+        console.log("Mission data response:", response.data);
+        setMissionData(response.data.data);
+        console.log("Mission data set:", response.data.data);
+      } else {
+        console.log("No mission data received or request failed");
+      }
+    } catch (err) {
+      console.error("Error fetching mission data:", err);
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -130,12 +203,24 @@ export default function Page() {
           return;
         }
 
+        // Fetch all levels first
         const response = await makeAuthenticatedRequest(
           `https://themutantschool-backend.onrender.com/api/mission-level/mission/${storedMissionId}`
         );
 
         if (isMounted && response?.data?.data) {
           setLevels(response.data.data);
+          
+          // Then fetch specific level data
+          if (id) {
+            await fetchLevelData(id);
+          }
+          
+          // Also fetch level progress and mission data
+          await fetchLevelProgress(storedMissionId);
+          await fetchMissionData(storedMissionId);
+        } else {
+          console.log("No levels data received or request failed");
         }
       } catch (err) {
         console.error("Error retrieving mission data:", err);
@@ -149,7 +234,7 @@ export default function Page() {
     return () => {
       isMounted = false;
     };
-  }, [makeAuthenticatedRequest, router]);
+  }, [makeAuthenticatedRequest, router, id]);
 
   if (loading) {
     return (
@@ -171,7 +256,26 @@ export default function Page() {
     );
   }
 
-  const responseLevel = levels.find((el) => el._id === id);
+  const responseLevel = levelData || levels.find((el) => el._id === id);
+
+  // Debug: Log the level data
+  console.log("=== LEVEL DATA DEBUG ===");
+  console.log("Level ID from URL:", id);
+  console.log("Level Data from API:", levelData);
+  console.log("Response Level (final):", responseLevel);
+  console.log("All levels:", levels);
+  console.log("Level Progress:", levelProgress);
+  
+  // Debug: Log image data
+  console.log("=== IMAGE DATA DEBUG ===");
+  console.log("responseLevel.imageUrl:", responseLevel?.imageUrl);
+  console.log("responseLevel.image:", responseLevel?.image);
+  console.log("responseLevel.thumbnail:", responseLevel?.thumbnail);
+  console.log("responseLevel.thumbnail?.url:", responseLevel?.thumbnail?.url);
+  console.log("missionData:", missionData);
+  console.log("missionData?.thumbnail:", missionData?.thumbnail);
+  console.log("missionData?.thumbnail?.url:", missionData?.thumbnail?.url);
+  console.log("missionData?.status:", missionData?.status);
 
   if (!responseLevel) {
     return (
@@ -190,7 +294,7 @@ export default function Page() {
           <p className=" text-[25px]  xl:text-[42px] font-[600] leading-[40px] flex items-center gap-2">
             <Link
               className="cursor-pointer"
-              href="/instructor/myMissions/createnewmission"
+              href="/instructor/missions/createnewmission"
             >
               <span>
                 <FaLessThan />
@@ -199,8 +303,8 @@ export default function Page() {
             {` ${responseLevel.title}`}
           </p>
           <p className="text-[var(--link-color)] font-[500] text-[14px] leading-[57px]">
-            Mission: Web Development Mastery .
-            <span>{`Level ${responseLevel.level}: ${responseLevel.title}`}</span>
+            Mission: {responseLevel.mission?.title || "Mission"} .
+            <span>{`Level ${responseLevel.order || responseLevel.level}: ${responseLevel.title}`}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -226,50 +330,106 @@ export default function Page() {
           style={{ padding: "20px" }}
         >
           <div>
-            <p className="text-[42px] font-[600] leading-[40px]">{`Capsule: ${responseLevel.title}`}</p>
+            <p className="text-[42px] font-[600] leading-[40px]">{`Level: ${responseLevel.title}`}</p>
             <p className="text-[var(--link-color)] font-[500] text-[14px] leading-[57px]">
-              Duration: 25 Minutes .{" "}
+              Duration: {responseLevel.estimatedTime || "N/A"} .{" "}
               <span>
-                Difficulty: Intermediate . Last Edited: Today, 2:30 PM
+                Difficulty: {responseLevel.difficulty || "N/A"} . Last Edited: {responseLevel.updatedAt ? new Date(responseLevel.updatedAt).toLocaleDateString() : "N/A"}
               </span>
             </p>
 
             <div className="flex flex-col gap-5">
-              <div className="w-full h-[438px] rounded-[30px] bg-[#604196]" />
+              {responseLevel.imageUrl || responseLevel.image || responseLevel.thumbnail?.url || missionData?.thumbnail?.url ? (
+                <div className="w-full h-[438px] rounded-[30px] overflow-hidden">
+                  <img
+                    src={responseLevel.imageUrl || responseLevel.image || responseLevel.thumbnail?.url || missionData?.thumbnail?.url}
+                    alt={responseLevel.title}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'block';
+                    }}
+                  />
+                  <div className="w-full h-[438px] rounded-[30px] bg-[#604196] hidden flex items-center justify-center">
+                    <span className="text-white text-lg">Image failed to load</span>
+                  </div>
+                </div>
+              ) : (
+                <div className="w-full h-[438px] rounded-[30px] bg-[#604196] flex items-center justify-center">
+                  <span className="text-white text-lg">No image available</span>
+                </div>
+              )}
 
               <div className="flex flex-col gap-5">
                 <h1 className="text-[27px] leading-[57px] font-[600] text-[var(--sidebar-hovercolor)]">
-                  Capsule summary
+                  Level Summary
                 </h1>
 
                 <p className="text-[16px]">
-                  {responseLevel.description ||
-                    `Welcome to your first step into the web! In this lesson, you'll uncover the building blocks of every website: HTML tags. Learn how to structure content using tags like <html>, <head>, <body>, <h1>–<h6>, <p>, <a>, <img>, and more. Discover how these magical brackets tell browsers what to display and how to organize it. Whether you're creating mutant mission logs or super-powered portfolios, mastering tags is your gateway to the web.`}
+                  {responseLevel.description || responseLevel.summary || "No description available for this level."}
                 </p>
 
-                <h2 className="text-[16px]">{`By the end of this lesson, you'll be able to:`}</h2>
+                <h2 className="text-[16px]">{`Capsules in this level (${responseLevel.capsules?.length || 0}):`}</h2>
+                {responseLevel.capsules && responseLevel.capsules.length > 0 ? (
                 <ul
                   style={{ paddingLeft: "30px" }}
                   className="text-[16px] list-disc pl-5"
                 >
-                  <li>Identify common HTML tags and their purposes</li>
-                  <li>Understand how tags nest and interact</li>
-                  <li>Build a simple web page with proper structure</li>
+                    {responseLevel.capsules.map((capsule, index) => (
+                      <li key={capsule._id || index}>
+                        <strong>{capsule.title}</strong>
+                        {capsule.description && (
+                          <span className="text-gray-400"> - {capsule.description}</span>
+                        )}
+                        {capsule.duration && (
+                          <span className="text-gray-500"> ({capsule.duration})</span>
+                        )}
+                      </li>
+                    ))}
                 </ul>
+                ) : (
+                  <p className="text-[16px] text-gray-400">No capsules available for this level.</p>
+                )}
 
                 <p className="text-[16px]">
-                  Your journey to becoming a web sorcerer starts here!
+                  Level Order: {responseLevel.order || "N/A"} | 
+                  Created: {responseLevel.createdAt ? new Date(responseLevel.createdAt).toLocaleDateString() : "N/A"}
                 </p>
+
+                {/* Show level-level video if available */}
+                {responseLevel.videoUrl && (
+                  <div className="mt-4">
+                    <h2 className="text-[18px] font-[600] text-[#BDE75D] mb-2">Level Video:</h2>
+                    <video
+                      controls
+                      className="w-full rounded-lg"
+                      style={{ maxHeight: "300px" }}
+                    >
+                      <source src={responseLevel.videoUrl.url || responseLevel.videoUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  </div>
+                )}
               </div>
             </div>
           </div>
 
           <div className="flex flex-col gap-5">
             <p className="text-[var(--sidebar-hovercolor)] text-[27px] leading-[57px] font-[600]">
-              Attachments
+              Capsule Attachments
             </p>
 
-            <div
+            {responseLevel.capsules && responseLevel.capsules.length > 0 ? (
+              responseLevel.capsules.map((capsule, index) => (
+                <div key={capsule._id || index} className="flex flex-col gap-3">
+                  <h3 className="text-[18px] font-[600] text-[#BDE75D]">
+                    {capsule.title}
+                  </h3>
+                  
+                  {capsule.attachments && capsule.attachments.length > 0 ? (
+                    capsule.attachments.map((attachment, attIndex) => (
+                      <div
+                        key={attIndex}
               style={{ paddingLeft: "10px", paddingRight: "10px" }}
               className="bg-[var(--button-background)] w-full h-[73.64px] rounded-[12px] flex items-center justify-between"
             >
@@ -277,32 +437,122 @@ export default function Page() {
                 <p>
                   <FiSave className="text-[#818181]" />
                 </p>
-                <p>HTML Tag 101 summary.pdf</p>
+                          <p>{attachment.filename || attachment.name || `Attachment ${attIndex + 1}`}</p>
               </div>
               <div>
                 <FiDownload className="text-[#818181]" />
               </div>
             </div>
-
-            <div
-              style={{ paddingLeft: "10px", paddingRight: "10px" }}
-              className="bg-[var(--button-background)] w-full h-[73.64px] rounded-[12px] flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <p>
-                  <FiSave className="text-[#818181]" />
-                </p>
-                <p>HTML Tag 101 class.mov</p>
+                    ))
+                  ) : (
+                    <p className="text-gray-400 text-[14px]">No attachments for this capsule</p>
+                  )}
+                  
+                  {/* Show video if available */}
+                  {capsule.videoUrl && (
+                    <div className="mt-2">
+                      <h4 className="text-[14px] font-[600] text-[#BDE75D] mb-2">Video:</h4>
+                      <video
+                        controls
+                        className="w-full max-w-md rounded-lg"
+                        style={{ maxHeight: "200px" }}
+                      >
+                        <source src={capsule.videoUrl.url || capsule.videoUrl} type="video/mp4" />
+                        Your browser does not support the video tag.
+                      </video>
               </div>
-              <div className="text-[#818181]">
-                <FiDownload />
+                  )}
               </div>
-            </div>
+              ))
+            ) : (
+              <p className="text-gray-400 text-[14px]">No capsules with attachments available</p>
+            )}
           </div>
         </div>
 
+        <div className="flex flex-col gap-5">
+          <MutationProcess missionStatus={missionData?.status} />
+          
+          {/* Level Progress Section */}
+          {levelProgress && (
+            <div className="bg-[var(--black-bg)] rounded-[20px] p-5">
+              <h2 className="text-[var(--sidebar-hovercolor)] text-[27px] leading-[57px] font-[600] mb-4">
+                Level Progress
+              </h2>
+              
+              <div className="space-y-4">
+                {levelProgress.map((progress, index) => (
+                  <div key={progress.levelId || index} className="bg-[var(--button-background)] rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <h3 className="text-[#BDE75D] font-[600] text-[18px]">
+                        Level {progress.levelOrder || index + 1}
+                      </h3>
+                      <span className="text-[#818181] text-[14px]">
+                        {progress.completionPercentage || 0}% Complete
+                      </span>
+                    </div>
+                    
+                    <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
+                      <div 
+                        className="bg-[#BDE75D] h-2 rounded-full transition-all duration-300"
+                        style={{ width: `${progress.completionPercentage || 0}%` }}
+                      ></div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 text-[14px] text-gray-300">
+                      <div>
+                        <span className="text-gray-400">Status:</span> 
+                        <span className={`ml-2 ${
+                          progress.status === 'completed' ? 'text-green-400' :
+                          progress.status === 'in_progress' ? 'text-yellow-400' :
+                          'text-gray-400'
+                        }`}>
+                          {progress.status || 'Not Started'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Capsules:</span> 
+                        <span className="ml-2">
+                          {progress.completedCapsules || 0} / {progress.totalCapsules || 0}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Started:</span> 
+                        <span className="ml-2">
+                          {progress.startedAt ? new Date(progress.startedAt).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
         <div>
-          <MutationProcess />
+                        <span className="text-gray-400">Completed:</span> 
+                        <span className="ml-2">
+                          {progress.completedAt ? new Date(progress.completedAt).toLocaleDateString() : 'N/A'}
+                        </span>
+                      </div>
+                    </div>
+                    
+                    {progress.notes && (
+                      <div className="mt-2 text-[12px] text-gray-400">
+                        <span className="text-gray-500">Notes:</span> {progress.notes}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Overall Progress Summary */}
+              <div className="mt-4 p-4 bg-[#604196] rounded-lg">
+                <h3 className="text-white font-[600] text-[18px] mb-2">Overall Mission Progress</h3>
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-300">
+                    {levelProgress.filter(p => p.status === 'completed').length} of {levelProgress.length} levels completed
+                  </span>
+                  <span className="text-[#BDE75D] font-[600]">
+                    {Math.round(levelProgress.reduce((acc, p) => acc + (p.completionPercentage || 0), 0) / levelProgress.length)}% Complete
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

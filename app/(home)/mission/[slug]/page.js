@@ -7,10 +7,11 @@ import { FaClock } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
+import { extractIdFromSlug } from "../../lib/slugUtils";
 
 export default function MissionDetails() {
   const params = useParams();
-  const { id } = params;
+  const { slug } = params; // 'slug' will be like 'mission-title-xxxxxx' or just the ID
   const [mission, setMission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -30,15 +31,31 @@ export default function MissionDetails() {
   useEffect(() => {
     const fetchMissions = async () => {
       try {
+        let missionId = slug;
+
+        // If the slug contains a hyphen, try to extract the ID from it
+        if (slug.includes("-")) {
+          const extractedId = extractIdFromSlug(slug);
+          if (extractedId) {
+            missionId = extractedId;
+          } else {
+            // If slug format is unexpected, log and proceed with original slug as ID
+            console.warn(
+              "Could not extract ID from slug, using full slug as ID:",
+              slug
+            );
+          }
+        }
+
         // Prevent accessing labs or hall of mutants through mission route
-        if (id === "the-lab" || id === "hall-of-the-mutants") {
-          router.push(`/${id}`);
+        if (missionId === "the-lab" || missionId === "hall-of-the-mutants") {
+          router.push(`/${missionId}`);
           return;
         }
 
-        console.log("Fetching all missions");
+        console.log("Fetching mission with ID:", missionId);
         const response = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/mission",
+          `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -49,19 +66,14 @@ export default function MissionDetails() {
         console.log("API Response:", response);
 
         if (response.data && response.data.data) {
-          const missions = response.data.data;
-          const currentMission = missions.find((m) => m._id === id);
-
-          if (currentMission) {
-            setMission(currentMission);
-            console.log("Found mission:", currentMission);
-          } else {
-            console.error("Mission not found in array");
-            setError("Mission not found");
-          }
+          setMission(response.data.data);
+          console.log("Found mission:", response.data.data);
         } else {
-          console.error("Invalid API response format:", response.data);
-          setError("Invalid mission data received");
+          console.error(
+            "Mission not found or invalid API response format:",
+            response.data
+          );
+          setError("Mission not found");
         }
       } catch (err) {
         console.error("Failed to fetch missions:", err);
@@ -76,20 +88,20 @@ export default function MissionDetails() {
       }
     };
 
-    if (id) {
+    if (slug) {
       fetchMissions();
     } else {
-      console.error("No mission ID provided");
+      console.error("No mission slug/ID provided");
       setError("No mission ID provided");
       setLoading(false);
     }
-  }, [id, router]);
+  }, [slug, router]);
 
   // Check if mission is in cart
   useEffect(() => {
     const checkCart = async () => {
       const token = localStorage.getItem("login-accessToken");
-      if (!token) return;
+      if (!token || !mission?._id) return; // Ensure mission and its ID are available
 
       try {
         const res = await axios.get(
@@ -107,7 +119,7 @@ export default function MissionDetails() {
               return entry?.mission?._id || entry?.missionId || entry?._id;
             })
           );
-          setIsInCart(cartMissionIds.has(id));
+          setIsInCart(cartMissionIds.has(mission._id)); // Use mission._id here
         }
       } catch (err) {
         console.error("Failed to fetch cart items:", err);
@@ -115,7 +127,7 @@ export default function MissionDetails() {
     };
 
     checkCart();
-  }, [id]);
+  }, [mission?._id]); // Depend on mission._id
 
   const handleAddToCart = async () => {
     const token = localStorage.getItem("login-accessToken");
@@ -129,9 +141,15 @@ export default function MissionDetails() {
       return;
     }
 
+    if (!mission?._id) {
+      console.error("Mission ID is not available to add to cart.");
+      setError("Mission data not fully loaded. Cannot add to cart.");
+      return;
+    }
+
     try {
       const response = await axios.post(
-        `https://themutantschool-backend.onrender.com/api/mission-cart/${id}`,
+        `https://themutantschool-backend.onrender.com/api/mission-cart/${mission._id}`,
         {},
         {
           headers: {
@@ -143,8 +161,8 @@ export default function MissionDetails() {
       setIsInCart(true);
       setCartItems((prev) => {
         const prevArray = Array.isArray(prev) ? prev : [];
-        const exists = prevArray.some((x) => x.id === id);
-        return exists ? prevArray : [...prevArray, { id }];
+        const exists = prevArray.some((x) => x.id === mission._id);
+        return exists ? prevArray : [...prevArray, { id: mission._id }];
       });
 
       if (typeof window !== "undefined") {
@@ -186,6 +204,13 @@ export default function MissionDetails() {
       name: mission.instructor
         ? `${mission.instructor.firstName} ${mission.instructor.lastName}`
         : "Instructor",
+      image:
+        mission.instructor?.profile?.avatar?.url ||
+        mission.instructor?.profileImage?.url ||
+        mission.instructor?.image ||
+        null,
+      firstName: mission.instructor?.firstName || "",
+      lastName: mission.instructor?.lastName || "",
     },
     category: mission.category || "General",
     estimatedDuration: mission.estimatedDuration || "Self-paced",
@@ -194,11 +219,14 @@ export default function MissionDetails() {
     skillLevel: mission.skillLevel || "All levels",
     bio: mission.bio || "No bio available",
     shortDescription: mission.shortDescription || "",
-    certificateAvailable: mission.certificateAvailable || false,
+    certificateAvailable: mission.certificateAvailable !== false,
     tags: Array.isArray(mission.tags) ? mission.tags.join(", ") : "",
     averageRating: mission.averageRating || 0,
     createdAt: formatDate(mission.createdAt),
     updatedAt: formatDate(mission.updatedAt),
+    learningOutcomes: Array.isArray(mission.learningOutcomes)
+      ? mission.learningOutcomes
+      : [],
   };
 
   return (
@@ -218,21 +246,54 @@ export default function MissionDetails() {
         <div style={{ gap: "32px" }} className="flex flex-col md:flex-row ">
           {/* Left side - Mission info */}
           <div className="w-full md:w-1/2">
+            {/* Instructor details - comes first */}
+            <div
+              style={{ marginBottom: "16px" }}
+              className="flex items-center gap-3"
+            >
+              {safeData.instructor.image ? (
+                <img
+                  src={safeData.instructor.image}
+                  alt={safeData.instructor.name}
+                  className="w-12 h-12 rounded-full object-cover border-2 border-[var(--purple-glow)]"
+                  onError={(e) => {
+                    if (!e.target.getAttribute("data-error-handled")) {
+                      e.target.setAttribute("data-error-handled", "true");
+                      e.target.src = "/images/default-avatar.jpg";
+                    }
+                  }}
+                />
+              ) : (
+                <div className="w-12 h-12 rounded-full bg-[var(--purple-glow)] flex items-center justify-center text-black font-semibold text-lg">
+                  {safeData.instructor.firstName.charAt(0)}
+                  {safeData.instructor.lastName.charAt(0)}
+                </div>
+              )}
+              <div>
+                <p className="text-[var(--purple-glow)] font-semibold text-sm">
+                  {safeData.instructor.name}
+                </p>
+                <p className="text-[var(--gray-300)] text-xs">
+                  Course Instructor
+                </p>
+              </div>
+            </div>
+
+            {/* Mission title */}
             <h1
               style={{ marginBottom: "8px" }}
               className="text-[24px] md:text-[32px] font-[700] text-[var(--text-light-2)]"
             >
               {safeData.title}
             </h1>
-            <div
+
+            {/* Short bio summary */}
+            <p
               style={{ marginBottom: "16px" }}
-              className="flex flex-col gap-2"
+              className="text-[var(--purple-glow)] text-sm"
             >
-              <p className="text-[var(--purple-glow)]">{safeData.bio}</p>
-              <p className="text-[var(--purple-glow)]">
-                Instructor : {safeData.instructor.name}
-              </p>
-            </div>
+              {safeData.bio}
+            </p>
             <p
               style={{ marginBottom: "24px" }}
               className="text-[var(--gray-300)]"
@@ -351,31 +412,42 @@ export default function MissionDetails() {
             What you&apos;ll learn?
           </h2>
           <ul className="grid grid-cols-1 gap-4">
-            <li className="flex items-start gap-2">
-              <span className="text-[#000000]">•</span>
-              <span className="text-black">
-                Understand the basics of Javascript and how it powers modern
-                websites.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#000000]">•</span>
-              <span className="text-black">
-                Work with variables, data types, functions, and operators.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#000000]">•</span>
-              <span className="text-black">
-                Learn ES6+ features like arrow functions and modules.
-              </span>
-            </li>
-            <li className="flex items-start gap-2">
-              <span className="text-[#000000]">•</span>
-              <span className="text-black">
-                Debug Javascript code and use dev tools.
-              </span>
-            </li>
+            {safeData.learningOutcomes.length > 0 ? (
+              safeData.learningOutcomes.map((outcome, index) => (
+                <li key={index} className="flex items-start gap-2">
+                  <span className="text-[#000000]">•</span>
+                  <span className="text-black">{outcome}</span>
+                </li>
+              ))
+            ) : (
+              <>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#000000]">•</span>
+                  <span className="text-black">
+                    Understand the basics of Javascript and how it powers modern
+                    websites.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#000000]">•</span>
+                  <span className="text-black">
+                    Work with variables, data types, functions, and operators.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#000000]">•</span>
+                  <span className="text-black">
+                    Learn ES6+ features like arrow functions and modules.
+                  </span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-[#000000]">•</span>
+                  <span className="text-black">
+                    Debug Javascript code and use dev tools.
+                  </span>
+                </li>
+              </>
+            )}
           </ul>
         </div>
       </div>
@@ -420,50 +492,30 @@ export default function MissionDetails() {
               </div>
               <div className="text-black">{safeData.estimatedDuration}</div>
             </div>
-            <div style={{ gap: "12px" }} className="flex items-center">
-              <div
-                style={{ width: "40px", height: "40px" }}
-                className="flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 text-black"
+            {safeData.certificateAvailable && (
+              <div style={{ gap: "12px" }} className="flex items-center">
+                <div
+                  style={{ width: "40px", height: "40px" }}
+                  className="flex items-center justify-center"
                 >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
-                  />
-                </svg>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    strokeWidth={1.5}
+                    stroke="currentColor"
+                    className="w-6 h-6 text-black"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z"
+                    />
+                  </svg>
+                </div>
+                <div className="text-black">Certificate on completion</div>
               </div>
-              <div className="text-black">Certificate on completion</div>
-            </div>
-            <div style={{ gap: "12px" }} className="flex items-center">
-              <div
-                style={{ width: "40px", height: "40px" }}
-                className="flex items-center justify-center"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  strokeWidth={1.5}
-                  stroke="currentColor"
-                  className="w-6 h-6 text-black"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3"
-                  />
-                </svg>
-              </div>
-              <div className="text-black">2 Downloadable resources</div>
-            </div>
+            )}
             <div style={{ gap: "12px" }} className="flex items-center">
               <div
                 style={{ width: "40px", height: "40px" }}

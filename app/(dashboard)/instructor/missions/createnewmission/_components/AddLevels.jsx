@@ -278,14 +278,36 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
   const [editDescription, setEditDescription] = useState("");
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const imageInputRef = useRef(null);
 
   useEffect(() => {
     if (capsule) {
       setEditTitle(capsule.title || "");
       setEditDescription(capsule.description || "");
+      setSelectedImage(null);
       setError("");
     }
   }, [capsule]);
+
+  const handleImageSelect = (file) => {
+    if (!file.type.startsWith("image/")) {
+      setError("Please select an image file (JPEG, PNG, etc.)");
+      return;
+    }
+    setSelectedImage(file);
+    setError("");
+  };
+
+  const handleImageInputChange = (e) => {
+    const file = e.target.files[0];
+    if (file) handleImageSelect(file);
+  };
+
+  const handleBrowseImageClick = () => {
+    imageInputRef.current?.click();
+  };
 
   const handleSave = async () => {
     setError("");
@@ -298,10 +320,23 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
     setIsUpdating(true);
 
     try {
-      const success = await onSave({
+      const updateData = {
         title: editTitle.trim(),
         description: editDescription.trim(),
-      });
+      };
+
+      // Add image file if selected
+      if (selectedImage) {
+        updateData.imageFile = selectedImage;
+      }
+
+      console.log("=== CAPSULE EDIT MODAL DEBUG ===");
+      console.log("Edit title:", editTitle);
+      console.log("Edit description:", editDescription);
+      console.log("Selected image:", selectedImage);
+      console.log("Update data:", updateData);
+
+      const success = await onSave(updateData);
 
       if (success !== false) {
         onClose();
@@ -318,6 +353,7 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
     setError("");
     setEditTitle("");
     setEditDescription("");
+    setSelectedImage(null);
     onClose();
   };
 
@@ -362,6 +398,84 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
             onchange={(e) => setEditDescription(e.target.value)}
             placeholder="Summary (Optional)"
             disabled={isUpdating}
+          />
+        </div>
+
+        {/* Image Upload Section */}
+        <div className="flex flex-col gap-3">
+          <label className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]">
+            Image Attachment (Optional)
+          </label>
+
+          <div
+            className={`w-full h-[200px] flexcenter flex-col rounded-[12px] bg-[#131313] border-2 border-dashed transition-all duration-200 ${
+              isDraggingImage
+                ? "border-[#19569C] bg-[#19569C]/10"
+                : "border-[#404040] hover:border-[#19569C]/50"
+            }`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDraggingImage(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setIsDraggingImage(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDraggingImage(false);
+              const files = e.dataTransfer.files;
+              if (files.length > 0) {
+                handleImageSelect(files[0]);
+              }
+            }}
+          >
+            {!selectedImage ? (
+              <>
+                <p className="text-center mb-4">
+                  <FaImage
+                    size={60}
+                    title="Image Icon"
+                    className="text-[#8C8C8C]"
+                  />
+                </p>
+                <p className="font-[400] text-[14px] leading-[20px] text-center">
+                  Drag and drop an image, or{" "}
+                  <span
+                    className="text-[#19569C] cursor-pointer hover:underline"
+                    onClick={handleBrowseImageClick}
+                  >
+                    Browse
+                  </span>
+                </p>
+                <p className="text-[#787878] text-[12px] mt-2">
+                  JPEG, PNG (Maximum 1400px × 1600px)
+                </p>
+              </>
+            ) : (
+              <div className="text-center">
+                <p className="text-[#19569C] font-[600] text-[14px] mb-2">
+                  {selectedImage.name}
+                </p>
+                <p className="text-[#787878] text-[12px] mb-4">
+                  Image selected successfully
+                </p>
+                <button
+                  onClick={() => setSelectedImage(null)}
+                  className="text-[#FF6363] hover:text-red-500 text-[12px] underline"
+                >
+                  Remove image
+                </button>
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/*"
+            onChange={handleImageInputChange}
+            className="hidden"
           />
         </div>
 
@@ -427,10 +541,13 @@ export default function AddLevels() {
   const [capsuleDescription, setCapsuleDescription] = useState("");
 
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [order, setOder] = useState();
   const [isDragging, setIsDragging] = useState(false);
+  const [isDraggingImage, setIsDraggingImage] = useState(false);
   const [uploadStatus, setUploadStatus] = useState("idle");
   const fileInputRef = useRef(null);
+  const imageInputRef = useRef(null);
 
   // Modal states
   const [confirmModal, setConfirmModal] = useState({
@@ -480,6 +597,24 @@ export default function AddLevels() {
 
   const handleBrowseClick = () => {
     fileInputRef.current?.click();
+  };
+
+  const handleImageSelect = (file) => {
+    if (!file.type.startsWith("image/")) {
+      showToast("Please select an image file (JPEG, PNG, etc.)", "error");
+      return;
+    }
+    setSelectedImage(file);
+    showToast("Image file selected successfully", "success");
+  };
+
+  const handleImageInputChange = (e) => {
+    const file = e.target.files[0];
+    if (file) handleImageSelect(file);
+  };
+
+  const handleBrowseImageClick = () => {
+    imageInputRef.current?.click();
   };
 
   // Level CRUD operations
@@ -631,22 +766,32 @@ export default function AddLevels() {
       return false;
     }
 
+    console.log("=== CAPSULE UPDATE DEBUG ===");
     console.log("Updating capsule with ID:", capsuleId);
     console.log("Update data being sent:", updatedData);
+    console.log("Has videoFile:", !!updatedData.videoFile);
+    console.log("Has imageFile:", !!updatedData.imageFile);
 
     try {
       let response;
 
-      // Check if there's a video file to upload
-      if (updatedData.videoFile) {
+      // Check if there are any files to upload (video or image)
+      if (updatedData.videoFile || updatedData.imageFile) {
         // Use FormData for file upload
         const formData = new FormData();
         formData.append("title", updatedData.title);
         formData.append("description", updatedData.description);
-        formData.append("video", updatedData.videoFile);
+
+        if (updatedData.videoFile) {
+          formData.append("video", updatedData.videoFile);
+        }
+
+        if (updatedData.imageFile) {
+          formData.append("attachments", updatedData.imageFile);
+        }
 
         response = await axios.put(
-          `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}`,
+          `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}/update`,
           formData,
           {
             headers: {
@@ -658,7 +803,7 @@ export default function AddLevels() {
       } else {
         // Use JSON for text-only updates
         response = await axios.put(
-          `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}`,
+          `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}/update`,
           {
             title: updatedData.title,
             description: updatedData.description,
@@ -675,6 +820,7 @@ export default function AddLevels() {
       console.log("Server response:", response.status, response.data);
 
       if (response.status === 200 || response.status === 201) {
+        console.log("✅ Capsule update successful!");
         showToast("Capsule updated successfully!", "success");
 
         // Simply refresh from server to ensure data consistency
@@ -682,6 +828,7 @@ export default function AddLevels() {
         await getAllLevel();
         return true;
       } else {
+        console.log("❌ Unexpected response status:", response.status);
         throw new Error(`Unexpected response status: ${response.status}`);
       }
     } catch (error) {
@@ -749,6 +896,11 @@ export default function AddLevels() {
       formData.append("duration", "90 seconds");
       formData.append("isPreview", true);
 
+      // Add image if selected
+      if (selectedImage) {
+        formData.append("attachments", selectedImage);
+      }
+
       const res = await fetch(
         `https://themutantschool-backend.onrender.com/api/mission-capsule/create/${levelId}`,
         {
@@ -767,6 +919,7 @@ export default function AddLevels() {
         setCapsuleTitle("");
         setCapsuleDescription("");
         setSelectedFile(null);
+        setSelectedImage(null);
         await getAllLevel();
       } else {
         const errorData = await res.json();
@@ -805,6 +958,21 @@ export default function AddLevels() {
     }
 
     try {
+      // Find the highest order among existing levels and add 1
+      const maxOrder =
+        levels.length > 0
+          ? Math.max(...levels.map((level) => level.order || 0))
+          : 0;
+      const levelOrder = maxOrder + 1;
+      console.log(
+        "Creating level with order:",
+        levelOrder,
+        "Current levels count:",
+        levels.length,
+        "Max existing order:",
+        maxOrder
+      );
+
       const apiUrl = `https://themutantschool-backend.onrender.com/api/mission-level/${missionId}/create`;
       const res = await fetch(apiUrl, {
         method: "POST",
@@ -816,13 +984,14 @@ export default function AddLevels() {
           title,
           description,
           estimatedTime,
-          order: levels.length + 1,
+          order: levelOrder,
         }),
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || `Error ${res.status}`);
 
+      console.log("Level created successfully, server response:", data);
       setUploadStatus("success");
       showToast("Level created successfully!", "success");
       settitle("");
@@ -850,6 +1019,17 @@ export default function AddLevels() {
       );
       setLevels(response.data.data || []);
       console.log("Fetched levels after update:", response.data.data);
+
+      // Debug order values
+      if (response.data.data && response.data.data.length > 0) {
+        response.data.data.forEach((level, index) => {
+          console.log(
+            `Level ${index + 1}: order = ${level.order}, title = "${
+              level.title
+            }"`
+          );
+        });
+      }
 
       // Log specific capsule data for debugging
       if (response.data.data && response.data.data.length > 0) {
@@ -1031,14 +1211,17 @@ export default function AddLevels() {
         }
         capsule={capsuleEditModal.capsule}
         onSave={async (updatedData) => {
+          console.log("=== CAPSULE MODAL ONSAVE DEBUG ===");
           console.log("Saving capsule with data:", updatedData);
           console.log("Current modal state:", capsuleEditModal);
+          console.log("Capsule ID:", capsuleEditModal.capsule?._id);
 
           try {
             const result = await handleUpdateCapsule(
               capsuleEditModal.capsule._id,
               updatedData
             );
+            console.log("Update result:", result);
             return result;
           } catch (error) {
             console.error("Error in onSave:", error);
@@ -1178,7 +1361,10 @@ export default function AddLevels() {
                       <button
                         style={{ padding: "0px  10px" }}
                         onClick={() =>
-                          handleAddCapsuleClick(level._id, level.order)
+                          handleAddCapsuleClick(
+                            level._id,
+                            (level.capsules?.length || 0) + 1
+                          )
                         }
                         className="flex-1 h-[59.76px] sm:text-[21px] sm:leading-[40px]  text-[#CCCCCC] rounded-[12px] border border-dashed border-[#696969] text-white px-4 text-[12px] sm:text-[16px] font-medium hover:bg-[#1a1a1a] transition-colors cursor-pointer"
                       >
@@ -1347,33 +1533,85 @@ export default function AddLevels() {
                 />
               </div>
 
-              {/* <div className="flex flex-col gap-3">
+              <div className="flex flex-col gap-3">
                 <label
                   htmlFor="bio"
                   className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
                 >
-                  Attachments
+                  Image Attachments (Optional)
                 </label>
 
-                <div className="w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] border-2 border-dashed border-[#404040] hover:border-[#19569C]/50 transition-all duration-200">
-                  <p className="text-center">
-                    <FaImage
-                      size={90}
-                      title="Photo/Image Icon"
-                      className="text-[#8C8C8C]"
-                    />
-                  </p>
-                  <p className="font-[400] text-[17px] leading-[40px]">
-                    Drag and drop Images, or{" "}
-                    <span className="text-[#19569C] cursor-pointer hover:underline">
-                      Browse
-                    </span>
-                  </p>
-                  <p className="text-[#787878] text-[13px]">
-                    JPEG, PNG (Maximum 1400px * 1600px)
-                  </p>
+                <div
+                  className={`w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] border-2 border-dashed transition-all duration-200 ${
+                    isDraggingImage
+                      ? "border-[#19569C] bg-[#19569C]/10"
+                      : "border-[#404040] hover:border-[#19569C]/50"
+                  }`}
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    setIsDraggingImage(true);
+                  }}
+                  onDragLeave={(e) => {
+                    e.preventDefault();
+                    setIsDraggingImage(false);
+                  }}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsDraggingImage(false);
+                    const files = e.dataTransfer.files;
+                    if (files.length > 0) {
+                      handleImageSelect(files[0]);
+                    }
+                  }}
+                >
+                  {!selectedImage ? (
+                    <>
+                      <p className="text-center">
+                        <FaImage
+                          size={90}
+                          title="Photo/Image Icon"
+                          className="text-[#8C8C8C]"
+                        />
+                      </p>
+                      <p className="font-[400] text-[17px] leading-[40px]">
+                        Drag and drop Images, or{" "}
+                        <span
+                          className="text-[#19569C] cursor-pointer hover:underline"
+                          onClick={handleBrowseImageClick}
+                        >
+                          Browse
+                        </span>
+                      </p>
+                      <p className="text-[#787878] text-[13px]">
+                        JPEG, PNG (Maximum 1400px * 1600px)
+                      </p>
+                    </>
+                  ) : (
+                    <div className="text-center">
+                      <p className="text-[#19569C] font-[600] text-[16px] mb-2">
+                        {selectedImage.name}
+                      </p>
+                      <p className="text-[#787878] text-[13px] mb-4">
+                        Image selected successfully
+                      </p>
+                      <button
+                        onClick={() => setSelectedImage(null)}
+                        className="text-[#FF6363] hover:text-red-500 text-[12px] underline"
+                      >
+                        Remove image
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div> */}
+
+                <input
+                  ref={imageInputRef}
+                  type="file"
+                  accept="image/*"
+                  onChange={handleImageInputChange}
+                  className="hidden"
+                />
+              </div>
             </div>
 
             <div>

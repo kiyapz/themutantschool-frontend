@@ -1,5 +1,5 @@
 "use client";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import MissionDetails from "./_components/MissionDetails";
 import AddLevels from "./_components/AddLevels";
 import PreviewandLaunch from "./_components/PreviewandLaunch";
@@ -8,7 +8,9 @@ import Link from "next/link";
 import { FaLessThan } from "react-icons/fa";
 import { InstructorContext } from "../../_components/context/InstructorContex";
 import { HiArrowNarrowLeft } from "react-icons/hi";
+import EditMissionModal from "../_components/EditMissionModal";
 import axios from "axios";
+import api from "../../../../../lib/api";
 
 export default function Createnewmission() {
   const { activeTab, setActiveTab, quiztitle, Level, setLevel } =
@@ -20,7 +22,7 @@ export default function Createnewmission() {
     // Call specific functions based on action
     switch (actionText) {
       case "Edit":
-        handleEditMission();
+        editMission();
         break;
       case "Delete":
         setShowDeleteModal(true);
@@ -35,27 +37,46 @@ export default function Createnewmission() {
 
   const [buttonAction, setbuttonAction] = useState("Publish");
   const [isLoading, setIsLoading] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [currentMission, setCurrentMission] = useState(null);
+  const [validationStatus, setValidationStatus] = useState(null);
+  const [quizCount, setQuizCount] = useState(0);
   const actions = [
     { text: "Delete", icon: <FiTrash2 /> },
     { text: "Edit", icon: <FiEdit /> },
     { text: "Publish", icon: null },
   ];
 
-  const editMission = async () => {
-    setIsLoading(true);
+  // Fetch quizzes immediately when component mounts
+  useEffect(() => {
+    fetchMissionQuizzes();
+  }, []);
+
+  // Check validation when switching to Preview and Launch tab
+  useEffect(() => {
+    if (activeTab === "Preview and Launch") {
+      checkValidationStatus();
+      fetchMissionQuizzes();
+    }
+  }, [activeTab]);
+
+  const checkValidationStatus = async () => {
+    const validation = await validateMissionForPublish();
+    setValidationStatus(validation);
+  };
+
+  const fetchMissionQuizzes = async () => {
+    const storedMissionId = localStorage.getItem("missionId");
+    const accessToken = localStorage.getItem("login-accessToken");
+
+    if (!storedMissionId || !accessToken) {
+      return;
+    }
+
     try {
-      const storedMissionId = localStorage.getItem("missionId");
-      const accessToken = localStorage.getItem("login-accessToken");
 
-      if (!storedMissionId || !accessToken) {
-        console.log("Missing missionId or accessToken in localStorage");
-        setIsLoading(false);
-        return;
-      }
-
-      const response = await axios.put(
-        `https://themutantschool-backend.onrender.com/api/mission/${storedMissionId}`,
-        updatedMissionData,
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission-quiz/${storedMissionId}`,
         {
           headers: {
             "Content-Type": "application/json",
@@ -64,17 +85,197 @@ export default function Createnewmission() {
         }
       );
 
-      console.log("Mission updated successfully:", response.data);
+      const quizCount =
+        response.data?.count || response.data?.data?.length || 0;
+      
+      // Store quiz count for validation
+      setQuizCount(quizCount);
     } catch (error) {
-      console.error("Error editing mission:", error);
-    } finally {
-      setIsLoading(false);
+      console.error("Error fetching mission quizzes:", error);
+      if (error.response) {
+        console.error("Error response:", error.response.data);
+        console.error("Error status:", error.response.status);
+      }
+    }
+  };
+
+  const editMission = async () => {
+    const storedMissionId = localStorage.getItem("missionId");
+    const accessToken = localStorage.getItem("login-accessToken");
+
+    if (!storedMissionId) {
+      alert("Please create a mission first before editing");
+      return;
+    }
+
+    if (!accessToken) {
+      alert("Please login first to edit mission");
+      return;
+    }
+
+    try {
+      console.log("Attempting to fetch mission with ID:", storedMissionId);
+      console.log(
+        "API URL:",
+        `http://localhost:3000/api/mission/${storedMissionId}`
+      );
+
+      // Use the exact same approach as PreviewandLaunch component
+      const response = await api.get(`/mission/${storedMissionId}`);
+
+      console.log("=== FULL API RESPONSE ===");
+      console.log("Response status:", response);
+      console.log("Response headers:", response.headers);
+      console.log("Full response object:", response);
+
+      console.log("=== RESPONSE DATA ===");
+      console.log("response.data:", response.data);
+      console.log("response.data.data:", response.data.data);
+
+      console.log("=== MISSION DETAILS ===");
+      if (response.data.data) {
+        console.log("Mission ID:", response.data.data._id);
+        console.log("Mission Title:", response.data.data.title);
+        console.log("Mission Description:", response.data.data.description);
+        console.log("Mission Category:", response.data.data.category);
+        console.log("Mission Price:", response.data.data.price);
+        console.log(
+          "Mission Learning Outcomes:",
+          response.data.data.learningOutcomes
+        );
+        console.log("Mission Tags:", response.data.data.tags);
+        console.log(
+          "Complete Mission Object:",
+          JSON.stringify(response.data.data, null, 2)
+        );
+      } else {
+        console.log("❌ No mission data found in response.data.data");
+        console.log(
+          "Available keys in response.data:",
+          Object.keys(response.data)
+        );
+      }
+
+      // Check if mission data exists
+      if (!response.data.data) {
+        alert("Mission data not found in response");
+        return;
+      }
+
+      // Use the actual mission data with the _id from the API response
+      const missionData = {
+        ...response.data.data,
+        _id: response.data.data._id, // Use the _id from the API response
+      };
+
+      console.log("=== FINAL MISSION DATA FOR MODAL ===");
+      console.log("Final mission data:", missionData);
+      console.log("Mission data keys:", Object.keys(missionData));
+      setCurrentMission(missionData);
+      setShowEditModal(true);
+    } catch (error) {
+      console.error("Error fetching mission data:", error);
+
+      if (error.response?.status === 404) {
+        alert("Mission not found. Please create a mission first.");
+      } else if (error.response?.status === 401) {
+        alert("Authentication failed. Please login again.");
+      } else {
+        alert(
+          `Error fetching mission: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+      }
+    }
+  };
+
+  const validateMissionForPublish = async () => {
+    const storedMissionId = localStorage.getItem("missionId");
+    const accessToken = localStorage.getItem("login-accessToken");
+
+    if (!storedMissionId || !accessToken) {
+      return {
+        isValid: false,
+        message: "Missing missionId or accessToken in localStorage",
+      };
+    }
+
+    try {
+      // Fetch mission levels to validate
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission-level/mission/${storedMissionId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      const levels = response.data.data || [];
+
+      // Check if mission has at least 2 levels
+      if (levels.length < 2) {
+        return {
+          isValid: false,
+          message: `Mission must have at least 2 levels. Currently has ${levels.length} level(s). Please add more levels before publishing.`,
+        };
+      }
+
+      // Check if each level has at least 3 capsules
+      for (let i = 0; i < levels.length; i++) {
+        const level = levels[i];
+        const capsuleCount = Array.isArray(level.capsules)
+          ? level.capsules.length
+          : 0;
+
+        if (capsuleCount < 3) {
+          return {
+            isValid: false,
+            message: `Level ${i + 1} "${
+              level.title || "Untitled"
+            }" must have at least 3 capsules. Currently has ${capsuleCount} capsule(s). Please add more capsules to this level before publishing.`,
+          };
+        }
+      }
+
+      // Also fetch quizzes for debugging
+      await fetchMissionQuizzes();
+
+      // Check if there are any quizzes
+      if (quizCount === 0) {
+        return {
+          isValid: false,
+          message: "Mission must have at least one quiz before publishing.",
+          details:
+            "Please add quizzes to your levels before publishing the mission.",
+        };
+      }
+
+      return { isValid: true, message: "Mission is ready for publishing!" };
+    } catch (error) {
+      console.error("Error validating mission:", error);
+      return {
+        isValid: false,
+        message: "Error validating mission. Please try again.",
+      };
     }
   };
 
   const handlePublishMission = async () => {
     setIsLoading(true);
+
     try {
+      // First validate the mission
+      const validation = await validateMissionForPublish();
+
+      if (!validation.isValid) {
+        alert(validation.message);
+        setIsLoading(false);
+        return;
+      }
+
       const storedMissionId = localStorage.getItem("missionId");
       const accessToken = localStorage.getItem("login-accessToken");
 
@@ -98,9 +299,11 @@ export default function Createnewmission() {
       );
 
       console.log("Mission status updated successfully:", response.data);
+      alert("Mission published successfully! It's now pending review.");
       // You can add additional success handling here (e.g., show success message, redirect, etc.)
     } catch (error) {
       console.error("Error updating mission status:", error);
+      alert("Error publishing mission. Please try again.");
       // You can add error handling here (e.g., show error message)
     } finally {
       setIsLoading(false);
@@ -157,44 +360,64 @@ export default function Createnewmission() {
 
         <div>
           {activeTab === "Preview and Launch" ? (
-            <div className="hidden  sm:flex gap-3 mt-4">
-              {actions.map((el, idx) => (
-                <button
-                  style={{ padding: "15px" }}
-                  onClick={() => {
-                    setbuttonAction(el.text);
-                    if (el.text === "Publish") {
-                      handlePublishMission();
-                    } else if (el.text === "Edit") {
-                      editMission();
+            <div className="hidden sm:flex gap-3 mt-4">
+                {actions.map((el, idx) => (
+                  <button
+                    style={{ padding: "15px" }}
+                    onClick={() => {
+                      setbuttonAction(el.text);
+                      if (el.text === "Publish") {
+                        handlePublishMission();
+                      } else if (el.text === "Edit") {
+                        editMission();
+                      }
+                    }}
+                    key={idx}
+                    title={
+                      el.text === "Publish" && quizCount === 0
+                        ? "Mission must have at least one quiz before publishing"
+                        : el.text === "Publish" &&
+                          validationStatus &&
+                          !validationStatus.isValid
+                        ? validationStatus.message
+                        : ""
                     }
-                  }}
-                  key={idx}
-                  disabled={
-                    isLoading && (el.text === "Publish" || el.text === "Edit")
-                  }
-                  className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-[600] ${
-                    buttonAction == el.text ? "bg-[#604196]" : "bg-[#292929]"
-                  } ${
-                    isLoading && (el.text === "Publish" || el.text === "Edit")
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }`}
-                >
-                  {isLoading &&
-                  (el.text === "Publish" || el.text === "Edit") ? (
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                  ) : (
-                    el.icon
-                  )}
-                  {isLoading && el.text === "Publish"
-                    ? "Publishing..."
-                    : isLoading && el.text === "Edit"
-                    ? "Editing..."
-                    : el.text}
-                </button>
-              ))}
-            </div>
+                    disabled={
+                      (isLoading &&
+                        (el.text === "Publish" || el.text === "Edit")) ||
+                      (el.text === "Publish" &&
+                        validationStatus &&
+                        !validationStatus.isValid) ||
+                      (el.text === "Publish" && quizCount === 0)
+                    }
+                    className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-[600] ${
+                      buttonAction == el.text ? "bg-[#604196]" : "bg-[#292929]"
+                    } ${
+                      (isLoading &&
+                        (el.text === "Publish" || el.text === "Edit")) ||
+                      (el.text === "Publish" &&
+                        validationStatus &&
+                        !validationStatus.isValid) ||
+                      (el.text === "Publish" && quizCount === 0)
+                        ? "opacity-50 cursor-not-allowed"
+                        : ""
+                    }`}
+                  >
+                    {isLoading &&
+                    (el.text === "Publish" || el.text === "Edit") ? (
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                    ) : (
+                      el.icon
+                    )}
+                    {isLoading && el.text === "Publish"
+                      ? "Publishing..."
+                      : isLoading && el.text === "Edit"
+                      ? "Editing..."
+                      : el.text}
+                  </button>
+                ))}
+              </div>
+            // </div>
           ) : (
             <Link href={`/instructor/missions/`}>
               <button
@@ -266,6 +489,17 @@ export default function Createnewmission() {
           </div>
         )}
       </div>
+
+      {/* Edit Mission Modal */}
+      <EditMissionModal
+        mission={currentMission}
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        onSuccess={() => {
+          setShowEditModal(false);
+          alert("Mission updated successfully!");
+        }}
+      />
     </div>
   );
 }

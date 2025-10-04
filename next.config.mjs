@@ -5,9 +5,14 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: "https",
+        hostname: "kiyapz.s3.eu-central-2.wasabisys.com",
+        port: "",
+        pathname: "/thumbnails/**",
+      },
+      {
+        protocol: "https",
         hostname: "s3.eu-central-2.wasabisys.com",
         port: "",
-        // narrow to your folder if you want
         pathname: "/mutant-school/thumbnails/**",
       },
     ],

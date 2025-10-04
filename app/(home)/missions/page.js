@@ -1,5 +1,6 @@
 "use client";
 import DropDown from "@/components/Dropdown";
+import LoadingSpinner from "@/components/LoadingSpinner";
 import { FaSearch } from "react-icons/fa";
 import { FaClock } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
@@ -23,9 +24,6 @@ export default function Mission() {
   const [error, setError] = useState(null);
   const router = useRouter();
 
-
-
-
   useEffect(() => {
     const fetchMissions = async () => {
       try {
@@ -39,10 +37,18 @@ export default function Mission() {
         );
         setMissions(res.data.data);
         // Log course thumbnails for debugging
+        console.log(`Total missions fetched: ${res.data.data.length}`);
         res.data.data.forEach((course, index) => {
-          console.log(`Course ${index} thumbnail:`, course.thumbnail?.url);
+          console.log(`Course ${index}:`, {
+            id: course._id,
+            title: course.title,
+            thumbnail: course.thumbnail?.url,
+            category: course.category,
+            price: course.price,
+            isFree: course.isFree,
+          });
         });
-        console.log(res.data.data, "missionssssssssssssssssssss");
+        console.log("All missions data:", res.data.data);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch missions");
       } finally {
@@ -332,8 +338,10 @@ export default function Mission() {
     startIndex + ITEMS_PER_PAGE
   );
 
-
-  console.log(course.thumbnail?.url, "course.thumbnail.url");
+  console.log(`Total missions: ${course.length}`);
+  console.log(`Filtered missions: ${filteredAndSortedCourses.length}`);
+  console.log(`Current page items: ${currentItems.length}`);
+  console.log(`Current page: ${currentPage} of ${totalPages}`);
   return (
     <div className="w-screen h-full bg-black flexcenter ">
       <div className=" w-full  ">
@@ -523,24 +531,32 @@ export default function Mission() {
               <div className="col-span-2">
                 {currentItems.length === 0 ? (
                   <div className="flex items-center justify-center h-64">
-                    <p className="text-[var(--gray-450)] text-lg">
-                      {loading ? "loading..." : "No missions found"}
-                    </p>
+                    {loading ? (
+                      <LoadingSpinner size="large" color="primary" />
+                    ) : (
+                      <p className="text-[var(--gray-450)] text-lg">
+                        No missions found
+                      </p>
+                    )}
                   </div>
                 ) : (
                   <div className="w-full sm:grid md:grid-cols-3 gap-5 ">
                     {currentItems.map((course, i) => (
-                      
                       <div
                         key={course._id}
                         className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md cursor-pointer"
                       >
                         <div
                           style={{
-                            backgroundImage: course.thumbnail?.url ? `url(${course.thumbnail.url})` : 'none',
+                            backgroundImage: course.thumbnail?.url
+                              ? `url(${course.thumbnail.url})`
+                              : "none",
                           }}
                           onError={(e) => {
-                            console.error('Error loading background image:', course.thumbnail?.url);
+                            console.error(
+                              "Error loading background image:",
+                              course.thumbnail?.url
+                            );
                           }}
                           onClick={() => {
                             console.log("Navigating to mission:", course._id);
@@ -549,9 +565,6 @@ export default function Mission() {
                           className="h-[294.71px] w-full bg-[#2A2A2A] rounded-t-[20px] bg-cover bg-center"
                         ></div>
 
-                       
-
-                         
                         <div
                           className="flex flex-col  justify-between flex-1 h-[222.01px]  "
                           style={{ padding: "20px" }}

@@ -3,8 +3,13 @@ import axios from "axios";
 import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
-export default function LevelsPath({ level: levelProp }) {
+export default function LevelsPath({
+  level: levelProp,
+  missionTitle,
+  missionData,
+}) {
   const [currentCapsule, setCurrentCapsule] = useState(null);
   const [mission, setMission] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -205,12 +210,11 @@ export default function LevelsPath({ level: levelProp }) {
   // Function to handle quiz click
   const handleQuizClick = (containerIndex) => {
     if (isQuizEnabled(containerIndex)) {
-      // Update the quiz state for this specific level
-      setQuizStates((prev) => ({
-        ...prev,
-        [containerIndex]: true,
-      }));
-      console.log(`Quiz clicked for level ${containerIndex + 1}`);
+      const currentLevel = level[containerIndex];
+      if (currentLevel && currentLevel._id) {
+        // Navigate to the course guide page for this level
+        window.location.href = `/student/student-dashboard/student-course-guilde/${currentLevel._id}?startQuiz=true`;
+      }
     }
   };
 
@@ -219,10 +223,43 @@ export default function LevelsPath({ level: levelProp }) {
     return quizStates[containerIndex] || false;
   };
 
-  if (loading) return <div className="p-4">Loading mission...</div>;
+  if (loading)
+    return (
+      <div className="p-4">
+        <LoadingSpinner size="large" color="mutant" />
+      </div>
+    );
 
   return (
-    <div className="h-fit flex flex-col gap-15 max-w-[800px] w-full ">
+    <div className="h-fit flex flex-col gap-5 max-w-[800px] w-full ">
+      {/* Mission Title Header */}
+      <div className="flex items-center gap-3 mb-8">
+        <Link
+          href="/student/student-dashboard"
+          className="text-white hover:text-gray-300"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-6 w-6"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10 19l-7-7m0 0l7-7m-7 7h18"
+            />
+          </svg>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-white">
+            {missionTitle || "Mission"}
+          </h1>
+          <p className="text-gray-400 text-sm">{level?.length || 0} Levels</p>
+        </div>
+      </div>
       {level?.map((currentlevel, containerIndex) => {
         // Calculate quiz enabled state for this level
         const quizEnabled = isQuizEnabled(containerIndex);
@@ -234,15 +271,15 @@ export default function LevelsPath({ level: levelProp }) {
               <div>
                 <div
                   style={{ padding: "30px" }}
-                  className="h-fit bg-gradient-to-r from-[#231926] to-[#5D1D49] sm:h-[233.1px] w-full grid gap-5 sm:grid-cols-2"
+                  className=" bg-gradient-to-r from-[#231926] to-[#5D1D49] rounded-[20px] h-[233.0986328125px] w-full grid gap-5 sm:grid-cols-2"
                 >
                   <div className="flex flex-col gap-5 sm:gap-0 justify-between order-2 sm:order-1">
                     <div className="flex flex-col gap-10">
                       <div>
-                        <p className="font-[800] text-[21px] xl:text-[38px] leading-[39px]">
+                        <p className="font-[800] text-[21px] leading-[39px] xl:text-[38px] leading-[39px]">
                           {currentlevel.title}
                         </p>
-                        <p className="font-[400] text-[15px] xl:text-[18px] leading-[18px]">
+                        <p className="font-[400] text-[15px] leading-[18px] xl:text-[18px] leading-[18px]">
                           {currentlevel.summary}
                         </p>
                       </div>
@@ -263,12 +300,7 @@ export default function LevelsPath({ level: levelProp }) {
               </div>
 
               {/* Label before levels */}
-              <p
-                style={{ margin: "10px 0px" }}
-                className="font-[900] text-[35px] text-[#434343] leading-[20px] text-center"
-              >
-                Level {containerIndex + 1}
-              </p>
+              <p style={{ margin: "10px 0px" }}></p>
 
               {/* Render capsules */}
               {currentlevel.capsules &&
@@ -310,7 +342,7 @@ export default function LevelsPath({ level: levelProp }) {
                         style={{ padding: "35px" }}
                         className={`${
                           isSelected && isEnabled
-                            ? "border border-[#5D5D5D] rounded-[20px] border-[7px]"
+                            ? "border border-[#840B94] rounded-[20px] border-[7px] shadow-[0_0_20px_rgba(132,11,148,0.6)] hover:shadow-[0_0_30px_rgba(132,11,148,0.8)] transition-all duration-300"
                             : ""
                         } absolute w-fit h-fit top-[-20px] left-[-18px]`}
                       ></div>
@@ -328,17 +360,64 @@ export default function LevelsPath({ level: levelProp }) {
                         style={{ padding: "0 20px" }}
                         className={`${
                           isSelected && isEnabled
-                            ? "bg-[#840B94] text-white"
+                            ? "bg-[#840B94] text-white hover:shadow-[0_0_15px_rgba(132,11,148,0.7)] hover:scale-105"
                             : isCompleted
-                            ? "bg-[#840B94] text-white"
+                            ? "bg-[#840B94] text-white hover:shadow-[0_0_15px_rgba(132,11,148,0.7)] hover:scale-105"
                             : isEnabled
-                            ? "bg-[#9E9E9E] text-black cursor-pointer hover:bg-[#ABABAB]"
+                            ? "bg-[#9E9E9E] text-black cursor-pointer hover:bg-[#ABABAB] hover:scale-105"
                             : "bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
-                        } relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 transition-colors duration-200`}
+                        } relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 transition-all duration-300 group`}
                       >
                         {levelIndex + 1}
                         {isCompleted && <span className="ml-2 text-xs">✓</span>}
                         {!isEnabled && <span className="ml-2 text-xs">🔒</span>}
+
+                        {/* Hover Tooltip */}
+                        <div
+                          style={{ padding: "20px" }}
+                          className="absolute top-0 left-full transform ml-3 opacity-0 group-hover:opacity-100 transition-all duration-300 pointer-events-none z-50 w-[300px]"
+                        >
+                          <div
+                            style={{ padding: "10px" }}
+                            className="relative bg-[#0E0E0E] flex flex-col gap-3 border-[7px] border-[#840B94] border-solid rounded-[20px] shadow-[0_0_15px_rgba(132,11,148,0.6)]"
+                          >
+                            {/* TRIANGLE POINTER */}
+                            <div className="absolute top-3 -left-3 w-0 h-0 border-t-[10px] border-b-[10px] border-r-[10px] border-t-transparent border-b-transparent border-r-[#840B94]"></div>
+                            <div className="absolute top-3 -left-2 w-0 h-0 border-t-[9px] border-b-[9px] border-r-[9px] border-t-transparent border-b-transparent border-r-[#0E0E0E]"></div>
+
+                            {/* Step indicator */}
+                            <div className="flex items-center gap-2 p-2">
+                              <span className="text-gray-400 text-xs">
+                                Enter the lab
+                              </span>
+                            </div>
+
+                            <div className="px-4 pb-4 flex flex-col gap-2">
+                              <h3 className="font-bold text-[#840B94] text-lg mb-1">
+                                {capsule.title || "Untitled"}
+                              </h3>
+                              <p className="text-gray-400 text-xs mb-2">
+                                {capsule.duration || "15 mins"}
+                              </p>
+                              <p className="text-gray-300 text-xs mb-3 leading-relaxed">
+                                {capsule.description ||
+                                  "No description available"}
+                              </p>
+
+                              <div className="flex items-center justify-between">
+                                <button
+                                  style={{ padding: "5px 10px" }}
+                                  className="bg-[#840B94] hover:bg-[#9A0DAF] text-white px-4 py-2 rounded-md font-semibold text-xs transition-colors duration-200"
+                                >
+                                  Start Mission
+                                </button>
+                                <span className="text-[#840B94] text-xs font-bold">
+                                  5XP
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
                   );

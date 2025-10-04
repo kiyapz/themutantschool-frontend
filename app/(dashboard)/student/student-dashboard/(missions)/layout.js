@@ -1,9 +1,7 @@
-
 import { StudentProvider } from "../../component/Context/StudentContext";
 import LevelChallange from "../../component/LevelChallange";
 import Navbar from "../../component/Navbar";
 import Sidebar from "../../component/Sidebar";
-
 
 export const metadata = {
   title: "Mutant School | Students Dashboard",
@@ -16,12 +14,12 @@ export default function RootLayout({ children }) {
     <StudentProvider>
       <div className="flex min-h-screen w-full">
         {/* Sidebar  */}
-        <div className="hidden sm:block">
+        <div className="hidden sm:block w-80">
           <Sidebar />
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-h-screen sm:h-screen">
+        <div className="w-full max-w-4xl flex flex-col min-h-screen sm:h-screen">
           {/* Navbar  */}
           <div className=" fixed top-0  left-0 right-0 z-10 bg-black sm:relative">
             <Navbar />
@@ -35,7 +33,7 @@ export default function RootLayout({ children }) {
           </div>
         </div>
 
-        <div className="hidden lg:block">
+        <div className="hidden xl:block w-[28rem]">
           <LevelChallange />
         </div>
       </div>

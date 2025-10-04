@@ -1,9 +1,43 @@
 import { FaPause, FaLock, FaListUl } from "react-icons/fa";
 
-export default function MutationProcess() {
+export default function MutationProcess({ missionStatus = "draft" }) {
    
   const totalSteps = 5;
-  const currentStep = 1;
+  
+  // Calculate current step based on mission status
+  const getCurrentStep = () => {
+    switch (missionStatus?.toLowerCase()) {
+      case "draft":
+        return 1; // 30% progress
+      case "pending review":
+      case "pending_review":
+        return 3; // 70% progress
+      case "published":
+        return 5; // 100% progress
+      default:
+        return 1; // Default to draft
+    }
+  };
+  
+  const currentStep = getCurrentStep();
+  
+  // Calculate progress percentage
+  const getProgressPercentage = () => {
+    switch (missionStatus?.toLowerCase()) {
+      case "draft":
+        return 30;
+      case "pending review":
+      case "pending_review":
+        return 70;
+      case "published":
+        return 100;
+      default:
+        return 30;
+    }
+  };
+  
+  const progressPercentage = getProgressPercentage();
+  
   const steps = [
     {
       title: "HTML Tags 101",
@@ -28,27 +62,27 @@ export default function MutationProcess() {
 
   return (
     <div className="w-full  text-white flex flex-col gap-10 px-4 py-6">
-      {/* Title */}
-      <h2 className="text-[22px] font-semibold leading-[57px] text-[#BABABA]">
-        Mutation Process
-      </h2>
+      {/* Title and Status */}
+      <div className="flex justify-between items-center">
+        <h2 className="text-[22px] font-semibold leading-[57px] text-[#BABABA]">
+          Mutation Process
+        </h2>
+        <div className="text-right">
+          <div className="text-[#BDE75D] font-[600] text-[18px]">
+            {progressPercentage}% Complete
+          </div>
+          <div className="text-[#818181] text-[14px] capitalize">
+            Status: {missionStatus || "Draft"}
+          </div>
+        </div>
+      </div>
 
       {/* Progress Bar */}
-      <div className="flex items-center rounded-[20px] justify-between w-full h-fit bg-[#2F2F2F] ">
-        {Array.from({ length: totalSteps }).map((_, index) => (
-          <div
-            key={index}
-            className={`h-[10px] w-[10px] bg-gray-700 relative  z-10 rounded-full `}
-          >
-            <div
-              className={`absolute top-0 left-0 z-20 ${
-                index < currentStep
-                  ? "bg-[#A259FF] h-full w-[80px] rounded-[20px]  "
-                  : "w-0"
-              }`}
-            ></div>
-          </div>
-        ))}
+      <div className="w-full bg-[#2F2F2F] rounded-[20px] h-[10px] relative overflow-hidden">
+        <div
+          className="bg-[#A259FF] h-full rounded-[20px] transition-all duration-500 ease-in-out"
+          style={{ width: `${progressPercentage}%` }}
+        ></div>
       </div>
 
       {/* Lessons List */}

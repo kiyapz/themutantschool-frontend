@@ -21,6 +21,8 @@ export default function Capsels({ id }) {
   const [changeStages, setChangeStages] = useState(1);
   const [missionsCapsels, setMissionsCapsels] = useState([]);
   const [missionDetails, setMissiondetail] = useState("");
+  const [showAutoAdvanceNotification, setShowAutoAdvanceNotification] =
+    useState(false);
   console.log(missionDetails, "bbbbbbbbb");
 
   const {
@@ -40,7 +42,33 @@ export default function Capsels({ id }) {
     showVideoLevels,
     setShowVideoLevels,
     capselIndex,
+    setCapselIndex,
   } = useContext(CourseGuideContext);
+
+  // Load saved state from localStorage on component mount
+  useEffect(() => {
+    const savedStage = localStorage.getItem(`courseStage_${id}`);
+    const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
+
+    if (savedStage) {
+      setChangeStages(parseInt(savedStage));
+    }
+
+    if (savedCapsuleIndex && setCapselIndex) {
+      setCapselIndex(parseInt(savedCapsuleIndex));
+    }
+  }, [id, setCapselIndex]);
+
+  // Save state to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem(`courseStage_${id}`, changeStages.toString());
+  }, [changeStages, id]);
+
+  useEffect(() => {
+    if (capselIndex !== undefined) {
+      localStorage.setItem(`capsuleIndex_${id}`, capselIndex.toString());
+    }
+  }, [capselIndex, id]);
 
   const capsuleId = currentCapsule[capselIndex]?._id;
 
@@ -49,7 +77,7 @@ export default function Capsels({ id }) {
 
   useEffect(() => {
     setCurrentCapsuleTitle(currentCapsule[capselIndex]?.title || "Unknown");
-  }, [currentCapsule,capselIndex]);
+  }, [currentCapsule, capselIndex]);
 
   // Handle time update
   const handleTimeUpdate = () => {
@@ -64,6 +92,30 @@ export default function Capsels({ id }) {
       setVideoDuration(Math.floor(video.duration));
     } else {
       console.warn("Video metadata not fully loaded or duration is 0");
+    }
+  };
+
+  // Function to handle auto-advance to next video
+  const handleAutoAdvance = () => {
+    if (capselIndex < currentCapsule.length - 1) {
+      setCapselIndex(capselIndex + 1);
+      setShowAutoAdvanceNotification(true);
+      // Hide notification after 3 seconds
+      setTimeout(() => {
+        setShowAutoAdvanceNotification(false);
+      }, 3000);
+    }
+  };
+
+  // Function to clear all saved states (useful for starting fresh)
+  const clearSavedStates = () => {
+    localStorage.removeItem(`courseStage_${id}`);
+    localStorage.removeItem(`capsuleIndex_${id}`);
+    localStorage.removeItem("quizState");
+    localStorage.removeItem("quizAlreadyTaken");
+    setChangeStages(1);
+    if (setCapselIndex) {
+      setCapselIndex(0);
     }
   };
 
@@ -315,7 +367,17 @@ export default function Capsels({ id }) {
                 <LoadingBar width={"w-[20%]"} />
               </div>
 
-              <div className="flex-1 flex items-center justify-center min-h-0">
+              <div className="flex-1 flex items-center justify-center min-h-0 relative">
+                {/* Video progress indicator */}
+                <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-2 rounded-lg text-sm z-10">
+                  Video {capselIndex + 1} of {currentCapsule.length}
+                </div>
+                {/* Auto-advance notification */}
+                {showAutoAdvanceNotification && (
+                  <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
+                    🎬 Moving to next video...
+                  </div>
+                )}
                 <div className="w-full h-full max-h-[calc(100vh-160px)] flex items-center justify-center">
                   <video
                     controls
@@ -325,6 +387,9 @@ export default function Capsels({ id }) {
                       currentCapsule[capselIndex]?.thumbnailUrl ||
                       "/default-poster.jpg"
                     }
+                    onEnded={() => {
+                      handleAutoAdvance();
+                    }}
                   >
                     <source
                       src={currentCapsule[capselIndex]?.videoUrl?.url}
@@ -364,7 +429,17 @@ export default function Capsels({ id }) {
                 <LoadingBar width={"w-[40%]"} />
               </div>
 
-              <div className="flex-1 flex items-center justify-center min-h-0">
+              <div className="flex-1 flex items-center justify-center min-h-0 relative">
+                {/* Video progress indicator */}
+                <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-2 rounded-lg text-sm z-10">
+                  Video {capselIndex + 1} of {currentCapsule.length}
+                </div>
+                {/* Auto-advance notification */}
+                {showAutoAdvanceNotification && (
+                  <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
+                    🎬 Moving to next video...
+                  </div>
+                )}
                 <div className="w-full h-[300px] max-h-[calc(100vh-160px)] flex items-center justify-center">
                   <video
                     key={currentCapsule[capselIndex]?._id}
@@ -375,6 +450,7 @@ export default function Capsels({ id }) {
                     onLoadedMetadata={handleLoadedMetadata}
                     onEnded={() => {
                       updateCapsuleProgress();
+                      handleAutoAdvance();
                     }}
                     className="w-full h-full object-contain"
                   >
@@ -412,7 +488,7 @@ export default function Capsels({ id }) {
           </div>
         );
 
-      default:
+      case 3:
         return (
           <div
             style={{ padding: "10px" }}
@@ -424,8 +500,85 @@ export default function Capsels({ id }) {
               </div>
               {/* text */}
               <div className="h-fit w-full flex flex-col justify-center">
-                <LevelQuiz />
+                <LevelQuiz onQuizComplete={() => setChangeStages(4)} />
               </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
+            <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
+              {/* Loading Bar - Fixed height */}
+              <div className="h-[60px] w-full flex items-center justify-between">
+                <LoadingBar width={"w-[100%]"} />
+              </div>
+
+              {/* Completion Content */}
+              <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <div className="text-6xl mb-6">🎉</div>
+                <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
+                  Module Completed!
+                </h2>
+                <p className="text-white text-lg mb-8 max-w-2xl">
+                  Congratulations! You have successfully completed this module.
+                  You've gained valuable knowledge and skills that will help you
+                  in your learning journey.
+                </p>
+
+                <div className="bg-[#131313] p-6 rounded-lg mb-8 max-w-md">
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-gray-400">Progress:</span>
+                    <span className="text-green-400 font-bold">
+                      100% Complete
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center mb-4">
+                    <span className="text-gray-400">Status:</span>
+                    <span className="text-green-400 font-bold">✅ Passed</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-400">XP Earned:</span>
+                    <span className="text-[#037B9D] font-bold">+25 XP</span>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => {
+                      // Reset to beginning for retake
+                      setChangeStages(1);
+                      setCapselIndex(0);
+                      localStorage.removeItem(`courseStage_${id}`);
+                      localStorage.removeItem(`capsuleIndex_${id}`);
+                    }}
+                    className="bg-gray-600 hover:bg-gray-700 px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+                  >
+                    Retake Module
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      // Navigate back to course list or next module
+                      window.history.back();
+                    }}
+                    className="bg-[#840B94] hover:bg-[#6a0876] px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+                  >
+                    Continue Learning
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      default:
+        return (
+          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
+            <div className="text-white text-center">
+              <h2 className="text-2xl mb-4">Module Complete!</h2>
+              <p>You have finished this module successfully.</p>
             </div>
           </div>
         );

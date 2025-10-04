@@ -78,7 +78,6 @@ export default function Home() {
       return;
     }
 
-    
     router.push(`/mission/${missionId}`);
   };
 
@@ -100,13 +99,13 @@ export default function Home() {
   const getTextColor = (index) => {
     switch (index) {
       case 0:
-        return "#003453"; 
+        return "#003453";
       case 1:
-        return "#350053"; 
+        return "#350053";
       case 2:
-        return "#005319"; 
+        return "#005319";
       default:
-        return "#350053"; 
+        return "#350053";
     }
   };
 

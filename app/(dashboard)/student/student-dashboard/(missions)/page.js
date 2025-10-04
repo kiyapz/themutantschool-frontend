@@ -15,18 +15,29 @@ const missioncard = [
 ];
 
 export default function Page() {
-  const [missionPurchases, setMissionPurchases] = useState([]);
+  const [availableMissions, setAvailableMissions] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStudentBreakdown = async () => {
+    const fetchAvailableMissions = async () => {
       try {
         const token =
           typeof window !== "undefined"
             ? localStorage.getItem("login-accessToken")
             : null;
 
-        const response = await axios.get(
+        // Fetch all missions
+        const missionsResponse = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/mission",
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        // Fetch student's enrolled courses
+        const studentResponse = await axios.get(
           "https://themutantschool-backend.onrender.com/api/student/dashboard",
           {
             headers: {
@@ -36,27 +47,46 @@ export default function Page() {
           }
         );
 
-        console.log("Response:lllllllllllllll", response.data);
+        console.log("All missions:", missionsResponse.data);
+        console.log("Student enrolled courses:", studentResponse.data);
 
-        const missionsWithBg = (
-          response?.data?.data?.enrolledCourses ?? []
-        ).map((course, index) => ({
-          missionId: course._id,
-          missionTitle: course.mission.title,
-          thumbnail: course.mission.thumbnail,
-          progress: course.progress.completedLevels || [],
-          progressPercentage: course.progressToNextLevel?.percent || 0,
+        // Get enrolled mission IDs
+        const enrolledMissionIds = new Set(
+          (studentResponse?.data?.data?.enrolledCourses ?? []).map(
+            (course) => course.mission._id
+          )
+        );
+
+        // Filter out enrolled missions to get available ones
+        const availableMissionsData = missionsResponse.data.data.filter(
+          (mission) => !enrolledMissionIds.has(mission._id)
+        );
+
+        const missionsWithBg = availableMissionsData.map((mission, index) => ({
+          missionId: mission._id,
+          missionTitle: mission.title,
+          thumbnail: mission.thumbnail,
+          category: mission.category,
+          price: mission.price,
+          isFree: mission.isFree,
+          estimatedDuration: mission.estimatedDuration,
+          averageRating: mission.averageRating,
+          instructor: mission.instructor,
+          levels: mission.levels,
+          shortDescription: mission.shortDescription,
           bg: missioncard[index % missioncard.length].bg,
         }));
 
-        // Sort missions by the most recent purchase date or other criteria
-        missionsWithBg.sort((a, b) => new Date(b._id) - new Date(a._id));
+        // Sort missions by creation date (most recent first)
+        missionsWithBg.sort(
+          (a, b) => new Date(b.missionId) - new Date(a.missionId)
+        );
 
-        setMissionPurchases(missionsWithBg);
-        console.log("Mission Purchases:", missionsWithBg);
+        setAvailableMissions(missionsWithBg);
+        console.log("Available Missions:", missionsWithBg);
       } catch (error) {
         console.error(
-          "Error fetching student breakdown:",
+          "Error fetching available missions:",
           error?.response?.data || error?.message
         );
       } finally {
@@ -64,11 +94,11 @@ export default function Page() {
       }
     };
 
-    fetchStudentBreakdown();
+    fetchAvailableMissions();
   }, []); // safe, missioncard is module-scoped
 
-  // Get the mission at index 0
-  const firstMission = missionPurchases[0];
+  // Get the first available mission
+  const firstMission = availableMissions[0];
 
   return (
     <div className="flex flex-col justify-between h-full">
@@ -77,7 +107,7 @@ export default function Page() {
         <div className="flex items-center justify-center py-8">
           <div className="text-center text-gray-500">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto mb-2"></div>
-            Loading mission...
+            Loading missions...
           </div>
         </div>
       ) : firstMission ? (
@@ -86,23 +116,29 @@ export default function Page() {
             firstMission.thumbnail?.url ||
             "https://files.ably.io/ghost/prod/2023/12/choosing-the-best-javascript-frameworks-for-your-next-project.png"
           }
-          text1={firstMission.missionTitle || "Web Development Mastery"}
-          text2={`${firstMission.progress?.length || 0} Capsules • 1 Quiz`}
-          text3={`${firstMission.progressPercentage || 0}%`}
+          text1={firstMission.missionTitle || "Available Mission"}
+          text2={firstMission.estimatedDuration || "Duration not specified"}
+          text3={`${firstMission.isFree ? "Free" : `$${firstMission.price}`}`}
           className={firstMission.bg}
           missionId={firstMission.missionId}
+          isAvailable={true}
+          instructor={firstMission.instructor}
+          levels={firstMission.levels}
+          shortDescription={firstMission.shortDescription}
+          price={firstMission.price}
+          isFree={firstMission.isFree}
         />
       ) : (
         <div className="flex items-center justify-center py-8">
           <div className="text-center">
             <div className="text-gray-400 text-lg mb-2">
-              No recent mission recorded.
+              No available missions found.
             </div>
             <Link
               href="/missions"
               className="text-blue-500 hover:text-blue-400 underline"
             >
-              Buy a mission now
+              Browse all missions
             </Link>
           </div>
         </div>
