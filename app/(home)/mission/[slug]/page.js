@@ -7,7 +7,6 @@ import { FaClock } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
-import { extractIdFromSlug } from "../../lib/slugUtils";
 
 export default function MissionDetails() {
   const params = useParams();
@@ -32,20 +31,6 @@ export default function MissionDetails() {
     const fetchMissions = async () => {
       try {
         let missionId = slug;
-
-        // If the slug contains a hyphen, try to extract the ID from it
-        if (slug.includes("-")) {
-          const extractedId = extractIdFromSlug(slug);
-          if (extractedId) {
-            missionId = extractedId;
-          } else {
-            // If slug format is unexpected, log and proceed with original slug as ID
-            console.warn(
-              "Could not extract ID from slug, using full slug as ID:",
-              slug
-            );
-          }
-        }
 
         // Prevent accessing labs or hall of mutants through mission route
         if (missionId === "the-lab" || missionId === "hall-of-the-mutants") {
