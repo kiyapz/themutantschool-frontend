@@ -13,17 +13,32 @@ export default function Home() {
   const { setCartItems } = useCart();
   const [clickedButtons, setClickedButtons] = useState(new Set());
   const [error, setError] = useState(null);
+  const [lastRefresh, setLastRefresh] = useState(null);
   const router = useRouter();
 
   useEffect(() => {
-    const fetchMissions = async () => {
+    const fetchMissions = async (forceRefresh = false) => {
       try {
+        setLoading(true);
+        setError(null);
+
+        // Always use fresh timestamp and random for cache busting
+        const cacheBuster = `?t=${Date.now()}&refresh=${Math.random()}`;
         const res = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/mission"
+          `https://themutantschool-backend.onrender.com/api/mission${cacheBuster}`,
+          {
+            headers: {
+              "Cache-Control": "no-cache, no-store, must-revalidate",
+              Pragma: "no-cache",
+              Expires: "0",
+            },
+          }
         );
         setMissions(res.data.data.slice(0, 3));
+        setLastRefresh(Date.now());
       } catch (err) {
         console.error("Failed to fetch missions:", err);
+        setError("Failed to load missions. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -62,9 +77,67 @@ export default function Home() {
       }
     };
 
+    // Fetch missions on component mount
     fetchMissions();
     fetchCartItems();
+
+    // Add event listener for page refresh/visibility change
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchMissions(); // Always fetch fresh data when page becomes visible
+      }
+    };
+
+    // Listen for page visibility changes (includes refresh)
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    // Cleanup event listeners
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [setCartItems]);
+
+  // Additional useEffect to handle page refresh specifically
+  useEffect(() => {
+    const handlePageLoad = () => {
+      // Clear any existing missions first
+      setMissions([]);
+
+      // Force refresh missions when page loads (including refresh)
+      const fetchMissionsOnLoad = async () => {
+        try {
+          setLoading(true);
+          setError(null);
+          const cacheBuster = `?t=${Date.now()}&refresh=${Math.random()}`;
+          const res = await axios.get(
+            `https://themutantschool-backend.onrender.com/api/mission${cacheBuster}`,
+            {
+              headers: {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                Pragma: "no-cache",
+                Expires: "0",
+              },
+            }
+          );
+          setMissions(res.data.data.slice(0, 3));
+          setLastRefresh(Date.now());
+        } catch (err) {
+          console.error("Failed to fetch missions on page load:", err);
+          setError("Failed to load missions. Please try again.");
+        } finally {
+          setLoading(false);
+        }
+      };
+      fetchMissionsOnLoad();
+    };
+
+    // Listen for page load event (triggers on refresh)
+    window.addEventListener("load", handlePageLoad);
+
+    return () => {
+      window.removeEventListener("load", handlePageLoad);
+    };
+  }, []);
 
   const handleAddToCart = async (missionId) => {
     const token = localStorage.getItem("login-accessToken");
