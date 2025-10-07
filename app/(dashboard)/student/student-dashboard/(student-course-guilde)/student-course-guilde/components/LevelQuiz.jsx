@@ -28,17 +28,16 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
 
   // Load saved quiz state from localStorage on component mount
   useEffect(() => {
-    const savedQuizState = localStorage.getItem("quizState");
     const savedAlreadyTaken = localStorage.getItem("quizAlreadyTaken");
-
     if (savedAlreadyTaken === "true") {
-      setQuizAlreadyTaken(true);
-      setPreviousQuizResult({
-        message: "You have already completed this quiz!",
-        alreadyTaken: true,
-        canRetake: true,
-      });
-    } else if (savedQuizState) {
+      if (onQuizComplete) {
+        onQuizComplete();
+        return;
+      }
+    }
+
+    const savedQuizState = localStorage.getItem("quizState");
+    if (savedQuizState) {
       try {
         const parsedState = JSON.parse(savedQuizState);
         if (parsedState.quizStartTime && !parsedState.quizCompleted) {
@@ -61,7 +60,7 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         localStorage.removeItem("quizState");
       }
     }
-  }, []);
+  }, [onQuizComplete]);
 
   // Save quiz state to localStorage whenever it changes
   useEffect(() => {
@@ -95,18 +94,16 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
   // Quiz completion handler with proper answer storage
   const handleQuizComplete = useCallback(
     async (finalAnswers) => {
-      console.log(`DEBUG - Quiz completing with finalAnswers:`, finalAnswers);
-      console.log(`DEBUG - Total questions: ${quizData?.questions?.length}`);
-      console.log(
-        `DEBUG - Answered questions: ${
-          finalAnswers.filter((a) => a !== null && a !== undefined).length
-        }`
-      );
-      console.log(
-        `DEBUG - Null answers: ${
-          finalAnswers.filter((a) => a === null || a === undefined).length
-        }`
-      );
+      console.log(`📊 QUIZ COMPLETE - Starting quiz completion with answers:`, finalAnswers);
+      console.log(`📊 QUIZ COMPLETE - Quiz information:`, {
+        quizId: quizData?._id,
+        quizTitle: quizData?.title,
+        levelId: quizData?.level,
+        totalQuestions: quizData?.questions?.length,
+        answeredQuestions: finalAnswers.filter((a) => a !== null && a !== undefined).length,
+        skippedQuestions: finalAnswers.filter((a) => a === null || a === undefined).length,
+        timestamp: new Date().toISOString(),
+      });
 
       const finalDuration = Math.floor((Date.now() - quizStartTime) / 1000);
       setQuizDuration(finalDuration);
@@ -126,6 +123,23 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         const apiTotal = apiResponse.total || quizData.questions.length;
         const percentage = Math.round((apiScore / apiTotal) * 100);
 
+        console.log("📊 QUIZ RESULTS - Processing API response:", {
+          score: apiScore,
+          total: apiTotal,
+          percentage: percentage,
+          passed: apiResponse.passed,
+          duration: finalDuration,
+          timestamp: new Date().toISOString()
+        });
+
+        // Log detailed question/answer results if available
+        if (apiResponse.data && apiResponse.data.answers) {
+          console.log("📊 QUIZ RESULTS - Question-by-question details:");
+          apiResponse.data.answers.forEach((answer, idx) => {
+            console.log(`Question ${idx + 1}: ${answer.isCorrect ? '✅ CORRECT' : '❌ WRONG'} - Selected: "${answer.selectedOption}" ${!answer.isCorrect ? `| Correct: "${answer.correctOption}"` : ''}`);
+          });
+        }
+
         setQuizResult({
           score: apiScore,
           total: apiTotal,
@@ -135,7 +149,7 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           submittedSuccessfully: true,
         });
 
-        console.log("Quiz submitted successfully");
+        console.log("📊 QUIZ RESULTS - Quiz submitted successfully and results processed");
 
         // Call the completion callback to advance to next stage
         if (onQuizComplete) {
@@ -209,8 +223,16 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
 
     const fetchMissionData = async () => {
       const token = localStorage.getItem("login-accessToken");
+      console.log(
+        `🔍 QUIZ FETCH: Starting quiz data fetch for mission ID: ${missionId}`
+      );
 
       try {
+        console.log(
+          `🔍 QUIZ FETCH: Sending request to API with token: ${
+            token ? `${token.substring(0, 10)}...` : "missing"
+          }`
+        );
         const response = await axios.get(
           `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
           {
@@ -222,22 +244,46 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         );
 
         const allquiz = response.data.data;
-        console.log("Fetched quiz Data:", allquiz);
+        console.log("🔍 QUIZ FETCH: Received quiz data:", {
+          status: response.status,
+          dataLength: allquiz?.length || 0,
+          hasData: !!allquiz,
+          timestamp: new Date().toISOString(),
+        });
 
         const quizLevel = allquiz.find((level) => level.quiz);
         if (quizLevel) {
           const quiz = quizLevel.quiz;
+          console.log("🔍 QUIZ FETCH: Found quiz in level:", {
+            levelId: quizLevel._id,
+            quizId: quiz._id,
+            quizTitle: quiz.title,
+            questionCount: quiz.questions?.length || 0,
+            passingScore: quiz.passingScore,
+          });
           setQuizData({ ...quiz, level: quizLevel._id });
           setUserAnswers(new Array(quiz.questions.length).fill(null));
+        } else {
+          console.log("🔍 QUIZ FETCH: No quiz found in any of the levels", {
+            levelsChecked: allquiz?.length || 0,
+            levels: allquiz?.map((level) => level._id) || [],
+          });
         }
       } catch (error) {
         console.log(
-          "Error fetching missions:",
+          "🔍 QUIZ FETCH ERROR:",
           error.response?.data || error.message
         );
+        console.log("🔍 QUIZ FETCH ERROR DETAILS:", {
+          status: error.response?.status,
+          errorMessage: error.message,
+          url: `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
+          timestamp: new Date().toISOString(),
+        });
         setUpdateError("Failed to load quiz data");
       } finally {
         setLoading(false);
+        console.log("🔍 QUIZ FETCH: Completed fetch operation");
       }
     };
 
@@ -289,14 +335,18 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         }
       });
 
-      console.log("DEBUG - User answers array:", chanswers);
-      console.log("DEBUG - Questions length:", quizData.questions.length);
-      console.log("DEBUG - Formatted answers:", formattedAnswers);
+      console.log("📝 QUIZ SUBMIT - Processing user answers:", chanswers);
+      console.log(
+        "📝 QUIZ SUBMIT - Questions total count:",
+        quizData.questions.length
+      );
+      console.log("📝 QUIZ SUBMIT - Formatted answers:", formattedAnswers);
 
-      console.log("Submitting quiz answers:", {
+      console.log("📝 QUIZ SUBMIT - Preparing submission:", {
         levelId,
         quizId,
-        chanswers: formattedAnswers,
+        missionId,
+        timestamp: new Date().toISOString(),
         totalQuestions: quizData.questions.length,
         answeredQuestions: formattedAnswers.length,
         unansweredQuestions: chanswers.filter(
@@ -307,8 +357,13 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
       // Log the exact payload being sent
       const answers = { answers: formattedAnswers };
       console.log(
-        "Exact payload being sent:",
+        "📝 QUIZ SUBMIT - Full payload data:",
         JSON.stringify(answers, null, 2)
+      );
+
+      console.log(
+        "📝 QUIZ SUBMIT - Sending API request to:",
+        `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`
       );
 
       const response = await axios.post(
@@ -322,16 +377,74 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         }
       );
 
-      console.log("Quiz submission response:", response.data);
+      console.log("📝 QUIZ SUBMIT - Received response:", {
+        status: response.status,
+        statusText: response.statusText,
+        timestamp: new Date().toISOString(),
+        hasData: !!response.data,
+        responseData: response.data,
+      });
+      
+      // Detailed logging of score and results
+      console.log("📊 QUIZ RESULTS - Full response data:", JSON.stringify(response.data, null, 2));
+      
+      // Log specific score information if available
+      if (response.data) {
+        console.log("📊 QUIZ RESULTS - Score details:", {
+          score: response.data.score,
+          totalQuestions: response.data.total,
+          percentage: response.data.percentage || Math.round((response.data.score / response.data.total) * 100),
+          passed: response.data.passed,
+          timestamp: new Date().toISOString(),
+        });
+        
+        // If there's detailed answer data, log that too
+        if (response.data.data && response.data.data.answers) {
+          console.log("📊 QUIZ RESULTS - Answer breakdown:", 
+            response.data.data.answers.map((answer, index) => ({
+              question: index + 1,
+              correct: answer.isCorrect,
+              selected: answer.selectedOption,
+              correctOption: answer.correctOption,
+            }))
+          );
+          
+          // Calculate correct vs incorrect counts
+          const correctCount = response.data.data.answers.filter(a => a.isCorrect).length;
+          const incorrectCount = response.data.data.answers.filter(a => !a.isCorrect).length;
+          
+          console.log("📊 QUIZ RESULTS - Summary:", {
+            correctAnswers: correctCount,
+            incorrectAnswers: incorrectCount,
+            accuracy: `${Math.round((correctCount / response.data.data.answers.length) * 100)}%`
+          });
+        }
+      }
+
+      // Handle cases where the quiz has already been taken
+      if (response.data.status === "already_taken") {
+        console.log("Quiz already taken, advancing to completion screen.");
+        localStorage.setItem("quizAlreadyTaken", "true"); // Save state
+        if (onQuizComplete) {
+          onQuizComplete();
+        }
+        return response.data; // Stop further processing
+      }
+
       return response.data;
     } catch (error) {
-      console.error("Error submitting quiz:", error);
+      console.error("📝 QUIZ SUBMIT - ERROR:", error.message);
 
       // Log more detailed error information
       if (error.response) {
-        console.log("Error response status:", error.response.status);
-        console.log("Error response data:", error.response.data);
-        console.log("Error response headers:", error.response.headers);
+        console.log("📝 QUIZ SUBMIT - ERROR DETAILS:", {
+          status: error.response.status,
+          statusText: error.response.statusText,
+          data: error.response.data,
+          endpoint: `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`,
+          timestamp: new Date().toISOString(),
+        });
+        console.log("📝 QUIZ SUBMIT - ERROR HEADERS:", error.response.headers);
 
         // Check if quiz was already taken (404 with "Quiz not found" message)
         if (
@@ -493,34 +606,10 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           <div className="text-6xl mb-4">🎯</div>
 
           <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
-            Quiz Already Completed
+            {previousQuizResult.message}
           </h2>
 
-          <div
-            style={{ padding: "20px" }}
-            className="bg-[#131313] p-6 rounded-lg mb-6 max-w-md"
-          >
-            <p className="text-lg mb-4">{previousQuizResult.message}</p>
-            <p className="text-gray-400 text-sm">
-              You can retake this quiz if you want to improve your score or
-              refresh your knowledge.
-            </p>
-          </div>
-
           <div className="flex gap-4">
-            <button
-              onClick={() => {
-                setQuizAlreadyTaken(false);
-                setPreviousQuizResult(null);
-                localStorage.removeItem("quizAlreadyTaken");
-                startQuiz();
-              }}
-              style={{ padding: "10px" }}
-              className="bg-[#840B94] hover:bg-[#6a0876] px-8 py-3 rounded-lg font-bold text-lg transition-colors"
-            >
-              Retake Quiz
-            </button>
-
             <button
               onClick={() => {
                 // Navigate back or close quiz
@@ -834,12 +923,6 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         )}
 
         <div className="flex items-center justify-end mt-6 gap-4 w-full">
-          <button
-            onClick={restartQuiz}
-            className="text-[#840B94] font-[700] sm:text-[31px] leading-[100%] hover:text-[#a020aa] transition-colors cursor-pointer"
-          >
-            Retake Quiz
-          </button>
           <button
             style={{ padding: "16px 8px" }}
             onClick={() => {

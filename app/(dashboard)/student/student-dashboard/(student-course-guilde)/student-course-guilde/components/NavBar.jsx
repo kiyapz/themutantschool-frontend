@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 import { useContext, useEffect } from "react";
 import { FaArrowLeft } from "react-icons/fa";
 import { MdMenu } from "react-icons/md";
@@ -9,6 +10,7 @@ import { StudentContext } from "@/app/(dashboard)/student/component/Context/Stud
 export default function NavBar() {
   const { showVideo, setShowVideo } = useContext(CourseGuideContext);
   console.log(localStorage.getItem("USER"));
+  const router = useRouter();
 
   const { currentCapsuleTitle, setCurrentCapsuleTitle } =
     useContext(StudentContext);
@@ -19,7 +21,11 @@ export default function NavBar() {
       className="w-full flex items-center justify-between  text-white"
     >
       <div className="flex items-center gap-3  lg:gap-20 ">
-        <FaArrowLeft size={20} className="cursor-pointer" />
+        <FaArrowLeft
+          size={20}
+          className="cursor-pointer"
+          onClick={() => router.back()}
+        />
         <div>
           <p className=" font-[700] text-[10px] sm:text-[38px] leading-[100%] ">
             {currentCapsuleTitle}

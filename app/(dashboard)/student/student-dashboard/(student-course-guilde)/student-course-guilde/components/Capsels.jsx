@@ -8,6 +8,7 @@ import LevelQuiz from "./LevelQuiz";
 import LearningOutcomes from "./LearningOutcomes";
 import { CourseGuideContext } from "./course-guild-contex/Contex";
 import { StudentContext } from "@/app/(dashboard)/student/component/Context/StudentContext";
+import refreshAccessToken from "@/components/RefreshToken";
 import axios from "axios";
 
 export default function Capsels({ id, capsuleId }) {
@@ -156,6 +157,14 @@ export default function Capsels({ id, capsuleId }) {
     if (savedCapsuleIndex && setCapselIndex) {
       setCapselIndex(parseInt(savedCapsuleIndex));
     }
+
+    // Cleanup function to reset state when the level ID changes
+    return () => {
+      setChangeStages(1);
+      if (setCapselIndex) {
+        setCapselIndex(0);
+      }
+    };
   }, [id, setCapselIndex, capsuleId, currentCapsule, watchedVideos]);
 
   // Save state to localStorage whenever it changes
@@ -272,7 +281,8 @@ export default function Capsels({ id, capsuleId }) {
 
     try {
       // Get token from localStorage
-      const accessToken = localStorage.getItem("login-accessToken");
+      let accessToken = localStorage.getItem("login-accessToken");
+      const refreshToken = localStorage.getItem("login-refreshToken");
 
       if (!accessToken) {
         throw new Error("No access token found");
@@ -285,20 +295,58 @@ export default function Capsels({ id, capsuleId }) {
         currentCapsule: currentCapsule[capselIndex]?.title || "Unknown",
       });
 
-      // Make PUT request with Authorization header
-      const response = await axios.put(
-        `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}`,
-        {
-          watchedDuration,
-          videoDuration,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
+      let response;
+      try {
+        // First attempt with current token
+        response = await axios.put(
+          `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}`,
+          {
+            watchedDuration,
+            videoDuration,
           },
+          {
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+      } catch (tokenError) {
+        // If we get a 401 or 403, try refreshing the token
+        if (
+          (tokenError.response?.status === 401 ||
+            tokenError.response?.status === 403) &&
+          refreshToken
+        ) {
+          console.log("Token expired, attempting to refresh...");
+          const newToken = await refreshAccessToken(refreshToken);
+
+          if (newToken) {
+            console.log("Token refreshed successfully, retrying request");
+            accessToken = newToken;
+
+            // Retry with new token
+            response = await axios.put(
+              `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}`,
+              {
+                watchedDuration,
+                videoDuration,
+              },
+              {
+                headers: {
+                  Authorization: `Bearer ${newToken}`,
+                  "Content-Type": "application/json",
+                },
+              }
+            );
+          } else {
+            throw new Error("Failed to refresh token");
+          }
+        } else {
+          // If it's not a token error or refresh failed, rethrow
+          throw tokenError;
         }
-      );
+      }
 
       console.log("Progress update successful:", response.data);
 
@@ -312,8 +360,24 @@ export default function Capsels({ id, capsuleId }) {
     } catch (err) {
       console.error("Error updating progress:", err);
 
-      if (err.response?.status === 401) {
-        setProgressUpdateError("Authentication failed. Please login again.");
+      // Check for specific access restriction messages from the backend
+      if (err.response?.status === 403 && err.response?.data?.message) {
+        const errorMessage = err.response.data.message;
+        // Show an alert with the actual message from the backend
+        alert(`Access Restricted: ${errorMessage}`);
+        setProgressUpdateError(errorMessage);
+
+        // Redirect back to previous page if it's a prerequisite error about quiz
+        if (errorMessage.includes("pass the quiz")) {
+          setTimeout(() => {
+            window.history.back();
+          }, 2000);
+        }
+      } else if (err.response?.status === 401 || err.response?.status === 403) {
+        setProgressUpdateError(
+          "Authentication failed. Trying to refresh token..."
+        );
+        // Note: Token refresh is already handled in the try block above
       } else if (err.response?.status === 404) {
         setProgressUpdateError("Capsule not found.");
       } else if (err.response?.status >= 500) {
@@ -425,7 +489,26 @@ export default function Capsels({ id, capsuleId }) {
         }
 
         // setWatchedVideos([{'jji':'jj'}]);
-        setWatchedVideos(response.data.data.completedCapsules);
+        const completedCapsules = response.data?.data?.completedCapsules;
+
+        // Prevent existing watchedVideos from being overwritten with empty array
+        if (Array.isArray(completedCapsules) && completedCapsules.length > 0) {
+          setWatchedVideos(completedCapsules);
+          console.log(
+            "Updated watchedVideos with",
+            completedCapsules.length,
+            "items"
+          );
+        } else if (watchedDuration > 0 && currentCapsuleId) {
+          // If we're currently watching a video, don't reset our progress
+          console.log(
+            "Empty completedCapsules received - keeping existing watched state"
+          );
+          // Don't update watchedVideos if we're actively watching
+        } else {
+          // Only set empty array if we're not actively watching a video
+          setWatchedVideos([]);
+        }
       } catch (error) {
         console.log(
           "Error fetching watched videos:",
@@ -436,6 +519,7 @@ export default function Capsels({ id, capsuleId }) {
           console.log(
             "No watch history found for this level/mission combination"
           );
+          setWatchedVideos([]);
         }
       } finally {
         // setLoading(false);
@@ -520,7 +604,7 @@ export default function Capsels({ id, capsuleId }) {
                 className="flex-1 flex flex-col  overflow-y-auto"
               >
                 <div className="pl-5">
-                    <LearningOutcomes levelId={levelId} />
+                  <LearningOutcomes levelId={levelId} />
                 </div>
               </div>
 
@@ -610,21 +694,21 @@ export default function Capsels({ id, capsuleId }) {
                         );
                       } else {
                         return (
-                  <video
-                    controls
-                    className="w-full h-full max-h-full object-contain rounded-lg"
-                    preload="metadata"
-                    poster={
-                      currentCapsule[capselIndex]?.thumbnailUrl ||
-                      "/default-poster.jpg"
-                    }
-                  >
-                    <source
-                      src={currentCapsule[capselIndex]?.videoUrl?.url}
-                      type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                  </video>
+                          <video
+                            controls
+                            className="w-full h-full max-h-full object-contain rounded-lg"
+                            preload="metadata"
+                            poster={
+                              currentCapsule[capselIndex]?.thumbnailUrl ||
+                              "/default-poster.jpg"
+                            }
+                          >
+                            <source
+                              src={currentCapsule[capselIndex]?.videoUrl?.url}
+                              type="video/mp4"
+                            />
+                            Your browser does not support the video tag.
+                          </video>
                         );
                       }
                     } else {
@@ -713,16 +797,27 @@ export default function Capsels({ id, capsuleId }) {
                         // Set a reasonable default duration for YouTube videos
                         setVideoDuration(300); // 5 minutes default
                         setWatchedDuration(300); // Mark as fully watched
+
+                        // For YouTube videos, we need to immediately update progress
+                        setTimeout(() => {
+                          updateCapsuleProgress();
+                          // After a short delay, check if we should advance to next video
+                          setTimeout(() => {
+                            if (capselIndex < currentCapsule.length - 1) {
+                              handleAutoAdvance();
+                            }
+                          }, 2000);
+                        }, 3000);
                       }}
                     ></iframe>
                   ) : (
-                  <video
-                    key={currentCapsule[capselIndex]?._id}
-                    ref={videoRef}
-                    controls
-                    preload="metadata"
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={handleLoadedMetadata}
+                    <video
+                      key={currentCapsule[capselIndex]?._id}
+                      ref={videoRef}
+                      controls
+                      preload="metadata"
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
                       onPause={() => {
                         // Save current position when paused
                         if (videoRef.current) {
@@ -744,22 +839,22 @@ export default function Capsels({ id, capsuleId }) {
                           updateCapsuleProgress();
                         }
                       }}
-                    onEnded={() => {
-                      updateCapsuleProgress();
-                      handleAutoAdvance();
+                      onEnded={() => {
+                        updateCapsuleProgress();
+                        handleAutoAdvance();
                         // Clear saved position when video ends
                         localStorage.removeItem(
                           `video_position_${currentCapsuleId}`
                         );
-                    }}
+                      }}
                       className="w-full h-full object-contain rounded-lg shadow-lg"
-                  >
-                    <source
-                      src={currentCapsule[capselIndex]?.videoUrl?.url}
-                      type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                  </video>
+                    >
+                      <source
+                        src={currentCapsule[capselIndex]?.videoUrl?.url}
+                        type="video/mp4"
+                      />
+                      Your browser does not support the video tag.
+                    </video>
                   )}
                 </div>
               </div>
@@ -789,7 +884,7 @@ export default function Capsels({ id, capsuleId }) {
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div
             style={{ padding: "10px" }}
@@ -801,13 +896,13 @@ export default function Capsels({ id, capsuleId }) {
               </div>
               {/* text */}
               <div className="h-fit w-full flex flex-col justify-center">
-                <LevelQuiz onQuizComplete={() => setChangeStages(4)} />
+                <LevelQuiz onQuizComplete={() => setChangeStages(5)} />
               </div>
             </div>
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
@@ -818,7 +913,22 @@ export default function Capsels({ id, capsuleId }) {
 
               {/* Completion Content */}
               <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <div className="text-6xl mb-6">🎉</div>
+                <div className="mb-6">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-24 w-24 text-green-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
                 <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
                   Module Completed!
                 </h2>
@@ -827,48 +937,6 @@ export default function Capsels({ id, capsuleId }) {
                   You've gained valuable knowledge and skills that will help you
                   in your learning journey.
                 </p>
-
-                <div className="bg-[#131313] p-6 rounded-lg mb-8 max-w-md">
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-gray-400">Progress:</span>
-                    <span className="text-green-400 font-bold">
-                      100% Complete
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center mb-4">
-                    <span className="text-gray-400">Status:</span>
-                    <span className="text-green-400 font-bold">✅ Passed</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-400">XP Earned:</span>
-                    <span className="text-[#037B9D] font-bold">+25 XP</span>
-                  </div>
-                </div>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={() => {
-                      // Reset to beginning for retake
-                      setChangeStages(1);
-                      setCapselIndex(0);
-                      localStorage.removeItem(`courseStage_${id}`);
-                      localStorage.removeItem(`capsuleIndex_${id}`);
-                    }}
-                    className="bg-gray-600 hover:bg-gray-700 px-8 py-3 rounded-lg font-bold text-lg transition-colors"
-                  >
-                    Retake Module
-                  </button>
-
-                  <button
-                    onClick={() => {
-                      // Navigate back to course list or next module
-                      window.history.back();
-                    }}
-                    className="bg-[#840B94] hover:bg-[#6a0876] px-8 py-3 rounded-lg font-bold text-lg transition-colors"
-                  >
-                    Continue Learning
-                  </button>
-                </div>
               </div>
             </div>
           </div>

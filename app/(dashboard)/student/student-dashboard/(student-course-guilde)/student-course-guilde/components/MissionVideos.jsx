@@ -25,15 +25,13 @@ export default function MissionVideo({ id, onQuizStateChange }) {
   const [missionsCapsels, setMissionsCapsels] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  
-
   // Build a quick lookup for watched capsule IDs
   const watchedSet = useMemo(() => {
     // supports either array of objects or deep .data.watchedCapsules
     const raw = Array.isArray(watchedVideos)
       ? watchedVideos
       : watchedVideos?.data?.watchedCapsules ?? [];
-    return new Set(raw.map((w) => w.capsuleId));
+    return new Set(raw.map((w) => w.capsule));
   }, [watchedVideos]);
 
   // Simple helper
@@ -49,9 +47,11 @@ export default function MissionVideo({ id, onQuizStateChange }) {
 
   // Enable rule:
   // - Always enable index 0
-  // - Enable up to watchedCount (so if 2 videos are watched, enable indices 0, 1, 2)
+  // - Enable the current video being watched (capselIndex)
+  // - Enable up to watchedCount+1 (so if 2 videos are watched, enable indices 0, 1, 2, 3)
   const isVideoEnabled = (index) => {
     if (index === 0) return true;
+    if (index === capselIndex) return true; // Always enable the current video
     return index <= watchedCount;
   };
 
@@ -81,7 +81,6 @@ export default function MissionVideo({ id, onQuizStateChange }) {
       console.log("Starting quiz...");
     }
   }, [isQuizEnabled]);
-
 
   const handleStartQuiz = () => {
     if (isQuizEnabled) {

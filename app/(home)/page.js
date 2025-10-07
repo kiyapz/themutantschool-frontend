@@ -74,6 +74,7 @@ export default function Home() {
         }
       } catch (err) {
         console.error("Failed to fetch cart items on home page:", err);
+        setError("Failed to load your cart. Please try refreshing the page.");
       }
     };
 
