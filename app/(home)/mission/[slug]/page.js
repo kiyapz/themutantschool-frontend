@@ -241,7 +241,7 @@ export default function MissionDetails() {
   useEffect(() => {
     const checkCart = async () => {
       try {
-        const token = localStorage.getItem("login-accessToken");
+      const token = localStorage.getItem("login-accessToken");
         if (!token || !mission?._id) {
           console.log("Not checking cart: No token or mission ID");
           return; // Ensure mission and its ID are available
@@ -256,15 +256,15 @@ export default function MissionDetails() {
 
         console.log("Checking if mission is in cart:", mission._id);
 
-        try {
-          const res = await axios.get(
-            "https://themutantschool-backend.onrender.com/api/mission-cart",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
+      try {
+        const res = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/mission-cart",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
 
           console.log("Cart API response:", res.status);
 
@@ -274,15 +274,15 @@ export default function MissionDetails() {
             res.data.cart &&
             Array.isArray(res.data.cart.missions)
           ) {
-            const cartMissionIds = new Set(
+          const cartMissionIds = new Set(
               res.data.cart.missions
                 .map((entry) => {
-                  return entry?.mission?._id || entry?.missionId || entry?._id;
-                })
+              return entry?.mission?._id || entry?.missionId || entry?._id;
+            })
                 .filter(Boolean) // Filter out undefined/null values
-            );
+          );
 
-            setIsInCart(cartMissionIds.has(mission._id)); // Use mission._id here
+          setIsInCart(cartMissionIds.has(mission._id)); // Use mission._id here
             console.log("Mission in cart:", cartMissionIds.has(mission._id));
           } else if (res.data && Array.isArray(res.data.data)) {
             // Alternative data structure
@@ -327,60 +327,60 @@ export default function MissionDetails() {
   const handleAddToCart = async () => {
     try {
       // Get token and validate
-      const token = localStorage.getItem("login-accessToken");
+    const token = localStorage.getItem("login-accessToken");
       if (!token || token === "undefined" || token === "null") {
         console.log("No valid token found, redirecting to login");
-        router.push("/auth/login");
-        return;
-      }
+      router.push("/auth/login");
+      return;
+    }
 
       // If mission is already in cart, go to cart page
-      if (isInCart) {
+    if (isInCart) {
         console.log("Mission already in cart, redirecting to cart page");
-        router.push("/cart");
-        return;
-      }
+      router.push("/cart");
+      return;
+    }
 
       // Verify mission ID is available
-      if (!mission?._id) {
-        console.error("Mission ID is not available to add to cart.");
-        setError("Mission data not fully loaded. Cannot add to cart.");
-        return;
-      }
+    if (!mission?._id) {
+      console.error("Mission ID is not available to add to cart.");
+      setError("Mission data not fully loaded. Cannot add to cart.");
+      return;
+    }
 
-      try {
+    try {
         console.log(`Adding mission ${mission._id} to cart`);
 
         // Show loading state
         setLoading(true);
 
-        const response = await axios.post(
-          `https://themutantschool-backend.onrender.com/api/mission-cart/${mission._id}`,
-          {},
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
+      const response = await axios.post(
+        `https://themutantschool-backend.onrender.com/api/mission-cart/${mission._id}`,
+        {},
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
-            },
+          },
             timeout: 10000, // 10 second timeout
-          }
-        );
+        }
+      );
 
         console.log("Add to cart response:", response.status);
 
         // Update UI to show mission is in cart
-        setIsInCart(true);
+      setIsInCart(true);
 
         // Update cart items in context
-        setCartItems((prev) => {
-          const prevArray = Array.isArray(prev) ? prev : [];
-          const exists = prevArray.some((x) => x.id === mission._id);
-          return exists ? prevArray : [...prevArray, { id: mission._id }];
-        });
+      setCartItems((prev) => {
+        const prevArray = Array.isArray(prev) ? prev : [];
+        const exists = prevArray.some((x) => x.id === mission._id);
+        return exists ? prevArray : [...prevArray, { id: mission._id }];
+      });
 
         // Broadcast cart change event
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("cart:changed"));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("cart:changed"));
         }
 
         // Show success message
@@ -883,36 +883,36 @@ export default function MissionDetails() {
                           setOpenLevels([...openLevels, level._id]);
                         }
                       }}
-                      style={{ padding: "16px 8px" }}
+                style={{ padding: "16px 8px" }}
                       className="flex items-center justify-between border border-[#CACACA] rounded-[12px] p-4 cursor-pointer hover:bg-gray-50"
-                    >
+              >
                       <div>
-                        <h3 className="font-[600] text-black">
+                <h3 className="font-[600] text-black">
                           {level.title || `Level ${index + 1}`}
-                        </h3>
+                </h3>
                         <p className="text-gray-500 text-sm mt-1">
                           {level.estimatedTime || "Self-paced"} •{" "}
                           {level.capsules?.length || 0}{" "}
                           {level.capsules?.length === 1 ? "lesson" : "lessons"}
                         </p>
                       </div>
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        strokeWidth={1.5}
-                        stroke="currentColor"
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  strokeWidth={1.5}
+                  stroke="currentColor"
                         className={`w-6 h-6 text-black transition-transform duration-300 ${
                           openLevels.includes(level._id) ? "rotate-180" : ""
                         }`}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M19.5 8.25l-7.5 7.5-7.5-7.5"
-                        />
-                      </svg>
-                    </div>
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M19.5 8.25l-7.5 7.5-7.5-7.5"
+                  />
+                </svg>
+              </div>
                     {/* Level Dropdown Content */}
                     <div
                       className={`overflow-hidden transition-all duration-300 ${
@@ -930,8 +930,8 @@ export default function MissionDetails() {
                                 <li key={capsule._id} className="flex gap-3">
                                   <div className="flex items-center h-6">
                                     <div className="w-2 h-2 rounded-full bg-[#8B4CC2]"></div>
-                                  </div>
-                                  <div>
+            </div>
+            <div>
                                     <p className="text-gray-800 font-medium">
                                       {capsule.title}
                                     </p>
@@ -961,11 +961,11 @@ export default function MissionDetails() {
                               <span className="font-medium">
                                 Level Quiz: {level.quiz.title}
                               </span>
-                            </div>
-                          </div>
+              </div>
+            </div>
                         )}
-                      </div>
-                    </div>
+              </div>
+            </div>
                   </div>
                 ))
             ) : (

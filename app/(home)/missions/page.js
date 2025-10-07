@@ -65,11 +65,11 @@ export default function Mission() {
       console.log("[Missions Page] Fetching initial cart items...");
       try {
         // Get auth token from localStorage
-        const token = localStorage.getItem("login-accessToken");
+      const token = localStorage.getItem("login-accessToken");
 
         // Skip if no token
-        if (!token) {
-          console.log("[Missions Page] No token, skipping cart fetch.");
+      if (!token) {
+        console.log("[Missions Page] No token, skipping cart fetch.");
           return;
         }
 
@@ -82,12 +82,12 @@ export default function Mission() {
 
         try {
           console.log("[Missions Page] Sending cart API request...");
-          const res = await axios.get(
-            "https://themutantschool-backend.onrender.com/api/mission-cart",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
+        const res = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/mission-cart",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
               // Set timeout to avoid long-hanging requests
               timeout: 8000,
             }
@@ -99,21 +99,21 @@ export default function Mission() {
           if (res.data && (res.data.cart?.missions || res.data.data)) {
             // Extract mission IDs based on the response structure
             const cartItems = res.data.cart?.missions || res.data.data || [];
-            const cartMissionIds = new Set(
+          const cartMissionIds = new Set(
               cartItems
                 .map((entry) => {
-                  return entry?.mission?._id || entry?.missionId || entry?._id;
-                })
+              return entry?.mission?._id || entry?.missionId || entry?._id;
+            })
                 .filter(Boolean) // Remove null/undefined values
-            );
+          );
 
-            console.log(
-              "[Missions Page] Cart contains mission IDs:",
-              Array.from(cartMissionIds)
-            );
+          console.log(
+            "[Missions Page] Cart contains mission IDs:",
+            Array.from(cartMissionIds)
+          );
 
             // Update button states
-            setClickedButtons(cartMissionIds);
+          setClickedButtons(cartMissionIds);
 
             // Update global cart items
             const minimalItems = cartItems
@@ -124,7 +124,7 @@ export default function Mission() {
               })
               .filter(Boolean); // Remove null entries
 
-            setCartItems(minimalItems);
+          setCartItems(minimalItems);
             console.log("[Missions Page] Cart items set:", minimalItems.length);
           } else {
             console.log(
@@ -324,46 +324,46 @@ export default function Mission() {
 
   const handleAddToCart = async (missionId) => {
     try {
-      console.log(
-        `%c[Add to Cart] Button clicked for missionId: ${missionId}`,
-        `color: var(--mutant-color); font-weight: bold;`
-      );
+    console.log(
+      `%c[Add to Cart] Button clicked for missionId: ${missionId}`,
+      `color: var(--mutant-color); font-weight: bold;`
+    );
 
       // Get and validate token
-      const token = localStorage.getItem("login-accessToken");
+    const token = localStorage.getItem("login-accessToken");
       if (!token || token === "undefined" || token === "null") {
         console.log(
           "[Add to Cart] No valid token found. Redirecting to login."
         );
-        router.push("/auth/login");
-        return;
-      }
+      router.push("/auth/login");
+      return;
+    }
 
       // If already in cart, go to cart page
-      if (clickedButtons.has(missionId)) {
-        console.log(
-          `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
-        );
-        router.push("/cart");
-        return;
-      }
+    if (clickedButtons.has(missionId)) {
+      console.log(
+        `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
+      );
+      router.push("/cart");
+      return;
+    }
 
-      try {
-        console.log(
-          `[Add to Cart] Sending POST request for missionId: ${missionId}`
-        );
+    try {
+      console.log(
+        `[Add to Cart] Sending POST request for missionId: ${missionId}`
+      );
 
         // Add loading state for this button (if needed)
         // You could add a state for currently loading items
 
-        const response = await axios.post(
-          `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
-          {},
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
+      const response = await axios.post(
+        `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
             timeout: 8000,
           }
         );
@@ -378,20 +378,20 @@ export default function Mission() {
         });
 
         // Update global cart
-        setCartItems((prev) => {
-          const prevArray = Array.isArray(prev) ? prev : [];
-          const exists = prevArray.some((x) => x.id === missionId);
-          const next = exists ? prevArray : [...prevArray, { id: missionId }];
-          return next;
-        });
+      setCartItems((prev) => {
+        const prevArray = Array.isArray(prev) ? prev : [];
+        const exists = prevArray.some((x) => x.id === missionId);
+        const next = exists ? prevArray : [...prevArray, { id: missionId }];
+        return next;
+      });
 
-        console.log(
-          "[Add to Cart] UI state updated. Broadcasting cart:changed event."
-        );
+      console.log(
+        "[Add to Cart] UI state updated. Broadcasting cart:changed event."
+      );
 
         // Dispatch cart change event
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("cart:changed"));
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("cart:changed"));
         }
       } catch (apiError) {
         console.error("[Add to Cart] API Error:", apiError);
