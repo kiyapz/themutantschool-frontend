@@ -7,6 +7,8 @@ import { FaLessThan } from "react-icons/fa";
 import Link from "next/link";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
+import { decodeInstructorId } from "@/lib/instructorIdUtils";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const actions = [
   { text: "Delete", icon: <FiTrash2 /> },
@@ -28,7 +30,46 @@ export default function Page() {
 
   // Support both [id] and legacy [1d] dynamic route folders
   const { id: idParam, ["1d"]: oneDeeParam } = params || {};
-  const id = idParam ?? oneDeeParam;
+  let routeParam = idParam ?? oneDeeParam;
+  let id;
+
+  // Extract the mission ID from the slug (if it's a slug-based URL)
+  // It could be a raw MongoDB ID or an encoded ID with or without title prefix
+  if (routeParam.includes("instrmission_")) {
+    // It contains our encoding marker, try to decode it
+    try {
+      // First try to extract just the encoded part if there's a slug prefix
+      const encodedPart = routeParam.split("-").pop();
+      if (encodedPart && encodedPart.includes("instrmission_")) {
+        id = decodeInstructorId(encodedPart);
+        console.log("Decoded instructor mission ID from slug:", id);
+      } else {
+        // Try decoding the whole thing
+        id = decodeInstructorId(routeParam);
+        console.log("Decoded instructor mission ID:", id);
+      }
+    } catch (e) {
+      console.error("Error decoding instructor mission ID:", e);
+      id = routeParam;
+    }
+  } else if (/^[0-9a-f]{24}$/.test(routeParam)) {
+    // It looks like a raw MongoDB ObjectId
+    id = routeParam;
+    console.log("Using raw MongoDB ID:", id);
+  } else {
+    // It might be a slug format without our encoding marker
+    const parts = routeParam.split("-");
+    const lastPart = parts.pop();
+
+    // Check if the last part looks like a MongoDB ID
+    if (lastPart && /^[0-9a-f]{24}$/.test(lastPart)) {
+      id = lastPart;
+      console.log("Extracted MongoDB ID from slug:", id);
+    } else {
+      // Just use the original param as fallback
+      id = routeParam;
+    }
+  }
 
   // --- Token refresh, memoized so callers stay stable ---
   const refreshAuthToken = useCallback(async () => {
@@ -92,29 +133,29 @@ export default function Page() {
         return response;
       } catch (err) {
         console.error("API request failed:", err);
-        
+
         // Only try to refresh token for 401/403 errors
         if (err.response?.status === 401 || err.response?.status === 403) {
           console.log("Token expired, attempting to refresh...");
           try {
-          const newAccessToken = await refreshAuthToken();
-          if (newAccessToken) {
-            const retry = await axios.get(url, {
-              ...options,
-              headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${newAccessToken}`,
-                ...options.headers,
-              },
-            });
-            return retry;
+            const newAccessToken = await refreshAuthToken();
+            if (newAccessToken) {
+              const retry = await axios.get(url, {
+                ...options,
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${newAccessToken}`,
+                  ...options.headers,
+                },
+              });
+              return retry;
             }
           } catch (refreshError) {
             console.error("Token refresh failed:", refreshError);
             // Don't redirect to login immediately, just log the error
           }
         }
-        
+
         // Return null instead of throwing to prevent crashes
         return null;
       }
@@ -129,7 +170,7 @@ export default function Page() {
       const response = await makeAuthenticatedRequest(
         `https://themutantschool-backend.onrender.com/api/mission-level/${levelId}`
       );
-      
+
       if (response?.data?.data) {
         console.log("Level data response:", response.data);
         setLevelData(response.data.data);
@@ -147,19 +188,58 @@ export default function Page() {
   const fetchLevelProgress = async (missionId) => {
     try {
       console.log("Fetching level progress for mission ID:", missionId);
-      const response = await makeAuthenticatedRequest(
-        `https://themutantschool-backend.onrender.com/api/mission-level/${missionId}/progress`
+
+      // Check if we have a valid token before making the request
+      const token = localStorage.getItem("login-accessToken");
+      if (!token) {
+        console.log("No auth token available for level progress request");
+        return;
+      }
+
+      // Use direct axios call with better error handling
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission-level/${missionId}/progress`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          timeout: 8000, // 8 second timeout
+        }
       );
-      
+
       if (response?.data?.data) {
         console.log("Level progress response:", response.data);
         setLevelProgress(response.data.data);
         console.log("Level progress set:", response.data.data);
       } else {
-        console.log("No level progress received or request failed");
+        console.log("No level progress received");
       }
     } catch (err) {
-      console.error("Error fetching level progress:", err);
+      // Handle specific error cases
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        if (err.response.status === 403) {
+          console.log(
+            "Permission denied for level progress (403). This is normal for some users."
+          );
+        } else {
+          console.error(
+            `Error ${err.response.status} fetching level progress:`,
+            err.response.data
+          );
+        }
+      } else if (err.request) {
+        // The request was made but no response was received
+        console.error(
+          "No response received for level progress request:",
+          err.request
+        );
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error("Error setting up level progress request:", err.message);
+      }
       // Don't set error for progress as it's optional
     }
   };
@@ -171,7 +251,7 @@ export default function Page() {
       const response = await makeAuthenticatedRequest(
         `https://themutantschool-backend.onrender.com/api/mission/${missionId}`
       );
-      
+
       if (response?.data?.data) {
         console.log("Mission data response:", response.data);
         setMissionData(response.data.data);
@@ -210,12 +290,12 @@ export default function Page() {
 
         if (isMounted && response?.data?.data) {
           setLevels(response.data.data);
-          
+
           // Then fetch specific level data
           if (id) {
             await fetchLevelData(id);
           }
-          
+
           // Also fetch level progress and mission data
           await fetchLevelProgress(storedMissionId);
           await fetchMissionData(storedMissionId);
@@ -240,7 +320,7 @@ export default function Page() {
     return (
       <div className="p-5 text-white">
         <div className="flex items-center justify-center h-64">
-          <div className="text-lg">Loading...</div>
+          <LoadingSpinner size="xlarge" color="mutant" />
         </div>
       </div>
     );
@@ -249,8 +329,17 @@ export default function Page() {
   if (error) {
     return (
       <div className="p-5 text-white">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-lg text-red-500">{error}</div>
+        <div className="flex flex-col items-center justify-center h-64">
+          <div className="text-lg text-red-500 bg-red-500/10 p-4 rounded-lg border border-red-500/30">
+            <div className="font-bold mb-2">Error Loading Mission</div>
+            <div>{error}</div>
+            <button
+              onClick={() => window.location.reload()}
+              className="mt-4 px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-white rounded-md transition-colors"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -265,7 +354,7 @@ export default function Page() {
   console.log("Response Level (final):", responseLevel);
   console.log("All levels:", levels);
   console.log("Level Progress:", levelProgress);
-  
+
   // Debug: Log image data
   console.log("=== IMAGE DATA DEBUG ===");
   console.log("responseLevel.imageUrl:", responseLevel?.imageUrl);
@@ -304,7 +393,9 @@ export default function Page() {
           </p>
           <p className="text-[var(--link-color)] font-[500] text-[14px] leading-[57px]">
             Mission: {responseLevel.mission?.title || "Mission"} .
-            <span>{`Level ${responseLevel.order || responseLevel.level}: ${responseLevel.title}`}</span>
+            <span>{`Level ${responseLevel.order || responseLevel.level}: ${
+              responseLevel.title
+            }`}</span>
           </p>
         </div>
         <div className="flex items-center gap-3">
@@ -334,24 +425,37 @@ export default function Page() {
             <p className="text-[var(--link-color)] font-[500] text-[14px] leading-[57px]">
               Duration: {responseLevel.estimatedTime || "N/A"} .{" "}
               <span>
-                Difficulty: {responseLevel.difficulty || "N/A"} . Last Edited: {responseLevel.updatedAt ? new Date(responseLevel.updatedAt).toLocaleDateString() : "N/A"}
+                Difficulty: {responseLevel.difficulty || "N/A"} . Last Edited:{" "}
+                {responseLevel.updatedAt
+                  ? new Date(responseLevel.updatedAt).toLocaleDateString()
+                  : "N/A"}
               </span>
             </p>
 
             <div className="flex flex-col gap-5">
-              {responseLevel.imageUrl || responseLevel.image || responseLevel.thumbnail?.url || missionData?.thumbnail?.url ? (
+              {responseLevel.imageUrl ||
+              responseLevel.image ||
+              responseLevel.thumbnail?.url ||
+              missionData?.thumbnail?.url ? (
                 <div className="w-full h-[438px] rounded-[30px] overflow-hidden">
                   <img
-                    src={responseLevel.imageUrl || responseLevel.image || responseLevel.thumbnail?.url || missionData?.thumbnail?.url}
+                    src={
+                      responseLevel.imageUrl ||
+                      responseLevel.image ||
+                      responseLevel.thumbnail?.url ||
+                      missionData?.thumbnail?.url
+                    }
                     alt={responseLevel.title}
                     className="w-full h-full object-cover"
                     onError={(e) => {
-                      e.target.style.display = 'none';
-                      e.target.nextSibling.style.display = 'block';
+                      e.target.style.display = "none";
+                      e.target.nextSibling.style.display = "block";
                     }}
                   />
                   <div className="w-full h-[438px] rounded-[30px] bg-[#604196] hidden flex items-center justify-center">
-                    <span className="text-white text-lg">Image failed to load</span>
+                    <span className="text-white text-lg">
+                      Image failed to load
+                    </span>
                   </div>
                 </div>
               ) : (
@@ -366,46 +470,67 @@ export default function Page() {
                 </h1>
 
                 <p className="text-[16px]">
-                  {responseLevel.description || responseLevel.summary || "No description available for this level."}
+                  {responseLevel.description ||
+                    responseLevel.summary ||
+                    "No description available for this level."}
                 </p>
 
-                <h2 className="text-[16px]">{`Capsules in this level (${responseLevel.capsules?.length || 0}):`}</h2>
+                <h2 className="text-[16px]">{`Capsules in this level (${
+                  responseLevel.capsules?.length || 0
+                }):`}</h2>
                 {responseLevel.capsules && responseLevel.capsules.length > 0 ? (
-                <ul
-                  style={{ paddingLeft: "30px" }}
-                  className="text-[16px] list-disc pl-5"
-                >
+                  <ul
+                    style={{ paddingLeft: "30px" }}
+                    className="text-[16px] list-disc pl-5"
+                  >
                     {responseLevel.capsules.map((capsule, index) => (
                       <li key={capsule._id || index}>
                         <strong>{capsule.title}</strong>
                         {capsule.description && (
-                          <span className="text-gray-400"> - {capsule.description}</span>
+                          <span className="text-gray-400">
+                            {" "}
+                            - {capsule.description}
+                          </span>
                         )}
                         {capsule.duration && (
-                          <span className="text-gray-500"> ({capsule.duration})</span>
+                          <span className="text-gray-500">
+                            {" "}
+                            ({capsule.duration})
+                          </span>
                         )}
                       </li>
                     ))}
-                </ul>
+                  </ul>
                 ) : (
-                  <p className="text-[16px] text-gray-400">No capsules available for this level.</p>
+                  <p className="text-[16px] text-gray-400">
+                    No capsules available for this level.
+                  </p>
                 )}
 
                 <p className="text-[16px]">
-                  Level Order: {responseLevel.order || "N/A"} | 
-                  Created: {responseLevel.createdAt ? new Date(responseLevel.createdAt).toLocaleDateString() : "N/A"}
+                  Level Order: {responseLevel.order || "N/A"} | Created:{" "}
+                  {responseLevel.createdAt
+                    ? new Date(responseLevel.createdAt).toLocaleDateString()
+                    : "N/A"}
                 </p>
 
                 {/* Show level-level video if available */}
                 {responseLevel.videoUrl && (
                   <div className="mt-4">
-                    <h2 className="text-[18px] font-[600] text-[#BDE75D] mb-2">Level Video:</h2>
+                    <h2 className="text-[18px] font-[600] text-[#BDE75D] mb-2">
+                      Level Video:
+                    </h2>
                     <video
                       controls
                       className="w-full rounded-lg"
                       style={{ maxHeight: "300px" }}
                     >
-                      <source src={responseLevel.videoUrl.url || responseLevel.videoUrl} type="video/mp4" />
+                      <source
+                        src={
+                          responseLevel.videoUrl.url || responseLevel.videoUrl
+                        }
+                        type="video/mp4"
+                      />
                       Your browser does not support the video tag.
                     </video>
                   </div>
@@ -425,64 +550,80 @@ export default function Page() {
                   <h3 className="text-[18px] font-[600] text-[#BDE75D]">
                     {capsule.title}
                   </h3>
-                  
+
                   {capsule.attachments && capsule.attachments.length > 0 ? (
                     capsule.attachments.map((attachment, attIndex) => (
                       <div
                         key={attIndex}
-              style={{ paddingLeft: "10px", paddingRight: "10px" }}
-              className="bg-[var(--button-background)] w-full h-[73.64px] rounded-[12px] flex items-center justify-between"
-            >
-              <div className="flex items-center gap-3">
-                <p>
-                  <FiSave className="text-[#818181]" />
-                </p>
-                          <p>{attachment.filename || attachment.name || `Attachment ${attIndex + 1}`}</p>
-              </div>
-              <div>
-                <FiDownload className="text-[#818181]" />
-              </div>
-            </div>
+                        style={{ paddingLeft: "10px", paddingRight: "10px" }}
+                        className="bg-[var(--button-background)] w-full h-[73.64px] rounded-[12px] flex items-center justify-between"
+                      >
+                        <div className="flex items-center gap-3">
+                          <p>
+                            <FiSave className="text-[#818181]" />
+                          </p>
+                          <p>
+                            {attachment.filename ||
+                              attachment.name ||
+                              `Attachment ${attIndex + 1}`}
+                          </p>
+                        </div>
+                        <div>
+                          <FiDownload className="text-[#818181]" />
+                        </div>
+                      </div>
                     ))
                   ) : (
-                    <p className="text-gray-400 text-[14px]">No attachments for this capsule</p>
+                    <p className="text-gray-400 text-[14px]">
+                      No attachments for this capsule
+                    </p>
                   )}
-                  
+
                   {/* Show video if available */}
                   {capsule.videoUrl && (
                     <div className="mt-2">
-                      <h4 className="text-[14px] font-[600] text-[#BDE75D] mb-2">Video:</h4>
+                      <h4 className="text-[14px] font-[600] text-[#BDE75D] mb-2">
+                        Video:
+                      </h4>
                       <video
                         controls
                         className="w-full max-w-md rounded-lg"
                         style={{ maxHeight: "200px" }}
                       >
-                        <source src={capsule.videoUrl.url || capsule.videoUrl} type="video/mp4" />
+                        <source
+                          src={capsule.videoUrl.url || capsule.videoUrl}
+                          type="video/mp4"
+                        />
                         Your browser does not support the video tag.
                       </video>
-              </div>
+                    </div>
                   )}
-              </div>
+                </div>
               ))
             ) : (
-              <p className="text-gray-400 text-[14px]">No capsules with attachments available</p>
+              <p className="text-gray-400 text-[14px]">
+                No capsules with attachments available
+              </p>
             )}
           </div>
         </div>
 
         <div className="flex flex-col gap-5">
           <MutationProcess missionStatus={missionData?.status} />
-          
+
           {/* Level Progress Section */}
           {levelProgress && (
             <div className="bg-[var(--black-bg)] rounded-[20px] p-5">
               <h2 className="text-[var(--sidebar-hovercolor)] text-[27px] leading-[57px] font-[600] mb-4">
                 Level Progress
               </h2>
-              
+
               <div className="space-y-4">
                 {levelProgress.map((progress, index) => (
-                  <div key={progress.levelId || index} className="bg-[var(--button-background)] rounded-lg p-4">
+                  <div
+                    key={progress.levelId || index}
+                    className="bg-[var(--button-background)] rounded-lg p-4"
+                  >
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="text-[#BDE75D] font-[600] text-[18px]">
                         Level {progress.levelOrder || index + 1}
@@ -491,63 +632,89 @@ export default function Page() {
                         {progress.completionPercentage || 0}% Complete
                       </span>
                     </div>
-                    
+
                     <div className="w-full bg-gray-700 rounded-full h-2 mb-2">
-                      <div 
+                      <div
                         className="bg-[#BDE75D] h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${progress.completionPercentage || 0}%` }}
+                        style={{
+                          width: `${progress.completionPercentage || 0}%`,
+                        }}
                       ></div>
                     </div>
-                    
+
                     <div className="grid grid-cols-2 gap-4 text-[14px] text-gray-300">
                       <div>
-                        <span className="text-gray-400">Status:</span> 
-                        <span className={`ml-2 ${
-                          progress.status === 'completed' ? 'text-green-400' :
-                          progress.status === 'in_progress' ? 'text-yellow-400' :
-                          'text-gray-400'
-                        }`}>
-                          {progress.status || 'Not Started'}
+                        <span className="text-gray-400">Status:</span>
+                        <span
+                          className={`ml-2 ${
+                            progress.status === "completed"
+                              ? "text-green-400"
+                              : progress.status === "in_progress"
+                              ? "text-yellow-400"
+                              : "text-gray-400"
+                          }`}
+                        >
+                          {progress.status || "Not Started"}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-400">Capsules:</span> 
+                        <span className="text-gray-400">Capsules:</span>
                         <span className="ml-2">
-                          {progress.completedCapsules || 0} / {progress.totalCapsules || 0}
+                          {progress.completedCapsules || 0} /{" "}
+                          {progress.totalCapsules || 0}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-400">Started:</span> 
+                        <span className="text-gray-400">Started:</span>
                         <span className="ml-2">
-                          {progress.startedAt ? new Date(progress.startedAt).toLocaleDateString() : 'N/A'}
+                          {progress.startedAt
+                            ? new Date(progress.startedAt).toLocaleDateString()
+                            : "N/A"}
                         </span>
                       </div>
-        <div>
-                        <span className="text-gray-400">Completed:</span> 
+                      <div>
+                        <span className="text-gray-400">Completed:</span>
                         <span className="ml-2">
-                          {progress.completedAt ? new Date(progress.completedAt).toLocaleDateString() : 'N/A'}
+                          {progress.completedAt
+                            ? new Date(
+                                progress.completedAt
+                              ).toLocaleDateString()
+                            : "N/A"}
                         </span>
                       </div>
                     </div>
-                    
+
                     {progress.notes && (
                       <div className="mt-2 text-[12px] text-gray-400">
-                        <span className="text-gray-500">Notes:</span> {progress.notes}
+                        <span className="text-gray-500">Notes:</span>{" "}
+                        {progress.notes}
                       </div>
                     )}
                   </div>
                 ))}
               </div>
-              
+
               {/* Overall Progress Summary */}
               <div className="mt-4 p-4 bg-[#604196] rounded-lg">
-                <h3 className="text-white font-[600] text-[18px] mb-2">Overall Mission Progress</h3>
+                <h3 className="text-white font-[600] text-[18px] mb-2">
+                  Overall Mission Progress
+                </h3>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-300">
-                    {levelProgress.filter(p => p.status === 'completed').length} of {levelProgress.length} levels completed
+                    {
+                      levelProgress.filter((p) => p.status === "completed")
+                        .length
+                    }{" "}
+                    of {levelProgress.length} levels completed
                   </span>
                   <span className="text-[#BDE75D] font-[600]">
-                    {Math.round(levelProgress.reduce((acc, p) => acc + (p.completionPercentage || 0), 0) / levelProgress.length)}% Complete
+                    {Math.round(
+                      levelProgress.reduce(
+                        (acc, p) => acc + (p.completionPercentage || 0),
+                        0
+                      ) / levelProgress.length
+                    )}
+                    % Complete
                   </span>
                 </div>
               </div>

@@ -12,7 +12,7 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <StudentProvider>
-      <div className="flex min-h-screen w-full">
+      <div className="flex min-h-screen w-full  max-w-[1800px] mx-auto">
         {/* Sidebar  */}
         <div className="hidden sm:block w-80">
           <Sidebar />

@@ -8,12 +8,7 @@ import Link from "next/link";
 export default function Page() {
   const [changeStages, setChangeStages] = useState(1);
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setChangeStages(2);
-    }, 5000);
-    return () => clearTimeout(timer);
-  }, []);
+  // Removed automatic timer as we now have a manual Next button
 
   const renseSteps = () => {
     switch (changeStages) {
@@ -24,6 +19,9 @@ export default function Page() {
             <p className="text-[#894999] font-[400] text-[31px] leading-[40px] ">
               THE MUTANT SCHOOL
             </p>
+            <div className="mt-10">
+              <Changebtn onclick={() => setChangeStages(2)} text={"Next"} />
+            </div>
           </div>
         );
 

@@ -3,6 +3,7 @@ import { imageConfigDefault } from "next/dist/shared/lib/image-config";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { generateStudyMissionSlug } from "@/lib/studentMissionUtils";
 
 export default function MissionCard({
   text1,
@@ -205,7 +206,10 @@ export default function MissionCard({
             </Link>
           ) : (
             <Link
-              href={`/student/student-dashboard/student-mission-study-levels/${missionId}`}
+              href={`/student/student-dashboard/student-mission-study-levels/${generateStudyMissionSlug(
+                missionId,
+                text1
+              )}`}
             >
               <button className=" w-full  xl:w-[234.64px] h-[56.4px] cursor-pointer studentbtn2 rounded-[30px] ">
                 Continue Mission
@@ -217,7 +221,9 @@ export default function MissionCard({
 
       <div
         style={{
-          backgroundImage: `url(${image})`,
+          backgroundImage: `url(${
+            image || "/images/students-images/Group (15).png"
+          })`,
         }}
         className="bg-center bg-cover h-[20vh] order-1 w-full sm:h-full rounded-[10px]"
       ></div>

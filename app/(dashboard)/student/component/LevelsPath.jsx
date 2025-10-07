@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { generateCourseGuideSlug } from "@/lib/studentMissionUtils";
 
 export default function LevelsPath({
   level: levelProp,
@@ -93,6 +94,19 @@ export default function LevelsPath({
       const token = localStorage.getItem("login-accessToken");
       const missionId = localStorage.getItem("currentMissionId");
 
+      if (!missionId) {
+        console.error("No mission ID found in localStorage");
+        return;
+      }
+
+      // Make sure we have a valid MongoDB ID
+      if (!missionId.match(/^[0-9a-f]{24}$/)) {
+        console.error("Invalid mission ID format:", missionId);
+        return;
+      }
+
+      console.log("Fetching watched capsules for mission ID:", missionId);
+
       try {
         const response = await axios.get(
           `https://themutantschool-backend.onrender.com/api/mission/${missionId}/watched-capsule`,
@@ -101,6 +115,7 @@ export default function LevelsPath({
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
+            timeout: 15000, // 15 second timeout
           }
         );
 
@@ -115,6 +130,25 @@ export default function LevelsPath({
           "Error fetching missions:",
           error.response?.data || error.message
         );
+
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error("Error status:", error.response.status);
+          console.error("Error data:", error.response.data);
+
+          if (error.response.status === 401) {
+            console.error("Authentication error - token may be invalid");
+          } else if (error.response.status === 500) {
+            console.error("Server error - check mission ID format");
+          }
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("No response received:", error.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error("Error setting up request:", error.message);
+        }
       }
     };
 
@@ -213,7 +247,11 @@ export default function LevelsPath({
       const currentLevel = level[containerIndex];
       if (currentLevel && currentLevel._id) {
         // Navigate to the course guide page for this level
-        window.location.href = `/student/student-dashboard/student-course-guilde/${currentLevel._id}?startQuiz=true`;
+        window.location.href = `/student/student-dashboard/student-course-guilde/${generateCourseGuideSlug(
+          currentLevel._id,
+          currentLevel.title,
+          null
+        )}?startQuiz=true`;
       }
     }
   };
@@ -424,7 +462,11 @@ export default function LevelsPath({
 
                   return isEnabled ? (
                     <Link
-                      href={`/student/student-dashboard/student-course-guilde/${currentlevel._id}?capsuleId=${capsule._id}`}
+                      href={`/student/student-dashboard/student-course-guilde/${generateCourseGuideSlug(
+                        currentlevel._id,
+                        currentlevel.title,
+                        capsule._id
+                      )}`}
                       key={capsule._id || levelIndex}
                       className="relative"
                     >

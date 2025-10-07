@@ -7,10 +7,13 @@ import Sidebuttons from "./_components/Sidebuttons";
 import profilebase from "../profile/_components/profilebase";
 import Link from "next/link";
 import { InstructorContext } from "../_components/context/InstructorContex";
+import { encodeInstructorId } from "@/lib/instructorIdUtils";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function FilterableCoursesDashboard() {
   // const [courses, setMission] = useState([]);
   const { courses, setMission } = useContext(InstructorContext);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     console.log("use effect for fetching missions");
@@ -20,6 +23,7 @@ export default function FilterableCoursesDashboard() {
     const id = parsedUser._id;
 
     async function getAllMission() {
+      setIsLoading(true);
       try {
         const response = await profilebase.get(`instructor/report/${id}`, {
           headers: {
@@ -61,6 +65,8 @@ export default function FilterableCoursesDashboard() {
         setMission(response.data.missions);
       } catch (error) {
         console.log("Error fetching missions:", error);
+      } finally {
+        setIsLoading(false);
       }
     }
     getAllMission();
@@ -149,6 +155,14 @@ export default function FilterableCoursesDashboard() {
     return { total, published, draft };
   }, [courses]);
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col h-full gap-10 w-full bg-black text-white min-h-screen p-6 items-center justify-center">
+        <LoadingSpinner size="xlarge" color="mutant" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-full gap-10 w-full bg-black text-white min-h-screen p-6">
       {/* Header */}
@@ -234,7 +248,10 @@ export default function FilterableCoursesDashboard() {
       <div className="w-full h-fit flexcenter p-4">
         <div className="grid gap-5 sm:grid-cols-2 w-full xl:grid-cols-3">
           {filteredCourses.map((el) => (
-            <Link href={`/instructor/missions/${el._id}`} key={el._id}>
+            <Link
+              href={`/instructor/missions/${encodeInstructorId(el._id)}`}
+              key={el._id}
+            >
               <div
                 key={el._id}
                 className="max-w-[380.5px] w-full flex flex-col sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
@@ -251,7 +268,7 @@ export default function FilterableCoursesDashboard() {
                           {el.category}
                         </button>
                         <span
-                        style={{padding:'0 8px'}}
+                          style={{ padding: "0 8px" }}
                           className={`px-2 py-1 rounded-[5px] text-[11px] font-[500] ${
                             el.status === "Pending Review"
                               ? "bg-yellow-600 text-yellow-100"

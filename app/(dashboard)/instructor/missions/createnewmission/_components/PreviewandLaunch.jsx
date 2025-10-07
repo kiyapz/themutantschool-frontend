@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { InstructorContext } from "../../../_components/context/InstructorContex";
 import UserProfileImage from "../../../profile/_components/UserProfileImage";
+import { generateInstructorMissionLevelLink } from "@/lib/instructorIdUtils";
 
 export default function PreviewandLaunch() {
   const { userUpdatedValue, setActiveTab } = useContext(InstructorContext);
@@ -197,7 +198,7 @@ export default function PreviewandLaunch() {
         <div className="flex flex-col gap-5">
           {levels.map((level, index) => (
             <Link
-              href={`/instructor/missions/createnewmission/missionlevels/${level._id}`}
+              href={generateInstructorMissionLevelLink(level._id, level.title)}
               key={level._id}
             >
               <div

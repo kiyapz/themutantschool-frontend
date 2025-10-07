@@ -29,6 +29,17 @@ export default function Page() {
       try {
         const token = localStorage.getItem("login-accessToken");
 
+        if (!token) {
+          console.error("No authentication token found");
+          window.location.href = "/auth/login";
+          return;
+        }
+
+        console.log(
+          "Fetching student dashboard data with token:",
+          token.substring(0, 10) + "..."
+        );
+
         const response = await axios.get(
           "https://themutantschool-backend.onrender.com/api/student/dashboard",
           {
@@ -36,10 +47,32 @@ export default function Page() {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
+            timeout: 15000, // 15 second timeout
           }
         );
 
         console.log("API Response:pppppppppp", response.data);
+
+        // Check if the response has the expected format
+        if (
+          !response.data ||
+          !response.data.data ||
+          !response.data.data.enrolledCourses
+        ) {
+          console.error("Unexpected API response format:", response.data);
+          setMissionPurchases([]);
+          return;
+        }
+
+        // Check if there are any enrolled courses
+        if (
+          !Array.isArray(response.data.data.enrolledCourses) ||
+          response.data.data.enrolledCourses.length === 0
+        ) {
+          console.log("No enrolled courses found");
+          setMissionPurchases([]);
+          return;
+        }
 
         const missionsWithBg = response.data.data.enrolledCourses.map(
           (course, index) => ({
@@ -85,6 +118,26 @@ export default function Page() {
           "Error fetching student breakdown:",
           error.response?.data || error.message
         );
+
+        // Check for specific error types
+        if (error.response) {
+          // The request was made and the server responded with a status code
+          // that falls out of the range of 2xx
+          console.error("Error status:", error.response.status);
+          console.error("Error data:", error.response.data);
+
+          if (error.response.status === 401) {
+            console.error("Authentication error - redirecting to login");
+            // Redirect to login page if token is invalid
+            window.location.href = "/auth/login";
+          }
+        } else if (error.request) {
+          // The request was made but no response was received
+          console.error("No response received:", error.request);
+        } else {
+          // Something happened in setting up the request that triggered an Error
+          console.error("Error setting up request:", error.message);
+        }
       } finally {
         setLoading(false);
       }

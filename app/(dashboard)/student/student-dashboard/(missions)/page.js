@@ -74,13 +74,24 @@ export default function Page() {
           instructor: mission.instructor,
           levels: mission.levels,
           shortDescription: mission.shortDescription,
+          createdAt: mission.createdAt,
+          updatedAt: mission.updatedAt,
           bg: missioncard[index % missioncard.length].bg,
         }));
 
         // Sort missions by creation date (most recent first)
-        missionsWithBg.sort(
-          (a, b) => new Date(b.missionId) - new Date(a.missionId)
-        );
+        missionsWithBg.sort((a, b) => {
+          // First try to sort by createdAt date
+          if (a.createdAt && b.createdAt) {
+            return new Date(b.createdAt) - new Date(a.createdAt);
+          }
+          // If createdAt is not available, try updatedAt
+          if (a.updatedAt && b.updatedAt) {
+            return new Date(b.updatedAt) - new Date(a.updatedAt);
+          }
+          // Fallback to missionId (MongoDB ObjectIDs contain timestamp)
+          return a.missionId > b.missionId ? -1 : 1;
+        });
 
         setAvailableMissions(missionsWithBg);
         console.log("Available Missions:", missionsWithBg);
@@ -111,23 +122,25 @@ export default function Page() {
           </div>
         </div>
       ) : firstMission ? (
-        <MissionCard
-          image={
-            firstMission.thumbnail?.url ||
-            "https://files.ably.io/ghost/prod/2023/12/choosing-the-best-javascript-frameworks-for-your-next-project.png"
-          }
-          text1={firstMission.missionTitle || "Available Mission"}
-          text2={firstMission.estimatedDuration || "Duration not specified"}
-          text3={`${firstMission.isFree ? "Free" : `$${firstMission.price}`}`}
-          className={firstMission.bg}
-          missionId={firstMission.missionId}
-          isAvailable={true}
-          instructor={firstMission.instructor}
-          levels={firstMission.levels}
-          shortDescription={firstMission.shortDescription}
-          price={firstMission.price}
-          isFree={firstMission.isFree}
-        />
+        <div className="relative">
+          <MissionCard
+            image={
+              firstMission.thumbnail?.url ||
+              "https://files.ably.io/ghost/prod/2023/12/choosing-the-best-javascript-frameworks-for-your-next-project.png"
+            }
+            text1={firstMission.missionTitle || "Available Mission"}
+            text2={firstMission.estimatedDuration || "Duration not specified"}
+            text3={`${firstMission.isFree ? "Free" : `$${firstMission.price}`}`}
+            className={firstMission.bg}
+            missionId={firstMission.missionId}
+            isAvailable={true}
+            instructor={firstMission.instructor}
+            levels={firstMission.levels}
+            shortDescription={firstMission.shortDescription}
+            price={firstMission.price}
+            isFree={firstMission.isFree}
+          />
+        </div>
       ) : (
         <div className="flex items-center justify-center py-8">
           <div className="text-center">

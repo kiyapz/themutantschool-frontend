@@ -9,6 +9,7 @@ import { FaLessThan } from "react-icons/fa";
 import { InstructorContext } from "../../_components/context/InstructorContex";
 import { HiArrowNarrowLeft } from "react-icons/hi";
 import EditMissionModal from "../_components/EditMissionModal";
+import DeleteMissionModal from "../_components/DeleteMissionModal";
 import axios from "axios";
 import api from "../../../../../lib/api";
 
@@ -17,15 +18,17 @@ export default function Createnewmission() {
     useContext(InstructorContext);
 
   const handleActionClick = (actionText) => {
+    // Set the button action state for UI highlighting
     setbuttonAction(actionText);
 
     // Call specific functions based on action
+    // Each function manages its own loading state independently
     switch (actionText) {
       case "Edit":
         editMission();
         break;
       case "Delete":
-        setShowDeleteModal(true);
+        deleteMission();
         break;
       case "Publish":
         handlePublishMission();
@@ -35,9 +38,71 @@ export default function Createnewmission() {
     }
   };
 
+  const deleteMission = async () => {
+    console.log("Delete mission function called");
+    try {
+      // Set delete loading state
+      setIsDeleteLoading(true);
+
+      const storedMissionId = localStorage.getItem("missionId");
+      const accessToken = localStorage.getItem("login-accessToken");
+
+      if (!storedMissionId) {
+        alert("Please create a mission first before deleting");
+        setIsDeleteLoading(false);
+        return;
+      }
+
+      if (!accessToken) {
+        alert("Please login first to delete mission");
+        setIsDeleteLoading(false);
+        return;
+      }
+
+      // Fetch mission data to confirm deletion
+      console.log("Fetching mission data for deletion confirmation...");
+
+      const response = await api.get(`/mission/${storedMissionId}`);
+
+      if (!response.data.data) {
+        alert("Mission data not found");
+        setIsDeleteLoading(false);
+        return;
+      }
+
+      // Set current mission and show delete modal
+      console.log("Setting current mission and showing delete modal");
+      setCurrentMission(response.data.data);
+      setShowDeleteModal(true);
+      console.log("Delete modal should now be visible");
+
+      // Reset delete loading state
+      setIsDeleteLoading(false);
+    } catch (error) {
+      console.error("Error preparing mission for deletion:", error);
+      setIsDeleteLoading(false);
+
+      if (error.response?.status === 404) {
+        alert("Mission not found. Please create a mission first.");
+      } else if (error.response?.status === 401) {
+        alert("Authentication failed. Please login again.");
+      } else {
+        alert(
+          `Error fetching mission: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+      }
+    }
+  };
+
   const [buttonAction, setbuttonAction] = useState("Publish");
   const [isLoading, setIsLoading] = useState(false);
+  const [isEditLoading, setIsEditLoading] = useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
+  const [isPublishLoading, setIsPublishLoading] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [currentMission, setCurrentMission] = useState(null);
   const [validationStatus, setValidationStatus] = useState(null);
   const [quizCount, setQuizCount] = useState(0);
@@ -47,8 +112,12 @@ export default function Createnewmission() {
     { text: "Publish", icon: null },
   ];
 
-  // Fetch quizzes immediately when component mounts
+  // Fetch mission and quizzes when component mounts
   useEffect(() => {
+    const missionId = localStorage.getItem("missionId");
+    if (missionId) {
+      fetchMission(missionId);
+    }
     fetchMissionQuizzes();
   }, []);
 
@@ -65,6 +134,36 @@ export default function Createnewmission() {
     setValidationStatus(validation);
   };
 
+  // Fetch mission data by ID
+  const fetchMission = async (missionId) => {
+    try {
+      const accessToken = localStorage.getItem("login-accessToken");
+      if (!accessToken) {
+        console.log("Missing accessToken in localStorage");
+        return;
+      }
+
+      console.log("Fetching mission data for ID:", missionId);
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      console.log("Mission data fetched:", response.data);
+
+      // Update current mission state
+      if (response.data && response.data.data) {
+        setCurrentMission(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching mission:", error);
+    }
+  };
+
   const fetchMissionQuizzes = async () => {
     const storedMissionId = localStorage.getItem("missionId");
     const accessToken = localStorage.getItem("login-accessToken");
@@ -74,7 +173,6 @@ export default function Createnewmission() {
     }
 
     try {
-
       const response = await axios.get(
         `https://themutantschool-backend.onrender.com/api/mission-quiz/${storedMissionId}`,
         {
@@ -87,7 +185,7 @@ export default function Createnewmission() {
 
       const quizCount =
         response.data?.count || response.data?.data?.length || 0;
-      
+
       // Store quiz count for validation
       setQuizCount(quizCount);
     } catch (error) {
@@ -100,16 +198,21 @@ export default function Createnewmission() {
   };
 
   const editMission = async () => {
+    // Set edit loading state to true when starting the edit process
+    setIsEditLoading(true);
+
     const storedMissionId = localStorage.getItem("missionId");
     const accessToken = localStorage.getItem("login-accessToken");
 
     if (!storedMissionId) {
       alert("Please create a mission first before editing");
+      setIsEditLoading(false);
       return;
     }
 
     if (!accessToken) {
       alert("Please login first to edit mission");
+      setIsEditLoading(false);
       return;
     }
 
@@ -171,10 +274,17 @@ export default function Createnewmission() {
       console.log("=== FINAL MISSION DATA FOR MODAL ===");
       console.log("Final mission data:", missionData);
       console.log("Mission data keys:", Object.keys(missionData));
+
+      // Set the current mission and show the modal
       setCurrentMission(missionData);
       setShowEditModal(true);
+
+      // Reset edit loading state after modal is shown
+      setIsEditLoading(false);
     } catch (error) {
       console.error("Error fetching mission data:", error);
+      // Make sure to reset edit loading state on error
+      setIsEditLoading(false);
 
       if (error.response?.status === 404) {
         alert("Mission not found. Please create a mission first.");
@@ -264,7 +374,7 @@ export default function Createnewmission() {
   };
 
   const handlePublishMission = async () => {
-    setIsLoading(true);
+    setIsPublishLoading(true);
 
     try {
       // First validate the mission
@@ -272,7 +382,7 @@ export default function Createnewmission() {
 
       if (!validation.isValid) {
         alert(validation.message);
-        setIsLoading(false);
+        setIsPublishLoading(false);
         return;
       }
 
@@ -281,7 +391,7 @@ export default function Createnewmission() {
 
       if (!storedMissionId || !accessToken) {
         console.log("Missing missionId or accessToken in localStorage");
-        setIsLoading(false);
+        setIsPublishLoading(false);
         return;
       }
 
@@ -306,7 +416,7 @@ export default function Createnewmission() {
       alert("Error publishing mission. Please try again.");
       // You can add error handling here (e.g., show error message)
     } finally {
-      setIsLoading(false);
+      setIsPublishLoading(false);
     }
   };
 
@@ -361,64 +471,71 @@ export default function Createnewmission() {
         <div>
           {activeTab === "Preview and Launch" ? (
             <div className="hidden sm:flex gap-3 mt-4">
-                {actions.map((el, idx) => (
-                  <button
-                    style={{ padding: "15px" }}
-                    onClick={() => {
-                      setbuttonAction(el.text);
-                      if (el.text === "Publish") {
-                        handlePublishMission();
-                      } else if (el.text === "Edit") {
-                        editMission();
-                      }
-                    }}
-                    key={idx}
-                    title={
-                      el.text === "Publish" && quizCount === 0
-                        ? "Mission must have at least one quiz before publishing"
-                        : el.text === "Publish" &&
-                          validationStatus &&
-                          !validationStatus.isValid
-                        ? validationStatus.message
-                        : ""
+              {actions.map((el, idx) => (
+                <button
+                  style={{ padding: "15px" }}
+                  onClick={() => {
+                    setbuttonAction(el.text);
+                    if (el.text === "Publish") {
+                      handlePublishMission();
+                    } else if (el.text === "Edit") {
+                      editMission();
+                    } else if (el.text === "Delete") {
+                      deleteMission();
                     }
-                    disabled={
-                      (isLoading &&
-                        (el.text === "Publish" || el.text === "Edit")) ||
-                      (el.text === "Publish" &&
+                  }}
+                  key={idx}
+                  title={
+                    el.text === "Publish" && quizCount === 0
+                      ? "Mission must have at least one quiz before publishing"
+                      : el.text === "Publish" &&
                         validationStatus &&
-                        !validationStatus.isValid) ||
-                      (el.text === "Publish" && quizCount === 0)
-                    }
-                    className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-[600] ${
-                      buttonAction == el.text ? "bg-[#604196]" : "bg-[#292929]"
-                    } ${
-                      (isLoading &&
-                        (el.text === "Publish" || el.text === "Edit")) ||
-                      (el.text === "Publish" &&
-                        validationStatus &&
-                        !validationStatus.isValid) ||
-                      (el.text === "Publish" && quizCount === 0)
-                        ? "opacity-50 cursor-not-allowed"
-                        : ""
-                    }`}
-                  >
-                    {isLoading &&
-                    (el.text === "Publish" || el.text === "Edit") ? (
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    ) : (
-                      el.icon
-                    )}
-                    {isLoading && el.text === "Publish"
-                      ? "Publishing..."
-                      : isLoading && el.text === "Edit"
-                      ? "Editing..."
-                      : el.text}
-                  </button>
-                ))}
-              </div>
-            // </div>
+                        !validationStatus.isValid
+                      ? validationStatus.message
+                      : ""
+                  }
+                  disabled={
+                    (el.text === "Edit" && isEditLoading) ||
+                    (el.text === "Delete" && isDeleteLoading) ||
+                    (el.text === "Publish" && isPublishLoading) ||
+                    (el.text === "Publish" &&
+                      validationStatus &&
+                      !validationStatus.isValid) ||
+                    (el.text === "Publish" && quizCount === 0)
+                  }
+                  className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-[600] ${
+                    buttonAction == el.text ? "bg-[#604196]" : "bg-[#292929]"
+                  } ${
+                    (el.text === "Edit" && isEditLoading) ||
+                    (el.text === "Delete" && isDeleteLoading) ||
+                    (el.text === "Publish" && isPublishLoading) ||
+                    (el.text === "Publish" &&
+                      validationStatus &&
+                      !validationStatus.isValid) ||
+                    (el.text === "Publish" && quizCount === 0)
+                      ? "opacity-50 cursor-not-allowed"
+                      : ""
+                  }`}
+                >
+                  {(el.text === "Edit" && isEditLoading) ||
+                  (el.text === "Delete" && isDeleteLoading) ||
+                  (el.text === "Publish" && isPublishLoading) ? (
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                  ) : (
+                    el.icon
+                  )}
+                  {el.text === "Publish" && isPublishLoading
+                    ? "Publishing..."
+                    : el.text === "Edit" && isEditLoading
+                    ? "Editing..."
+                    : el.text === "Delete" && isDeleteLoading
+                    ? "Deleting..."
+                    : el.text}
+                </button>
+              ))}
+            </div>
           ) : (
+            // </div>
             <Link href={`/instructor/missions/`}>
               <button
                 style={{ padding: "15px" }}
@@ -495,10 +612,31 @@ export default function Createnewmission() {
         mission={currentMission}
         isOpen={showEditModal}
         onClose={() => setShowEditModal(false)}
-        onSuccess={() => {
+        onSuccess={(updatedMission) => {
+          console.log(
+            "Mission updated successfully in parent component:",
+            updatedMission
+          );
           setShowEditModal(false);
-          alert("Mission updated successfully!");
+
+          // Update the current mission with the updated data
+          if (updatedMission) {
+            setCurrentMission(updatedMission);
+          }
+
+          // Refresh the mission data
+          const missionId = localStorage.getItem("missionId");
+          if (missionId) {
+            fetchMission(missionId);
+          }
         }}
+      />
+
+      {/* Delete Mission Modal */}
+      <DeleteMissionModal
+        mission={currentMission}
+        isOpen={showDeleteModal}
+        onClose={() => setShowDeleteModal(false)}
       />
     </div>
   );

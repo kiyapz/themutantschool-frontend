@@ -5,18 +5,68 @@ import LoadingBar from "./LodingBar";
 
 import MissionVideo from "./MissionVideos";
 import LevelQuiz from "./LevelQuiz";
+import LearningOutcomes from "./LearningOutcomes";
 import { CourseGuideContext } from "./course-guild-contex/Contex";
 import { StudentContext } from "@/app/(dashboard)/student/component/Context/StudentContext";
 import axios from "axios";
 
-export default function Capsels({ id }) {
+export default function Capsels({ id, capsuleId }) {
   const videoRef = useRef(null);
   const [watchedDuration, setWatchedDuration] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
+  const levelId = id; // Using the passed id as levelId for LearningOutcomes
+  const [showSavedPositionNotification, setShowSavedPositionNotification] =
+    useState(false);
+  const [
+    showRestoredPositionNotification,
+    setShowRestoredPositionNotification,
+  ] = useState(false);
+
+  // Helper function to check if URL is a YouTube URL
+  const isYoutubeUrl = (url) => {
+    if (!url) return false;
+    return url.includes("youtube.com") || url.includes("youtu.be");
+  };
+
+  // Helper function to convert YouTube URL to embed URL
+  const getYoutubeEmbedUrl = (url) => {
+    if (!url) return "";
+
+    // If it's already an embed URL, return it
+    if (url.includes("youtube.com/embed/")) {
+      return url;
+    }
+
+    let videoId = "";
+
+    // Extract video ID from different YouTube URL formats
+    if (url.includes("youtube.com/watch")) {
+      const urlParams = new URLSearchParams(url.split("?")[1]);
+      videoId = urlParams.get("v");
+    } else if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1].split("?")[0];
+    } else if (url.includes("youtube.com/shorts/")) {
+      videoId = url.split("youtube.com/shorts/")[1].split("?")[0];
+    }
+
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId}`;
+    }
+
+    return url;
+  };
 
   // Add loading state for progress updates
   const [isUpdatingProgress, setIsUpdatingProgress] = useState(false);
   const [progressUpdateError, setProgressUpdateError] = useState(null);
+
+  // Store the current level ID in localStorage
+  useEffect(() => {
+    if (id) {
+      localStorage.setItem("currentLevelId", id);
+      console.log("Stored current level ID in localStorage:", id);
+    }
+  }, [id]);
 
   const [changeStages, setChangeStages] = useState(1);
   const [missionsCapsels, setMissionsCapsels] = useState([]);
@@ -45,11 +95,60 @@ export default function Capsels({ id }) {
     setCapselIndex,
   } = useContext(CourseGuideContext);
 
-  // Load saved state from localStorage on component mount
+  // Load saved state from localStorage on component mount and handle capsuleId from URL
   useEffect(() => {
     const savedStage = localStorage.getItem(`courseStage_${id}`);
     const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
 
+    // First check if we have a specific capsuleId from URL
+    if (capsuleId && currentCapsule && currentCapsule.length > 0) {
+      console.log("CapsuleId provided in URL:", capsuleId);
+
+      // Find the index of the capsule with matching ID
+      const targetIndex = currentCapsule.findIndex(
+        (capsule) => capsule._id === capsuleId
+      );
+
+      if (targetIndex !== -1) {
+        console.log("Found matching capsule at index:", targetIndex);
+        setCapselIndex(targetIndex);
+
+        // Check if this specific capsule has been watched
+        const isTargetCapsuleWatched =
+          watchedVideos &&
+          Array.isArray(watchedVideos) &&
+          watchedVideos.some((watched) => watched.capsule === capsuleId);
+
+        // If this specific capsule has been watched, go to video stage
+        if (isTargetCapsuleWatched) {
+          console.log(
+            "This specific capsule has been watched, going to video stage"
+          );
+          setChangeStages(3); // Navigate to the video viewing stage
+        }
+        // If user has watched at least the first video but not this one, go to video stage
+        else if (watchedVideos && watchedVideos.length > 0) {
+          console.log(
+            "User has watched some videos, navigating to video stage"
+          );
+          setChangeStages(3); // Navigate to the video viewing stage
+        } else {
+          // Otherwise start from the beginning
+          console.log(
+            "No watched videos found, starting from learning outcomes"
+          );
+          setChangeStages(1);
+        }
+
+        // Save these values to localStorage
+        localStorage.setItem(`capsuleIndex_${id}`, targetIndex.toString());
+        return; // Skip the rest of the function
+      } else {
+        console.log("Capsule ID not found in current capsules");
+      }
+    }
+
+    // If no capsuleId provided or not found, use saved state
     if (savedStage) {
       setChangeStages(parseInt(savedStage));
     }
@@ -57,7 +156,7 @@ export default function Capsels({ id }) {
     if (savedCapsuleIndex && setCapselIndex) {
       setCapselIndex(parseInt(savedCapsuleIndex));
     }
-  }, [id, setCapselIndex]);
+  }, [id, setCapselIndex, capsuleId, currentCapsule, watchedVideos]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -70,13 +169,23 @@ export default function Capsels({ id }) {
     }
   }, [capselIndex, id]);
 
-  const capsuleId = currentCapsule[capselIndex]?._id;
+  const currentCapsuleId = currentCapsule[capselIndex]?._id;
 
-  console.log("curentcapselID", capsuleId);
+  console.log("curentcapselID", currentCapsuleId);
   console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
 
   useEffect(() => {
     setCurrentCapsuleTitle(currentCapsule[capselIndex]?.title || "Unknown");
+
+    // Log video URL information for debugging
+    const videoUrl = currentCapsule[capselIndex]?.videoUrl?.url;
+    if (videoUrl) {
+      console.log("Current video URL:", videoUrl);
+      console.log("Is YouTube URL:", isYoutubeUrl(videoUrl));
+      if (isYoutubeUrl(videoUrl)) {
+        console.log("YouTube embed URL:", getYoutubeEmbedUrl(videoUrl));
+      }
+    }
   }, [currentCapsule, capselIndex]);
 
   // Handle time update
@@ -90,6 +199,27 @@ export default function Capsels({ id }) {
     const video = videoRef.current;
     if (video && !isNaN(video.duration) && video.duration > 0) {
       setVideoDuration(Math.floor(video.duration));
+
+      // Restore video position if it was saved previously
+      if (currentCapsuleId) {
+        const savedPosition = localStorage.getItem(
+          `video_position_${currentCapsuleId}`
+        );
+        if (savedPosition) {
+          const position = parseFloat(savedPosition);
+          // Only restore if the position is valid and less than the video duration
+          if (!isNaN(position) && position > 0 && position < video.duration) {
+            console.log(`Restoring video position to ${position}s`);
+            video.currentTime = position;
+
+            // Show notification that position was restored
+            setShowRestoredPositionNotification(true);
+            setTimeout(() => {
+              setShowRestoredPositionNotification(false);
+            }, 4000);
+          }
+        }
+      }
     } else {
       console.warn("Video metadata not fully loaded or duration is 0");
     }
@@ -122,7 +252,7 @@ export default function Capsels({ id }) {
   // Enhanced updateCapsuleProgress with loading state and validation
   const updateCapsuleProgress = async () => {
     // Validate required data before making request
-    if (!capsuleId) {
+    if (!currentCapsuleId) {
       console.error("No capsule ID available for progress update");
       setProgressUpdateError("No capsule ID available");
       return;
@@ -132,7 +262,7 @@ export default function Capsels({ id }) {
       console.warn("Invalid duration values for progress update", {
         watchedDuration,
         videoDuration,
-        capsuleId,
+        capsuleId: currentCapsuleId,
       });
       return;
     }
@@ -149,7 +279,7 @@ export default function Capsels({ id }) {
       }
 
       console.log("Updating progress for capsule:", {
-        capsuleId,
+        capsuleId: currentCapsuleId,
         watchedDuration,
         videoDuration,
         currentCapsule: currentCapsule[capselIndex]?.title || "Unknown",
@@ -157,7 +287,7 @@ export default function Capsels({ id }) {
 
       // Make PUT request with Authorization header
       const response = await axios.put(
-        `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}`,
+        `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}`,
         {
           watchedDuration,
           videoDuration,
@@ -204,7 +334,7 @@ export default function Capsels({ id }) {
     const interval = setInterval(() => {
       if (
         watchedDuration > 0 &&
-        capsuleId &&
+        currentCapsuleId &&
         !isUpdatingProgress &&
         videoDuration > 0
       ) {
@@ -212,7 +342,7 @@ export default function Capsels({ id }) {
       } else {
         console.log("Skipping progress update:", {
           hasWatchedDuration: watchedDuration > 0,
-          hasCapsuleId: !!capsuleId,
+          hasCapsuleId: !!currentCapsuleId,
           isUpdating: isUpdatingProgress,
           hasVideoDuration: videoDuration > 0,
         });
@@ -220,7 +350,7 @@ export default function Capsels({ id }) {
     }, 10000);
 
     return () => clearInterval(interval);
-  }, [watchedDuration, capsuleId, isUpdatingProgress, videoDuration]);
+  }, [watchedDuration, currentCapsuleId, isUpdatingProgress, videoDuration]);
 
   useEffect(() => {
     const Capsels = localStorage.getItem("missionsCapsels");
@@ -251,6 +381,20 @@ export default function Capsels({ id }) {
       const missionId = localStorage.getItem("currentMissionId");
       const levelId = localStorage.getItem("currentLevelId");
 
+      console.log("Fetching watched videos with:", {
+        missionId,
+        levelId,
+        capsuleId: capsuleId || "Not specified",
+      });
+
+      if (!missionId || !levelId) {
+        console.error("Missing required IDs for fetching watched videos:", {
+          missionId: missionId || "Missing",
+          levelId: levelId || "Missing",
+        });
+        return;
+      }
+
       try {
         const response = await axios.get(
           `https://themutantschool-backend.onrender.com/api/level-progress/${missionId}/levels/${levelId}/capsules/watched`,
@@ -268,22 +412,40 @@ export default function Capsels({ id }) {
         );
         const watchedData = response.data?.data?.watchedCapsules;
         console.log("Fetched watched videos from server:", watchedData);
+
+        // If we have a specific capsuleId, check if it's in the watched list
+        if (capsuleId) {
+          const isWatched = response.data?.data?.completedCapsules?.some(
+            (capsule) => capsule.capsule === capsuleId
+          );
+          console.log(
+            `Current capsule (${capsuleId}) watched status:`,
+            isWatched ? "Watched" : "Not watched"
+          );
+        }
+
         // setWatchedVideos([{'jji':'jj'}]);
         setWatchedVideos(response.data.data.completedCapsules);
       } catch (error) {
         console.log(
-          "Error fetching missions:",
+          "Error fetching watched videos:",
           error.response?.data || error.message
         );
+
+        if (error.response?.status === 404) {
+          console.log(
+            "No watch history found for this level/mission combination"
+          );
+        }
       } finally {
         // setLoading(false);
       }
     };
 
     fetchWachedVideo();
-  }, [watchedDuration]);
+  }, [watchedDuration, capsuleId]);
 
-  // get missions
+  // get missions and mission details including video URL
 
   useEffect(() => {
     const missionId = localStorage.getItem("currentMissionId");
@@ -293,7 +455,8 @@ export default function Capsels({ id }) {
 
     const fetchMissionData = async () => {
       try {
-        const response = await axios.get(
+        // First get mission level data
+        const levelResponse = await axios.get(
           `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
           {
             headers: {
@@ -303,8 +466,32 @@ export default function Capsels({ id }) {
           }
         );
 
-        const missions = response.data.data;
+        const missions = levelResponse.data.data;
         setMissiondetail(missions);
+
+        // Then get the full mission data to access the video URL
+        try {
+          const missionResponse = await axios.get(
+            `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
+
+          const missionData = missionResponse.data.data;
+          console.log("Full mission data:", missionData);
+
+          // Store mission video URL for case 2
+          if (missionData && missionData.video && missionData.video.url) {
+            console.log("Found mission video URL:", missionData.video.url);
+            localStorage.setItem("missionVideoUrl", missionData.video.url);
+          }
+        } catch (missionError) {
+          console.error("Error fetching mission details:", missionError);
+        }
       } catch (error) {
         console.error("Error fetching mission data:", error);
       }
@@ -324,7 +511,7 @@ export default function Capsels({ id }) {
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
               <div className="h-[60px] w-full flex items-center">
-                <LoadingBar width={"w-[10%]"} />
+                <LoadingBar stage={"1/4"} width={"w-[10%]"} />
               </div>
 
               {/* Content - Takes remaining space */}
@@ -332,16 +519,8 @@ export default function Capsels({ id }) {
                 style={{ marginLeft: "20px" }}
                 className="flex-1 flex flex-col  overflow-y-auto"
               >
-                <p className="font-[700] text-[20px] sm:text-[20px] sm:leading-[20px] mb-6">
-                  After successfully completing this module, you will be able
-                  to:
-                </p>
                 <div className="pl-5">
-                  <ul className="list-disc space-y-2">
-                    <li className="pl-2 text-[10px] sm:text-[15px] leading-[20px] font-[400]">
-                      {missionDetails[0]?.summary}
-                    </li>
-                  </ul>
+                  <LearningOutcomes levelId={levelId} />
                 </div>
               </div>
 
@@ -364,13 +543,13 @@ export default function Capsels({ id }) {
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
               <div className="h-[60px] w-full flex items-center">
-                <LoadingBar width={"w-[20%]"} />
+                <LoadingBar stage={"2/4"} width={"w-[20%]"} />
               </div>
 
               <div className="flex-1 flex items-center justify-center min-h-0 relative">
                 {/* Video progress indicator */}
                 <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-2 rounded-lg text-sm z-10">
-                  Video {capselIndex + 1} of {currentCapsule.length}
+                  Mission Introduction Video
                 </div>
                 {/* Auto-advance notification */}
                 {showAutoAdvanceNotification && (
@@ -379,24 +558,83 @@ export default function Capsels({ id }) {
                   </div>
                 )}
                 <div className="w-full h-full max-h-[calc(100vh-160px)] flex items-center justify-center">
-                  <video
-                    controls
-                    className="w-full h-full max-h-full object-contain rounded-lg"
-                    preload="metadata"
-                    poster={
-                      currentCapsule[capselIndex]?.thumbnailUrl ||
-                      "/default-poster.jpg"
+                  {(() => {
+                    // Get the mission video URL from localStorage
+                    const missionVideoUrl =
+                      localStorage.getItem("missionVideoUrl");
+                    console.log(
+                      "Using mission video URL for case 2:",
+                      missionVideoUrl
+                    );
+
+                    if (missionVideoUrl && isYoutubeUrl(missionVideoUrl)) {
+                      return (
+                        <iframe
+                          className="w-full h-full max-h-full rounded-lg"
+                          src={getYoutubeEmbedUrl(missionVideoUrl)}
+                          title="Mission Introduction Video"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        ></iframe>
+                      );
+                    } else if (missionVideoUrl) {
+                      return (
+                        <video
+                          controls
+                          className="w-full h-full max-h-full object-contain rounded-lg"
+                          preload="metadata"
+                        >
+                          <source src={missionVideoUrl} type="video/mp4" />
+                          Your browser does not support the video tag.
+                        </video>
+                      );
+                    } else if (currentCapsule[capselIndex]?.videoUrl?.url) {
+                      // Fallback to capsule video if no mission video is available
+                      if (
+                        isYoutubeUrl(currentCapsule[capselIndex]?.videoUrl?.url)
+                      ) {
+                        return (
+                          <iframe
+                            className="w-full h-full max-h-full rounded-lg"
+                            src={getYoutubeEmbedUrl(
+                              currentCapsule[capselIndex]?.videoUrl?.url
+                            )}
+                            title={
+                              currentCapsule[capselIndex]?.title || "Video"
+                            }
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                          ></iframe>
+                        );
+                      } else {
+                        return (
+                          <video
+                            controls
+                            className="w-full h-full max-h-full object-contain rounded-lg"
+                            preload="metadata"
+                            poster={
+                              currentCapsule[capselIndex]?.thumbnailUrl ||
+                              "/default-poster.jpg"
+                            }
+                          >
+                            <source
+                              src={currentCapsule[capselIndex]?.videoUrl?.url}
+                              type="video/mp4"
+                            />
+                            Your browser does not support the video tag.
+                          </video>
+                        );
+                      }
+                    } else {
+                      return (
+                        <div className="w-full h-full flex items-center justify-center text-gray-400">
+                          No video available for this mission
+                        </div>
+                      );
                     }
-                    onEnded={() => {
-                      handleAutoAdvance();
-                    }}
-                  >
-                    <source
-                      src={currentCapsule[capselIndex]?.videoUrl?.url}
-                      type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                  </video>
+                  })()}
                 </div>
               </div>
 
@@ -425,11 +663,14 @@ export default function Capsels({ id }) {
           <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
-              <div className="h-[60px] w-full flex items-center justify-between">
-                <LoadingBar width={"w-[40%]"} />
+              <div className="h-[40px] w-full flex items-center justify-between">
+                <LoadingBar stage={"3/4"} width={"w-[40%]"} />
               </div>
 
-              <div className="flex-1 flex items-center justify-center min-h-0 relative">
+              <div
+                className="flex-1 flex items-center justify-center min-h-0 relative"
+                style={{ height: "calc(100% - 140px)" }}
+              >
                 {/* Video progress indicator */}
                 <div className="absolute top-4 left-4 bg-black bg-opacity-70 text-white px-3 py-2 rounded-lg text-sm z-10">
                   Video {capselIndex + 1} of {currentCapsule.length}
@@ -440,26 +681,86 @@ export default function Capsels({ id }) {
                     🎬 Moving to next video...
                   </div>
                 )}
-                <div className="w-full h-[300px] max-h-[calc(100vh-160px)] flex items-center justify-center">
-                  <video
-                    key={currentCapsule[capselIndex]?._id}
-                    ref={videoRef}
-                    controls
-                    preload="metadata"
-                    onTimeUpdate={handleTimeUpdate}
-                    onLoadedMetadata={handleLoadedMetadata}
-                    onEnded={() => {
-                      updateCapsuleProgress();
-                      handleAutoAdvance();
-                    }}
-                    className="w-full h-full object-contain"
-                  >
-                    <source
-                      src={currentCapsule[capselIndex]?.videoUrl?.url}
-                      type="video/mp4"
-                    />
-                    Your browser does not support the video tag.
-                  </video>
+
+                {/* Position saved notification */}
+                {showSavedPositionNotification && (
+                  <div className="absolute top-16 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
+                    💾 Position saved - will resume from here next time
+                  </div>
+                )}
+
+                {/* Position restored notification */}
+                {showRestoredPositionNotification && (
+                  <div className="absolute top-28 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
+                    ⏱️ Resumed from your last position
+                  </div>
+                )}
+                <div className="w-full h-full flex-1 flex items-center justify-center">
+                  {currentCapsule[capselIndex]?.videoUrl?.url &&
+                  isYoutubeUrl(currentCapsule[capselIndex]?.videoUrl?.url) ? (
+                    <iframe
+                      key={currentCapsule[capselIndex]?._id}
+                      className="w-full h-full object-cover rounded-lg shadow-lg"
+                      src={getYoutubeEmbedUrl(
+                        currentCapsule[capselIndex]?.videoUrl?.url
+                      )}
+                      title={currentCapsule[capselIndex]?.title || "Video"}
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      onLoad={() => {
+                        // YouTube videos can't use the same tracking methods
+                        // Set a reasonable default duration for YouTube videos
+                        setVideoDuration(300); // 5 minutes default
+                        setWatchedDuration(300); // Mark as fully watched
+                      }}
+                    ></iframe>
+                  ) : (
+                    <video
+                      key={currentCapsule[capselIndex]?._id}
+                      ref={videoRef}
+                      controls
+                      preload="metadata"
+                      onTimeUpdate={handleTimeUpdate}
+                      onLoadedMetadata={handleLoadedMetadata}
+                      onPause={() => {
+                        // Save current position when paused
+                        if (videoRef.current) {
+                          const currentTime = videoRef.current.currentTime;
+                          localStorage.setItem(
+                            `video_position_${currentCapsuleId}`,
+                            currentTime.toString()
+                          );
+                          console.log(
+                            `Video paused at ${currentTime}s - position saved`
+                          );
+
+                          // Show notification
+                          setShowSavedPositionNotification(true);
+                          setTimeout(() => {
+                            setShowSavedPositionNotification(false);
+                          }, 3000);
+
+                          updateCapsuleProgress();
+                        }
+                      }}
+                      onEnded={() => {
+                        updateCapsuleProgress();
+                        handleAutoAdvance();
+                        // Clear saved position when video ends
+                        localStorage.removeItem(
+                          `video_position_${currentCapsuleId}`
+                        );
+                      }}
+                      className="w-full h-full object-contain rounded-lg shadow-lg"
+                    >
+                      <source
+                        src={currentCapsule[capselIndex]?.videoUrl?.url}
+                        type="video/mp4"
+                      />
+                      Your browser does not support the video tag.
+                    </video>
+                  )}
                 </div>
               </div>
 
