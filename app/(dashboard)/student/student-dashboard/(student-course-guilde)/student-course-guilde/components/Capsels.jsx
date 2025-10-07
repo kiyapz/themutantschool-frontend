@@ -520,7 +520,7 @@ export default function Capsels({ id, capsuleId }) {
                 className="flex-1 flex flex-col  overflow-y-auto"
               >
                 <div className="pl-5">
-                  <LearningOutcomes levelId={levelId} />
+                    <LearningOutcomes levelId={levelId} />
                 </div>
               </div>
 
@@ -610,21 +610,21 @@ export default function Capsels({ id, capsuleId }) {
                         );
                       } else {
                         return (
-                          <video
-                            controls
-                            className="w-full h-full max-h-full object-contain rounded-lg"
-                            preload="metadata"
-                            poster={
-                              currentCapsule[capselIndex]?.thumbnailUrl ||
-                              "/default-poster.jpg"
-                            }
-                          >
-                            <source
-                              src={currentCapsule[capselIndex]?.videoUrl?.url}
-                              type="video/mp4"
-                            />
-                            Your browser does not support the video tag.
-                          </video>
+                  <video
+                    controls
+                    className="w-full h-full max-h-full object-contain rounded-lg"
+                    preload="metadata"
+                    poster={
+                      currentCapsule[capselIndex]?.thumbnailUrl ||
+                      "/default-poster.jpg"
+                    }
+                  >
+                    <source
+                      src={currentCapsule[capselIndex]?.videoUrl?.url}
+                      type="video/mp4"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
                         );
                       }
                     } else {
@@ -716,13 +716,13 @@ export default function Capsels({ id, capsuleId }) {
                       }}
                     ></iframe>
                   ) : (
-                    <video
-                      key={currentCapsule[capselIndex]?._id}
-                      ref={videoRef}
-                      controls
-                      preload="metadata"
-                      onTimeUpdate={handleTimeUpdate}
-                      onLoadedMetadata={handleLoadedMetadata}
+                  <video
+                    key={currentCapsule[capselIndex]?._id}
+                    ref={videoRef}
+                    controls
+                    preload="metadata"
+                    onTimeUpdate={handleTimeUpdate}
+                    onLoadedMetadata={handleLoadedMetadata}
                       onPause={() => {
                         // Save current position when paused
                         if (videoRef.current) {
@@ -744,22 +744,22 @@ export default function Capsels({ id, capsuleId }) {
                           updateCapsuleProgress();
                         }
                       }}
-                      onEnded={() => {
-                        updateCapsuleProgress();
-                        handleAutoAdvance();
+                    onEnded={() => {
+                      updateCapsuleProgress();
+                      handleAutoAdvance();
                         // Clear saved position when video ends
                         localStorage.removeItem(
                           `video_position_${currentCapsuleId}`
                         );
-                      }}
+                    }}
                       className="w-full h-full object-contain rounded-lg shadow-lg"
-                    >
-                      <source
-                        src={currentCapsule[capselIndex]?.videoUrl?.url}
-                        type="video/mp4"
-                      />
-                      Your browser does not support the video tag.
-                    </video>
+                  >
+                    <source
+                      src={currentCapsule[capselIndex]?.videoUrl?.url}
+                      type="video/mp4"
+                    />
+                    Your browser does not support the video tag.
+                  </video>
                   )}
                 </div>
               </div>
