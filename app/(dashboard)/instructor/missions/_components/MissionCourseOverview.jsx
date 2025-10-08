@@ -412,13 +412,13 @@ export default function MissionCourseOverview({ course }) {
           </div>
         </div>
         <div className="flex gap-4">
-          <button
+          {/* <button
             onClick={handleEditMission}
             style={{ padding: "15px 20px", margin: "0" }}
             className="font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer hover:bg-[#7052a8] transition-colors"
           >
             Edit Mission
-          </button>
+          </button> */}
           <Link href={`/instructor/missions/createnewmission`}>
             <button
               onClick={() => handleAddLevelId(course._id)}

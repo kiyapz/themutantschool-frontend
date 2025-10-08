@@ -579,18 +579,21 @@ export default function MissionDetails() {
                 )}
               </div>
             ) : safeData.thumbnail?.url ? (
-              <img
-                src={safeData.thumbnail?.url}
-                alt={safeData.title}
-                className="w-full md:h-[400px] object-cover"
-                onError={(e) => {
-                  if (!e.target.getAttribute("data-error-handled")) {
-                    console.log("Image failed to load, using fallback");
-                    e.target.setAttribute("data-error-handled", "true");
-                    e.target.src = "/images/default-course.jpg";
-                  }
-                }}
-              />
+              <div className="w-full md:h-[400px] relative">
+                <Image
+                  src={safeData.thumbnail?.url}
+                  alt={safeData.title}
+                  fill
+                  className="object-cover"
+                  onError={(e) => {
+                    if (!e.target.getAttribute("data-error-handled")) {
+                      console.log("Image failed to load, using fallback");
+                      e.target.setAttribute("data-error-handled", "true");
+                      e.target.src = "/images/default-course.jpg";
+                    }
+                  }}
+                />
+              </div>
             ) : (
               <div className="w-full md:h-[400px] bg-[var(--gray-800)] flex items-center justify-center">
                 <p className="text-[var(--gray-400)]">No media available</p>
@@ -606,17 +609,20 @@ export default function MissionDetails() {
               className="flex items-center gap-3"
             >
               {safeData.instructor.image ? (
-                <img
-                  src={safeData.instructor.image}
-                  alt={safeData.instructor.name}
-                  className="w-12 h-12 rounded-full object-cover border-2 border-[var(--purple-glow)]"
-                  onError={(e) => {
-                    if (!e.target.getAttribute("data-error-handled")) {
-                      e.target.setAttribute("data-error-handled", "true");
-                      e.target.src = "/images/default-avatar.jpg";
-                    }
-                  }}
-                />
+                <div className="w-12 h-12 rounded-full border-2 border-[var(--purple-glow)] relative overflow-hidden">
+                  <Image
+                    src={safeData.instructor.image}
+                    alt={safeData.instructor.name}
+                    fill
+                    className="object-cover"
+                    onError={(e) => {
+                      if (!e.target.getAttribute("data-error-handled")) {
+                        e.target.setAttribute("data-error-handled", "true");
+                        e.target.src = "/images/default-avatar.jpg";
+                      }
+                    }}
+                  />
+                </div>
               ) : (
                 <div className="w-12 h-12 rounded-full bg-[var(--purple-glow)] flex items-center justify-center text-black font-semibold text-lg">
                   {safeData.instructor.firstName?.charAt(0) || ""}

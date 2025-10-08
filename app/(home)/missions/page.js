@@ -1,6 +1,5 @@
 "use client";
 import DropDown from "@/components/Dropdown";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import { FaSearch } from "react-icons/fa";
 import { FaClock } from "react-icons/fa";
 import { AiFillStar } from "react-icons/ai";
@@ -9,7 +8,6 @@ import { useCart } from "@/components/mutantcart/CartContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { generateMissionLink } from "@/lib/missionLinkUtils";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -25,6 +23,9 @@ export default function Mission() {
   const [error, setError] = useState(null);
   const router = useRouter();
 
+
+
+
   useEffect(() => {
     const fetchMissions = async () => {
       try {
@@ -38,18 +39,10 @@ export default function Mission() {
         );
         setMissions(res.data.data);
         // Log course thumbnails for debugging
-        console.log(`Total missions fetched: ${res.data.data.length}`);
         res.data.data.forEach((course, index) => {
-          console.log(`Course ${index}:`, {
-            id: course._id,
-            title: course.title,
-            thumbnail: course.thumbnail?.url,
-            category: course.category,
-            price: course.price,
-            isFree: course.isFree,
-          });
+          console.log(`Course ${index} thumbnail:`, course.thumbnail?.url);
         });
-        console.log("All missions data:", res.data.data);
+        console.log(res.data.data, "missionssssssssssssssssssss");
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch missions");
       } finally {
@@ -63,103 +56,43 @@ export default function Mission() {
   useEffect(() => {
     const fetchCartItems = async () => {
       console.log("[Missions Page] Fetching initial cart items...");
+      const token = localStorage.getItem("login-accessToken");
+      if (!token) {
+        console.log("[Missions Page] No token, skipping cart fetch.");
+        return; // Not logged in, cart is empty
+      }
       try {
-        // Get auth token from localStorage
-        const token = localStorage.getItem("login-accessToken");
-
-        // Skip if no token
-        if (!token) {
-          console.log("[Missions Page] No token, skipping cart fetch.");
-          return;
-        }
-
-        // Validate token format
-        if (!token.trim() || token === "undefined" || token === "null") {
-          console.log("[Missions Page] Invalid token format, clearing token");
-          localStorage.removeItem("login-accessToken");
-          return;
-        }
-
-        try {
-          console.log("[Missions Page] Sending cart API request...");
-          const res = await axios.get(
-            "https://themutantschool-backend.onrender.com/api/mission-cart",
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-              // Set timeout to avoid long-hanging requests
-              timeout: 8000,
-            }
+        const res = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/mission-cart",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        if (res.data && res.data.data) {
+          const cartMissionIds = new Set(
+            (res.data.cart?.missions || res.data.data || []).map((entry) => {
+              return entry?.mission?._id || entry?.missionId || entry?._id;
+            })
           );
-
-          console.log("[Missions Page] Cart API response status:", res.status);
-
-          // Handle different response structures
-          if (res.data && (res.data.cart?.missions || res.data.data)) {
-            // Extract mission IDs based on the response structure
-            const cartItems = res.data.cart?.missions || res.data.data || [];
-            const cartMissionIds = new Set(
-              cartItems
-                .map((entry) => {
-                  return entry?.mission?._id || entry?.missionId || entry?._id;
-                })
-                .filter(Boolean) // Remove null/undefined values
-            );
-
-            console.log(
-              "[Missions Page] Cart contains mission IDs:",
-              Array.from(cartMissionIds)
-            );
-
-            // Update button states
-            setClickedButtons(cartMissionIds);
-
-            // Update global cart items
-            const minimalItems = cartItems
-              .map((entry) => {
-                const id =
-                  entry?.mission?._id || entry?.missionId || entry?._id;
-                return id ? { id } : null;
-              })
-              .filter(Boolean); // Remove null entries
-
-            setCartItems(minimalItems);
-            console.log("[Missions Page] Cart items set:", minimalItems.length);
-          } else {
-            console.log(
-              "[Missions Page] Empty or invalid cart data:",
-              res.data
-            );
-          }
-        } catch (apiError) {
-          // Handle different error types
-          if (
-            apiError.response?.status === 401 ||
-            apiError.response?.status === 403
-          ) {
-            console.log("[Missions Page] Authentication error, clearing token");
-            localStorage.removeItem("login-accessToken");
-          } else if (apiError.code === "ECONNABORTED") {
-            console.log("[Missions Page] Cart API request timed out");
-          } else {
-            console.error(
-              "[Missions Page] Failed to fetch cart items:",
-              apiError.message,
-              apiError.response?.status
-            );
-          }
-
-          // Continue without cart data
-          setClickedButtons(new Set());
-          setCartItems([]);
+          console.log(
+            "[Missions Page] Cart contains mission IDs:",
+            Array.from(cartMissionIds)
+          );
+          setClickedButtons(cartMissionIds);
+          // Also seed global cart items minimally for count
+          const minimalItems = (
+            res.data.cart?.missions ||
+            res.data.data ||
+            []
+          ).map((entry) => ({
+            id: entry?.mission?._id || entry?.missionId || entry?._id,
+          }));
+          setCartItems(minimalItems);
         }
       } catch (err) {
-        // Catch any other unexpected errors in the overall function
-        console.error(
-          "[Missions Page] Unexpected error in fetchCartItems:",
-          err
-        );
+        console.error("[Missions Page] Failed to fetch cart items:", err);
       }
     };
 
@@ -323,102 +256,61 @@ export default function Mission() {
   ]);
 
   const handleAddToCart = async (missionId) => {
+    console.log(
+      `%c[Add to Cart] Button clicked for missionId: ${missionId}`,
+      `color: var(--mutant-color); font-weight: bold;`
+    );
+    const token = localStorage.getItem("login-accessToken");
+    if (!token) {
+      console.log("[Add to Cart] No token found. Redirecting to login.");
+      router.push("/auth/login");
+      return;
+    }
+
+    if (clickedButtons.has(missionId)) {
+      console.log(
+        `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
+      );
+      router.push("/cart");
+      return;
+    }
+
     try {
       console.log(
-        `%c[Add to Cart] Button clicked for missionId: ${missionId}`,
-        `color: var(--mutant-color); font-weight: bold;`
+        `[Add to Cart] Sending POST request for missionId: ${missionId}`
       );
-
-      // Get and validate token
-      const token = localStorage.getItem("login-accessToken");
-      if (!token || token === "undefined" || token === "null") {
-        console.log(
-          "[Add to Cart] No valid token found. Redirecting to login."
-        );
-        router.push("/auth/login");
-        return;
-      }
-
-      // If already in cart, go to cart page
-      if (clickedButtons.has(missionId)) {
-        console.log(
-          `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
-        );
-        router.push("/cart");
-        return;
-      }
-
-      try {
-        console.log(
-          `[Add to Cart] Sending POST request for missionId: ${missionId}`
-        );
-
-        // Add loading state for this button (if needed)
-        // You could add a state for currently loading items
-
-        const response = await axios.post(
-          `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
-          {},
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            timeout: 8000,
-          }
-        );
-
-        console.log("[Add to Cart] API Response:", response.status);
-
-        // Update UI state
-        setClickedButtons((prev) => {
-          const newSet = new Set(prev);
-          newSet.add(missionId);
-          return newSet;
-        });
-
-        // Update global cart
-        setCartItems((prev) => {
-          const prevArray = Array.isArray(prev) ? prev : [];
-          const exists = prevArray.some((x) => x.id === missionId);
-          const next = exists ? prevArray : [...prevArray, { id: missionId }];
-          return next;
-        });
-
-        console.log(
-          "[Add to Cart] UI state updated. Broadcasting cart:changed event."
-        );
-
-        // Dispatch cart change event
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("cart:changed"));
+      const response = await axios.post(
+        `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
+        {},
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
         }
-      } catch (apiError) {
-        console.error("[Add to Cart] API Error:", apiError);
+      );
+      console.log("[Add to Cart] API Response:", response.data);
 
-        // Handle different error types
-        if (
-          apiError.response?.status === 401 ||
-          apiError.response?.status === 403
-        ) {
-          console.log("[Add to Cart] Authentication error, clearing token");
-          localStorage.removeItem("login-accessToken");
-          setError("Please login to add missions to cart");
-          setTimeout(() => router.push("/auth/login"), 1500);
-        } else if (apiError.code === "ECONNABORTED") {
-          setError("Request timed out. Please try again.");
-        } else {
-          setError(
-            apiError.response?.data?.message || "Failed to add mission to cart"
-          );
-        }
-
-        // Clear error after a delay
-        setTimeout(() => setError(null), 3000);
+      setClickedButtons((prev) => new Set(prev).add(missionId));
+      // Increment global cart (minimal add) and persist via context
+      setCartItems((prev) => {
+        const prevArray = Array.isArray(prev) ? prev : [];
+        const exists = prevArray.some((x) => x.id === missionId);
+        const next = exists ? prevArray : [...prevArray, { id: missionId }];
+        return next;
+      });
+      console.log(
+        "[Add to Cart] UI state updated. Broadcasting cart:changed event."
+      );
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("cart:changed"));
       }
     } catch (err) {
-      console.error("[Add to Cart] Unexpected error:", err);
-      setError("An unexpected error occurred");
+      console.error(
+        "[Add to Cart] API Error:",
+        err.response?.data || err.message
+      );
+      setError(err.response?.data?.message || "Failed to add mission to cart.");
       setTimeout(() => setError(null), 3000);
     }
   };
@@ -440,10 +332,8 @@ export default function Mission() {
     startIndex + ITEMS_PER_PAGE
   );
 
-  console.log(`Total missions: ${course.length}`);
-  console.log(`Filtered missions: ${filteredAndSortedCourses.length}`);
-  console.log(`Current page items: ${currentItems.length}`);
-  console.log(`Current page: ${currentPage} of ${totalPages}`);
+
+  console.log(course.thumbnail?.url, "course.thumbnail.url");
   return (
     <div className="w-screen h-full bg-black flexcenter ">
       <div className=" w-full  ">
@@ -633,44 +523,35 @@ export default function Mission() {
               <div className="col-span-2">
                 {currentItems.length === 0 ? (
                   <div className="flex items-center justify-center h-64">
-                    {loading ? (
-                      <LoadingSpinner size="large" color="primary" />
-                    ) : (
-                      <p className="text-[var(--gray-450)] text-lg">
-                        No missions found
-                      </p>
-                    )}
+                    <p className="text-[var(--gray-450)] text-lg">
+                      {loading ? "loading..." : "No missions found"}
+                    </p>
                   </div>
                 ) : (
                   <div className="w-full sm:grid md:grid-cols-3 gap-5 ">
                     {currentItems.map((course, i) => (
+                      
                       <div
                         key={course._id}
                         className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md cursor-pointer"
                       >
                         <div
                           style={{
-                            backgroundImage: course.thumbnail?.url
-                              ? `url(${course.thumbnail.url})`
-                              : "none",
+                            backgroundImage: course.thumbnail?.url ? `url(${course.thumbnail.url})` : 'none',
                           }}
                           onError={(e) => {
-                            console.error(
-                              "Error loading background image:",
-                              course.thumbnail?.url
-                            );
+                            console.error('Error loading background image:', course.thumbnail?.url);
                           }}
                           onClick={() => {
                             console.log("Navigating to mission:", course._id);
-                            const encodedPath = generateMissionLink(
-                              course._id,
-                              course.title
-                            );
-                            router.push(encodedPath);
+                            router.push(`/mission/${course._id}`);
                           }}
                           className="h-[294.71px] w-full bg-[#2A2A2A] rounded-t-[20px] bg-cover bg-center"
                         ></div>
 
+                       
+
+                         
                         <div
                           className="flex flex-col  justify-between flex-1 h-[222.01px]  "
                           style={{ padding: "20px" }}

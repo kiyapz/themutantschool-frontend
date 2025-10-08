@@ -5,6 +5,7 @@ import MutationProcess from "../_components/MutationProcess";
 import { FiDownload, FiSave, FiEdit, FiTrash2 } from "react-icons/fi";
 import { FaLessThan } from "react-icons/fa";
 import Link from "next/link";
+import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { decodeInstructorId } from "@/lib/instructorIdUtils";
@@ -106,7 +107,7 @@ export default function Page() {
       // Don't clear tokens or redirect immediately - just return null
       return null;
     }
-  }, [router]);
+  }, []);
 
   // --- Authenticated GET wrapper, memoized ---
   const makeAuthenticatedRequest = useCallback(
@@ -160,29 +161,32 @@ export default function Page() {
         return null;
       }
     },
-    [refreshAuthToken, router]
+    [refreshAuthToken]
   );
 
   // Fetch specific level data
-  const fetchLevelData = async (levelId) => {
-    try {
-      console.log("Fetching level data for ID:", levelId);
-      const response = await makeAuthenticatedRequest(
-        `https://themutantschool-backend.onrender.com/api/mission-level/${levelId}`
-      );
+  const fetchLevelData = useCallback(
+    async (levelId) => {
+      try {
+        console.log("Fetching level data for ID:", levelId);
+        const response = await makeAuthenticatedRequest(
+          `https://themutantschool-backend.onrender.com/api/mission-level/${levelId}`
+        );
 
-      if (response?.data?.data) {
-        console.log("Level data response:", response.data);
-        setLevelData(response.data.data);
-        console.log("Level data set:", response.data.data);
-      } else {
-        console.log("No level data received or request failed");
+        if (response?.data?.data) {
+          console.log("Level data response:", response.data);
+          setLevelData(response.data.data);
+          console.log("Level data set:", response.data.data);
+        } else {
+          console.log("No level data received or request failed");
+        }
+      } catch (err) {
+        console.error("Error fetching level data:", err);
+        // Don't set error state, just log it
       }
-    } catch (err) {
-      console.error("Error fetching level data:", err);
-      // Don't set error state, just log it
-    }
-  };
+    },
+    [makeAuthenticatedRequest]
+  );
 
   // Fetch level progress for mission
   const fetchLevelProgress = async (missionId) => {
@@ -245,24 +249,27 @@ export default function Page() {
   };
 
   // Fetch mission data to get thumbnail
-  const fetchMissionData = async (missionId) => {
-    try {
-      console.log("Fetching mission data for ID:", missionId);
-      const response = await makeAuthenticatedRequest(
-        `https://themutantschool-backend.onrender.com/api/mission/${missionId}`
-      );
+  const fetchMissionData = useCallback(
+    async (missionId) => {
+      try {
+        console.log("Fetching mission data for ID:", missionId);
+        const response = await makeAuthenticatedRequest(
+          `https://themutantschool-backend.onrender.com/api/mission/${missionId}`
+        );
 
-      if (response?.data?.data) {
-        console.log("Mission data response:", response.data);
-        setMissionData(response.data.data);
-        console.log("Mission data set:", response.data.data);
-      } else {
-        console.log("No mission data received or request failed");
+        if (response?.data?.data) {
+          console.log("Mission data response:", response.data);
+          setMissionData(response.data.data);
+          console.log("Mission data set:", response.data.data);
+        } else {
+          console.log("No mission data received or request failed");
+        }
+      } catch (err) {
+        console.error("Error fetching mission data:", err);
       }
-    } catch (err) {
-      console.error("Error fetching mission data:", err);
-    }
-  };
+    },
+    [makeAuthenticatedRequest]
+  );
 
   useEffect(() => {
     let isMounted = true;
@@ -314,7 +321,7 @@ export default function Page() {
     return () => {
       isMounted = false;
     };
-  }, [makeAuthenticatedRequest, router, id]);
+  }, [makeAuthenticatedRequest, router, id, fetchLevelData, fetchMissionData]);
 
   if (loading) {
     return (
@@ -438,7 +445,7 @@ export default function Page() {
               responseLevel.thumbnail?.url ||
               missionData?.thumbnail?.url ? (
                 <div className="w-full h-[438px] rounded-[30px] overflow-hidden">
-                  <img
+                  <Image
                     src={
                       responseLevel.imageUrl ||
                       responseLevel.image ||
@@ -446,7 +453,8 @@ export default function Page() {
                       missionData?.thumbnail?.url
                     }
                     alt={responseLevel.title}
-                    className="w-full h-full object-cover"
+                    fill
+                    className="object-cover"
                     onError={(e) => {
                       e.target.style.display = "none";
                       e.target.nextSibling.style.display = "block";

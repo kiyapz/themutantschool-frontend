@@ -1,5 +1,5 @@
 "use client";
-import { useContext, useState, useEffect } from "react";
+import { useContext, useState, useEffect, useCallback } from "react";
 import MissionDetails from "./_components/MissionDetails";
 import AddLevels from "./_components/AddLevels";
 import PreviewandLaunch from "./_components/PreviewandLaunch";
@@ -121,19 +121,6 @@ export default function Createnewmission() {
     fetchMissionQuizzes();
   }, []);
 
-  // Check validation when switching to Preview and Launch tab
-  useEffect(() => {
-    if (activeTab === "Preview and Launch") {
-      checkValidationStatus();
-      fetchMissionQuizzes();
-    }
-  }, [activeTab]);
-
-  const checkValidationStatus = async () => {
-    const validation = await validateMissionForPublish();
-    setValidationStatus(validation);
-  };
-
   // Fetch mission data by ID
   const fetchMission = async (missionId) => {
     try {
@@ -164,7 +151,7 @@ export default function Createnewmission() {
     }
   };
 
-  const fetchMissionQuizzes = async () => {
+  const fetchMissionQuizzes = useCallback(async () => {
     const storedMissionId = localStorage.getItem("missionId");
     const accessToken = localStorage.getItem("login-accessToken");
 
@@ -195,7 +182,7 @@ export default function Createnewmission() {
         console.error("Error status:", error.response.status);
       }
     }
-  };
+  }, []);
 
   const editMission = async () => {
     // Set edit loading state to true when starting the edit process
@@ -300,7 +287,7 @@ export default function Createnewmission() {
     }
   };
 
-  const validateMissionForPublish = async () => {
+  const validateMissionForPublish = useCallback(async () => {
     const storedMissionId = localStorage.getItem("missionId");
     const accessToken = localStorage.getItem("login-accessToken");
 
@@ -371,7 +358,20 @@ export default function Createnewmission() {
         message: "Error validating mission. Please try again.",
       };
     }
-  };
+  }, [quizCount, fetchMissionQuizzes]);
+
+  const checkValidationStatus = useCallback(async () => {
+    const validation = await validateMissionForPublish();
+    setValidationStatus(validation);
+  }, [validateMissionForPublish]);
+
+  // Check validation when switching to Preview and Launch tab
+  useEffect(() => {
+    if (activeTab === "Preview and Launch") {
+      checkValidationStatus();
+      fetchMissionQuizzes();
+    }
+  }, [activeTab, checkValidationStatus]);
 
   const handlePublishMission = async () => {
     setIsPublishLoading(true);
