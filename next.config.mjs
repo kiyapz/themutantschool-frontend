@@ -1,6 +1,10 @@
 // next.config.js (CommonJS)
 const nextConfig = {
   reactStrictMode: true,
+  experimental: {
+    // Enable experimental features for better Vercel compatibility
+    serverComponentsExternalPackages: [],
+  },
   images: {
     remotePatterns: [
       {
@@ -17,6 +21,8 @@ const nextConfig = {
       },
     ],
   },
+  // Ensure proper build output for Vercel
+  output: 'standalone',
 };
 
 export default nextConfig;
