@@ -23,6 +23,10 @@ export default function Capsels({ id, capsuleId }) {
     setShowRestoredPositionNotification,
   ] = useState(false);
 
+  // --- LOGGING ---
+  console.log("--- Component Props ---", { id, capsuleId });
+  // --- END LOGGING ---
+
   // Helper function to check if URL is a YouTube URL
   const isYoutubeUrl = (url) => {
     if (!url) return false;
@@ -85,6 +89,14 @@ export default function Capsels({ id, capsuleId }) {
     showQuiz,
   } = useContext(StudentContext);
 
+  // --- LOGGING ---
+  console.log("--- StudentContext State ---", {
+    currentCapsule,
+    watchedVideos,
+    showQuiz,
+  });
+  // --- END LOGGING ---
+
   console.log("watchedVideoswatchedVideos", watchedVideos);
 
   const {
@@ -96,8 +108,19 @@ export default function Capsels({ id, capsuleId }) {
     setCapselIndex,
   } = useContext(CourseGuideContext);
 
+  // --- LOGGING ---
+  console.log("--- CourseGuideContext State ---", {
+    showVideo,
+    showVideoLevels,
+    capselIndex,
+  });
+  // --- END LOGGING ---
+
   // Load saved state from localStorage on component mount and handle capsuleId from URL
   useEffect(() => {
+    // --- LOGGING ---
+    console.log("--- Running useEffect [id, capsuleId] ---");
+    // --- END LOGGING ---
     const savedStage = localStorage.getItem(`courseStage_${id}`);
     const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
 
@@ -119,6 +142,13 @@ export default function Capsels({ id, capsuleId }) {
           watchedVideos &&
           Array.isArray(watchedVideos) &&
           watchedVideos.some((watched) => watched.capsule === capsuleId);
+
+        // --- LOGGING ---
+        console.log(
+          "--- Capsule Watch Status ---",
+          { capsuleId, isTargetCapsuleWatched }
+        );
+        // --- END LOGGING ---
 
         // If this specific capsule has been watched, go to video stage
         if (isTargetCapsuleWatched) {
@@ -169,11 +199,21 @@ export default function Capsels({ id, capsuleId }) {
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
+    // --- LOGGING ---
+    console.log("--- Saving to localStorage ---", {
+      [`courseStage_${id}`]: changeStages.toString(),
+    });
+    // --- END LOGGING ---
     localStorage.setItem(`courseStage_${id}`, changeStages.toString());
   }, [changeStages, id]);
 
   useEffect(() => {
     if (capselIndex !== undefined) {
+      // --- LOGGING ---
+      console.log("--- Saving to localStorage ---", {
+        [`capsuleIndex_${id}`]: capselIndex.toString(),
+      });
+      // --- END LOGGING ---
       localStorage.setItem(`capsuleIndex_${id}`, capselIndex.toString());
     }
   }, [capselIndex, id]);
@@ -184,6 +224,11 @@ export default function Capsels({ id, capsuleId }) {
   console.log(capselIndex, "capselIndexcapselIndexcapselIndex");
 
   useEffect(() => {
+    // --- LOGGING ---
+    console.log("--- Updating Capsule Title ---", {
+      title: currentCapsule[capselIndex]?.title,
+    });
+    // --- END LOGGING ---
     setCurrentCapsuleTitle(currentCapsule[capselIndex]?.title || "Unknown");
 
     // Log video URL information for debugging
@@ -202,6 +247,10 @@ export default function Capsels({ id, capsuleId }) {
     const currentTime = videoRef.current.currentTime;
     setWatchedDuration(Math.floor(currentTime));
   };
+
+  // --- LOGGING ---
+  console.log("--- Video Progress ---", { watchedDuration, videoDuration });
+  // --- END LOGGING ---
 
   // Handle metadata load
   const handleLoadedMetadata = () => {
@@ -260,6 +309,9 @@ export default function Capsels({ id, capsuleId }) {
 
   // Enhanced updateCapsuleProgress with loading state and validation
   const updateCapsuleProgress = async () => {
+    // --- LOGGING ---
+    console.log("--- Attempting to update capsule progress ---");
+    // --- END LOGGING ---
     // Validate required data before making request
     if (!currentCapsuleId) {
       console.error("No capsule ID available for progress update");
@@ -445,11 +497,13 @@ export default function Capsels({ id, capsuleId }) {
       const missionId = localStorage.getItem("currentMissionId");
       const levelId = localStorage.getItem("currentLevelId");
 
+      // --- LOGGING ---
       console.log("Fetching watched videos with:", {
         missionId,
         levelId,
         capsuleId: capsuleId || "Not specified",
       });
+      // --- END LOGGING ---
 
       if (!missionId || !levelId) {
         console.error("Missing required IDs for fetching watched videos:", {
@@ -526,6 +580,9 @@ export default function Capsels({ id, capsuleId }) {
       }
     };
 
+    // --- LOGGING ---
+    console.log("--- Calling fetchWachedVideo ---");
+    // --- END LOGGING ---
     fetchWachedVideo();
   }, [watchedDuration, capsuleId]);
 
@@ -538,6 +595,11 @@ export default function Capsels({ id, capsuleId }) {
     if (!missionId) return;
 
     const fetchMissionData = async () => {
+      // --- LOGGING ---
+      console.log("--- Fetching Mission Data (for video URL) ---", {
+        missionId,
+      });
+      // --- END LOGGING ---
       try {
         // First get mission level data
         const levelResponse = await axios.get(
@@ -581,10 +643,16 @@ export default function Capsels({ id, capsuleId }) {
       }
     };
 
+    // --- LOGGING ---
+    console.log("--- Calling fetchMissionData (for video URL) ---");
+    // --- END LOGGING ---
     fetchMissionData();
   }, []);
 
   const courseGuide = () => {
+    // --- LOGGING ---
+    console.log("--- Rendering Course Guide Stage ---", { changeStages });
+    // --- END LOGGING ---
     switch (changeStages) {
       case 1:
         return (
@@ -611,7 +679,12 @@ export default function Capsels({ id, capsuleId }) {
               {/* Button - Fixed height */}
               <div className="h-[100px] flex items-center justify-end">
                 <button
-                  onClick={() => setChangeStages((prev) => prev + 1)}
+                  onClick={() => {
+                    // --- LOGGING ---
+                    console.log("--- Stage 1 Next Button Clicked ---");
+                    // --- END LOGGING ---
+                    setChangeStages((prev) => prev + 1);
+                  }}
                   className="bg-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] text-white rounded-[10px]"
                 >
                   Next
@@ -725,14 +798,22 @@ export default function Capsels({ id, capsuleId }) {
               {/* Buttons - Fixed height */}
               <div className="h-[100px] flex justify-between items-center">
                 <button
-                  onClick={() => setChangeStages((prev) => prev - 1)}
+                  onClick={() => {
+                    // --- LOGGING ---
+                    console.log("--- Stage 2 Previous Button Clicked ---");
+                    // --- END LOGGING ---
+                    setChangeStages((prev) => prev - 1)}
                   className="text-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] rounded-[10px] border border-[#840B94]"
                 >
                   Previous
                 </button>
 
                 <button
-                  onClick={() => setChangeStages((prev) => prev + 1)}
+                  onClick={() => {
+                    // --- LOGGING ---
+                    console.log("--- Stage 2 Next Button Clicked ---");
+                    // --- END LOGGING ---
+                    setChangeStages((prev) => prev + 1)}
                   className="bg-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] text-white rounded-[10px]"
                 >
                   Next
@@ -862,15 +943,23 @@ export default function Capsels({ id, capsuleId }) {
               {/* Buttons - Fixed height */}
               <div className="h-[100px] flex justify-between items-center">
                 <button
-                  onClick={() => setChangeStages((prev) => prev - 1)}
+                  onClick={() => {
+                    // --- LOGGING ---
+                    console.log("--- Stage 3 Previous Button Clicked ---");
+                    // --- END LOGGING ---
+                    setChangeStages((prev) => prev - 1)}
                   className="text-[#840B94] cursor-pointer p-2 h-[71px] w-[120px] sm:w-[177px] font-[700] text-[20px] sm:text-[31px] leading-[100%] rounded-[10px] border border-[#840B94]"
                 >
                   Previous
                 </button>
 
                 <button
-                  disabled={!showQuiz}
-                  onClick={() => setChangeStages((prev) => prev + 1)}
+                  // disabled={!showQuiz}
+                  onClick={() => {
+                    // --- LOGGING ---
+                    console.log("--- Start Quiz Button Clicked ---", { showQuiz });
+                    // --- END LOGGING ---
+                    setChangeStages((prev) => prev + 1)}
                   className={`${
                     showQuiz
                       ? " cursor-pointer opacity-100  "
