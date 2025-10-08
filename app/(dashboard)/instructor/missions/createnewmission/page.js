@@ -112,45 +112,6 @@ export default function Createnewmission() {
     { text: "Publish", icon: null },
   ];
 
-  // Fetch mission and quizzes when component mounts
-  useEffect(() => {
-    const missionId = localStorage.getItem("missionId");
-    if (missionId) {
-      fetchMission(missionId);
-    }
-    fetchMissionQuizzes();
-  }, [fetchMissionQuizzes]);
-
-  // Fetch mission data by ID
-  const fetchMission = async (missionId) => {
-    try {
-      const accessToken = localStorage.getItem("login-accessToken");
-      if (!accessToken) {
-        console.log("Missing accessToken in localStorage");
-        return;
-      }
-
-      console.log("Fetching mission data for ID:", missionId);
-      const response = await axios.get(
-        `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-          },
-        }
-      );
-
-      console.log("Mission data fetched:", response.data);
-
-      // Update current mission state
-      if (response.data && response.data.data) {
-        setCurrentMission(response.data.data);
-      }
-    } catch (error) {
-      console.error("Error fetching mission:", error);
-    }
-  };
-
   const fetchMissionQuizzes = useCallback(async () => {
     const storedMissionId = localStorage.getItem("missionId");
     const accessToken = localStorage.getItem("login-accessToken");
@@ -183,6 +144,44 @@ export default function Createnewmission() {
       }
     }
   }, []);
+
+  const fetchMission = async (missionId) => {
+    try {
+      const accessToken = localStorage.getItem("login-accessToken");
+      if (!accessToken) {
+        console.log("Missing accessToken in localStorage");
+        return;
+      }
+
+      console.log("Fetching mission data for ID:", missionId);
+      const response = await axios.get(
+        `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      console.log("Mission data fetched:", response.data);
+
+      // Update current mission state
+      if (response.data && response.data.data) {
+        setCurrentMission(response.data.data);
+      }
+    } catch (error) {
+      console.error("Error fetching mission:", error);
+    }
+  };
+
+  // Fetch mission and quizzes when component mounts
+  useEffect(() => {
+    const missionId = localStorage.getItem("missionId");
+    if (missionId) {
+      fetchMission(missionId);
+    }
+    fetchMissionQuizzes();
+  }, [fetchMissionQuizzes]);
 
   const editMission = async () => {
     // Set edit loading state to true when starting the edit process
@@ -287,7 +286,7 @@ export default function Createnewmission() {
     }
   };
 
-  const validateMissionForPublish = useCallback(async () => {
+  const validateMissionForPublish = async () => {
     const storedMissionId = localStorage.getItem("missionId");
     const accessToken = localStorage.getItem("login-accessToken");
 
@@ -358,12 +357,12 @@ export default function Createnewmission() {
         message: "Error validating mission. Please try again.",
       };
     }
-  }, [quizCount, fetchMissionQuizzes]);
+  };
 
   const checkValidationStatus = useCallback(async () => {
     const validation = await validateMissionForPublish();
     setValidationStatus(validation);
-  }, [validateMissionForPublish]);
+  }, []);
 
   // Check validation when switching to Preview and Launch tab
   useEffect(() => {
