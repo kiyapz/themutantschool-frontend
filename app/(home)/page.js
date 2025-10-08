@@ -16,6 +16,16 @@ export default function Home() {
   const [lastRefresh, setLastRefresh] = useState(null);
   const router = useRouter();
 
+  // Helper function to create a URL-friendly slug from a title
+  const createSlug = (title) => {
+    if (!title) return "";
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/-+/g, "-"); // Replace multiple hyphens with a single one
+  };
+
   useEffect(() => {
     const fetchMissions = async (forceRefresh = false) => {
       try {
@@ -240,7 +250,7 @@ export default function Home() {
           Most Wanted Missions
         </p>
         <Link href="/missions">
-          <button className="font-[700] cursor-pointer bg-white text-[20px] xl:text-[28px] text-black leading-[40px] xl:leading-[80px] w-[268.47px] xl:w-[380.2px] h-[83.92px] rounded-[17px] ">
+          <button className="font-[700] hidden sm:block cursor-pointer bg-white text-[20px] xl:text-[28px] text-black leading-[40px] xl:leading-[80px] w-[268.47px] xl:w-[380.2px] h-[83.92px] rounded-[17px] ">
             Explore More Missions
           </button>
         </Link>
@@ -290,7 +300,7 @@ export default function Home() {
               missions.map((mission, index) => (
                 <div
                   key={mission._id}
-                  className="h-[529px] rounded-[20px] bg-[#0B1021] overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer"
+                  className="rounded-[20px] bg-[#0B1021] overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer flex flex-col"
                 >
                   <div
                     className="h-[195px] rounded-t-[20px] bg-cover bg-center relative"
@@ -314,7 +324,7 @@ export default function Home() {
 
                   <div
                     style={{ padding: "20px" }}
-                    className="flex flex-col justify-between h-[334px] p-5"
+                    className="flex flex-col justify-between flex-grow p-5"
                   >
                     <div className="flex flex-col gap-5">
                       <div className="flex w-full items-center justify-between">
@@ -336,10 +346,10 @@ export default function Home() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <h3 className="text-[#E8EDF6] font-[600] text-[32px] leading-[35px] ">
+                        <h3 className="text-[#E8EDF6] font-[600] text-2xl md:text-[32px] leading-tight md:leading-[35px]">
                           {mission.title || "Mission Title"}
                         </h3>
-                        <h4 className="text-[#E8EDF6] font-semibold text-2xl leading-tight">
+                        <h4 className="text-[#E8EDF6] font-semibold text-xl md:text-2xl leading-tight">
                           {mission.shortDescription || ""}
                         </h4>
                         <div className="flex items-center gap-4 mt-3">
@@ -367,14 +377,18 @@ export default function Home() {
                       </div>
                       <button
                         onClick={() => {
-                          console.log("Navigating to mission:", mission._id);
-                          router.push(`/mission/${mission._id}`);
+                          const slug = createSlug(mission.title);
+                          console.log(
+                            "Navigating to mission:",
+                            `${slug}-${mission._id}`
+                          );
+                          router.push(`/mission/${slug}-${mission._id}`);
                         }}
                         className={`${
                           clickedButtons.has(mission._id)
                             ? "bg-gray-500 text-white"
                             : "bg-[#08E595]"
-                        } px-6 py-2 rounded-[10px] font-[800] text-[17px] leading-[25px] transition-all duration-200 cursor-pointer hover:shadow-lg h-[51.91px] w-full max-w-[224.645px]`}
+                        } px-6 py-2 rounded-[10px] font-[800] text-[17px] leading-[25px] transition-all duration-200 cursor-pointer hover:shadow-lg h-[51.91px] w-fit sm:w-full  sm:w-auto sm:max-w-[224.645px]`}
                       >
                         {clickedButtons.has(mission._id)
                           ? "View in Cart"

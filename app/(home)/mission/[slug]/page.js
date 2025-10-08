@@ -153,27 +153,15 @@ export default function MissionDetails() {
         }
 
         // Extract the mission ID from the slug
-        // It could be a raw MongoDB ID or an encoded ID with or without title prefix
+        // It can be a full slug with a title, or just the ID
         let missionId;
-
-        // Check if it's a title-slug with encoded ID
-        if (routeParam.includes("mission_")) {
-          // It contains our encoding marker, try to decode it
-          missionId = decodeId(routeParam);
-          console.log("Decoded mission ID:", missionId);
-        } else if (/^[0-9a-f]{24}$/.test(routeParam)) {
-          // It looks like a raw MongoDB ObjectId
-          missionId = routeParam;
-          console.log("Using raw MongoDB ID:", missionId);
+        if (routeParam.includes("-")) {
+          // If there's a hyphen, the ID is the last part
+          const slugParts = routeParam.split("-");
+          missionId = slugParts[slugParts.length - 1];
         } else {
-          // Try decoding it anyway as a last resort
-          try {
-            missionId = decodeId(routeParam);
-            console.log("Attempted to decode as fallback:", missionId);
-          } catch (e) {
-            missionId = routeParam;
-            console.log("Using original slug as ID:", missionId);
-          }
+          // Otherwise, the whole slug is the ID
+          missionId = routeParam;
         }
 
         console.log("Fetching mission with ID:", missionId);
@@ -189,11 +177,19 @@ export default function MissionDetails() {
         console.log("API Response:", response);
 
         if (response.data && response.data.data) {
-          setMission(response.data.data);
-          console.log("Found mission:", response.data.data);
+          const missionData = response.data.data;
+          setMission(missionData);
+          console.log("Found mission:", missionData);
+
+          // After fetching, create the canonical slug and check for redirect
+          const canonicalSlug = createSlug(missionData.title);
+          const expectedUrl = `/mission/${canonicalSlug}-${missionData._id}`;
+          if (router.asPath !== expectedUrl) {
+            router.replace(expectedUrl, undefined, { shallow: true });
+          }
 
           // Use instructor data from mission response
-          if (response.data.data.instructor) {
+          if (missionData.instructor) {
             // Instead of fetching instructor profile separately, use what we have
             setInstructorProfile({
               profile: {
@@ -226,6 +222,16 @@ export default function MissionDetails() {
       } finally {
         setLoading(false);
       }
+    };
+
+    // Helper function to create a URL-friendly slug from a title
+    const createSlug = (title) => {
+      if (!title) return "";
+      return title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+        .replace(/\s+/g, "-") // Replace spaces with hyphens
+        .replace(/-+/g, "-"); // Replace multiple hyphens with a single one
     };
 
     if (slug) {
