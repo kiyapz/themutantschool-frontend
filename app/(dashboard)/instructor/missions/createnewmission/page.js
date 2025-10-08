@@ -119,7 +119,7 @@ export default function Createnewmission() {
       fetchMission(missionId);
     }
     fetchMissionQuizzes();
-  }, []);
+  }, [fetchMissionQuizzes]);
 
   // Fetch mission data by ID
   const fetchMission = async (missionId) => {
@@ -371,7 +371,7 @@ export default function Createnewmission() {
       checkValidationStatus();
       fetchMissionQuizzes();
     }
-  }, [activeTab, checkValidationStatus]);
+  }, [activeTab, checkValidationStatus, fetchMissionQuizzes]);
 
   const handlePublishMission = async () => {
     setIsPublishLoading(true);
