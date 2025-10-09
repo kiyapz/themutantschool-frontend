@@ -10,6 +10,7 @@ import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
 import { decodeId, encodeId } from "@/lib/idUtils";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { useNotification } from "@/context/NotificationContext";
 
 export default function MissionDetails() {
   const params = useParams();
@@ -17,9 +18,17 @@ export default function MissionDetails() {
   const [mission, setMission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { cartItems, setCartItems } = useCart();
+  const {
+    cartItems,
+    setCartItems,
+    isGuest,
+    setIsGuest,
+    guestCartId,
+    setGuestCartId,
+  } = useCart();
   const router = useRouter();
   const pathname = usePathname();
+  const { showNotification } = useNotification();
   const [isInCart, setIsInCart] = useState(false);
   const [openLevels, setOpenLevels] = useState([]);
   const [instructorProfile, setInstructorProfile] = useState(null);
@@ -347,33 +356,109 @@ export default function MissionDetails() {
 
   const handleAddToCart = async () => {
     try {
-      // Get token and validate
-      const token = localStorage.getItem("login-accessToken");
-      if (!token || token === "undefined" || token === "null") {
-        console.log("No valid token found, redirecting to login");
-        router.push("/auth/login");
-        return;
-      }
-
-      // If mission is already in cart, go to cart page
+      // If mission is already in cart, show a notification instead of redirecting
       if (isInCart) {
-        console.log("Mission already in cart, redirecting to cart page");
-        router.push("/cart");
+        console.log("Mission already in cart.");
+        showNotification("This mission is already in your cart.", "info");
         return;
       }
 
       // Verify mission ID is available
       if (!mission?._id) {
         console.error("Mission ID is not available to add to cart.");
-        setError("Mission data not fully loaded. Cannot add to cart.");
+        showNotification(
+          "Mission data not fully loaded. Cannot add to cart.",
+          "error"
+        );
         return;
       }
 
-      try {
-        console.log(`Adding mission ${mission._id} to cart`);
+      // Get token and check if we're in guest mode
+      const token = localStorage.getItem("login-accessToken");
+      const storedGuestCartId = localStorage.getItem("guest-cart-id");
 
-        // Show loading state
-        setLoading(true);
+      // Show loading state
+      setLoading(true);
+
+      // GUEST USER FLOW
+      if (!token || token === "undefined" || token === "null") {
+        try {
+          console.log(`Guest user adding mission ${mission._id} to cart`);
+
+          // Use existing guest cart ID or create a new one
+          const apiUrl = storedGuestCartId
+            ? `https://themutantschool-backend.onrender.com/api/guest/cart/${mission._id}?cartId=${storedGuestCartId}`
+            : `https://themutantschool-backend.onrender.com/api/guest/cart/${mission._id}`;
+
+          const response = await axios.post(
+            apiUrl,
+            {},
+            { headers: { "Content-Type": "application/json" }, timeout: 10000 }
+          );
+
+          console.log("Guest cart response:", response);
+
+          // Save the guest cart ID if this is the first item
+          if (response.data?.success && response.data?.cartId) {
+            // Update context with guest cart info
+            setGuestCartId(response.data.cartId);
+            setIsGuest(true);
+          }
+
+          // Update UI to show mission is in cart
+          setIsInCart(true);
+
+          // Update cart items in context
+          setCartItems((prev) => {
+            const prevArray = Array.isArray(prev) ? prev : [];
+            const exists = prevArray.some((x) => x.id === mission._id);
+            return exists
+              ? prevArray
+              : [
+                  ...prevArray,
+                  {
+                    id: mission._id,
+                    title: mission.title,
+                    price: mission.price,
+                    image: mission.thumbnail?.url,
+                  },
+                ];
+          });
+
+          // Broadcast cart change event
+          if (typeof window !== "undefined") {
+            window.dispatchEvent(new CustomEvent("cart:changed"));
+          }
+
+          showNotification("Added to cart!", "success");
+        } catch (guestError) {
+          // Check if the error is specifically because the mission is already in the cart
+          if (
+            guestError.response?.status === 400 &&
+            guestError.response?.data?.message?.trim() ===
+              "Mission already in cart"
+          ) {
+            setIsInCart(true); // Sync local state
+            showNotification("This mission is already in your cart.", "info");
+          } else {
+            console.error("Failed to add to guest cart:", guestError);
+            showNotification(
+              guestError.response?.data?.message ||
+                "Failed to add to cart. Please try again.",
+              "error"
+            );
+          }
+        } finally {
+          setLoading(false);
+        }
+        return;
+      }
+
+      // AUTHENTICATED USER FLOW
+      try {
+        console.log(
+          `Adding mission ${mission._id} to cart for authenticated user`
+        );
 
         const response = await axios.post(
           `https://themutantschool-backend.onrender.com/api/mission-cart/${mission._id}`,
@@ -387,7 +472,7 @@ export default function MissionDetails() {
           }
         );
 
-        console.log("Add to cart response:", response.status);
+        console.log("Add to cart response:", response);
 
         // Update UI to show mission is in cart
         setIsInCart(true);
@@ -404,24 +489,33 @@ export default function MissionDetails() {
           window.dispatchEvent(new CustomEvent("cart:changed"));
         }
 
-        // Show success message
-        setError(null); // Clear any existing errors
+        showNotification("Added to cart!", "success");
       } catch (apiError) {
         console.error("Failed to add to cart:", apiError);
 
-        // Handle different error scenarios
+        // Check for specific "already in cart" error
         if (
+          apiError.response?.status === 400 &&
+          apiError.response?.data?.message?.trim() === "Mission already in cart"
+        ) {
+          setIsInCart(true);
+          showNotification("This mission is already in your cart.", "info");
+        } else if (
           apiError.response?.status === 401 ||
           apiError.response?.status === 403
         ) {
           localStorage.removeItem("login-accessToken");
-          setError("Authentication failed. Please login again.");
+          showNotification(
+            "Authentication failed. Please login again.",
+            "error"
+          );
           setTimeout(() => router.push("/auth/login"), 1500);
         } else if (apiError.code === "ECONNABORTED") {
-          setError("Request timed out. Please try again.");
+          showNotification("Request timed out. Please try again.", "error");
         } else {
-          setError(
-            apiError.response?.data?.message || "Failed to add mission to cart"
+          showNotification(
+            apiError.response?.data?.message || "Failed to add mission to cart",
+            "error"
           );
         }
       } finally {
@@ -429,7 +523,7 @@ export default function MissionDetails() {
       }
     } catch (err) {
       console.error("Unexpected error in handleAddToCart:", err);
-      setError("An unexpected error occurred");
+      showNotification("An unexpected error occurred", "error");
       setLoading(false);
     }
   };

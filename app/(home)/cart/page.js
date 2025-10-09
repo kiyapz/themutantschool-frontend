@@ -6,59 +6,148 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 
 export default function Page() {
-  const { setCartItems, setCartCount } = useCart();
+  const {
+    setCartItems,
+    setCartCount,
+    isGuest,
+    guestCartId,
+    guestEmail,
+    setGuestEmail,
+  } = useCart();
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [showEmailForm, setShowEmailForm] = useState(false);
+  const [emailInput, setEmailInput] = useState("");
   const router = useRouter();
 
   // Fetch cart items from backend only
   const fetchCartItems = useCallback(async () => {
     console.log("[Cart Page] Fetching cart items from backend...");
     const token = localStorage.getItem("login-accessToken");
+    const storedGuestCartId = localStorage.getItem("guest-cart-id");
+
+    // GUEST USER FLOW
+    if (!token && storedGuestCartId) {
+      try {
+        setIsLoading(true);
+        console.log("[Cart Page] Fetching guest cart:", storedGuestCartId);
+        const cartRes = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/guest/cart?cartId=${storedGuestCartId}`
+        );
+        console.log("[Cart Page] Guest cart response:", cartRes);
+
+        if (cartRes.data?.success && cartRes.data?.cart) {
+          const cartItemsData = cartRes.data.cart.missions || [];
+          console.log("[Cart Page] Backend guest cart data:", cartItemsData);
+
+          const mappedItems = cartItemsData.map((entry) => {
+            const mission = entry?.mission || {};
+            return {
+              id: mission._id || entry?._id,
+              image: mission.thumbnail?.url || "/images/placeholder.png",
+              title: mission.title || "",
+              by: "The Mutant School",
+              price:
+                typeof mission.price === "number"
+                  ? mission.price
+                  : Number(mission.price) || 0,
+            };
+          });
+
+          setItems(mappedItems);
+          setCartItems(mappedItems);
+          setCartCount(mappedItems.length);
+          setError(null);
+        } else {
+          console.error(
+            "[Cart Page] Invalid guest cart response:",
+            cartRes.data
+          );
+          setError("Failed to load cart items.");
+        }
+      } catch (error) {
+        console.error("[Cart Page] Error fetching guest cart:", error);
+        setError("Failed to load cart items.");
+
+        // Clear invalid guest cart
+        if (error.response?.status === 404) {
+          localStorage.removeItem("guest-cart-id");
+          setItems([]);
+          setCartItems([]);
+          setCartCount(0);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // AUTHENTICATED USER FLOW
     if (!token) {
-      console.log("[Cart Page] No token found. Redirecting to login.");
-      router.push("/auth/login");
+      console.log("[Cart Page] No token found. Checking for guest cart...");
+      const localCartItems = JSON.parse(
+        localStorage.getItem("cart-items") || "[]"
+      );
+
+      if (localCartItems.length > 0) {
+        setItems(localCartItems);
+        setCartItems(localCartItems);
+        setCartCount(localCartItems.length);
+        setIsLoading(false);
+        return;
+      }
+
+      console.log("[Cart Page] No guest cart found. Showing empty cart.");
+      setItems([]);
+      setCartItems([]);
+      setCartCount(0);
+      setIsLoading(false);
       return;
     }
 
     try {
       setIsLoading(true);
-      const cartRes = await axios.get(
+      const response = await axios.get(
         "https://themutantschool-backend.onrender.com/api/mission-cart",
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("[Cart Page] Auth cart response:", response);
+      if (response.status === 200 && response.data.cart) {
+        const cartItemsData = response.data.cart.missions || [];
+        console.log("[Cart Page] Backend cart data:", cartItemsData);
 
-      const cartItemsData = cartRes.data.cart.missions || [];
-      console.log("[Cart Page] Backend cart data:", cartItemsData);
+        const mappedItems = cartItemsData.map((entry) => {
+          const mission = entry?.mission || {};
+          return {
+            id: mission._id || entry?._id,
+            image: mission.thumbnail?.url || "/images/placeholder.png",
+            title: mission.title || "",
+            by: "The Mutant School",
+            price:
+              typeof mission.price === "number"
+                ? mission.price
+                : Number(mission.price) || 0,
+          };
+        });
 
-      const mappedItems = cartItemsData.map((entry) => {
-        const mission = entry?.mission || {};
-        return {
-          id: mission._id || entry?._id,
-          image: mission.thumbnail?.url || "/images/placeholder.png",
-          title: mission.title || "",
-          by: "The Mutant School",
-          price:
-            typeof mission.price === "number"
-              ? mission.price
-              : Number(mission.price) || 0,
-        };
-      });
-
-      setItems(mappedItems);
-      setCartItems(mappedItems); // Update context (backend-only)
-      setCartCount(mappedItems.length);
-      setError(null);
+        setItems(mappedItems);
+        setCartItems(mappedItems); // Update context (backend-only)
+        setCartCount(mappedItems.length);
+        setError(null);
+      } else {
+        console.error(
+          "[Cart Page] Error fetching authenticated cart:",
+          response
+        );
+        setError("Failed to load cart items.");
+      }
     } catch (error) {
       console.error("[Cart Page] Error fetching cart:", error);
       setError("Failed to load cart items.");
-      if (error.response?.status === 401) {
-        router.push("/auth/login");
-      }
+      // Don't redirect to login on unauthorized errors
+      // Just show the error message
     } finally {
       setIsLoading(false);
     }
@@ -66,7 +155,14 @@ export default function Page() {
 
   useEffect(() => {
     fetchCartItems();
-  }, [fetchCartItems]);
+
+    // Check if we have a stored email
+    const storedGuestEmail = localStorage.getItem("guest-email");
+    if (storedGuestEmail && storedGuestEmail.includes("@")) {
+      setGuestEmail(storedGuestEmail);
+      setEmailInput(storedGuestEmail);
+    }
+  }, [fetchCartItems, setGuestEmail]);
 
   // Handle Stripe localization errors
   useEffect(() => {
@@ -91,6 +187,45 @@ export default function Page() {
   const handleRemove = async (missionId) => {
     console.log(`[Remove from Cart] Removing missionId: ${missionId}`);
     const token = localStorage.getItem("login-accessToken");
+    const storedGuestCartId = localStorage.getItem("guest-cart-id");
+
+    // GUEST USER FLOW
+    if (!token && storedGuestCartId) {
+      try {
+        // Remove from guest cart
+        const response = await axios.delete(
+          `https://themutantschool-backend.onrender.com/api/guest/cart/${missionId}?cartId=${storedGuestCartId}`
+        );
+        console.log("[Remove from Cart] Guest API response:", response);
+
+        if (response.data.success) {
+          console.log(
+            `[Remove from Cart] Successfully removed missionId: ${missionId} from guest cart`
+          );
+
+          // Refresh cart from backend to get updated state
+          await fetchCartItems();
+
+          // Fire cart changed event for other components
+          window.dispatchEvent(new CustomEvent("cart:changed"));
+        } else {
+          console.error(
+            "[Remove from Cart] Guest API Error response:",
+            response.data
+          );
+          setError("Failed to remove item. Please try again.");
+        }
+      } catch (err) {
+        console.error(
+          "[Remove from Cart] Guest API Error:",
+          err.response?.data || err.message
+        );
+        setError("Failed to remove item. Please try again.");
+      }
+      return;
+    }
+
+    // AUTHENTICATED USER FLOW
     if (!token) {
       console.log("[Remove from Cart] No token found.");
       return;
@@ -98,22 +233,24 @@ export default function Page() {
 
     try {
       // Remove from backend first
-      await axios.delete(
+      const response = await axios.delete(
         `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
+      console.log("[Remove from Cart] Auth API response:", response);
+      if (response.status === 200) {
+        const updatedItems = items.filter((item) => item.id !== missionId);
+        setItems(updatedItems);
 
-      console.log(
-        `[Remove from Cart] Successfully removed missionId: ${missionId}`
-      );
+        // Refresh cart from backend to get updated state
+        await fetchCartItems();
 
-      // Refresh cart from backend to get updated state
-      await fetchCartItems();
-
-      // Fire cart changed event for other components
-      window.dispatchEvent(new CustomEvent("cart:changed"));
+        // Fire cart changed event for other components
+        window.dispatchEvent(new CustomEvent("cart:changed"));
+      } else {
+        console.error("[Remove from Cart] API Error response:", response.data);
+        setError("Failed to remove item. Please try again.");
+      }
     } catch (err) {
       console.error(
         "[Remove from Cart] API Error:",
@@ -123,23 +260,170 @@ export default function Page() {
     }
   };
 
+  const handleGuestEmailSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!emailInput || !emailInput.includes("@")) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+
+    // Email is valid, proceed directly to checkout
+    const storedGuestCartId = localStorage.getItem("guest-cart-id");
+    if (storedGuestCartId) {
+      setIsProcessing(true); // Set processing state
+      proceedToGuestCheckout(storedGuestCartId, emailInput);
+    } else {
+      setError("Could not find your cart. Please try adding an item again.");
+    }
+  };
+
+  // Actual function to proceed with guest checkout
+  const proceedToGuestCheckout = async (guestCartId, email) => {
+    try {
+      console.log(
+        "[Guest Checkout] Starting checkout process for guest email:",
+        email,
+        "with cartId:",
+        guestCartId
+      );
+
+      console.log(
+        "[Guest Checkout] Cart contains items:",
+        items.map((item) => ({
+          id: item.id,
+          title: item.title,
+          price: item.price,
+        }))
+      );
+
+      // Direct checkout initialization with email and cartId
+      const checkoutResponse = await axios.post(
+        "https://themutantschool-backend.onrender.com/api/guest/checkout",
+        {
+          email: email,
+          cartId: guestCartId,
+        }
+      );
+
+      // Log the full response for debugging
+      console.log("[Guest Checkout] Full API response:", checkoutResponse.data);
+
+      if (checkoutResponse.data.success) {
+        // Store guest credentials if provided by the API
+        if (
+          checkoutResponse.data.username &&
+          checkoutResponse.data.plainPassword
+        ) {
+          console.log("[Guest Checkout] Storing guest credentials:", {
+            username: checkoutResponse.data.username,
+            email: checkoutResponse.data.email,
+          });
+
+          // Save credentials to localStorage for later use
+          localStorage.setItem(
+            "guest-username",
+            checkoutResponse.data.username
+          );
+          localStorage.setItem(
+            "guest-password",
+            checkoutResponse.data.plainPassword
+          );
+
+          // Display credentials in console for user to see
+          console.log(
+            "%c[IMPORTANT] Guest Account Created",
+            "color: green; font-weight: bold; font-size: 16px"
+          );
+          console.log(
+            "%cUsername: " + checkoutResponse.data.username,
+            "color: blue; font-weight: bold"
+          );
+          console.log(
+            "%cPassword: " + checkoutResponse.data.plainPassword,
+            "color: blue; font-weight: bold"
+          );
+          console.log(
+            "%cSave these credentials to access your purchased courses later!",
+            "color: red"
+          );
+        }
+
+        // Check for Stripe redirect URL
+        const sessionUrl = checkoutResponse.data.url;
+        if (sessionUrl) {
+          console.log(
+            "[Guest Checkout] Redirecting to payment page:",
+            sessionUrl
+          );
+
+          // Store session ID if provided
+          if (checkoutResponse.data.sessionId) {
+            localStorage.setItem(
+              "guest-session-id",
+              checkoutResponse.data.sessionId
+            );
+          }
+
+          // Redirect to Stripe checkout
+          window.location.href = sessionUrl;
+        } else {
+          throw new Error("No payment URL received from server.");
+        }
+      } else {
+        throw new Error(
+          checkoutResponse.data.message || "Checkout failed with unknown error"
+        );
+      }
+    } catch (err) {
+      console.error("[Guest Checkout] Error:", err);
+      console.error(
+        "[Guest Checkout] Error details:",
+        err.response?.data || "No response data"
+      );
+
+      setError(
+        err.response?.data?.message ||
+          "Failed to proceed with checkout. Please try again or contact support."
+      );
+      setIsProcessing(false);
+    }
+  };
+
   const handleCheckout = async () => {
     if (isProcessing) return;
     setIsProcessing(true);
     setError(null);
 
-    const token = localStorage.getItem("login-accessToken");
-    if (!token) {
-      setError("You must be logged in to proceed. Redirecting...");
-      setTimeout(() => {
-        router.push("/auth/login");
-      }, 1500);
+    // Check if there are items in cart
+    if (!Array.isArray(items) || items.length === 0) {
+      setError("Your cart is empty.");
       setIsProcessing(false);
       return;
     }
 
-    if (!Array.isArray(items) || items.length === 0) {
-      setError("Your cart is empty.");
+    const token = localStorage.getItem("login-accessToken");
+    const storedGuestCartId = localStorage.getItem("guest-cart-id");
+
+    // GUEST USER FLOW
+    if (!token && storedGuestCartId) {
+      // If we have a stored guest email, proceed directly to checkout
+      const storedGuestEmail = localStorage.getItem("guest-email");
+
+      if (storedGuestEmail && storedGuestEmail.includes("@")) {
+        proceedToGuestCheckout(storedGuestCartId, storedGuestEmail);
+      } else {
+        // Email is required but we're now handling this in the UI with disabled button
+        setError("Please enter your email before proceeding to checkout");
+        setIsProcessing(false);
+      }
+      return;
+    }
+
+    // AUTHENTICATED USER FLOW
+    if (!token) {
+      // We're showing the guest email field in the cart UI now
+      setError("Please enter your email before proceeding to checkout");
       setIsProcessing(false);
       return;
     }
@@ -174,19 +458,15 @@ export default function Page() {
       );
 
       const sessionId = paymentResponse.data.sessionId;
-      const redirectUrl =
-        paymentResponse.data.url ;
+      const redirectUrl = paymentResponse.data.url;
 
       console.log("[Checkout] Payment session created:", {
-      
         fullResponse: paymentResponse.data,
       });
 
       if (!redirectUrl) {
         throw new Error("No payment URL received from server.");
       }
-
-    
 
       try {
         window.location.href = redirectUrl;
@@ -236,13 +516,23 @@ export default function Page() {
 
   return (
     <main
-      style={{ margin: "auto" }}
+      style={{ margin: "auto", position: "relative" }}
       className="min-h-screen px pt-[120px] w-screen flex justify-center overflow-x-auto"
     >
       <ShoppingCart
         items={items}
         onRemove={handleRemove}
         onCheckout={handleCheckout}
+        isGuest={
+          !localStorage.getItem("login-accessToken") &&
+          localStorage.getItem("guest-cart-id")
+        }
+        guestEmail={guestEmail}
+        onGuestEmailChange={setEmailInput}
+        onGuestEmailSubmit={handleGuestEmailSubmit}
+        emailInputValue={emailInput}
+        emailError={error}
+        isProcessing={isProcessing}
       />
     </main>
   );

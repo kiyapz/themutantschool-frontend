@@ -9,6 +9,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { encodeId } from "@/lib/idUtils";
+import { useNotification } from "@/context/NotificationContext";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -23,6 +24,7 @@ export default function Mission() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
+  const { showNotification } = useNotification();
 
   useEffect(() => {
     const fetchMissions = async () => {
@@ -258,21 +260,99 @@ export default function Mission() {
       `%c[Add to Cart] Button clicked for missionId: ${missionId}`,
       `color: var(--mutant-color); font-weight: bold;`
     );
-    const token = localStorage.getItem("login-accessToken");
-    if (!token) {
-      console.log("[Add to Cart] No token found. Redirecting to login.");
-      router.push("/auth/login");
-      return;
-    }
 
+    // Check if button is already clicked/in cart
     if (clickedButtons.has(missionId)) {
-      console.log(
-        `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
-      );
-      router.push("/cart");
+      console.log(`[Add to Cart] Mission ${missionId} already in cart.`);
+      showNotification("This mission is already in your cart.", "info");
       return;
     }
 
+    // Get authentication info
+    const token = localStorage.getItem("login-accessToken");
+    const storedGuestCartId = localStorage.getItem("guest-cart-id");
+
+    // GUEST USER FLOW
+    if (!token) {
+      try {
+        console.log(
+          `[Add to Cart] Guest user adding mission ${missionId} to cart`
+        );
+
+        // Use existing guest cart ID or create a new one
+        const apiUrl = storedGuestCartId
+          ? `https://themutantschool-backend.onrender.com/api/guest/cart/${missionId}?cartId=${storedGuestCartId}`
+          : `https://themutantschool-backend.onrender.com/api/guest/cart/${missionId}`;
+
+        const response = await axios.post(
+          apiUrl,
+          {},
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        console.log("[Add to Cart] Guest API Response:", response);
+
+        // Save the guest cart ID if this is the first item
+        if (response.data?.success && response.data?.cartId) {
+          localStorage.setItem("guest-cart-id", response.data.cartId);
+        }
+
+        // Update UI state
+        setClickedButtons((prev) => new Set(prev).add(missionId));
+
+        // Find the mission data for the cart item
+        const mission =
+          currentItems.find((item) => item._id === missionId) || {};
+
+        // Increment global cart (minimal add) and persist via context
+        setCartItems((prev) => {
+          const prevArray = Array.isArray(prev) ? prev : [];
+          const exists = prevArray.some((x) => x.id === missionId);
+          return exists
+            ? prevArray
+            : [
+                ...prevArray,
+                {
+                  id: missionId,
+                  title: mission.title,
+                  price: mission.price,
+                  image: mission.thumbnail?.url,
+                },
+              ];
+        });
+
+        console.log(
+          "[Add to Cart] Guest UI state updated. Broadcasting cart:changed event."
+        );
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("cart:changed"));
+        }
+
+        showNotification("Added to cart!", "success");
+      } catch (err) {
+        // Check if the error is because the mission is already in the cart
+        if (err.response?.data?.message === "Mission already in cart") {
+          setClickedButtons((prev) => new Set(prev).add(missionId)); // Sync local state
+          showNotification("This mission is already in your cart.", "info");
+        } else {
+          console.error(
+            "[Add to Cart] Guest API Error:",
+            err.response?.data || err.message
+          );
+          showNotification(
+            err.response?.data?.message || "Failed to add mission to cart.",
+            "error"
+          );
+        }
+      }
+      return;
+    }
+
+    // AUTHENTICATED USER FLOW
     try {
       console.log(
         `[Add to Cart] Sending POST request for missionId: ${missionId}`
@@ -287,7 +367,7 @@ export default function Mission() {
           },
         }
       );
-      console.log("[Add to Cart] API Response:", response.data);
+      console.log("[Add to Cart] API Response:", response);
 
       setClickedButtons((prev) => new Set(prev).add(missionId));
       // Increment global cart (minimal add) and persist via context
@@ -303,13 +383,26 @@ export default function Mission() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("cart:changed"));
       }
+
+      showNotification("Added to cart!", "success");
     } catch (err) {
-      console.error(
-        "[Add to Cart] API Error:",
-        err.response?.data || err.message
-      );
-      setError(err.response?.data?.message || "Failed to add mission to cart.");
-      setTimeout(() => setError(null), 3000);
+      // Check if the error is specifically because the mission is already in the cart
+      if (
+        err.response?.status === 400 &&
+        err.response?.data?.message?.trim() === "Mission already in cart"
+      ) {
+        setClickedButtons((prev) => new Set(prev).add(missionId)); // Sync local state
+        showNotification("This mission is already in your cart.", "info");
+      } else {
+        console.error(
+          "[Add to Cart] API Error:",
+          err.response?.data || err.message
+        );
+        showNotification(
+          err.response?.data?.message || "Failed to add mission to cart.",
+          "error"
+        );
+      }
     }
   };
 

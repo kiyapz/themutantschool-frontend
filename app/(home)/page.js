@@ -188,17 +188,14 @@ export default function Home() {
   }, []);
 
   const handleAddToCart = async (missionId) => {
-    const token = localStorage.getItem("login-accessToken");
-    if (!token) {
-      router.push("/auth/login");
-      return;
-    }
-
+    // Check if already in cart
     if (clickedButtons.has(missionId)) {
       router.push("/cart");
       return;
     }
 
+    // Instead of redirecting to login, just go to the mission page
+    // where users can add to cart whether logged in or not
     router.push(`/mission/${missionId}`); // This is already encoded by the API
   };
 

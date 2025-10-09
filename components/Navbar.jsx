@@ -140,47 +140,46 @@ export default function Navbar() {
 
           {/* Desktop Auth / Profile */}
           <div className="hidden md:flex items-center gap-1 lg:gap-4">
-            {isStudent && (
-              <div>
-                <Link href={"/cart"}>
-                  <div
-                    ref={cartIconRef}
-                    className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
-                      bump ? "cart-bump" : ""
-                    }`}
-                    aria-label="Cart"
-                  >
-                    {/* <HiShoppingCart className="text-[18px]" /> */}
-                    <Image
-                      src={"/images/cart.png"}
-                      alt="cart"
-                      width={18}
-                      height={18}
-                    />
+            {/* Show cart icon for all users, not just students */}
+            <div>
+              <Link href={"/cart"}>
+                <div
+                  ref={cartIconRef}
+                  className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
+                    bump ? "cart-bump" : ""
+                  }`}
+                  aria-label="Cart"
+                >
+                  {/* <HiShoppingCart className="text-[18px]" /> */}
+                  <Image
+                    src={"/images/cart.png"}
+                    alt="cart"
+                    width={18}
+                    height={18}
+                  />
 
-                    {/* Cart count badge */}
-                    {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                        {cartCount}
-                      </span>
-                    )}
+                  {/* Cart count badge */}
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                      {cartCount}
+                    </span>
+                  )}
 
-                    {/* sparkles */}
-                    {sparkles.map((s) => (
-                      <span
-                        key={s.id}
-                        className="cart-sparkle"
-                        style={{
-                          transform: `translate(${s.left}px, ${s.top}px)`,
-                        }}
-                      >
-                        ✨
-                      </span>
-                    ))}
-                  </div>
-                </Link>
-              </div>
-            )}
+                  {/* sparkles */}
+                  {sparkles.map((s) => (
+                    <span
+                      key={s.id}
+                      className="cart-sparkle"
+                      style={{
+                        transform: `translate(${s.left}px, ${s.top}px)`,
+                      }}
+                    >
+                      ✨
+                    </span>
+                  ))}
+                </div>
+              </Link>
+            </div>
 
             {isAuthenticated ? (
               <StudentProfileDropdown
@@ -224,33 +223,32 @@ export default function Navbar() {
 
           {/* Mobile Menu Button */}
           <div className="sm:hidden flex items-center justify-end gap-2">
-            {isStudent && (
-              <div>
-                <Link href={"/cart"}>
-                  <div
-                    onClick={() => {
-                      closeMobileMenu();
-                    }}
-                    className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md relative"
-                    aria-label="Cart"
-                  >
-                    <Image
-                      src={"/images/cart.png"}
-                      alt="cart"
-                      width={18}
-                      height={18}
-                    />
+            {/* Show cart icon for all users, not just students */}
+            <div>
+              <Link href={"/cart"}>
+                <div
+                  onClick={() => {
+                    closeMobileMenu();
+                  }}
+                  className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md relative"
+                  aria-label="Cart"
+                >
+                  <Image
+                    src={"/images/cart.png"}
+                    alt="cart"
+                    width={18}
+                    height={18}
+                  />
 
-                    {/* Cart count badge */}
-                    {cartCount > 0 && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                        {cartCount}
-                      </span>
-                    )}
-                  </div>
-                </Link>
-              </div>
-            )}
+                  {/* Cart count badge */}
+                  {cartCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                      {cartCount}
+                    </span>
+                  )}
+                </div>
+              </Link>
+            </div>
             <button
               onClick={toggleMobileMenu}
               className="md:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 focus:outline-none"
