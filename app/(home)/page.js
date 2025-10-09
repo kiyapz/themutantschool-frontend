@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
+import { encodeId } from "@/lib/idUtils";
 
 export default function Home() {
   const [missions, setMissions] = useState([]);
@@ -56,7 +57,11 @@ export default function Home() {
 
     const fetchCartItems = async () => {
       const token = localStorage.getItem("login-accessToken");
-      if (!token) return;
+      if (!token) {
+        console.log("No token found, skipping cart fetch");
+        return;
+      }
+
       try {
         const res = await axios.get(
           "https://themutantschool-backend.onrender.com/api/mission-cart",
@@ -64,8 +69,10 @@ export default function Home() {
             headers: {
               Authorization: `Bearer ${token}`,
             },
+            timeout: 10000, // 10 second timeout
           }
         );
+
         if (res.data && res.data.data) {
           const cartMissionIds = new Set(
             (res.data.cart?.missions || res.data.data || []).map((entry) => {
@@ -84,18 +91,48 @@ export default function Home() {
         }
       } catch (err) {
         console.error("Failed to fetch cart items on home page:", err);
-        setError("Failed to load your cart. Please try refreshing the page.");
+
+        // Only show error for 500 errors, not for 401/403 (unauthorized)
+        if (err.response?.status >= 500) {
+          setError("Server error loading cart. Please try again later.");
+        } else if (
+          err.response?.status === 401 ||
+          err.response?.status === 403
+        ) {
+          console.log("User not authenticated, skipping cart fetch");
+          // Don't show error for auth issues, just skip cart fetch
+        } else {
+          setError("Failed to load your cart. Please try refreshing the page.");
+        }
+
+        // Automatically clear the error message after 3 seconds
+        const timer = setTimeout(() => {
+          setError(null);
+        }, 3000);
+        // Cleanup the timer if the component unmounts
+        return () => clearTimeout(timer);
       }
     };
 
-    // Fetch missions on component mount
+    // Fetch missions and cart items on component mount
     fetchMissions();
-    fetchCartItems();
+
+    // Only fetch cart items if user is authenticated
+    const token = localStorage.getItem("login-accessToken");
+    if (token) {
+      fetchCartItems();
+    }
 
     // Add event listener for page refresh/visibility change
     const handleVisibilityChange = () => {
       if (!document.hidden) {
         fetchMissions(); // Always fetch fresh data when page becomes visible
+
+        // Also refresh cart if user is authenticated
+        const token = localStorage.getItem("login-accessToken");
+        if (token) {
+          fetchCartItems();
+        }
       }
     };
 
@@ -162,7 +199,7 @@ export default function Home() {
       return;
     }
 
-    router.push(`/mission/${missionId}`);
+    router.push(`/mission/${missionId}`); // This is already encoded by the API
   };
 
   // Function to determine background color based on index
@@ -382,7 +419,9 @@ export default function Home() {
                             "Navigating to mission:",
                             `${slug}-${mission._id}`
                           );
-                          router.push(`/mission/${slug}-${mission._id}`);
+                          router.push(
+                            `/mission/${slug}-${encodeId(mission._id)}`
+                          );
                         }}
                         className={`${
                           clickedButtons.has(mission._id)

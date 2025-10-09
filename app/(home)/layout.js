@@ -1,10 +1,6 @@
-
 import "../globals.css";
 import Footer from "@/components/Footer";
 import Navbar from "@/components/Navbar";
-
-
-
 
 export const metadata = {
   title: "Mutant School | Home Page",

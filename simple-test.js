@@ -1,47 +1,34 @@
-"use client";
+// Simple test for robust ID decoding with error handling
 
-/**
- * Enhanced encoding function to convert MongoDB ID to a more randomized string
- * This is not for security but for hiding the raw ID from users
- * Uses browser-safe base64 encoding and adds random characters
- */
-export function encodeId(id) {
+// Since this is Node.js and not browser, we need to simulate btoa/atob
+global.btoa = (str) => Buffer.from(str).toString("base64");
+global.atob = (str) => Buffer.from(str, "base64").toString();
+
+// Define our encoding function with the URL-safe approach
+function encodeId(id) {
   if (!id) return "";
 
-  // Convert to base64 using browser-safe btoa function
-  let encoded = btoa(id.toString());
+  // Convert to base64
+  let encoded = global.btoa(id.toString());
 
   // Replace characters that might look like URL parameters
   encoded = encoded.replace(/=/g, "");
   encoded = encoded.replace(/\+/g, "-");
   encoded = encoded.replace(/\//g, "_");
 
-  // Generate a random string of URL-safe chars and letters
-  const randomChars = generateRandomString(8);
+  // Generate random string with URL-safe characters
+  const chars =
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.";
+  let randomChars = "";
+  for (let i = 0; i < 8; i++) {
+    randomChars += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
 
-  // Create a more chaotic looking ID - using _ as separator instead of @ for URL safety
   return `${encoded}_${randomChars}${Math.floor(Math.random() * 10000)}`;
 }
 
-/**
- * Generate a random string with URL-safe characters and letters
- */
-function generateRandomString(length) {
-  // Only use URL-safe characters (removed special chars like @, %, ~, etc.)
-  const chars =
-    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
-/**
- * Decodes the obfuscated ID back to original MongoDB ID
- * Uses browser-safe atob function
- */
-export function decodeId(encodedId) {
+// Define our robust decoding function
+function decodeId(encodedId) {
   if (!encodedId) return "";
 
   try {
@@ -65,33 +52,8 @@ export function decodeId(encodedId) {
     const originalEncoded = encoded;
 
     if (processedId.includes("_")) {
-      // We want the part before the underscore separator. Since our base64 encoded
-      // string might contain underscores, we need to be careful how we split.
-
-      // Find the correct underscore - the first part should be a base64 encoded string
-      // MongoDB IDs are 24 chars, so the base64 encoded version should be around 32 chars
-      const parts = processedId.split("_");
-
-      // If there's only one part after splitting, use it
-      if (parts.length === 1) {
-        encoded = parts[0];
-      }
-      // If there are only 2 parts and the first part looks like base64, use it
-      else if (parts.length === 2 && /^[A-Za-z0-9\-_]{16,32}$/.test(parts[0])) {
-        encoded = parts[0];
-      }
-      // If there are more parts, assume first part is Base64 (but handle edge cases)
-      else {
-        // First, try the combined string of all but the last part
-        const candidateEncoded = parts.slice(0, -1).join("_");
-
-        // If it's too long, just use the first 32 chars as a reasonable guess
-        if (candidateEncoded.length > 40) {
-          encoded = candidateEncoded.substring(0, 32);
-        } else {
-          encoded = candidateEncoded;
-        }
-      }
+      // Get everything before the last _ (since our base64 might contain _)
+      encoded = processedId.split("_").slice(0, -1).join("_");
     } else if (processedId.includes("@")) {
       // Backward compatibility for old format
       encoded = processedId.split("@")[0];
@@ -125,7 +87,7 @@ export function decodeId(encodedId) {
       }
 
       // Use atob function to decode
-      const decoded = atob(convertedEncoded);
+      const decoded = global.atob(convertedEncoded);
 
       // Validate if the result looks like a MongoDB ObjectId (24 hex chars)
       if (/^[0-9a-f]{24}$/i.test(decoded)) {
@@ -181,7 +143,7 @@ export function decodeId(encodedId) {
             continue;
           }
 
-          const testDecoded = atob(testEncoded);
+          const testDecoded = global.atob(testEncoded);
           if (/^[0-9a-f]{24}$/i.test(testDecoded)) {
             return testDecoded;
           }
@@ -197,8 +159,72 @@ export function decodeId(encodedId) {
     return processedId;
   } catch (error) {
     console.error("Failed to decode ID:", error);
-
-    // If decoding fails, it might be a raw ID, so return it as is
     return encodedId;
   }
 }
+
+// Test IDs
+const validIds = [
+  "68ba02f7cf02aa45faf6719b",
+  "64f8c3db91f1010534f142ac",
+  "60a12345678901234567890a",
+  "68cbf0f18f588ae1f7373d68", // The one from the error message
+];
+
+console.log("=== Testing valid MongoDB IDs ===");
+validIds.forEach((id) => {
+  console.log(`\nOriginal ID: ${id}`);
+
+  // Encode and test round-trip
+  const encoded = encodeId(id);
+  console.log(`Encoded: ${encoded}`);
+
+  const decoded = decodeId(encoded);
+  console.log(`Decoded: ${decoded}`);
+  console.log(`Success: ${id === decoded}`);
+});
+
+console.log("\n\n=== Testing error handling with malformed inputs ===");
+
+// Test cases with malformed/problematic inputs
+const problematicInputs = [
+  { name: "Empty string", input: "" },
+  { name: "Already a MongoDB ID", input: "68ba02f7cf02aa45faf6719b" },
+  {
+    name: "Invalid characters",
+    input: "NjhjYmYwZjE4ZjU4OGFlMWY3MzczZDY4@#$%^&*()",
+  },
+  { name: "Too short", input: "abc123" },
+  { name: "Wrong separator", input: "NjhjYmYwZjE4ZjU4OGFlMWY3MzczZDY4-abc123" },
+  { name: "No separator", input: "NjhjYmYwZjE4ZjU4OGFlMWY3MzczZDY4abc123" },
+  {
+    name: "With slug",
+    input: "javascript-NjhjYmYwZjE4ZjU4OGFlMWY3MzczZDY4_randomchars123",
+  },
+  {
+    name: "With old format",
+    input: "javascript-NjhjYmYwZjE4ZjU4OGFlMWY3MzczZDY4@randomchars123",
+  },
+  {
+    name: "Raw in string",
+    input: "someprefixtext68cbf0f18f588ae1f7373d68moresuffix",
+  },
+];
+
+problematicInputs.forEach((test) => {
+  console.log(`\nTesting: ${test.name}`);
+  console.log(`Input: ${test.input}`);
+  try {
+    const result = decodeId(test.input);
+    console.log(`Result: ${result}`);
+
+    // Check if we got a valid MongoDB ID
+    if (/^[0-9a-f]{24}$/i.test(result)) {
+      console.log("✓ Successfully extracted a valid MongoDB ID");
+    } else {
+      console.log("✗ Did not extract a valid MongoDB ID");
+    }
+  } catch (e) {
+    console.log(`Error: ${e.message}`);
+  }
+});

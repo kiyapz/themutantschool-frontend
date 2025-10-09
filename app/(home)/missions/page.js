@@ -8,6 +8,7 @@ import { useCart } from "@/components/mutantcart/CartContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { encodeId } from "@/lib/idUtils";
 
 const ITEMS_PER_PAGE = 9;
 
@@ -22,9 +23,6 @@ export default function Mission() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const router = useRouter();
-
-
-
 
   useEffect(() => {
     const fetchMissions = async () => {
@@ -332,7 +330,6 @@ export default function Mission() {
     startIndex + ITEMS_PER_PAGE
   );
 
-
   console.log(course.thumbnail?.url, "course.thumbnail.url");
   return (
     <div className="w-screen h-full bg-black flexcenter ">
@@ -530,28 +527,29 @@ export default function Mission() {
                 ) : (
                   <div className="w-full sm:grid md:grid-cols-3 gap-5 ">
                     {currentItems.map((course, i) => (
-                      
                       <div
                         key={course._id}
                         className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md cursor-pointer"
                       >
                         <div
                           style={{
-                            backgroundImage: course.thumbnail?.url ? `url(${course.thumbnail.url})` : 'none',
+                            backgroundImage: course.thumbnail?.url
+                              ? `url(${course.thumbnail.url})`
+                              : "none",
                           }}
                           onError={(e) => {
-                            console.error('Error loading background image:', course.thumbnail?.url);
+                            console.error(
+                              "Error loading background image:",
+                              course.thumbnail?.url
+                            );
                           }}
                           onClick={() => {
                             console.log("Navigating to mission:", course._id);
-                            router.push(`/mission/${course._id}`);
+                            router.push(`/mission/${encodeId(course._id)}`);
                           }}
                           className="h-[294.71px] w-full bg-[#2A2A2A] rounded-t-[20px] bg-cover bg-center"
                         ></div>
 
-                       
-
-                         
                         <div
                           className="flex flex-col  justify-between flex-1 h-[222.01px]  "
                           style={{ padding: "20px" }}

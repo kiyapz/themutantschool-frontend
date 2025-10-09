@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import axios from "axios";
 import Image from "next/image";
 import { FaClock } from "react-icons/fa";
@@ -8,7 +8,7 @@ import { AiFillStar } from "react-icons/ai";
 import { FaPlay, FaPause } from "react-icons/fa";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
-import { decodeId } from "@/lib/idUtils";
+import { decodeId, encodeId } from "@/lib/idUtils";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function MissionDetails() {
@@ -19,6 +19,7 @@ export default function MissionDetails() {
   const [error, setError] = useState(null);
   const { cartItems, setCartItems } = useCart();
   const router = useRouter();
+  const pathname = usePathname();
   const [isInCart, setIsInCart] = useState(false);
   const [openLevels, setOpenLevels] = useState([]);
   const [instructorProfile, setInstructorProfile] = useState(null);
@@ -158,10 +159,12 @@ export default function MissionDetails() {
         if (routeParam.includes("-")) {
           // If there's a hyphen, the ID is the last part
           const slugParts = routeParam.split("-");
-          missionId = slugParts[slugParts.length - 1];
+          const encodedId = slugParts[slugParts.length - 1];
+          // Decode the ID if it's encoded
+          missionId = decodeId(encodedId);
         } else {
           // Otherwise, the whole slug is the ID
-          missionId = routeParam;
+          missionId = decodeId(routeParam);
         }
 
         console.log("Fetching mission with ID:", missionId);
@@ -181,10 +184,22 @@ export default function MissionDetails() {
           setMission(missionData);
           console.log("Found mission:", missionData);
 
-          // After fetching, create the canonical slug and check for redirect
+          // After fetching, create the canonical slug for display purposes
           const canonicalSlug = createSlug(missionData.title);
-          const expectedUrl = `/mission/${canonicalSlug}-${missionData._id}`;
-          if (router.asPath !== expectedUrl) {
+
+          // Only redirect if the current URL doesn't contain the correct slug format
+          // This prevents redirect loops caused by the random part of the encoded ID
+          const currentPath = pathname; // Use pathname instead of router.asPath
+          const slugPrefix = `/mission/${canonicalSlug}-`;
+
+          // Only redirect if the URL has the wrong slug format, not because of ID encoding differences
+          if (
+            currentPath && // Make sure currentPath exists before checking
+            !currentPath.startsWith(slugPrefix) &&
+            !currentPath.includes(`/${missionData._id}`)
+          ) {
+            const encodedId = encodeId(missionData._id);
+            const expectedUrl = `/mission/${canonicalSlug}-${encodedId}`;
             router.replace(expectedUrl, undefined, { shallow: true });
           }
 

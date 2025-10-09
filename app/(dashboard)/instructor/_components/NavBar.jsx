@@ -113,8 +113,8 @@ export default function NavBar({ onMenuClick }) {
 
       {openSmallScreenProfileDropDown && (
         <div className="w-screen fixed top-0 left-0 z-40 h-screen bg-[rgba(0,0,0,0.9)]">
-          <div className="w-[325.89px] h-full fixed right-0 top-20 bg-[#2B2B2B] z-40">
-            <div className="relative w-full h-fit ">
+          <div className="w-[325.89px] h-auto fixed right-0 bottom-0 bg-[#2B2B2B] z-40 rounded-t-lg">
+            <div className="relative w-full h-fit">
               <ProfiledropDown />
             </div>
           </div>

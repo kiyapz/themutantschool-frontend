@@ -94,14 +94,21 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
   // Quiz completion handler with proper answer storage
   const handleQuizComplete = useCallback(
     async (finalAnswers) => {
-      console.log(`📊 QUIZ COMPLETE - Starting quiz completion with answers:`, finalAnswers);
+      console.log(
+        `📊 QUIZ COMPLETE - Starting quiz completion with answers:`,
+        finalAnswers
+      );
       console.log(`📊 QUIZ COMPLETE - Quiz information:`, {
         quizId: quizData?._id,
         quizTitle: quizData?.title,
         levelId: quizData?.level,
         totalQuestions: quizData?.questions?.length,
-        answeredQuestions: finalAnswers.filter((a) => a !== null && a !== undefined).length,
-        skippedQuestions: finalAnswers.filter((a) => a === null || a === undefined).length,
+        answeredQuestions: finalAnswers.filter(
+          (a) => a !== null && a !== undefined
+        ).length,
+        skippedQuestions: finalAnswers.filter(
+          (a) => a === null || a === undefined
+        ).length,
         timestamp: new Date().toISOString(),
       });
 
@@ -129,14 +136,20 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           percentage: percentage,
           passed: apiResponse.passed,
           duration: finalDuration,
-          timestamp: new Date().toISOString()
+          timestamp: new Date().toISOString(),
         });
 
         // Log detailed question/answer results if available
         if (apiResponse.data && apiResponse.data.answers) {
           console.log("📊 QUIZ RESULTS - Question-by-question details:");
           apiResponse.data.answers.forEach((answer, idx) => {
-            console.log(`Question ${idx + 1}: ${answer.isCorrect ? '✅ CORRECT' : '❌ WRONG'} - Selected: "${answer.selectedOption}" ${!answer.isCorrect ? `| Correct: "${answer.correctOption}"` : ''}`);
+            console.log(
+              `Question ${idx + 1}: ${
+                answer.isCorrect ? "✅ CORRECT" : "❌ WRONG"
+              } - Selected: "${answer.selectedOption}" ${
+                !answer.isCorrect ? `| Correct: "${answer.correctOption}"` : ""
+              }`
+            );
           });
         }
 
@@ -149,7 +162,9 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           submittedSuccessfully: true,
         });
 
-        console.log("📊 QUIZ RESULTS - Quiz submitted successfully and results processed");
+        console.log(
+          "📊 QUIZ RESULTS - Quiz submitted successfully and results processed"
+        );
 
         // Call the completion callback to advance to next stage
         if (onQuizComplete) {
@@ -358,7 +373,8 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
       const answers = { answers: formattedAnswers };
       console.log(
         "📝 QUIZ SUBMIT - Full payload data:",
-        JSON.stringify(answers, null, 2)
+        // JSON.stringify(answers, null, 2)
+        answers
       );
 
       console.log(
@@ -377,74 +393,91 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         }
       );
 
-      console.log("📝 QUIZ SUBMIT - Received response:", {
-        status: response.status,
-        statusText: response.statusText,
-        timestamp: new Date().toISOString(),
-        hasData: !!response.data,
-        responseData: response.data,
-      });
-      
+      // console.log("📝 QUIZ SUBMIT - Received response:", {
+      //   status: response.status,
+      //   statusText: response.statusText,
+      //   timestamp: new Date().toISOString(),
+      //   hasData: !!response.data,
+      //   responseData: response.data,
+      // });
+
       // Detailed logging of score and results
-      console.log("📊 QUIZ RESULTS - Full response data:", JSON.stringify(response.data, null, 2));
-      
+      console.log(
+        "📊 QUIZ RESULTS - Full response data:",
+        JSON.stringify(
+          "response.data vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv",
+          response
+        )
+      );
+
+      // console.log('response.data00000000000000kkkkkkkkkkkkkkkkkkkkkkkk',response, "response.data00000000000000");
+
       // Log specific score information if available
-      if (response.data) {
-        console.log("📊 QUIZ RESULTS - Score details:", {
-          score: response.data.score,
-          totalQuestions: response.data.total,
-          percentage: response.data.percentage || Math.round((response.data.score / response.data.total) * 100),
-          passed: response.data.passed,
-          timestamp: new Date().toISOString(),
-        });
-        
-        // If there's detailed answer data, log that too
-        if (response.data.data && response.data.data.answers) {
-          console.log("📊 QUIZ RESULTS - Answer breakdown:", 
-            response.data.data.answers.map((answer, index) => ({
-              question: index + 1,
-              correct: answer.isCorrect,
-              selected: answer.selectedOption,
-              correctOption: answer.correctOption,
-            }))
-          );
-          
-          // Calculate correct vs incorrect counts
-          const correctCount = response.data.data.answers.filter(a => a.isCorrect).length;
-          const incorrectCount = response.data.data.answers.filter(a => !a.isCorrect).length;
-          
-          console.log("📊 QUIZ RESULTS - Summary:", {
-            correctAnswers: correctCount,
-            incorrectAnswers: incorrectCount,
-            accuracy: `${Math.round((correctCount / response.data.data.answers.length) * 100)}%`
-          });
-        }
-      }
+      // if (response.data) {
+      //   console.log("📊 QUIZ RESULTS - Score details:", {
+      //     score: response.data.score,
+      //     totalQuestions: response.data.total,
+      //     percentage:
+      //       response.data.percentage ||
+      //       Math.round((response.data.score / response.data.total) * 100),
+      //     passed: response.data.passed,
+      //     timestamp: new Date().toISOString(),
+      //   });
+
+      //   // If there's detailed answer data, log that too
+      //   if (response.data.data && response.data.data.answers) {
+      //     console.log(
+      //       "📊 QUIZ RESULTS - Answer breakdown:",
+      //       response.data.data.answers.map((answer, index) => ({
+      //         question: index + 1,
+      //         correct: answer.isCorrect,
+      //         selected: answer.selectedOption,
+      //         correctOption: answer.correctOption,
+      //       }))
+      //     );
+
+      //     // Calculate correct vs incorrect counts
+      //     const correctCount = response.data.data.answers.filter(
+      //       (a) => a.isCorrect
+      //     ).length;
+      //     const incorrectCount = response.data.data.answers.filter(
+      //       (a) => !a.isCorrect
+      //     ).length;
+
+      //     console.log("📊 QUIZ RESULTS - Summary:", {
+      //       correctAnswers: correctCount,
+      //       incorrectAnswers: incorrectCount,
+      //       accuracy: `${Math.round(
+      //         (correctCount / response.data.data.answers.length) * 100
+      //       )}%`,
+      //     });
+      //   }
+      // }
 
       // Handle cases where the quiz has already been taken
-      if (response.data.status === "already_taken") {
-        console.log("Quiz already taken, advancing to completion screen.");
-        localStorage.setItem("quizAlreadyTaken", "true"); // Save state
-        if (onQuizComplete) {
-          onQuizComplete();
-        }
-        return response.data; // Stop further processing
-      }
+      // if (response.data.status === "already_taken") {
+      //   console.log("Quiz already taken, advancing to completion screen.");
+      //   localStorage.setItem("quizAlreadyTaken", "true"); // Save state
+      //   if (onQuizComplete) {
+      //     onQuizComplete();
+      //   }
+      //   return response.data; // Stop further processing
+      // }
 
       return response.data;
     } catch (error) {
-      console.error("📝 QUIZ SUBMIT - ERROR:", error.message);
+      console.log("📝 QUIZ SUBMIT - ERROR:", error.message);
 
       // Log more detailed error information
       if (error.response) {
-        console.log("📝 QUIZ SUBMIT - ERROR DETAILS:", {
-          status: error.response.status,
-          statusText: error.response.statusText,
-          data: error.response.data,
-          endpoint: `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`,
-          timestamp: new Date().toISOString(),
-        });
-        console.log("📝 QUIZ SUBMIT - ERROR HEADERS:", error.response.headers);
+        // console.log("📝 QUIZ SUBMIT - ERROR DETAILS:", {
+        //   status: error.response.status,
+        //   statusText: error.response.statusText,
+        //   data: error.response.data,
+        //   endpoint: `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`,
+        //   timestamp: new Date().toISOString(),
+        // });
+        console.log("📝 QUIZ SUBMIT - ERROR HEADERS:", error);
 
         // Check if quiz was already taken (404 with "Quiz not found" message)
         if (
@@ -457,14 +490,14 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           setLoading(false);
 
           // Save the "already taken" state to localStorage
-          localStorage.setItem("quizAlreadyTaken", "true");
+          // localStorage.setItem("quizAlreadyTaken", "true");
 
           // Create a mock result to show the user they've already taken the quiz
-          setPreviousQuizResult({
-            message: "You have already completed this quiz!",
-            alreadyTaken: true,
-            canRetake: true,
-          });
+          // setPreviousQuizResult({
+          //   message: "You have already completed this quiz!",
+          //   alreadyTaken: true,
+          //   canRetake: true,
+          // });
 
           return {
             status: "already_taken",
@@ -628,6 +661,11 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
 
   // Quiz start screen
   if (!quizStartTime && !quizCompleted) {
+    // Use a fixed value for max attempts and get attempts taken from backend
+    const maxAttempts = 3;
+    const attemptsTaken = quizData.maxAttempts || 0; // The backend's 'maxAttempts' is the user's attempt count
+    const attemptsLeft = maxAttempts - attemptsTaken;
+
     return (
       <div
         style={{
@@ -661,7 +699,26 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
                 <span>Passing Score:</span>
                 <span>{quizData.passingScore}%</span>
               </div>
+              <div className="flex justify-between">
+                <span>Attempts Allowed:</span>
+                <span>{maxAttempts}</span>
+              </div>
+              <div className="flex justify-between font-bold text-yellow-400">
+                <span>Attempts Taken:</span>
+                <span>{attemptsTaken}</span>
+              </div>
+              <div className="flex justify-between font-bold text-green-400">
+                <span>Attempts Left:</span>
+                <span>{attemptsLeft > 0 ? attemptsLeft : 0}</span>
+              </div>
             </div>
+          </div>
+
+          <div className="text-center text-sm text-gray-400 mb-6">
+            <p>
+              Note: You have a maximum of {maxAttempts} attempts to pass this
+              quiz.
+            </p>
           </div>
 
           {updateError && (
@@ -673,9 +730,14 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           <button
             style={{ padding: "10px" }}
             onClick={startQuiz}
-            className="bg-[#840B94] hover:bg-[#6a0876] px-8 py-3 rounded-lg font-bold text-lg transition-colors"
+            className={`px-8 py-3 rounded-lg font-bold text-lg transition-colors ${
+              attemptsLeft > 0
+                ? "bg-[#840B94] hover:bg-[#6a0876]"
+                : "bg-gray-500 cursor-not-allowed"
+            }`}
+            disabled={attemptsLeft <= 0}
           >
-            Start Quiz
+            {attemptsLeft > 0 ? "Start Quiz" : "No Attempts Left"}
           </button>
         </div>
       </div>
@@ -688,6 +750,12 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
     const percentage = resultData.percentage || 0;
     const displayScore = resultData.score || 0;
     const totalQuestions = resultData.total || quizData.questions.length;
+
+    // Determine pass/fail status, with a fallback
+    const hasPassed =
+      resultData.apiResponse?.passed !== undefined
+        ? resultData.apiResponse.passed
+        : percentage >= (quizData.passingScore || 70);
 
     return (
       <div
@@ -719,9 +787,7 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
             <div className="flex items-center gap-4">
               <h2
                 className={`font-[500] sm:text-[48px] leading-[43px] ${
-                  resultData.apiResponse?.passed
-                    ? "text-green-400"
-                    : "text-red-400"
+                  hasPassed ? "text-green-400" : "text-red-400"
                 }`}
               >
                 {percentage}%
@@ -729,17 +795,15 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
               {resultData.apiResponse && (
                 <div
                   className={`text-4xl ${
-                    resultData.apiResponse.passed
-                      ? "text-green-400"
-                      : "text-red-400"
+                    hasPassed ? "text-green-400" : "text-red-400"
                   }`}
                 >
-                  {resultData.apiResponse.passed ? "🎉" : "💪"}
+                  {hasPassed ? "🎉" : "💪"}
                 </div>
               )}
             </div>
             <p className="font-[400] sm:text-[20px] text-center leading-[33px]">
-              {resultData.apiResponse?.passed
+              {hasPassed
                 ? "🎉 Congratulations! You've successfully completed this challenge and evolved your skills!"
                 : "💪 Here's how you fared in your latest challenge. Remember, every wrong answer is just training for your next evolution"}
             </p>
@@ -810,14 +874,10 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
                         <p>Quiz Result</p>
                         <p
                           className={
-                            resultData.apiResponse.passed
-                              ? "text-green-400"
-                              : "text-red-400"
+                            hasPassed ? "text-green-400" : "text-red-400"
                           }
                         >
-                          {resultData.apiResponse.passed
-                            ? "✅ PASSED"
-                            : "❌ FAILED"}
+                          {hasPassed ? "✅ PASSED" : "❌ FAILED"}
                         </p>
                       </div>
                       <div className="flex items-center justify-between w-[300px]">

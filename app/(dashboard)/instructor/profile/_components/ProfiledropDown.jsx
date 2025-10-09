@@ -18,7 +18,7 @@ export default function ProfiledropDown() {
   return (
     <div
       style={{ padding: "15px" }}
-      className="absolute top-full mt-2 right-0 bg-[#2B2B2B] flex flex-col gap-1 w-full rounded-md shadow-lg z-50 overflow-hidden py-2"
+      className="flex flex-col gap-1 w-full rounded-md shadow-lg z-50 overflow-hidden py-2"
     >
       <div className="flex flex-col items-center gap-1 p-2">
         <div className="w-[82px] h-[82px] rounded-full mb-2">

@@ -110,7 +110,10 @@ export default function Login() {
                 </p>
               </div>
 
-              <div style={{padding:'0 25px'}} className="flex w-full h-full  flex-col justify-around gap-4">
+              <div
+                style={{ padding: "0 25px" }}
+                className="flex w-full h-full  flex-col justify-around gap-4"
+              >
                 <div className="flex flex-col gap-4">
                   <input
                     type="email"
