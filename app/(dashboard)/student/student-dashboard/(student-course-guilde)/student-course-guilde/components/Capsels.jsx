@@ -1,7 +1,7 @@
 "use client";
 
 import { useContext, useEffect, useRef, useState } from "react";
-import LoadingBar from "./LodingBar";
+import LoadingBar from "./LodingBar"; // Corrected import path
 
 import MissionVideo from "./MissionVideos";
 import LevelQuiz from "./LevelQuiz";
@@ -438,6 +438,34 @@ export default function Capsels({ id, capsuleId }) {
     }
   }, [changeStages, setShowVideo]);
 
+  // Calculate progress
+  const totalCapsules = currentCapsule.length;
+  const watchedCapsules = watchedVideos.length;
+
+  const getStageProgress = () => {
+    // This function maps the overall progress to the four specific stages
+    const progressRatio =
+      totalCapsules > 0 ? watchedCapsules / totalCapsules : 0;
+
+    if (changeStages === 1)
+      return { completed: 0, total: totalCapsules > 0 ? totalCapsules + 1 : 1 }; // Learning outcomes + Quiz
+    if (changeStages === 2)
+      return {
+        completed: Math.min(1, watchedCapsules),
+        total: totalCapsules + 1,
+      }; // Intro video + Quiz
+    if (changeStages === 3)
+      return { completed: watchedCapsules, total: totalCapsules + 1 }; // Capsule videos + Quiz
+    if (changeStages === 4)
+      return { completed: totalCapsules, total: totalCapsules + 1 }; // At the quiz stage
+    if (changeStages === 5)
+      return { completed: totalCapsules + 1, total: totalCapsules + 1 }; // Completion stage (Quiz passed)
+
+    return { completed: watchedCapsules, total: totalCapsules + 1 };
+  };
+
+  const currentProgress = getStageProgress();
+
   // watched videos
   useEffect(() => {
     const fetchWachedVideo = async () => {
@@ -595,7 +623,10 @@ export default function Capsels({ id, capsuleId }) {
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
               <div className="h-[60px] w-full flex items-center">
-                <LoadingBar stage={"1/4"} width={"w-[10%]"} />
+                <LoadingBar
+                  completed={currentProgress.completed}
+                  total={currentProgress.total}
+                />
               </div>
 
               {/* Content - Takes remaining space */}
@@ -627,7 +658,10 @@ export default function Capsels({ id, capsuleId }) {
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
               <div className="h-[60px] w-full flex items-center">
-                <LoadingBar stage={"2/4"} width={"w-[20%]"} />
+                <LoadingBar
+                  completed={currentProgress.completed}
+                  total={currentProgress.total}
+                />
               </div>
 
               <div className="flex-1 flex items-center justify-center min-h-0 relative">
@@ -748,7 +782,10 @@ export default function Capsels({ id, capsuleId }) {
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
               <div className="h-[40px] w-full flex items-center justify-between">
-                <LoadingBar stage={"3/4"} width={"w-[40%]"} />
+                <LoadingBar
+                  completed={currentProgress.completed}
+                  total={currentProgress.total}
+                />
               </div>
 
               <div
@@ -892,11 +929,17 @@ export default function Capsels({ id, capsuleId }) {
           >
             <div className="max-w-[1261px] w-full h-[85vh]  flex flex-col items-end justify-between">
               <div className="h-10 w-full  ">
-                <LoadingBar width={"w-[70%]"} />
+                <LoadingBar
+                  completed={currentProgress.completed}
+                  total={currentProgress.total}
+                />
               </div>
               {/* text */}
               <div className="h-fit w-full flex flex-col justify-center">
-                <LevelQuiz onQuizComplete={() => setChangeStages(5)} />
+                <LevelQuiz
+                  onQuizComplete={() => setChangeStages(5)}
+                  onReview={() => setChangeStages(3)}
+                />
               </div>
             </div>
           </div>
@@ -908,7 +951,10 @@ export default function Capsels({ id, capsuleId }) {
             <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
               {/* Loading Bar - Fixed height */}
               <div className="h-[60px] w-full flex items-center justify-between">
-                <LoadingBar width={"w-[100%]"} />
+                <LoadingBar
+                  completed={currentProgress.completed}
+                  total={currentProgress.total}
+                />
               </div>
 
               {/* Completion Content */}

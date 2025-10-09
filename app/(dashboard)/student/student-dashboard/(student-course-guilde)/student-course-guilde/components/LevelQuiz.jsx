@@ -2,7 +2,11 @@ import axios from "axios";
 import React, { useEffect, useState, useCallback } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
-export default function LevelQuiz({ width = "100%", onQuizComplete }) {
+export default function LevelQuiz({
+  width = "100%",
+  onQuizComplete,
+  onReview,
+}) {
   const [quizData, setQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -172,7 +176,12 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         }
       } catch (error) {
         console.error("Failed to submit quiz to API:", error);
-        setUpdateError(`Quiz submission failed: ${error.message}`);
+
+        // Extract the specific error message from the backend response
+        const errorMessage =
+          error.response?.data?.message ||
+          "Quiz submission failed. Please try again.";
+        setUpdateError(errorMessage);
 
         // Don't calculate local score, just show error
         setQuizResult({
@@ -180,7 +189,7 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           total: quizData.questions.length,
           percentage: 0,
           duration: finalDuration,
-          error: "Failed to submit to server",
+          error: errorMessage, // Use the specific backend message here
           submittedSuccessfully: false,
         });
       } finally {
@@ -379,11 +388,12 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
 
       console.log(
         "📝 QUIZ SUBMIT - Sending API request to:",
-        `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`
+        `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${quizId}/level/${levelId}`
       );
 
       const response = await axios.post(
-        `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`,
+        `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${quizId}/level/${levelId}`,
+
         answers,
         {
           headers: {
@@ -488,7 +498,7 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
           setQuizAlreadyTaken(true);
           setQuizCompleted(true);
           setLoading(false);
-
+          setUpdateError(response.data.message);
           // Save the "already taken" state to localStorage
           // localStorage.setItem("quizAlreadyTaken", "true");
 
@@ -703,14 +713,6 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
                 <span>Attempts Allowed:</span>
                 <span>{maxAttempts}</span>
               </div>
-              <div className="flex justify-between font-bold text-yellow-400">
-                <span>Attempts Taken:</span>
-                <span>{attemptsTaken}</span>
-              </div>
-              <div className="flex justify-between font-bold text-green-400">
-                <span>Attempts Left:</span>
-                <span>{attemptsLeft > 0 ? attemptsLeft : 0}</span>
-              </div>
             </div>
           </div>
 
@@ -790,7 +792,7 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
                   hasPassed ? "text-green-400" : "text-red-400"
                 }`}
               >
-                {percentage}%
+                {hasPassed ? `${percentage}%` : ""}
               </h2>
               {resultData.apiResponse && (
                 <div
@@ -815,83 +817,86 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
             )}
             {resultData.error && (
               <div className="text-red-400 text-sm text-center">
-                ⚠️ {resultData.error.message}
+                ⚠️ {resultData.message}
               </div>
             )}
           </div>
 
-          <div>
-            <div className="text-[#646464] font-[400] text-[14px] sm:text-[19px] leading-[43px]">
-              <button
-                onClick={() =>
-                  setShowPerformanceDetails(!showPerformanceDetails)
-                }
-                className="flex items-center gap-2 cursor-pointer w-[300px] hover:text-white transition-colors"
-              >
-                Performance Details
-                <span
-                  className={`transform transition-transform ${
-                    showPerformanceDetails ? "rotate-180" : ""
-                  }`}
+          {hasPassed && (
+            <div>
+              <div className="text-[#646464] font-[400] text-[14px] sm:text-[19px] leading-[43px]">
+                <button
+                  onClick={() =>
+                    setShowPerformanceDetails(!showPerformanceDetails)
+                  }
+                  className="flex items-center gap-2 cursor-pointer w-[300px] hover:text-white transition-colors"
                 >
-                  ▼
-                </span>
-              </button>
+                  Performance Details
+                  <span
+                    className={`transform transition-transform ${
+                      showPerformanceDetails ? "rotate-180" : ""
+                    }`}
+                  >
+                    ▼
+                  </span>
+                </button>
 
-              {showPerformanceDetails && (
-                <div className="mt-3 space-y-2">
-                  <div className="flex items-center justify-between w-[300px]">
-                    <p>Attempted Questions</p>
-                    <p>
-                      {totalQuestions}/{totalQuestions}
-                    </p>
+                {showPerformanceDetails && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center justify-between w-[300px]">
+                      <p>Attempted Questions</p>
+                      <p>
+                        {totalQuestions}/{totalQuestions}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between w-[300px]">
+                      <p>Correct Answers</p>
+                      <p>
+                        {displayScore}/{totalQuestions}
+                      </p>
+                    </div>
+                    <div className="flex items-center justify-between w-[300px]">
+                      <p>Duration</p>
+                      <p>{formatDuration(quizDuration)}</p>
+                    </div>
+                    <div className="flex items-center justify-between w-[300px]">
+                      <p>Passing Score</p>
+                      <p>{quizData.passingScore}%</p>
+                    </div>
+                    {resultData.apiResponse && (
+                      <>
+                        <div className="flex items-center justify-between w-[300px]">
+                          <p>Server Status</p>
+                          <p className="text-green-400">
+                            {resultData.apiResponse.status
+                              ? resultData.apiResponse.status.toUpperCase()
+                              : "COMPLETED"}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between w-[300px]">
+                          <p>Quiz Result</p>
+                          <p
+                            className={
+                              hasPassed ? "text-green-400" : "text-red-400"
+                            }
+                          >
+                            {hasPassed ? "✅ PASSED" : "❌ FAILED"}
+                          </p>
+                        </div>
+                        <div className="flex items-center justify-between w-[300px]">
+                          <p>Attempt ID</p>
+                          <p className="text-xs text-gray-400">
+                            {resultData.apiResponse.attemptId?.slice(-8) ||
+                              "N/A"}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
-                  <div className="flex items-center justify-between w-[300px]">
-                    <p>Correct Answers</p>
-                    <p>
-                      {displayScore}/{totalQuestions}
-                    </p>
-                  </div>
-                  <div className="flex items-center justify-between w-[300px]">
-                    <p>Duration</p>
-                    <p>{formatDuration(quizDuration)}</p>
-                  </div>
-                  <div className="flex items-center justify-between w-[300px]">
-                    <p>Passing Score</p>
-                    <p>{quizData.passingScore}%</p>
-                  </div>
-                  {resultData.apiResponse && (
-                    <>
-                      <div className="flex items-center justify-between w-[300px]">
-                        <p>Server Status</p>
-                        <p className="text-green-400">
-                          {resultData.apiResponse.status
-                            ? resultData.apiResponse.status.toUpperCase()
-                            : "COMPLETED"}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between w-[300px]">
-                        <p>Quiz Result</p>
-                        <p
-                          className={
-                            hasPassed ? "text-green-400" : "text-red-400"
-                          }
-                        >
-                          {hasPassed ? "✅ PASSED" : "❌ FAILED"}
-                        </p>
-                      </div>
-                      <div className="flex items-center justify-between w-[300px]">
-                        <p>Attempt ID</p>
-                        <p className="text-xs text-gray-400">
-                          {resultData.apiResponse.attemptId?.slice(-8) || "N/A"}
-                        </p>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Answer Review Section */}
@@ -983,18 +988,28 @@ export default function LevelQuiz({ width = "100%", onQuizComplete }) {
         )}
 
         <div className="flex items-center justify-end mt-6 gap-4 w-full">
-          <button
-            style={{ padding: "16px 8px" }}
-            onClick={() => {
-              if (onQuizComplete) {
-                onQuizComplete();
-              }
-            }}
-            className="bg-[#840B94] hover:bg-[#6a0876] font-[700] sm:text-[31px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
-            disabled={loading}
-          >
-            {loading ? "Processing..." : "Continue"}
-          </button>
+          {hasPassed ? (
+            <button
+              style={{ padding: "16px 8px" }}
+              onClick={() => {
+                if (onQuizComplete) {
+                  onQuizComplete();
+                }
+              }}
+              className="bg-[#840B94] hover:bg-[#6a0876] font-[700] sm:text-[31px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
+              disabled={loading}
+            >
+              {loading ? "Processing..." : "Continue"}
+            </button>
+          ) : (
+            <button
+              onClick={onReview}
+              className="bg-[#604196] cursor-pointer font-[700] sm:text-[18px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
+              style={{ padding: "16px 8px" }}
+            >
+              Review Capsules
+            </button>
+          )}
         </div>
       </div>
     );
