@@ -86,17 +86,22 @@ export default function NavBar({ onMenuClick }) {
         </div>
 
         <div className="flex items-center">
-          <div className="h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
+          <div className="relative h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
             <div
               onClick={() =>
                 setopenSmallScreenProfileDropDown(
                   !openSmallScreenProfileDropDown
                 )
               }
-              className="w-[35px] h-[35px]  rounded-full cursor-pointer"
+              className="w-[35px] h-[35px] rounded-full cursor-pointer"
             >
               <InstructorProfileImage />
             </div>
+            {openSmallScreenProfileDropDown && (
+              <div className="absolute top-full right-0 mt-2 w-[325.89px] bg-[#1A1A1A] z-40 rounded-lg shadow-lg">
+                <ProfiledropDown />
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -107,16 +112,6 @@ export default function NavBar({ onMenuClick }) {
         <div className="fixed top-0 left-0 z-40 w-full h-full bg-[rgba(0,0,0,0.8)]">
           <div className="w-fit bg-black">
             <Sidebar />
-          </div>
-        </div>
-      )}
-
-      {openSmallScreenProfileDropDown && (
-        <div className="w-screen fixed top-0 left-0 z-40 h-screen bg-[rgba(0,0,0,0.9)]">
-          <div className="w-[325.89px] h-auto fixed right-0 bottom-0 bg-[#2B2B2B] z-40 rounded-t-lg">
-            <div className="relative w-full h-fit">
-              <ProfiledropDown />
-            </div>
           </div>
         </div>
       )}

@@ -117,7 +117,7 @@ export default function Createnewmission() {
     const accessToken = localStorage.getItem("login-accessToken");
 
     if (!storedMissionId || !accessToken) {
-      return;
+      return 0;
     }
 
     try {
@@ -131,17 +131,17 @@ export default function Createnewmission() {
         }
       );
 
-      const quizCount =
-        response.data?.count || response.data?.data?.length || 0;
+      const count = response.data?.count || response.data?.data?.length || 0;
 
-      // Store quiz count for validation
-      setQuizCount(quizCount);
+      setQuizCount(count);
+      return count;
     } catch (error) {
       console.error("Error fetching mission quizzes:", error);
       if (error.response) {
         console.error("Error response:", error.response.data);
         console.error("Error status:", error.response.status);
       }
+      return 0;
     }
   }, []);
 
@@ -337,10 +337,10 @@ export default function Createnewmission() {
       }
 
       // Also fetch quizzes for debugging
-      await fetchMissionQuizzes();
+      const currentQuizCount = await fetchMissionQuizzes();
 
       // Check if there are any quizzes
-      if (quizCount === 0) {
+      if (currentQuizCount === 0) {
         return {
           isValid: false,
           message: "Mission must have at least one quiz before publishing.",
@@ -368,7 +368,6 @@ export default function Createnewmission() {
   useEffect(() => {
     if (activeTab === "Preview and Launch") {
       checkValidationStatus();
-      fetchMissionQuizzes();
     }
   }, [activeTab, checkValidationStatus, fetchMissionQuizzes]);
 
@@ -469,7 +468,7 @@ export default function Createnewmission() {
 
         <div>
           {activeTab === "Preview and Launch" ? (
-            <div className="hidden sm:flex gap-3 mt-4">
+            <div className="flex gap-3 mt-4">
               {actions.map((el, idx) => (
                 <button
                   style={{ padding: "15px" }}
@@ -485,11 +484,9 @@ export default function Createnewmission() {
                   }}
                   key={idx}
                   title={
-                    el.text === "Publish" && quizCount === 0
-                      ? "Mission must have at least one quiz before publishing"
-                      : el.text === "Publish" &&
-                        validationStatus &&
-                        !validationStatus.isValid
+                    el.text === "Publish" &&
+                    validationStatus &&
+                    !validationStatus.isValid
                       ? validationStatus.message
                       : ""
                   }
@@ -499,8 +496,7 @@ export default function Createnewmission() {
                     (el.text === "Publish" && isPublishLoading) ||
                     (el.text === "Publish" &&
                       validationStatus &&
-                      !validationStatus.isValid) ||
-                    (el.text === "Publish" && quizCount === 0)
+                      !validationStatus.isValid)
                   }
                   className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-[600] ${
                     buttonAction == el.text ? "bg-[#604196]" : "bg-[#292929]"
@@ -510,8 +506,7 @@ export default function Createnewmission() {
                     (el.text === "Publish" && isPublishLoading) ||
                     (el.text === "Publish" &&
                       validationStatus &&
-                      !validationStatus.isValid) ||
-                    (el.text === "Publish" && quizCount === 0)
+                      !validationStatus.isValid)
                       ? "opacity-50 cursor-not-allowed"
                       : ""
                   }`}

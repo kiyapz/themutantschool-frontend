@@ -19,8 +19,9 @@ export default function RootLayout({ children }) {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-h-screen sm:h-screen">
+          <NavBar />
           {/* Page Content */}
-          <main className="flex-1 px   overflow-auto scrollbar-hide  py    p-4">
+          <main className="flex-1 overflow-auto scrollbar-hide p-4">
             {children}
           </main>
         </div>

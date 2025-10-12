@@ -69,7 +69,7 @@ export default function InstructorDropdown() {
 
       {/* Dropdown Menu */}
       {openlargeProfileDropdown && (
-        <div>
+        <div className="absolute top-full right-0 mt-2 w-full bg-[#1A1A1A] rounded-lg shadow-lg z-50">
           <ProfiledropDown />
         </div>
       )}

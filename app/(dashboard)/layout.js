@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }) {
 
   let NavBar = null;
   if (isInstructor) {
-    NavBar = InstructorNavBar;
+    // NavBar = InstructorNavBar;
   }
   // Student NavBar is handled by its specific page layout, so we no longer render it here.
   // else if (isStudent) {

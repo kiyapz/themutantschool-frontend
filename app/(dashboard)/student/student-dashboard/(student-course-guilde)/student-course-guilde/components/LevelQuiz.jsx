@@ -35,7 +35,7 @@ export default function LevelQuiz({
     const savedAlreadyTaken = localStorage.getItem("quizAlreadyTaken");
     if (savedAlreadyTaken === "true") {
       if (onQuizComplete) {
-        onQuizComplete();
+        onQuizComplete(true);
         return;
       }
     }
@@ -130,15 +130,15 @@ export default function LevelQuiz({
         console.log("API Response received:", apiResponse);
 
         // Get score and percentage from API response
-        const apiScore = apiResponse.score || 0;
-        const apiTotal = apiResponse.total || quizData.questions.length;
+        const apiScore = apiResponse.data.score || 0;
+        const apiTotal = apiResponse.data.total || quizData.questions.length;
         const percentage = Math.round((apiScore / apiTotal) * 100);
 
         console.log("📊 QUIZ RESULTS - Processing API response:", {
           score: apiScore,
           total: apiTotal,
           percentage: percentage,
-          passed: apiResponse.passed,
+          passed: apiResponse.data.passed,
           duration: finalDuration,
           timestamp: new Date().toISOString(),
         });
@@ -172,7 +172,7 @@ export default function LevelQuiz({
 
         // Call the completion callback to advance to next stage
         if (onQuizComplete) {
-          onQuizComplete();
+          onQuizComplete(apiResponse.data.passed);
         }
       } catch (error) {
         console.error("Failed to submit quiz to API:", error);
@@ -755,8 +755,8 @@ export default function LevelQuiz({
 
     // Determine pass/fail status, with a fallback
     const hasPassed =
-      resultData.apiResponse?.passed !== undefined
-        ? resultData.apiResponse.passed
+      resultData.apiResponse?.data?.passed !== undefined
+        ? resultData.apiResponse.data.passed
         : percentage >= (quizData.passingScore || 70);
 
     return (
@@ -886,7 +886,7 @@ export default function LevelQuiz({
                         <div className="flex items-center justify-between w-[300px]">
                           <p>Attempt ID</p>
                           <p className="text-xs text-gray-400">
-                            {resultData.apiResponse.attemptId?.slice(-8) ||
+                            {resultData.apiResponse.data.attemptId?.slice(-8) ||
                               "N/A"}
                           </p>
                         </div>

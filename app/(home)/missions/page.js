@@ -423,6 +423,7 @@ export default function Mission() {
     startIndex + ITEMS_PER_PAGE
   );
 
+  console.log("All missions:", course);
   console.log(course.thumbnail?.url, "course.thumbnail.url");
   return (
     <div className="w-screen h-full bg-black flexcenter ">

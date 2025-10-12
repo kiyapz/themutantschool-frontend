@@ -937,7 +937,13 @@ export default function Capsels({ id, capsuleId }) {
               {/* text */}
               <div className="h-fit w-full flex flex-col justify-center">
                 <LevelQuiz
-                  onQuizComplete={() => setChangeStages(5)}
+                  onQuizComplete={(passed) => {
+                    if (passed) {
+                      setChangeStages(5);
+                    } else {
+                      setChangeStages(6);
+                    }
+                  }}
                   onReview={() => setChangeStages(3)}
                 />
               </div>
@@ -992,6 +998,57 @@ export default function Capsels({ id, capsuleId }) {
                     Retake Quiz
                   </button>
                   {/* You can add another button here, e.g., for "Next Module" */}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
+            <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
+              {/* Loading Bar - Fixed height */}
+              <div className="h-[60px] w-full flex items-center justify-between">
+                <LoadingBar
+                  completed={currentProgress.completed}
+                  total={currentProgress.total}
+                />
+              </div>
+
+              {/* Failure Content */}
+              <div className="flex-1 flex flex-col items-center justify-center text-center">
+                <div className="mb-6">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-24 w-24 text-red-500"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                </div>
+                <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
+                  Module Failed
+                </h2>
+                <p className="text-white text-lg mb-8 max-w-2xl">
+                  Don't worry, failure is part of the learning process. Review
+                  the material and try the quiz again.
+                </p>
+
+                <div className="flex gap-4">
+                  <button
+                    onClick={handleRetakeQuiz}
+                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Retake Quiz
+                  </button>
                 </div>
               </div>
             </div>

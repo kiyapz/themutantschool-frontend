@@ -307,32 +307,42 @@ export default function Page() {
       );
 
       // Log the full response for debugging
-      console.log("[Guest Checkout] Full API response:", checkoutResponse.data);
+      console.log(
+        "[Guest Checkout] Full API response from backend:",
+        checkoutResponse.data
+      );
+      console.log(
+        "[Guest Checkout] Received response from backend:",
+        checkoutResponse
+      );
 
       if (checkoutResponse.data.success) {
         // Store guest credentials if provided by the API
-        if (
-          checkoutResponse.data.username &&
-          checkoutResponse.data.plainPassword
-        ) {
+        if (checkoutResponse.data.username) {
           console.log("[Guest Checkout] Storing guest credentials:", {
             username: checkoutResponse.data.username,
             email: checkoutResponse.data.email,
           });
 
-          // Save credentials to localStorage for later use
-          localStorage.setItem(
-            "guest-username",
-            checkoutResponse.data.username
+          // Save credentials to sessionStorage for later use
+          const guestCredentials = {
+            username: checkoutResponse.data.username,
+            email: checkoutResponse.data.email,
+          };
+          sessionStorage.setItem(
+            "guest-credentials",
+            JSON.stringify(guestCredentials)
           );
-          localStorage.setItem(
-            "guest-password",
-            checkoutResponse.data.plainPassword
+
+          // Log the stored credentials
+          console.log(
+            "Stored guest credentials in sessionStorage:",
+            guestCredentials
           );
 
           // Display credentials in console for user to see
           console.log(
-            "%c[IMPORTANT] Guest Account Created",
+            "%c[IMPORTANT] Guest Account Details",
             "color: green; font-weight: bold; font-size: 16px"
           );
           console.log(
@@ -340,11 +350,11 @@ export default function Page() {
             "color: blue; font-weight: bold"
           );
           console.log(
-            "%cPassword: " + checkoutResponse.data.plainPassword,
+            "%cEmail: " + checkoutResponse.data.email,
             "color: blue; font-weight: bold"
           );
           console.log(
-            "%cSave these credentials to access your purchased courses later!",
+            "%cUse these details to access your purchased courses later!",
             "color: red"
           );
         }
@@ -365,7 +375,6 @@ export default function Page() {
             );
           }
 
-          // Redirect to Stripe checkout
           window.location.href = sessionUrl;
         } else {
           throw new Error("No payment URL received from server.");
@@ -376,11 +385,31 @@ export default function Page() {
         );
       }
     } catch (err) {
-      console.error("[Guest Checkout] Error:", err);
-      console.error(
-        "[Guest Checkout] Error details:",
-        err.response?.data || "No response data"
-      );
+      console.error("[Guest Checkout] An error occurred:", err);
+
+      // Log detailed error information
+      if (err.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        console.error(
+          "[Guest Checkout] Error Response Data:",
+          err.response.data
+        );
+        console.error(
+          "[Guest Checkout] Error Response Status:",
+          err.response.status
+        );
+        console.error(
+          "[Guest Checkout] Error Response Headers:",
+          err.response.headers
+        );
+      } else if (err.request) {
+        // The request was made but no response was received
+        console.error("[Guest Checkout] Error Request:", err.request);
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        console.error("[Guest Checkout] Error Message:", err.message);
+      }
 
       setError(
         err.response?.data?.message ||

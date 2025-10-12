@@ -100,7 +100,7 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
       const newArray = [...prev[field]];
       newArray[index] = value;
       return {
-      ...prev,
+        ...prev,
         [field]: newArray,
       };
     });
@@ -118,7 +118,7 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
       const newArray = [...prev[field]];
       newArray.splice(index, 1);
       return {
-      ...prev,
+        ...prev,
         [field]: newArray,
       };
     });
@@ -178,7 +178,7 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
       // Add learning outcomes as array elements
       // First, filter out any empty outcomes
       const filteredOutcomes = formData.learningOutcomes.filter(
-          (outcome) => outcome.trim() !== ""
+        (outcome) => outcome.trim() !== ""
       );
 
       console.log("Filtered learning outcomes:", filteredOutcomes);
@@ -288,12 +288,12 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
         console.error("Status code:", error.response.status);
 
         if (error.response.status === 401) {
-        alert("Authentication failed. Please login again.");
+          alert("Authentication failed. Please login again.");
         } else if (error.response.status === 403) {
-        alert("You do not have permission to edit this mission.");
+          alert("You do not have permission to edit this mission.");
         } else if (error.response.status === 404) {
-        alert("Mission not found.");
-      } else {
+          alert("Mission not found.");
+        } else {
           // Try to extract a meaningful error message
           const errorMessage =
             error.response.data?.message ||
@@ -389,31 +389,31 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
             {activeTab === "details" && (
               <div className="space-y-6">
                 {/* Mission Title */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Mission Title
-              </label>
-              <input
-                type="text"
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Mission Title
+                  </label>
+                  <input
+                    type="text"
                     value={formData.title || ""}
-                onChange={(e) => handleInputChange("title", e.target.value)}
+                    onChange={(e) => handleInputChange("title", e.target.value)}
                     className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#604196]"
                     placeholder="Enter mission title"
-                required
-              />
-            </div>
+                    required
+                  />
+                </div>
 
-            {/* Short Description */}
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Short Description
-              </label>
-              <input
-                type="text"
+                {/* Short Description */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Short Description
+                  </label>
+                  <input
+                    type="text"
                     value={formData.shortDescription || ""}
-                onChange={(e) =>
-                  handleInputChange("shortDescription", e.target.value)
-                }
+                    onChange={(e) =>
+                      handleInputChange("shortDescription", e.target.value)
+                    }
                     className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#604196]"
                     placeholder="Brief description that appears on mission cards"
                   />
@@ -433,8 +433,8 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
                     className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#604196]"
                     placeholder="Detailed mission description"
                     required
-              />
-            </div>
+                  />
+                </div>
 
                 {/* Hidden Bio field - we keep it in the form data but don't show it */}
                 <input
@@ -448,59 +448,59 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
             {/* Learning Outcome Tab */}
             {activeTab === "learning" && (
               <div className="space-y-6">
-            {/* Category and Skill Level */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Category
-                </label>
-                <select
+                {/* Category and Skill Level */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Category
+                    </label>
+                    <select
                       value={formData.category || ""}
-                  onChange={(e) =>
-                    handleInputChange("category", e.target.value)
-                  }
+                      onChange={(e) =>
+                        handleInputChange("category", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#604196]"
                       required
-                >
-                  <option value="">Select Category</option>
-                  <option value="Technology">Technology</option>
-                  <option value="Education">Education</option>
-                  <option value="Health">Health</option>
-                  <option value="Environment">Environment</option>
-                  <option value="Social">Social</option>
-                </select>
-              </div>
+                    >
+                      <option value="">Select Category</option>
+                      <option value="Technology">Technology</option>
+                      <option value="Education">Education</option>
+                      <option value="Health">Health</option>
+                      <option value="Environment">Environment</option>
+                      <option value="Social">Social</option>
+                    </select>
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Skill Level
-                </label>
-                <select
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Skill Level
+                    </label>
+                    <select
                       value={formData.skillLevel || ""}
-                  onChange={(e) =>
-                    handleInputChange("skillLevel", e.target.value)
-                  }
+                      onChange={(e) =>
+                        handleInputChange("skillLevel", e.target.value)
+                      }
                       className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#604196]"
                       required
-                >
-                  <option value="">Select Level</option>
-                  <option value="Beginner">Beginner</option>
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                  <option value="Expert">Expert</option>
-                </select>
-              </div>
-            </div>
+                    >
+                      <option value="">Select Level</option>
+                      <option value="Beginner">Beginner</option>
+                      <option value="Easy">Easy</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Hard">Hard</option>
+                      <option value="Expert">Expert</option>
+                    </select>
+                  </div>
+                </div>
 
-            {/* Price and Duration */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Price (USD)
-                </label>
-                <input
-                  type="number"
+                {/* Price and Duration */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Price (USD)
+                    </label>
+                    <input
+                      type="number"
                       min="0"
                       step="0.01"
                       value={formData.price || ""}
@@ -510,17 +510,17 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
                       className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#604196]"
                       placeholder="0.00"
                       required
-                />
-              </div>
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-2">
-                  Estimated Duration (hours)
-                </label>
-                <input
-                  type="number"
-                  min="0"
-                  step="1"
+                  <div>
+                    <label className="block text-sm font-medium text-gray-300 mb-2">
+                      Estimated Duration (hours)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
                       value={formData.estimatedDuration || ""}
                       onChange={(e) => {
                         const value = e.target.value;
@@ -545,8 +545,8 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
                     type="checkbox"
                     id="certificateAvailable"
                     checked={formData.certificateAvailable}
-                  onChange={(e) =>
-                    handleInputChange(
+                    onChange={(e) =>
+                      handleInputChange(
                         "certificateAvailable",
                         e.target.checked
                       )
@@ -647,32 +647,32 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
                         />
                       </label>
                     </div>
-              </div>
-            </div>
+                  </div>
+                </div>
 
-            {/* Learning Outcomes */}
+                {/* Learning Outcomes */}
                 <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-300 mb-2">
-                Learning Outcomes
-              </label>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    Learning Outcomes
+                  </label>
                   <p className="text-xs text-gray-400 mb-3">
                     List what students will learn from this mission (appears in
                     "What You'll Learn" section)
                   </p>
-              <div className="space-y-2">
+                  <div className="space-y-2">
                     {formData.learningOutcomes?.map((outcome, index) => (
                       <div key={index} className="flex items-center gap-2">
-                  <input
-                    type="text"
-                    value={outcome}
-                    onChange={(e) =>
-                      handleArrayChange(
-                        "learningOutcomes",
-                        index,
-                        e.target.value
-                      )
-                    }
-                    placeholder={`Learning outcome ${index + 1}`}
+                        <input
+                          type="text"
+                          value={outcome}
+                          onChange={(e) =>
+                            handleArrayChange(
+                              "learningOutcomes",
+                              index,
+                              e.target.value
+                            )
+                          }
+                          placeholder={`Learning outcome ${index + 1}`}
                           className="w-full px-4 py-3 bg-[#1A1A1A] border border-[#333] rounded-md text-white focus:outline-none focus:border-[#604196]"
                         />
                         <button
@@ -686,10 +686,10 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
                           ×
                         </button>
                       </div>
-                ))}
-                <button
-                  type="button"
-                  onClick={() => addArrayItem("learningOutcomes")}
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => addArrayItem("learningOutcomes")}
                       className="text-[#604196] hover:text-[#7052a8] text-sm font-medium flex items-center"
                     >
                       <svg
@@ -707,10 +707,10 @@ const EditMissionModal = ({ mission, isOpen, onClose, onSuccess }) => {
                         />
                       </svg>
                       Add Learning Outcome
-                </button>
+                    </button>
+                  </div>
+                </div>
               </div>
-            </div>
-            </div>
             )}
 
             {/* Submit Buttons */}
