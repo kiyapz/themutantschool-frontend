@@ -2,24 +2,44 @@ import React, { useState, useRef, useEffect } from "react";
 import { ChevronDown, ChevronUp } from "lucide-react";
 
 const DropDown = ({ label, options, value, onChange, type = "text" }) => {
-  const [isOpen, setIsOpen] = useState(true); 
+  const [isOpen, setIsOpen] = useState(true);
   const dropdownRef = useRef(null);
-
- 
 
   // handle select value
   const handleSelect = (optionValue) => {
+    console.log(
+      `[Dropdown ${label}] handleSelect called with:`,
+      optionValue,
+      "type:",
+      type,
+      "current value:",
+      value
+    );
     if (type === "checkbox") {
-    
       const currentValues = Array.isArray(value) ? value : [];
       const newValues = currentValues.includes(optionValue)
         ? currentValues.filter((v) => v !== optionValue)
         : [...currentValues, optionValue];
+      console.log(
+        `[Dropdown ${label}] Checkbox values changed from`,
+        currentValues,
+        "to",
+        newValues
+      );
       onChange(newValues);
+    } else if (type === "radio" || type === "text") {
+      // For radio and text, allow deselection by clicking the same option again
+      const newValue = value === optionValue ? "" : optionValue;
+      console.log(
+        `[Dropdown ${label}] Value changed from`,
+        value,
+        "to",
+        newValue
+      );
+      onChange(newValue);
     } else {
-     
+      console.log(`[Dropdown ${label}] Setting value to:`, optionValue);
       onChange(optionValue);
-    
     }
   };
 
@@ -52,7 +72,7 @@ const DropDown = ({ label, options, value, onChange, type = "text" }) => {
         className="flex justify-between items-center"
       >
         <span className="text-gray-700">{getSelectedLabel()}</span>
-        {isOpen ?<ChevronDown size={18} /> : <ChevronUp size={18} /> }
+        {isOpen ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
       </div>
 
       <div
@@ -73,7 +93,7 @@ const DropDown = ({ label, options, value, onChange, type = "text" }) => {
                   <input
                     type="checkbox"
                     checked={isSelected(opt.value)}
-                    onChange={() => {}} 
+                    onChange={() => {}}
                     className="pointer-events-none"
                   />
                 )}
@@ -81,7 +101,7 @@ const DropDown = ({ label, options, value, onChange, type = "text" }) => {
                   <input
                     type="radio"
                     checked={isSelected(opt.value)}
-                    onChange={() => {}} 
+                    onChange={() => {}}
                     className="pointer-events-none"
                   />
                 )}

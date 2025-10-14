@@ -69,14 +69,19 @@ export default function Page() {
         }
       } catch (error) {
         console.error("[Cart Page] Error fetching guest cart:", error);
-        setError("Failed to load cart items.");
 
-        // Clear invalid guest cart
+        // Clear invalid guest cart and show empty cart (not an error)
         if (error.response?.status === 404) {
+          console.log(
+            "[Cart Page] Guest cart not found. Clearing cart ID and showing empty cart."
+          );
           localStorage.removeItem("guest-cart-id");
           setItems([]);
           setCartItems([]);
           setCartCount(0);
+          setError(null); // Don't show error for empty cart
+        } else {
+          setError("Failed to load cart items.");
         }
       } finally {
         setIsLoading(false);
@@ -137,14 +142,11 @@ export default function Page() {
         setCartCount(mappedItems.length);
         setError(null);
       } else {
-        console.error(
-          "[Cart Page] Error fetching authenticated cart:",
-          response
-        );
+        console.log("[Cart Page] Error fetching authenticated cart:", response);
         setError("Failed to load cart items.");
       }
     } catch (error) {
-      console.error("[Cart Page] Error fetching cart:", error);
+      console.log("[Cart Page] Error fetching cart:", error);
       setError("Failed to load cart items.");
       // Don't redirect to login on unauthorized errors
       // Just show the error message
@@ -163,6 +165,16 @@ export default function Page() {
       setEmailInput(storedGuestEmail);
     }
   }, [fetchCartItems, setGuestEmail]);
+
+  // Auto-dismiss error after 5 seconds
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   // Handle Stripe localization errors
   useEffect(() => {
@@ -216,7 +228,7 @@ export default function Page() {
           setError("Failed to remove item. Please try again.");
         }
       } catch (err) {
-        console.error(
+        console.log(
           "[Remove from Cart] Guest API Error:",
           err.response?.data || err.message
         );
@@ -248,7 +260,7 @@ export default function Page() {
         // Fire cart changed event for other components
         window.dispatchEvent(new CustomEvent("cart:changed"));
       } else {
-        console.error("[Remove from Cart] API Error response:", response.data);
+        console.log("[Remove from Cart] API Error response:", response.data);
         setError("Failed to remove item. Please try again.");
       }
     } catch (err) {
@@ -297,19 +309,33 @@ export default function Page() {
         }))
       );
 
+      // Prepare request payload
+      const requestPayload = {
+        email: email,
+        cartId: guestCartId,
+      };
+
+      console.log(
+        "%c[Guest Checkout] Sending request to backend:",
+        "color: blue; font-weight: bold"
+      );
+      console.log(
+        "URL:",
+        "https://themutantschool-backend.onrender.com/api/guest/checkout"
+      );
+      console.log("Method:", "POST");
+      console.log("Payload:", JSON.stringify(requestPayload, null, 2));
+
       // Direct checkout initialization with email and cartId
       const checkoutResponse = await axios.post(
         "https://themutantschool-backend.onrender.com/api/guest/checkout",
-        {
-          email: email,
-          cartId: guestCartId,
-        }
+        requestPayload
       );
 
       // Log the full response for debugging
       console.log(
-        "[Guest Checkout] Full API response from backend:",
-        checkoutResponse.data
+        "[Guest Checkout] Full API response from backend:[[[[[[[[[[[[[",
+        checkoutResponse
       );
       console.log(
         "[Guest Checkout] Received response from backend:",
@@ -322,12 +348,14 @@ export default function Page() {
           console.log("[Guest Checkout] Storing guest credentials:", {
             username: checkoutResponse.data.username,
             email: checkoutResponse.data.email,
+            password: checkoutResponse.data.password,
           });
 
           // Save credentials to sessionStorage for later use
           const guestCredentials = {
             username: checkoutResponse.data.username,
             email: checkoutResponse.data.email,
+            password: checkoutResponse.data.password,
           };
           sessionStorage.setItem(
             "guest-credentials",
@@ -385,36 +413,67 @@ export default function Page() {
         );
       }
     } catch (err) {
-      console.error("[Guest Checkout] An error occurred:", err);
+      console.error(
+        "%c[Guest Checkout] ❌ Error occurred:",
+        "color: red; font-weight: bold; font-size: 14px",
+        err
+      );
 
       // Log detailed error information
       if (err.response) {
         // The request was made and the server responded with a status code
         // that falls out of the range of 2xx
         console.error(
-          "[Guest Checkout] Error Response Data:",
-          err.response.data
+          "%c[Guest Checkout] Backend Error Details:",
+          "color: orange; font-weight: bold"
         );
+        console.error("Status Code:", err.response.status);
+        console.error("Status Text:", err.response.statusText);
         console.error(
-          "[Guest Checkout] Error Response Status:",
-          err.response.status
+          "Response Data:",
+          JSON.stringify(err.response.data, null, 2)
         );
-        console.error(
-          "[Guest Checkout] Error Response Headers:",
-          err.response.headers
-        );
+        console.error("Response Headers:", err.response.headers);
+
+        // Try to extract specific error message from backend
+        if (err.response.data?.message) {
+          console.error(
+            "%cBackend Error Message:",
+            "color: red; font-weight: bold",
+            err.response.data.message
+          );
+        }
+        if (err.response.data?.error) {
+          console.error(
+            "%cBackend Error Details:",
+            "color: red; font-weight: bold",
+            err.response.data.error
+          );
+        }
       } else if (err.request) {
         // The request was made but no response was received
-        console.error("[Guest Checkout] Error Request:", err.request);
+        console.error("[Guest Checkout] No response received from server:");
+        console.error(err.request);
       } else {
         // Something happened in setting up the request that triggered an Error
-        console.error("[Guest Checkout] Error Message:", err.message);
+        console.error("[Guest Checkout] Request setup error:", err.message);
       }
 
-      setError(
-        err.response?.data?.message ||
-          "Failed to proceed with checkout. Please try again or contact support."
-      );
+      // Provide user-friendly error messages
+      let errorMessage = "Failed to proceed with checkout. Please try again.";
+
+      if (err.response?.status === 500) {
+        errorMessage =
+          "Server error occurred. Please try again in a moment or contact support.";
+      } else if (err.response?.status === 400) {
+        errorMessage =
+          err.response?.data?.message ||
+          "Invalid checkout request. Please check your cart.";
+      } else if (err.response?.data?.message) {
+        errorMessage = err.response.data.message;
+      }
+
+      setError(errorMessage);
       setIsProcessing(false);
     }
   };
@@ -532,7 +591,8 @@ export default function Page() {
     );
   }
 
-  if (error) {
+  // Only show error page if there's a critical error (not for empty cart)
+  if (error && items.length === 0 && !isLoading) {
     return (
       <main
         style={{ marginTop: "120px" }}
@@ -548,6 +608,11 @@ export default function Page() {
       style={{ margin: "auto", position: "relative" }}
       className="min-h-screen px pt-[120px] w-screen flex justify-center overflow-x-auto"
     >
+      {error && (
+        <div className="fixed top-20 right-5 bg-red-500 text-white px-6 py-3 rounded-md shadow-lg z-50 max-w-md">
+          {error}
+        </div>
+      )}
       <ShoppingCart
         items={items}
         onRemove={handleRemove}

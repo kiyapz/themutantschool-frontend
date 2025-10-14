@@ -8,10 +8,41 @@ import { useCart } from "@/components/mutantcart/CartContext";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import { encodeId } from "@/lib/idUtils";
-import { useNotification } from "@/context/NotificationContext";
 
-const ITEMS_PER_PAGE = 9;
+const ITEMS_PER_PAGE = 10; // Match backend limit
+
+// Filter options
+const options = [
+  { label: "Design", value: "design" },
+  { label: "Code", value: "code" },
+  { label: "Growth Hacking", value: "growth-hacking" },
+];
+
+const optionsIntensity = [
+  { label: "Beginner", value: "beginner" },
+  { label: "Intermediate", value: "intermediate" },
+  { label: "Expert", value: "expert" },
+];
+
+const optionsIntensity2 = [
+  { label: "0hr - 2hrs", value: "0-2" },
+  { label: "3hrs - 5hrs", value: "3-5" },
+  { label: "5hrs - 10hrs", value: "5-10" },
+  { label: "11hrs - more", value: "11+" },
+];
+
+const optionsIntensity3 = [
+  { label: "Free", value: "free" },
+  { label: "$1 - $100", value: "1-100" },
+  { label: "$101 - $400", value: "101-400" },
+];
+
+const optionsIntensity4 = [
+  { label: "3.0 <", value: "3.0" },
+  { label: "3.5 <", value: "3.5" },
+  { label: "4.0 <", value: "4.0" },
+  { label: "4.5 <", value: "4.5" },
+];
 
 export default function Mission() {
   const { setCartItems } = useCart();
@@ -19,30 +50,43 @@ export default function Mission() {
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState("");
   const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [powerDiscipline, setPowerDiscipline] = useState("");
+
+  // Filter states
+  const [selectedLevels, setSelectedLevels] = useState([]); // For mutationIntensity (Checkbox)
+  const [selectedDurations, setSelectedDurations] = useState([]); // For duration ranges (Checkbox Multi)
+  const [selectedPrice, setSelectedPrice] = useState(""); // For price range (Radio)
+  const [selectedRating, setSelectedRating] = useState(""); // For rating filter (Radio)
 
   const [course, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [totalMissions, setTotalMissions] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
-  const { showNotification } = useNotification();
 
   useEffect(() => {
     const fetchMissions = async () => {
       try {
-        const res = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/mission",
-          {
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
-        setMissions(res.data.data);
-        // Log course thumbnails for debugging
-        res.data.data.forEach((course, index) => {
-          console.log(`Course ${index} thumbnail:`, course.thumbnail?.url);
+        setLoading(true);
+        let url = `https://themutantschool-backend.onrender.com/api/mission?page=${currentPage}&limit=${ITEMS_PER_PAGE}`;
+
+        // Only add search term to backend API (backend handles search)
+        if (searchTerm.trim()) {
+          url += `&search=${encodeURIComponent(searchTerm.trim())}`;
+        }
+
+        const res = await axios.get(url, {
+          headers: {
+            "Content-Type": "application/json",
+          },
         });
-        console.log(res.data.data, "missionssssssssssssssssssss");
+
+        setMissions(res.data.data);
+        setTotalMissions(res.data.totalMissions);
+        setTotalPages(res.data.totalPages);
+        console.log("Fetched missions:", res.data.data.length);
       } catch (err) {
         setError(err.response?.data?.message || "Failed to fetch missions");
       } finally {
@@ -51,26 +95,54 @@ export default function Mission() {
     };
 
     fetchMissions();
-  }, []);
+    // Keep all dependencies to maintain consistent array size (React requirement)
+    // Filters are applied client-side in the useMemo below, not in the API call
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    currentPage,
+    searchTerm,
+    powerDiscipline,
+    selectedLevels,
+    selectedDurations,
+    selectedPrice,
+    selectedRating,
+  ]);
 
   useEffect(() => {
     const fetchCartItems = async () => {
       console.log("[Missions Page] Fetching initial cart items...");
       const token = localStorage.getItem("login-accessToken");
-      if (!token) {
-        console.log("[Missions Page] No token, skipping cart fetch.");
-        return; // Not logged in, cart is empty
-      }
-      try {
-        const res = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/mission-cart",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
+      const guestCartId = localStorage.getItem("guest-cart-id");
+
+      if (!token && !guestCartId) {
+        console.log(
+          "[Missions Page] No token or guest cart, skipping cart fetch."
         );
-        if (res.data && res.data.data) {
+        return;
+      }
+
+      try {
+        let res;
+
+        if (!token && guestCartId) {
+          // Fetch guest cart
+          console.log("[Missions Page] Fetching guest cart...");
+          res = await axios.get(
+            `https://themutantschool-backend.onrender.com/api/guest/cart?cartId=${guestCartId}`
+          );
+        } else if (token) {
+          // Fetch authenticated user cart
+          res = await axios.get(
+            "https://themutantschool-backend.onrender.com/api/mission-cart",
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+        }
+
+        if (res?.data && (res.data.cart || res.data.data)) {
           const cartMissionIds = new Set(
             (res.data.cart?.missions || res.data.data || []).map((entry) => {
               return entry?.mission?._id || entry?.missionId || entry?._id;
@@ -92,63 +164,27 @@ export default function Mission() {
           setCartItems(minimalItems);
         }
       } catch (err) {
-        console.error("[Missions Page] Failed to fetch cart items:", err);
+        // Gracefully handle errors - cart is not critical for viewing missions
+        if (err.response?.status === 404) {
+          console.log(
+            "[Missions Page] No cart found (404). This is normal for new users."
+          );
+          // Clear invalid cart IDs
+          if (guestCartId) {
+            localStorage.removeItem("guest-cart-id");
+          }
+        } else {
+          console.error(
+            "[Missions Page] Failed to fetch cart items:",
+            err.message
+          );
+        }
+        // Don't show error to user - empty cart is fine
       }
     };
 
     fetchCartItems();
   }, [setCartItems]);
-
-  const options = [
-    { label: "Design", value: "Design" },
-    { label: "Code", value: "Code" },
-    { label: "Growth Hacking", value: "Growth Hacking" },
-  ];
-
-  const optionsintencity = [
-    { label: "Beginner", value: "Beginner" },
-    { label: "Intermediate", value: "Intermediate" },
-    { label: "Expert", value: "Expert" },
-  ];
-
-  const [powerDiscipline, setPowerDiscipline] = useState("");
-  const [mutationIntensity2, setMutationIntensity2] = useState([]);
-  const [mutationIntensity3, setMutationIntensity3] = useState([]);
-  const [mutationIntensity4, setMutationIntensity4] = useState("");
-  const [mutationIntensity5, setMutationIntensity5] = useState("");
-
-  const optionss = [
-    { label: "Telepathy", value: "telepathy" },
-    { label: "Telekinesis", value: "telekinesis" },
-    { label: "Shape Shifting", value: "shapeshifting" },
-    { label: "Super Strength", value: "superstrength" },
-  ];
-
-  const optionsIntensity = [
-    { label: "Beginner", value: "Beginner" },
-    { label: "Intermediate", value: "Intermediate" },
-    { label: "Expert", value: "Expert" },
-  ];
-
-  const optionsIntensity2 = [
-    { label: "0hr - 2hrs", value: "0hr - 2hrs" },
-    { label: "3hrs - 5hrs", value: "3hrs - 5hrs" },
-    { label: "5hrs - 10hrs", value: "5hrs - 10hrs" },
-    { label: "11hrs - more", value: "11hrs - more" },
-  ];
-
-  const optionsIntensity3 = [
-    { label: "Free", value: "Free" },
-    { label: "$1 - $100", value: "$1 - $100" },
-    { label: "$101 - $400", value: "$101 - $400" },
-  ];
-
-  const optionsIntensity4 = [
-    { label: "3.0 < ", value: "3.0 < " },
-    { label: "3.5 <", value: "3.5 <" },
-    { label: "4.0 <", value: "4.0 <" },
-    { label: "4.5 <", value: "4.5 <" },
-  ];
 
   const mapDurationToRange = (estimatedDuration) => {
     if (estimatedDuration == null) return null;
@@ -157,77 +193,90 @@ export default function Mission() {
     if (!numberMatch) return null;
     const hours = parseFloat(numberMatch[1]);
     if (Number.isNaN(hours)) return null;
-    if (hours <= 2) return "0hr - 2hrs";
-    if (hours <= 5) return "3hrs - 5hrs";
-    if (hours <= 10) return "5hrs - 10hrs";
-    return "11hrs - more";
+    if (hours <= 2) return "0-2";
+    if (hours <= 5) return "3-5";
+    if (hours <= 10) return "5-10";
+    return "11+";
   };
 
-  // Filter and sort courses based on selected criteria
-  const filteredAndSortedCourses = useMemo(() => {
-    let filtered = course.filter((c) => {
-      const searchBlob = `${(c.description || "").toLowerCase()} ${(
-        c.title || ""
-      ).toLowerCase()} ${(c.name || "").toLowerCase()} ${(
-        c.category || ""
-      ).toLowerCase()}`;
+  // Apply client-side filtering to missions
+  const filteredCourses = useMemo(() => {
+    let filtered = [...course];
 
-      const matchesSearch =
-        searchTerm === "" || searchBlob.includes(searchTerm.toLowerCase());
+    // Filter by Power Discipline (category)
+    if (powerDiscipline) {
+      filtered = filtered.filter((mission) => {
+        const category = mission.category?.toLowerCase() || "";
+        return category === powerDiscipline.toLowerCase();
+      });
+    }
 
-      const matchesCategory =
-        powerDiscipline === "" || c.category === powerDiscipline;
+    // Filter by Difficulty Level (mutationIntensity)
+    if (selectedLevels.length > 0) {
+      filtered = filtered.filter((mission) => {
+        const intensity = mission.mutationIntensity?.toLowerCase() || "";
+        return selectedLevels.some(
+          (level) => level.toLowerCase() === intensity
+        );
+      });
+    }
 
-      const levelValue = (c.level || c.difficulty || "").trim();
-      const matchesLevel =
-        mutationIntensity2.length === 0 ||
-        (levelValue && mutationIntensity2.includes(levelValue));
+    // Filter by Duration
+    if (selectedDurations.length > 0) {
+      filtered = filtered.filter((mission) => {
+        const durationRange = mapDurationToRange(mission.estimatedDuration);
+        return selectedDurations.includes(durationRange);
+      });
+    }
 
-      const durationRange = mapDurationToRange(c.estimatedDuration);
-      const matchesDuration =
-        mutationIntensity3.length === 0 ||
-        (durationRange && mutationIntensity3.includes(durationRange));
+    // Filter by Price Range
+    if (selectedPrice) {
+      filtered = filtered.filter((mission) => {
+        const price = Number(mission.price) || 0;
+        const isFree = mission.isFree || price === 0;
 
-      const priceNumber = Number(c.price);
-      const isFree = Boolean(c.isFree) || priceNumber === 0;
-      const matchesPrice =
-        mutationIntensity4 === "" ||
-        (mutationIntensity4 === "Free" && isFree) ||
-        (mutationIntensity4 === "$1 - $100" &&
-          !isFree &&
-          priceNumber > 0 &&
-          priceNumber <= 100) ||
-        (mutationIntensity4 === "$101 - $400" &&
-          !isFree &&
-          priceNumber > 100 &&
-          priceNumber <= 400);
+        if (selectedPrice === "free") {
+          return isFree;
+        } else if (selectedPrice === "1-100") {
+          return !isFree && price >= 1 && price <= 100;
+        } else if (selectedPrice === "101-400") {
+          return !isFree && price >= 101 && price <= 400;
+        }
+        return true;
+      });
+    }
 
-      const ratingNumber = Number(c.averageRating || c.rating || 0);
-      const matchesRating =
-        mutationIntensity5 === "" ||
-        (mutationIntensity5 === "3.0 < " && ratingNumber > 3.0) ||
-        (mutationIntensity5 === "3.5 <" && ratingNumber > 3.5) ||
-        (mutationIntensity5 === "4.0 <" && ratingNumber > 4.0) ||
-        (mutationIntensity5 === "4.5 <" && ratingNumber > 4.5);
+    // Filter by Rating
+    if (selectedRating) {
+      filtered = filtered.filter((mission) => {
+        const rating = Number(mission.averageRating || mission.rating || 0);
+        const minRating = parseFloat(selectedRating);
+        return rating >= minRating;
+      });
+    }
 
-      return (
-        matchesSearch &&
-        matchesCategory &&
-        matchesLevel &&
-        matchesDuration &&
-        matchesPrice &&
-        matchesRating
-      );
-    });
+    return filtered;
+  }, [
+    course,
+    powerDiscipline,
+    selectedLevels,
+    selectedDurations,
+    selectedPrice,
+    selectedRating,
+  ]);
+
+  // Sort filtered courses based on selected criteria
+  const sortedCourses = useMemo(() => {
+    let sorted = [...filteredCourses];
 
     if (sortBy === "Most Popular") {
-      filtered = filtered.sort(
+      sorted = sorted.sort(
         (a, b) =>
           Number(b.averageRating || b.rating || 0) -
           Number(a.averageRating || a.rating || 0)
       );
     } else if (sortBy === "Recent") {
-      filtered = filtered.sort((a, b) => {
+      sorted = sorted.sort((a, b) => {
         const dateA = Date.parse(a.createdAt || a.updatedAt || 0) || 0;
         const dateB = Date.parse(b.createdAt || b.updatedAt || 0) || 0;
         if (dateB !== dateA) return dateB - dateA;
@@ -236,24 +285,15 @@ export default function Mission() {
         return idB.localeCompare(idA);
       });
     } else if (sortBy === "Free") {
-      filtered = filtered.sort((a, b) => {
+      sorted = sorted.sort((a, b) => {
         const valA = a.isFree ? 0 : Number(a.price) || Infinity;
         const valB = b.isFree ? 0 : Number(b.price) || Infinity;
         return valA - valB;
       });
     }
 
-    return filtered;
-  }, [
-    searchTerm,
-    powerDiscipline,
-    mutationIntensity2,
-    mutationIntensity3,
-    mutationIntensity4,
-    mutationIntensity5,
-    sortBy,
-    course,
-  ]);
+    return sorted;
+  }, [sortBy, filteredCourses]);
 
   const handleAddToCart = async (missionId) => {
     console.log(
@@ -261,113 +301,70 @@ export default function Mission() {
       `color: var(--mutant-color); font-weight: bold;`
     );
 
-    // Check if button is already clicked/in cart
     if (clickedButtons.has(missionId)) {
-      console.log(`[Add to Cart] Mission ${missionId} already in cart.`);
-      showNotification("This mission is already in your cart.", "info");
+      console.log(
+        `[Add to Cart] Mission ${missionId} already in cart. Redirecting to cart page.`
+      );
+      router.push("/cart");
       return;
     }
 
-    // Get authentication info
     const token = localStorage.getItem("login-accessToken");
-    const storedGuestCartId = localStorage.getItem("guest-cart-id");
 
-    // GUEST USER FLOW
-    if (!token) {
-      try {
+    try {
+      let response;
+
+      // GUEST USER FLOW - using the same approach as mission detail page
+      if (!token || token === "undefined" || token === "null") {
         console.log(
           `[Add to Cart] Guest user adding mission ${missionId} to cart`
         );
+        const storedGuestCartId = localStorage.getItem("guest-cart-id");
 
         // Use existing guest cart ID or create a new one
         const apiUrl = storedGuestCartId
           ? `https://themutantschool-backend.onrender.com/api/guest/cart/${missionId}?cartId=${storedGuestCartId}`
           : `https://themutantschool-backend.onrender.com/api/guest/cart/${missionId}`;
 
-        const response = await axios.post(
+        response = await axios.post(
           apiUrl,
           {},
           {
             headers: {
               "Content-Type": "application/json",
             },
+            timeout: 10000,
           }
         );
 
-        console.log("[Add to Cart] Guest API Response:", response);
+        console.log("[Add to Cart] Guest cart response:", response);
 
         // Save the guest cart ID if this is the first item
         if (response.data?.success && response.data?.cartId) {
           localStorage.setItem("guest-cart-id", response.data.cartId);
         }
-
-        // Update UI state
-        setClickedButtons((prev) => new Set(prev).add(missionId));
-
-        // Find the mission data for the cart item
-        const mission =
-          currentItems.find((item) => item._id === missionId) || {};
-
-        // Increment global cart (minimal add) and persist via context
-        setCartItems((prev) => {
-          const prevArray = Array.isArray(prev) ? prev : [];
-          const exists = prevArray.some((x) => x.id === missionId);
-          return exists
-            ? prevArray
-            : [
-                ...prevArray,
-                {
-                  id: missionId,
-                  title: mission.title,
-                  price: mission.price,
-                  image: mission.thumbnail?.url,
-                },
-              ];
-        });
-
+      } else {
+        // AUTHENTICATED USER FLOW
         console.log(
-          "[Add to Cart] Guest UI state updated. Broadcasting cart:changed event."
+          `[Add to Cart] Sending POST request for missionId: ${missionId}`
         );
-        if (typeof window !== "undefined") {
-          window.dispatchEvent(new CustomEvent("cart:changed"));
-        }
-
-        showNotification("Added to cart!", "success");
-      } catch (err) {
-        // Check if the error is because the mission is already in the cart
-        if (err.response?.data?.message === "Mission already in cart") {
-          setClickedButtons((prev) => new Set(prev).add(missionId)); // Sync local state
-          showNotification("This mission is already in your cart.", "info");
-        } else {
-          console.error(
-            "[Add to Cart] Guest API Error:",
-            err.response?.data || err.message
-          );
-          showNotification(
-            err.response?.data?.message || "Failed to add mission to cart.",
-            "error"
-          );
-        }
+        response = await axios.post(
+          `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
+          {},
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
       }
-      return;
-    }
 
-    // AUTHENTICATED USER FLOW
-    try {
-      console.log(
-        `[Add to Cart] Sending POST request for missionId: ${missionId}`
-      );
-      const response = await axios.post(
-        `https://themutantschool-backend.onrender.com/api/mission-cart/${missionId}`,
-        {},
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log("[Add to Cart] API Response:", response);
+      console.log("[Add to Cart] API Response:", response.data);
+
+      if (!response.data.success) {
+        throw new Error(response.data.message || "Failed to add to cart");
+      }
 
       setClickedButtons((prev) => new Set(prev).add(missionId));
       // Increment global cart (minimal add) and persist via context
@@ -383,47 +380,52 @@ export default function Mission() {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("cart:changed"));
       }
-
-      showNotification("Added to cart!", "success");
     } catch (err) {
+      console.error(
+        "[Add to Cart] API Error:",
+        err.response?.data || err.message,
+        "\nFull error object:",
+        err
+      );
+
       // Check if the error is specifically because the mission is already in the cart
       if (
         err.response?.status === 400 &&
         err.response?.data?.message?.trim() === "Mission already in cart"
       ) {
-        setClickedButtons((prev) => new Set(prev).add(missionId)); // Sync local state
-        showNotification("This mission is already in your cart.", "info");
+        setClickedButtons((prev) => new Set(prev).add(missionId));
+        setError("This mission is already in your cart.");
+      } else if (err.response?.status === 401 || err.response?.status === 403) {
+        // Authentication error - only redirect if user was supposed to be logged in
+        const token = localStorage.getItem("login-accessToken");
+        if (token) {
+          localStorage.removeItem("login-accessToken");
+          setError("Session expired. Please log in again.");
+          setTimeout(() => router.push("/auth/login"), 1500);
+        } else {
+          setError("Failed to add to cart. Please try again.");
+        }
       } else {
-        console.error(
-          "[Add to Cart] API Error:",
-          err.response?.data || err.message
-        );
-        showNotification(
-          err.response?.data?.message || "Failed to add mission to cart.",
-          "error"
+        setError(
+          err.response?.data?.message || "Failed to add mission to cart."
         );
       }
+      setTimeout(() => setError(null), 5000);
     }
   };
 
-  const [currentPage, setCurrentPage] = useState(1);
-
-  // Reset to page 1 when filters change
+  // Reset to page 1 when filters or search term changes
   useEffect(() => {
     setCurrentPage(1);
-  }, [filteredAndSortedCourses]);
+  }, [
+    searchTerm,
+    powerDiscipline,
+    selectedLevels,
+    selectedDurations,
+    selectedPrice,
+    selectedRating,
+  ]);
 
-  const totalPages = Math.ceil(
-    filteredAndSortedCourses.length / ITEMS_PER_PAGE
-  );
-
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const currentItems = filteredAndSortedCourses.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
-
-  console.log("All missions:", course);
   console.log(course.thumbnail?.url, "course.thumbnail.url");
   return (
     <div className="w-screen h-full bg-black flexcenter ">
@@ -569,40 +571,40 @@ export default function Mission() {
                   >
                     <div className="border-b-[1px] border-gray-300">
                       <DropDown
-                        label="Mutation Intensity (Checkbox)"
+                        label="Difficulty Level"
                         options={optionsIntensity}
-                        value={mutationIntensity2}
-                        onChange={setMutationIntensity2}
+                        value={selectedLevels}
+                        onChange={setSelectedLevels}
                         type="checkbox"
                       />
                     </div>
 
                     <div className="border-b-[1px] border-gray-300">
                       <DropDown
-                        label="Mutation Intensity (Checkbox Multi)"
+                        label="Duration"
                         options={optionsIntensity2}
-                        value={mutationIntensity3}
-                        onChange={setMutationIntensity3}
+                        value={selectedDurations}
+                        onChange={setSelectedDurations}
                         type="checkbox"
                       />
                     </div>
 
                     <div className="border-b-[1px] border-gray-300">
                       <DropDown
-                        label="Mutation Intensity (Radio)"
+                        label="Price Range"
                         options={optionsIntensity3}
-                        value={mutationIntensity4}
-                        onChange={setMutationIntensity4}
+                        value={selectedPrice}
+                        onChange={setSelectedPrice}
                         type="radio"
                       />
                     </div>
 
                     <div>
                       <DropDown
-                        label="Mutation Intensity (Radio 2)"
+                        label="Rating"
                         options={optionsIntensity4}
-                        value={mutationIntensity5}
-                        onChange={setMutationIntensity5}
+                        value={selectedRating}
+                        onChange={setSelectedRating}
                         type="radio"
                       />
                     </div>
@@ -612,7 +614,7 @@ export default function Mission() {
 
               {/* Main content */}
               <div className="col-span-2">
-                {currentItems.length === 0 ? (
+                {sortedCourses.length === 0 ? (
                   <div className="flex items-center justify-center h-64">
                     <p className="text-[var(--gray-450)] text-lg">
                       {loading ? "loading..." : "No missions found"}
@@ -620,26 +622,18 @@ export default function Mission() {
                   </div>
                 ) : (
                   <div className="w-full sm:grid md:grid-cols-3 gap-5 ">
-                    {currentItems.map((course, i) => (
+                    {sortedCourses.map((course, i) => (
                       <div
                         key={course._id}
                         className="h-[516.72px] w-full max-w-[340.81px] border-[var(--gray-400)] rounded-[20px] shadow-md cursor-pointer"
                       >
                         <div
                           style={{
-                            backgroundImage: course.thumbnail?.url
-                              ? `url(${course.thumbnail.url})`
-                              : "none",
-                          }}
-                          onError={(e) => {
-                            console.error(
-                              "Error loading background image:",
-                              course.thumbnail?.url
-                            );
+                            backgroundImage: `url(${course.thumbnail.url})`,
                           }}
                           onClick={() => {
                             console.log("Navigating to mission:", course._id);
-                            router.push(`/mission/${encodeId(course._id)}`);
+                            router.push(`/mission/${course._id}`);
                           }}
                           className="h-[294.71px] w-full bg-[#2A2A2A] rounded-t-[20px] bg-cover bg-center"
                         ></div>
@@ -702,60 +696,53 @@ export default function Mission() {
 
                 {/* pagination button */}
                 {totalPages > 1 && (
-                  <div className="flex items-center gap-3 h-fit justify-center">
-                    {/* Previous button */}
-                    <p>
-                      <span
-                        onClick={
-                          currentPage > 1
-                            ? () => setCurrentPage(currentPage - 1)
-                            : undefined
-                        }
-                        className={`text-[20.5px] ${
-                          currentPage > 1
-                            ? "text-[var(--gray-450)] cursor-pointer hover:text-[var(--mutant-color)]"
-                            : "text-[var(--gray-300)] cursor-not-allowed"
-                        }`}
-                      >
-                        {`<`}
-                      </span>
-                    </p>
+                  <div className="flex items-center gap-3 h-fit justify-center mt-6">
+                    <button
+                      onClick={() =>
+                        currentPage > 1 && setCurrentPage((prev) => prev - 1)
+                      }
+                      disabled={currentPage === 1}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === 1
+                          ? "text-[var(--gray-300)] cursor-not-allowed"
+                          : "text-[var(--gray-450)] hover:text-[var(--mutant-color)]"
+                      }`}
+                    >
+                      &lt;
+                    </button>
 
-                    {/* Page numbers */}
-                    <div className="flex justify-center mt-6 gap-2">
+                    <div className="flex gap-2">
                       {Array.from({ length: totalPages }, (_, i) => (
                         <button
-                          style={{ margin: "20px 0" }}
                           key={i}
-                          className={`sm:h-[60px] h-[20px] w-[20px] flexcenter cursor-pointer sm:w-[60px] h-[20px] w-[20px] flexcenter font-[700] text-[10px] sm:text-[18px] leading-[30px] rounded-full transition-all duration-200 ${
-                            currentPage === i + 1
-                              ? "bg-[var(--mutant-color)] text-white shadow-sm shadow-[var(--purple-glow)]"
-                              : "bg-white text-[var(--gray-450)] hover:bg-[var(--gray-100)]"
-                          }`}
                           onClick={() => setCurrentPage(i + 1)}
+                          className={`sm:h-[60px] h-[20px] w-[20px] flexcenter cursor-pointer sm:w-[60px] 
+                            font-[700] text-[10px] sm:text-[18px] leading-[30px] rounded-full transition-all duration-200 
+                            ${
+                              currentPage === i + 1
+                                ? "bg-[var(--mutant-color)] text-white shadow-sm shadow-[var(--purple-glow)]"
+                                : "bg-white text-[var(--gray-450)] hover:bg-[var(--gray-100)]"
+                            }`}
                         >
                           {i + 1}
                         </button>
                       ))}
                     </div>
 
-                    {/* Next button */}
-                    <p>
-                      <span
-                        onClick={
-                          currentPage < totalPages
-                            ? () => setCurrentPage(currentPage + 1)
-                            : undefined
-                        }
-                        className={`text-[20.5px] ${
-                          currentPage < totalPages
-                            ? "text-[var(--gray-450)] cursor-pointer hover:text-[var(--mutant-color)]"
-                            : "text-[var(--gray-300)] cursor-not-allowed"
-                        }`}
-                      >
-                        {`>`}
-                      </span>
-                    </p>
+                    <button
+                      onClick={() =>
+                        currentPage < totalPages &&
+                        setCurrentPage((prev) => prev + 1)
+                      }
+                      disabled={currentPage === totalPages}
+                      className={`px-3 py-1 rounded ${
+                        currentPage === totalPages
+                          ? "text-[var(--gray-300)] cursor-not-allowed"
+                          : "text-[var(--gray-450)] hover:text-[var(--mutant-color)]"
+                      }`}
+                    >
+                      &gt;
+                    </button>
                   </div>
                 )}
               </div>
