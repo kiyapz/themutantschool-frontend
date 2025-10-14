@@ -78,9 +78,22 @@ export default function MissionVideo({ id, onQuizStateChange }) {
   useEffect(() => {
     if (isQuizEnabled) {
       setShowQuiz(true);
-      console.log("Starting quiz...");
+      console.log(
+        "Quiz enabled! All videos watched:",
+        watchedCount,
+        "/",
+        currentCapsule.length
+      );
+    } else {
+      setShowQuiz(false);
+      console.log(
+        "Quiz not enabled yet. Videos watched:",
+        watchedCount,
+        "/",
+        currentCapsule.length
+      );
     }
-  }, [isQuizEnabled]);
+  }, [isQuizEnabled, setShowQuiz, watchedCount, currentCapsule.length]);
 
   const handleStartQuiz = () => {
     if (isQuizEnabled) {

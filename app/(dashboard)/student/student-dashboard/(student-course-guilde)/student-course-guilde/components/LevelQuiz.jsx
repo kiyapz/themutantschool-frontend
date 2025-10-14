@@ -804,6 +804,17 @@ export default function LevelQuiz({
                 </div>
               )}
             </div>
+
+            {/* Show raw score prominently */}
+            {hasPassed && (
+              <div className="text-white font-[600] text-[24px] sm:text-[32px] mb-2">
+                Score:{" "}
+                <span className="text-green-400">
+                  {displayScore}/{totalQuestions}
+                </span>
+              </div>
+            )}
+
             <p className="font-[400] sm:text-[20px] text-center leading-[33px]">
               {hasPassed
                 ? "🎉 Congratulations! You've successfully completed this challenge and evolved your skills!"
@@ -989,18 +1000,35 @@ export default function LevelQuiz({
 
         <div className="flex items-center justify-end mt-6 gap-4 w-full">
           {hasPassed ? (
-            <button
-              style={{ padding: "16px 8px" }}
-              onClick={() => {
-                if (onQuizComplete) {
-                  onQuizComplete();
-                }
-              }}
-              className="bg-[#840B94] hover:bg-[#6a0876] font-[700] sm:text-[31px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
-              disabled={loading}
-            >
-              {loading ? "Processing..." : "Continue"}
-            </button>
+            <>
+              <button
+                style={{ padding: "16px 8px" }}
+                onClick={() => {
+                  // Navigate back to mission levels
+                  const missionId = localStorage.getItem("currentMissionId");
+                  if (missionId) {
+                    window.location.href = `/student/student-dashboard/student-mission-study-levels/${missionId}`;
+                  } else {
+                    window.location.href = "/student/student-dashboard";
+                  }
+                }}
+                className="bg-gray-700 hover:bg-gray-600 font-[700] sm:text-[20px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
+              >
+                Back to Levels
+              </button>
+              <button
+                style={{ padding: "16px 8px" }}
+                onClick={() => {
+                  if (onQuizComplete) {
+                    onQuizComplete();
+                  }
+                }}
+                className="bg-[#840B94] hover:bg-[#6a0876] font-[700] sm:text-[31px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
+                disabled={loading}
+              >
+                {loading ? "Processing..." : "Continue"}
+              </button>
+            </>
           ) : (
             <button
               onClick={onReview}

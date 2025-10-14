@@ -13,8 +13,11 @@ import axios from "axios";
 
 export default function Capsels({ id, capsuleId }) {
   const videoRef = useRef(null);
+  const capsuleIdProcessedRef = useRef(false); // Track if we've already processed the URL capsuleId
   const [watchedDuration, setWatchedDuration] = useState(0);
   const [videoDuration, setVideoDuration] = useState(0);
+  const [watchedVideosRefetchTrigger, setWatchedVideosRefetchTrigger] =
+    useState(0); // Trigger for refetching watched videos
   const levelId = id; // Using the passed id as levelId for LearningOutcomes
   const [showSavedPositionNotification, setShowSavedPositionNotification] =
     useState(false);
@@ -98,11 +101,13 @@ export default function Capsels({ id, capsuleId }) {
 
   // Load saved state from localStorage on component mount and handle capsuleId from URL
   useEffect(() => {
-    const savedStage = localStorage.getItem(`courseStage_${id}`);
-    const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
-
-    // First check if we have a specific capsuleId from URL
-    if (capsuleId && currentCapsule && currentCapsule.length > 0) {
+    // If we have a capsuleId in URL, wait for currentCapsule to load before doing anything
+    if (
+      capsuleId &&
+      currentCapsule &&
+      currentCapsule.length > 0 &&
+      !capsuleIdProcessedRef.current
+    ) {
       console.log("CapsuleId provided in URL:", capsuleId);
 
       // Find the index of the capsule with matching ID
@@ -113,6 +118,7 @@ export default function Capsels({ id, capsuleId }) {
       if (targetIndex !== -1) {
         console.log("Found matching capsule at index:", targetIndex);
         setCapselIndex(targetIndex);
+        capsuleIdProcessedRef.current = true; // Mark as processed
 
         // Check if this specific capsule has been watched
         const isTargetCapsuleWatched =
@@ -149,23 +155,39 @@ export default function Capsels({ id, capsuleId }) {
       }
     }
 
-    // If no capsuleId provided or not found, use saved state
-    if (savedStage) {
-      setChangeStages(parseInt(savedStage));
-    }
+    // Only load from localStorage if there's NO capsuleId in URL AND we haven't processed anything yet
+    if (
+      !capsuleId &&
+      !capsuleIdProcessedRef.current &&
+      currentCapsule &&
+      currentCapsule.length > 0
+    ) {
+      const savedStage = localStorage.getItem(`courseStage_${id}`);
+      const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
 
-    if (savedCapsuleIndex && setCapselIndex) {
-      setCapselIndex(parseInt(savedCapsuleIndex));
-    }
+      if (savedStage) {
+        setChangeStages(parseInt(savedStage));
+      }
 
+      if (savedCapsuleIndex && setCapselIndex) {
+        setCapselIndex(parseInt(savedCapsuleIndex));
+      }
+
+      capsuleIdProcessedRef.current = true; // Mark as processed
+    }
+  }, [id, setCapselIndex, capsuleId, currentCapsule, watchedVideos]);
+
+  // Separate cleanup effect that only runs when level ID changes
+  useEffect(() => {
     // Cleanup function to reset state when the level ID changes
     return () => {
       setChangeStages(1);
       if (setCapselIndex) {
         setCapselIndex(0);
       }
+      capsuleIdProcessedRef.current = false; // Reset for new level
     };
-  }, [id, setCapselIndex, capsuleId, currentCapsule, watchedVideos]);
+  }, [id, setCapselIndex]);
 
   // Save state to localStorage whenever it changes
   useEffect(() => {
@@ -173,8 +195,10 @@ export default function Capsels({ id, capsuleId }) {
   }, [changeStages, id]);
 
   useEffect(() => {
-    if (capselIndex !== undefined) {
+    // Only save to localStorage after we've processed the initial state
+    if (capselIndex !== undefined && capsuleIdProcessedRef.current) {
       localStorage.setItem(`capsuleIndex_${id}`, capselIndex.toString());
+      console.log(`Saved capsule index ${capselIndex} to localStorage`);
     }
   }, [capselIndex, id]);
 
@@ -235,14 +259,20 @@ export default function Capsels({ id, capsuleId }) {
   };
 
   // Function to handle auto-advance to next video
-  const handleAutoAdvance = () => {
+  const handleAutoAdvance = async () => {
     if (capselIndex < currentCapsule.length - 1) {
+      // Wait a moment for the backend to process the completion
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
       setCapselIndex(capselIndex + 1);
       setShowAutoAdvanceNotification(true);
       // Hide notification after 3 seconds
       setTimeout(() => {
         setShowAutoAdvanceNotification(false);
       }, 3000);
+
+      // Trigger refetch of watched videos after advancing
+      setWatchedVideosRefetchTrigger((prev) => prev + 1);
     }
   };
 
@@ -516,7 +546,6 @@ export default function Capsels({ id, capsuleId }) {
           );
         }
 
-        // setWatchedVideos([{'jji':'jj'}]);
         const completedCapsules = response.data?.data?.completedCapsules;
 
         // Prevent existing watchedVideos from being overwritten with empty array
@@ -527,6 +556,14 @@ export default function Capsels({ id, capsuleId }) {
             completedCapsules.length,
             "items"
           );
+          console.log(
+            `📊 QUIZ CHECK: Watched ${completedCapsules.length}/${currentCapsule.length} videos`
+          );
+
+          // Check if all videos are watched to help with debugging
+          if (completedCapsules.length === currentCapsule.length) {
+            console.log("✅ ALL VIDEOS WATCHED! Quiz should be enabled now.");
+          }
         } else if (watchedDuration > 0 && currentCapsuleId) {
           // If we're currently watching a video, don't reset our progress
           console.log(
@@ -555,7 +592,7 @@ export default function Capsels({ id, capsuleId }) {
     };
 
     fetchWachedVideo();
-  }, [watchedDuration, capsuleId]);
+  }, [capsuleId, watchedVideosRefetchTrigger, currentCapsule.length]); // Refetch when capsuleId changes or when manually triggered
 
   // get missions and mission details including video URL
 
@@ -829,19 +866,19 @@ export default function Capsels({ id, capsuleId }) {
                       frameBorder="0"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                       allowFullScreen
-                      onLoad={() => {
+                      onLoad={async () => {
                         // YouTube videos can't use the same tracking methods
                         // Set a reasonable default duration for YouTube videos
                         setVideoDuration(300); // 5 minutes default
                         setWatchedDuration(300); // Mark as fully watched
 
                         // For YouTube videos, we need to immediately update progress
-                        setTimeout(() => {
-                          updateCapsuleProgress();
+                        setTimeout(async () => {
+                          await updateCapsuleProgress();
                           // After a short delay, check if we should advance to next video
-                          setTimeout(() => {
+                          setTimeout(async () => {
                             if (capselIndex < currentCapsule.length - 1) {
-                              handleAutoAdvance();
+                              await handleAutoAdvance();
                             }
                           }, 2000);
                         }, 3000);
@@ -874,11 +911,17 @@ export default function Capsels({ id, capsuleId }) {
                           }, 3000);
 
                           updateCapsuleProgress();
+
+                          // Trigger refetch to update quiz button state
+                          setTimeout(() => {
+                            setWatchedVideosRefetchTrigger((prev) => prev + 1);
+                          }, 1500);
                         }
                       }}
-                      onEnded={() => {
-                        updateCapsuleProgress();
-                        handleAutoAdvance();
+                      onEnded={async () => {
+                        // Wait for progress update to complete before advancing
+                        await updateCapsuleProgress();
+                        await handleAutoAdvance();
                         // Clear saved position when video ends
                         localStorage.removeItem(
                           `video_position_${currentCapsuleId}`
@@ -997,7 +1040,21 @@ export default function Capsels({ id, capsuleId }) {
                   >
                     Retake Quiz
                   </button>
-                  {/* You can add another button here, e.g., for "Next Module" */}
+                  <button
+                    onClick={() => {
+                      // Navigate back to mission levels
+                      const missionId =
+                        localStorage.getItem("currentMissionId");
+                      if (missionId) {
+                        window.location.href = `/student/student-dashboard/student-mission-study-levels/${missionId}`;
+                      } else {
+                        window.location.href = "/student/student-dashboard";
+                      }
+                    }}
+                    className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold py-2 px-4 rounded"
+                  >
+                    Back to Level Missions
+                  </button>
                 </div>
               </div>
             </div>
