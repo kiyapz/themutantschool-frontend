@@ -11,7 +11,7 @@ import { StudentContext } from "@/app/(dashboard)/student/component/Context/Stud
 import refreshAccessToken from "@/components/RefreshToken";
 import axios from "axios";
 
-export default function Capsels({ id, capsuleId }) {
+export default function Capsels({ id, capsuleId, startQuiz }) {
   const videoRef = useRef(null);
   const capsuleIdProcessedRef = useRef(false); // Track if we've already processed the URL capsuleId
   const [watchedDuration, setWatchedDuration] = useState(0);
@@ -120,7 +120,18 @@ export default function Capsels({ id, capsuleId }) {
       !watchedVideosLoading &&
       !initialRoutingDone
     ) {
-      if (capsuleId) {
+      // If startQuiz parameter is present, always go to stage 3 (course guide) first
+      if (startQuiz === "true") {
+        // Set to the first capsule or last watched
+        if (watchedVideos.length > 0) {
+          setCapselIndex(
+            Math.min(watchedVideos.length - 1, currentCapsule.length - 1)
+          );
+        } else {
+          setCapselIndex(0);
+        }
+        setChangeStages(3);
+      } else if (capsuleId) {
         // A specific capsule was requested in the URL.
         const targetIndex = currentCapsule.findIndex(
           (c) => c._id === capsuleId
@@ -158,6 +169,7 @@ export default function Capsels({ id, capsuleId }) {
     watchedVideosLoading,
     initialRoutingDone,
     capsuleId,
+    startQuiz,
     id,
     setCapselIndex,
   ]);

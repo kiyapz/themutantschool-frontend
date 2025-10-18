@@ -6,7 +6,6 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { useCart } from "@/components/mutantcart/CartContext";
 import { useRouter } from "next/navigation";
-import { encodeId } from "@/lib/idUtils";
 
 export default function Home() {
   const [missions, setMissions] = useState([]);
@@ -412,13 +411,8 @@ export default function Home() {
                       <button
                         onClick={() => {
                           const slug = createSlug(mission.title);
-                          console.log(
-                            "Navigating to mission:",
-                            `${slug}-${mission._id}`
-                          );
-                          router.push(
-                            `/mission/${slug}-${encodeId(mission._id)}`
-                          );
+                          console.log("Navigating to mission:", slug);
+                          router.push(`/mission/${slug}`);
                         }}
                         className={`${
                           clickedButtons.has(mission._id)

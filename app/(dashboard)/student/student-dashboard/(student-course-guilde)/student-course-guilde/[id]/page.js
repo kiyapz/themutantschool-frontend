@@ -14,6 +14,7 @@ export default function Page() {
   const { id: encodedId } = useParams();
   const searchParams = useSearchParams();
   const capsuleId = searchParams.get("capsuleId");
+  const startQuiz = searchParams.get("startQuiz");
 
   const [levelId, setLevelId] = useState("");
   const { currentCapsule, setCurrentCapsule } = useContext(StudentContext);
@@ -110,7 +111,6 @@ export default function Page() {
         console.log("Error details:", error.response?.data || error.message);
 
         if (error.response) {
-         
           console.error("Error status:", error.response.status);
           console.error("Error data:", error.response.data);
 
@@ -120,10 +120,8 @@ export default function Page() {
             console.error("Server error - check level ID format");
           }
         } else if (error.request) {
-         
           console.error("No response received:", error.request);
         } else {
-          
           console.error("Error setting up request:", error.message);
         }
       } finally {
@@ -134,10 +132,9 @@ export default function Page() {
     fetchMissionData();
   }, [levelId, setCurrentCapsule]);
 
-  
   return (
     <div className="space-y-6">
-      <Capsels id={levelId} capsuleId={capsuleId} />
+      <Capsels id={levelId} capsuleId={capsuleId} startQuiz={startQuiz} />
     </div>
   );
 }
