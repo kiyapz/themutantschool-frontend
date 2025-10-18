@@ -16,6 +16,12 @@ export default function Page(params) {
     button: false,
     bottomText: false,
   });
+  const [certificates, setCertificates] = useState([]);
+  const [xpProgress, setXpProgress] = useState({
+    currentXpInLevel: 0,
+    xpToNextLevel: 100,
+    percent: 0,
+  });
 
   useEffect(() => {
     // When the page/component mounts
@@ -60,14 +66,69 @@ export default function Page(params) {
     return () => timers.forEach((timer) => clearTimeout(timer));
   }, []);
 
+  useEffect(() => {
+    const token = localStorage.getItem("login-accessToken");
+    const fetchCertificates = async () => {
+      try {
+        const response = await fetch(
+          "https://themutantschool-backend.onrender.com/api/certificate/my-certificates",
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log("Certificates:", data);
+        setCertificates(data.certificates || []);
+      } catch (error) {
+        console.error("Error fetching certificates:", error);
+      }
+    };
+
+    fetchCertificates();
+  }, []);
+
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      const token = localStorage.getItem("login-accessToken");
+      if (!token) return;
+
+      try {
+        const response = await fetch(
+          "https://themutantschool-backend.onrender.com/api/student/dashboard",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        const data = await response.json();
+        if (data.success) {
+          setXpProgress(data.data.progressToNextLevel);
+        }
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+      }
+    };
+    fetchStudentData();
+  }, []);
+
   return (
-    <div className="flex flex-col gap-6">
+    <div className="flex flex-col gap-6 w-full">
       <div
         style={{ padding: "16px" }}
         className="w-full bg-[#0B0B0B]  relative xl:flex  gap-10 items-center  h-[438.49px] rounded-[20px] "
       >
         <div className="">
-          <div className="border-[8px] border-[#E4BE00] flexcenter rounded-full w-[200px]  h-[200px]  xl:w-[344px] xl:h-[344px] ">
+          <div className="border-[8px] border-[#E4BE00] flexcenter rounded-full w-[344.93px]  h-[312.1px]  xl:w-[344px] xl:h-[344px] ">
             <div
               className={`transition-all duration-1000 ease-out ${
                 showElements.character
@@ -77,8 +138,8 @@ export default function Page(params) {
             >
               <Image
                 src={"/images/students-images/Layer 2.png"}
-                width={135.71725463867188}
-                height={85.1498031616211}
+                width={259.2}
+                height={207.86}
                 alt="mutant-robot"
               />
             </div>
@@ -118,18 +179,12 @@ export default function Page(params) {
               >
                 <div className="w-full h-[15px] bg-[#1E1E1E] rounded-[10px] z-20 relative mb-4 overflow-hidden">
                   <div
-                    className={`h-[15px] rounded-full relative z-30 bg-gradient-to-r from-[#1D5DAC] to-[#950F9C] transition-all duration-1500 ease-out shadow-lg ${
-                      isAnimated ? "w-[35px]" : "w-0"
-                    }`}
-                    style={{
-                      boxShadow: isAnimated
-                        ? "bg-gradient-to-r from-[#1D5DAC] to-[#950F9C]"
-                        : "none",
-                    }}
+                    style={{ width: `${xpProgress.percent}%` }}
+                    className={`h-[15px] rounded-full relative z-30 bg-gradient-to-r from-[#1D5DAC] to-[#950F9C] transition-all duration-1500 ease-out shadow-lg`}
                   ></div>
                 </div>
                 <p className=" font-[400] text-[14px] text-[#957AA3] leading-[40px]">
-                  85 XP to next level
+                  {xpProgress.xpToNextLevel} XP to next level
                 </p>
               </div>
             </div>
@@ -140,40 +195,27 @@ export default function Page(params) {
         <p className="font-[600] sm:text-[35px] sm:leading-[20px] ">
           Certificates
         </p>
-        <p className="font-[500] sm:text-[35px] text-[#840B94] cursor-pointer sm:leading-[20px] ">
+        <p className="font-[500] sm:text-[25px] text-[#840B94] cursor-pointer sm:leading-[20px] ">
           View All
         </p>
       </div>
 
-      <div>
-        <div className="flex flex-col gap-3">
-          <CertificateCard
-            title="Complete Mutation on Digital Marketing Course"
-            date="30th June, 2025"
-            imageUrl="/images/digital-marketing.png"
-            downloadLink="/certificates/digital-marketing.pdf"
-          />
-
-          <CertificateCard
-            title="UI Mastery 2025"
-            date="30th June, 2025"
-            imageUrl="/images/ui-mastery.png"
-            downloadLink="/certificates/ui-mastery.pdf"
-          />
+      <div className="w-full">
+        <div className="flex flex-col gap-3 w-full">
+          {certificates.length === 0 ? (
+            <p>No certificates available.</p>
+          ) : (
+            certificates.map((cert) => (
+              <CertificateCard
+                key={cert.id}
+                title={cert.title}
+                date={new Date(cert.issuedAt).toLocaleDateString()}
+                studentName={cert.student}
+                instructor={cert.instructor}
+              />
+            ))
+          )}
         </div>
-      </div>
-
-      <div className="w-full flex items-center justify-between">
-        <p className="font-[600] sm:text-[35px] sm:leading-[20px] ">Badges</p>
-        <p className="font-[500] sm:text-[35px] text-[#840B94] cursor-pointer sm:leading-[20px] ">
-          View All
-        </p>
-      </div>
-
-      <div className="flex items-center flex-col lg:flex-row justify-bewtween gap-6 w-full ">
-        <div className="h-[474.078125px] w-[391.6382751464844px] bg-white"></div>
-        <div className="h-[474.078125px] w-[391.6382751464844px] bg-white"></div>
-        <div className="h-[474.078125px] w-[391.6382751464844px] bg-white"></div>
       </div>
     </div>
   );

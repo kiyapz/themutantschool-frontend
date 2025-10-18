@@ -72,6 +72,15 @@ const UpdateProfileModal = ({
   const normalizeGenderOut = (g) =>
     g === "male" ? "Male" : g === "female" ? "Female" : g;
 
+  const formatDateIn = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      return new Date(dateStr).toISOString().split("T")[0];
+    } catch (e) {
+      return ""; // Fallback for invalid dates
+    }
+  };
+
   useEffect(() => {
     reset({
       firstName: defaults.firstName || "",
@@ -82,7 +91,7 @@ const UpdateProfileModal = ({
       phoneNumber: defaults.phoneNumber || "",
       nationality: defaults.nationality || "",
       gender: normalizeGenderIn(defaults.gender),
-      dob: defaults.dob || "",
+      dob: formatDateIn(defaults.dob),
       profile: {
         bio: defaults?.profile?.bio || "",
         avatar: defaults?.profile?.avatar || { url: "" },
@@ -443,7 +452,12 @@ const UpdateProfileModal = ({
                   id="nationality"
                   name="nationality"
                 />
-                <InputField label="Date Of Birth" id="dob" name="dob" />
+                <InputField
+                  label="Date Of Birth"
+                  id="dob"
+                  name="dob"
+                  type="date"
+                />
               </div>
             </>
           ) : (

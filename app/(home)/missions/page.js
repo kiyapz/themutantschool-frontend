@@ -199,6 +199,17 @@ export default function Mission() {
     return "11+";
   };
 
+  // Function to create URL-friendly slug from course title
+  const createSlug = (title) => {
+    if (!title) return "";
+    return title
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, "") // Remove special characters except spaces and hyphens
+      .replace(/\s+/g, "-") // Replace spaces with hyphens
+      .replace(/-+/g, "-") // Replace multiple hyphens with single hyphen
+      .trim(); // Remove leading/trailing spaces
+  };
+
   // Apply client-side filtering to missions
   const filteredCourses = useMemo(() => {
     let filtered = [...course];
@@ -632,8 +643,14 @@ export default function Mission() {
                             backgroundImage: `url(${course.thumbnail.url})`,
                           }}
                           onClick={() => {
-                            console.log("Navigating to mission:", course._id);
-                            router.push(`/mission/${course._id}`);
+                            const titleSlug = createSlug(course.title);
+                            console.log(
+                              "Navigating to mission:",
+                              course._id,
+                              "with slug:",
+                              titleSlug
+                            );
+                            router.push(`/mission/${titleSlug}`);
                           }}
                           className="h-[294.71px] w-full bg-[#2A2A2A] rounded-t-[20px] bg-cover bg-center"
                         ></div>

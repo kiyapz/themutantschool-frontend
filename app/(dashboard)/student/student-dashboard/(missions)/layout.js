@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
           </div>
         </div>
 
-        <div className="hidden xl:block w-[28rem]">
+        <div className="">
           <LevelChallange />
         </div>
       </div>

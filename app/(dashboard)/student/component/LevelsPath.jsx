@@ -525,6 +525,16 @@ export default function LevelsPath({
           </div>
         );
       })}
+
+      {/* Final Quiz Button */}
+      <div className="relative mt-16 flex justify-center translate-x-10">
+        <div
+          onClick={() => alert("Complete all levels to unlock final quiz!")}
+          className="relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
+        >
+          Final Quiz <span className="ml-2 text-xs">🔒</span>
+        </div>
+      </div>
     </div>
   );
 }

@@ -110,8 +110,7 @@ export default function Page() {
         console.log("Error details:", error.response?.data || error.message);
 
         if (error.response) {
-          // The request was made and the server responded with a status code
-          // that falls out of the range of 2xx
+         
           console.error("Error status:", error.response.status);
           console.error("Error data:", error.response.data);
 
@@ -121,10 +120,10 @@ export default function Page() {
             console.error("Server error - check level ID format");
           }
         } else if (error.request) {
-          // The request was made but no response was received
+         
           console.error("No response received:", error.request);
         } else {
-          // Something happened in setting up the request that triggered an Error
+          
           console.error("Error setting up request:", error.message);
         }
       } finally {
@@ -135,7 +134,7 @@ export default function Page() {
     fetchMissionData();
   }, [levelId, setCurrentCapsule]);
 
-  //  if (loading) return <div className="p-4">Loading mission...</div>;
+  
   return (
     <div className="space-y-6">
       <Capsels id={levelId} capsuleId={capsuleId} />

@@ -14,7 +14,7 @@ import { useNotification } from "@/context/NotificationContext";
 
 export default function MissionDetails() {
   const params = useParams();
-  const { slug } = params; // 'slug' will be like 'mission-title-xxxxxx' or just the ID
+  const { slug } = params;
   const [mission, setMission] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -162,23 +162,50 @@ export default function MissionDetails() {
           return;
         }
 
-        // Extract the mission ID from the slug
-        // It can be a full slug with a title, or just the ID
-        let missionId;
-        if (routeParam.includes("-")) {
-          // If there's a hyphen, the ID is the last part
-          const slugParts = routeParam.split("-");
-          const encodedId = slugParts[slugParts.length - 1];
-          // Decode the ID if it's encoded
-          missionId = decodeId(encodedId);
-        } else {
-          // Otherwise, the whole slug is the ID
-          missionId = decodeId(routeParam);
+        // Helper function to create a URL-friendly slug from a title
+        const createSlug = (title) => {
+          if (!title) return "";
+          return title
+            .toLowerCase()
+            .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
+            .replace(/\s+/g, "-") // Replace spaces with hyphens
+            .replace(/-+/g, "-"); // Replace multiple hyphens with a single one
+        };
+
+        // First, try to fetch all missions to find one with matching title slug
+        console.log("Searching for mission with slug:", routeParam);
+
+        // Try to get all missions and find the one with matching title slug
+        const allMissionsResponse = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/mission?limit=1000`, // Get a large number to find the mission
+          {
+            headers: {
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (!allMissionsResponse.data || !allMissionsResponse.data.data) {
+          throw new Error("No missions found");
         }
 
-        console.log("Fetching mission with ID:", missionId);
+        // Find mission with matching title slug
+        const matchingMission = allMissionsResponse.data.data.find(
+          (mission) => {
+            const missionSlug = createSlug(mission.title);
+            return missionSlug === routeParam;
+          }
+        );
+
+        if (!matchingMission) {
+          throw new Error("Mission not found with the given slug");
+        }
+
+        console.log("Found matching mission:", matchingMission._id);
+
+        // Now fetch the full mission details using the ID
         const response = await axios.get(
-          `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
+          `https://themutantschool-backend.onrender.com/api/mission/${matchingMission._id}`,
           {
             headers: {
               "Content-Type": "application/json",
@@ -192,25 +219,6 @@ export default function MissionDetails() {
           const missionData = response.data.data;
           setMission(missionData);
           console.log("Found mission:", missionData);
-
-          // After fetching, create the canonical slug for display purposes
-          const canonicalSlug = createSlug(missionData.title);
-
-          // Only redirect if the current URL doesn't contain the correct slug format
-          // This prevents redirect loops caused by the random part of the encoded ID
-          const currentPath = pathname; // Use pathname instead of router.asPath
-          const slugPrefix = `/mission/${canonicalSlug}-`;
-
-          // Only redirect if the URL has the wrong slug format, not because of ID encoding differences
-          if (
-            currentPath && // Make sure currentPath exists before checking
-            !currentPath.startsWith(slugPrefix) &&
-            !currentPath.includes(`/${missionData._id}`)
-          ) {
-            const encodedId = encodeId(missionData._id);
-            const expectedUrl = `/mission/${canonicalSlug}-${encodedId}`;
-            router.replace(expectedUrl, undefined, { shallow: true });
-          }
 
           // Use instructor data from mission response
           if (missionData.instructor) {
@@ -246,16 +254,6 @@ export default function MissionDetails() {
       } finally {
         setLoading(false);
       }
-    };
-
-    // Helper function to create a URL-friendly slug from a title
-    const createSlug = (title) => {
-      if (!title) return "";
-      return title
-        .toLowerCase()
-        .replace(/[^a-z0-9\s-]/g, "") // Remove special characters
-        .replace(/\s+/g, "-") // Replace spaces with hyphens
-        .replace(/-+/g, "-"); // Replace multiple hyphens with a single one
     };
 
     if (slug) {

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import UpdateProfileModal from "./UpdateProfileModal";
 
-const DEFAULT_AVATAR = "/default-avatar.png"; // place in /public
+const DEFAULT_AVATAR = "/images/default-avatar.jpg"; // Corrected path
 
 // Loading skeleton component
 const LoadingSkeleton = ({ className }) => (
@@ -18,73 +18,68 @@ function MutationProfile() {
   const [userProfile, setUserProfile] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState(null);
   const avatarInputRef = useRef(null);
 
+  useEffect(() => {
+    // Clean up the preview URL to avoid memory leaks
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
+
   const handleAvatarUpdate = async (event) => {
-    console.log("Avatar update process started...");
     const file = event.target.files?.[0];
-    if (!file) {
-      console.log("No file selected. Aborting update.");
-      return;
-    }
-    console.log(
-      "File selected:",
-      file.name,
-      `(${Math.round(file.size / 1024)} KB)`
-    );
+    if (!file) return;
+
+    // Create a temporary local URL for immediate preview
+    const localPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrl(localPreviewUrl);
 
     try {
       setIsUpdating(true);
-      console.log("Set isUpdating to true.");
       const accessToken = localStorage.getItem("login-accessToken");
       if (!accessToken) {
-        console.log("No access token found. Redirecting to login.");
         router.push("/auth/login");
         return;
       }
 
       const form = new FormData();
-      form.append("avatar", file); // Server expects the key "avatar"
+      form.append("avatar", file);
 
       const url = `https://themutantschool-backend.onrender.com/api/user-profile/${userProfile?._id}`;
-      console.log(`Sending PUT request to: ${url}`);
-
-      const res = await axios.put(url, form, {
+      await axios.put(url, form, {
         headers: { Authorization: `Bearer ${accessToken}` },
       });
 
-      console.log("API request successful. Response:", res.data);
-
-      // Force a complete refresh of the profile from the server
+      // Refetch the profile to get the permanent URL from the server
       const storedUser = localStorage.getItem("USER");
       const id = JSON.parse(storedUser)._id;
-
-      console.log("Fetching fresh profile data to ensure avatar is updated...");
       const freshProfileResponse = await axios.get(
         `https://themutantschool-backend.onrender.com/api/user-profile/${id}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
 
-      // Update state with the freshly fetched profile data
+      // Update the profile, which will automatically replace the preview
       setUserProfile(freshProfileResponse.data?.data);
-      console.log("User profile state updated with fresh data from server.");
+      setPreviewUrl(null); // Clear the preview to use the server URL
 
-      // Show success message
       alert("Profile picture updated successfully!");
     } catch (err) {
       console.error(
-        "API Error: Failed to update profile picture.",
+        "Failed to update profile picture:",
         err.response?.data || err.message
       );
       alert("Failed to update profile picture. Please try again.");
+      setPreviewUrl(null); // Clear preview on failure to revert to old image
     } finally {
       setIsUpdating(false);
-      console.log("Set isUpdating to false.");
-      // Clear the file input value so the user can select the same file again
+      // Clear the file input so the same file can be selected again
       if (avatarInputRef.current) {
         avatarInputRef.current.value = "";
       }
-      console.log("Avatar update process finished.");
     }
   };
 
@@ -248,11 +243,12 @@ function MutationProfile() {
 
   const bio = userProfile?.profile?.bio || "";
 
-  // Cache-busted avatar URL with aggressive cache-busting
+  // Cache-busted avatar URL
   const rawAvatar = userProfile?.profile?.avatar?.url || DEFAULT_AVATAR;
-  const avatarUrl = `${rawAvatar}?v=${Math.random()
-    .toString(36)
-    .substring(2, 15)}${Date.now()}`;
+  const avatarUrl = `${rawAvatar}?v=${new Date().getTime()}`;
+
+  // Use previewUrl if it exists, otherwise use the server URL
+  const displayAvatarUrl = previewUrl || avatarUrl;
 
   if (isLoading) {
     return (
@@ -341,9 +337,13 @@ function MutationProfile() {
           {isUpdating ? (
             <div className="relative w-full h-full">
               <img
-                src={avatarUrl}
+                src={displayAvatarUrl}
                 alt="Profile avatar"
                 className="w-full h-full object-cover rounded-full opacity-50"
+                onError={(e) => {
+                  e.target.onerror = null; // Prevent infinite loops
+                  e.target.src = DEFAULT_AVATAR;
+                }}
               />
               <div className="absolute inset-0 flex items-center justify-center">
                 <div className="w-8 h-8 border-2 border-[#840B94] border-t-transparent rounded-full animate-spin"></div>
@@ -351,9 +351,13 @@ function MutationProfile() {
             </div>
           ) : (
             <img
-              src={avatarUrl}
+              src={displayAvatarUrl}
               alt="Profile avatar"
               className="w-full h-full object-cover rounded-full"
+              onError={(e) => {
+                e.target.onerror = null; // Prevent infinite loops
+                e.target.src = DEFAULT_AVATAR;
+              }}
             />
           )}
         </div>
@@ -413,9 +417,10 @@ function MutationProfile() {
         </div>
       </InfoBox>
 
-      {model && (
+      {model && userProfile && (
         <div className="absolute top-0 left-0 h-screen w-screen z-50 bg-[rgba(0,0,0,0.6)]">
           <UpdateProfileModal
+            key={userProfile._id} // Add this key
             onClose={() => setModel(false)}
             onUpdate={handleUpdate}
             isUpdating={isUpdating}

@@ -218,7 +218,7 @@ export default function LearningOutcomes({ levelId }) {
 
   return (
     <div className=" rounded-lg p-6 my-4">
-      <h2 className="text-xl font-bold text-white mb-4">
+      <h2 className="text-[12px]  sm:text-xl font-bold text-white mb-4">
         After successfully completing this module, you will be able to:
       </h2>
 

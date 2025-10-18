@@ -25,6 +25,8 @@ export default function Capsels({ id, capsuleId }) {
     showRestoredPositionNotification,
     setShowRestoredPositionNotification,
   ] = useState(false);
+  const [watchedVideosLoading, setWatchedVideosLoading] = useState(true);
+  const [initialRoutingDone, setInitialRoutingDone] = useState(false);
 
   // Helper function to check if URL is a YouTube URL
   const isYoutubeUrl = (url) => {
@@ -77,7 +79,18 @@ export default function Capsels({ id, capsuleId }) {
   const [missionDetails, setMissiondetail] = useState("");
   const [showAutoAdvanceNotification, setShowAutoAdvanceNotification] =
     useState(false);
+  const [quizPerformance, setQuizPerformance] = useState(null);
+  const [showPerformanceDetails, setShowPerformanceDetails] = useState(false);
+  const [quizError, setQuizError] = useState(null);
+  const [quizKey, setQuizKey] = useState(0);
   console.log(missionDetails, "bbbbbbbbb");
+
+  const handleReviewCapsules = () => {
+    setQuizError(null);
+    localStorage.removeItem("quizState");
+    localStorage.removeItem("quizAlreadyTaken");
+    setChangeStages(3); // Go back to video capsules stage
+  };
 
   const {
     currentCapsule,
@@ -99,83 +112,55 @@ export default function Capsels({ id, capsuleId }) {
     setCapselIndex,
   } = useContext(CourseGuideContext);
 
-  // Load saved state from localStorage on component mount and handle capsuleId from URL
+  // This effect handles the initial routing logic when the component loads or the level changes.
   useEffect(() => {
-    // If we have a capsuleId in URL, wait for currentCapsule to load before doing anything
+    // Wait for capsules and watched video status to be loaded, and only run this logic once per level load.
     if (
-      capsuleId &&
-      currentCapsule &&
       currentCapsule.length > 0 &&
-      !capsuleIdProcessedRef.current
+      !watchedVideosLoading &&
+      !initialRoutingDone
     ) {
-      console.log("CapsuleId provided in URL:", capsuleId);
-
-      // Find the index of the capsule with matching ID
-      const targetIndex = currentCapsule.findIndex(
-        (capsule) => capsule._id === capsuleId
-      );
-
-      if (targetIndex !== -1) {
-        console.log("Found matching capsule at index:", targetIndex);
-        setCapselIndex(targetIndex);
-        capsuleIdProcessedRef.current = true; // Mark as processed
-
-        // Check if this specific capsule has been watched
-        const isTargetCapsuleWatched =
-          watchedVideos &&
-          Array.isArray(watchedVideos) &&
-          watchedVideos.some((watched) => watched.capsule === capsuleId);
-
-        // If this specific capsule has been watched, go to video stage
-        if (isTargetCapsuleWatched) {
-          console.log(
-            "This specific capsule has been watched, going to video stage"
-          );
-          setChangeStages(3); // Navigate to the video viewing stage
-        }
-        // If user has watched at least the first video but not this one, go to video stage
-        else if (watchedVideos && watchedVideos.length > 0) {
-          console.log(
-            "User has watched some videos, navigating to video stage"
-          );
-          setChangeStages(3); // Navigate to the video viewing stage
+      if (capsuleId) {
+        // A specific capsule was requested in the URL.
+        const targetIndex = currentCapsule.findIndex(
+          (c) => c._id === capsuleId
+        );
+        if (targetIndex !== -1) {
+          setCapselIndex(targetIndex);
+          // If the user has watched any video in this level, go to the video player.
+          if (watchedVideos.length > 0) {
+            setChangeStages(3);
+          } else {
+            // Otherwise, start from the beginning.
+            setChangeStages(1);
+          }
         } else {
-          // Otherwise start from the beginning
-          console.log(
-            "No watched videos found, starting from learning outcomes"
-          );
+          // If the requested capsuleId doesn't exist in this level, start from the beginning.
           setChangeStages(1);
         }
-
-        // Save these values to localStorage
-        localStorage.setItem(`capsuleIndex_${id}`, targetIndex.toString());
-        return; // Skip the rest of the function
       } else {
-        console.log("Capsule ID not found in current capsules");
+        // No specific capsule requested, so load progress from localStorage.
+        const savedStage = localStorage.getItem(`courseStage_${id}`);
+        const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
+        if (savedStage) {
+          setChangeStages(parseInt(savedStage, 10));
+        }
+        if (savedCapsuleIndex) {
+          setCapselIndex(parseInt(savedCapsuleIndex, 10));
+        }
       }
+      // Mark initial routing as complete to prevent it from running again on re-renders.
+      setInitialRoutingDone(true);
     }
-
-    // Only load from localStorage if there's NO capsuleId in URL AND we haven't processed anything yet
-    if (
-      !capsuleId &&
-      !capsuleIdProcessedRef.current &&
-      currentCapsule &&
-      currentCapsule.length > 0
-    ) {
-      const savedStage = localStorage.getItem(`courseStage_${id}`);
-      const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
-
-      if (savedStage) {
-        setChangeStages(parseInt(savedStage));
-      }
-
-      if (savedCapsuleIndex && setCapselIndex) {
-        setCapselIndex(parseInt(savedCapsuleIndex));
-      }
-
-      capsuleIdProcessedRef.current = true; // Mark as processed
-    }
-  }, [id, setCapselIndex, capsuleId, currentCapsule, watchedVideos]);
+  }, [
+    currentCapsule,
+    watchedVideos,
+    watchedVideosLoading,
+    initialRoutingDone,
+    capsuleId,
+    id,
+    setCapselIndex,
+  ]);
 
   // Separate cleanup effect that only runs when level ID changes
   useEffect(() => {
@@ -185,7 +170,7 @@ export default function Capsels({ id, capsuleId }) {
       if (setCapselIndex) {
         setCapselIndex(0);
       }
-      capsuleIdProcessedRef.current = false; // Reset for new level
+      setInitialRoutingDone(false); // Allow routing logic to run for the new level
     };
   }, [id, setCapselIndex]);
 
@@ -499,6 +484,7 @@ export default function Capsels({ id, capsuleId }) {
   // watched videos
   useEffect(() => {
     const fetchWachedVideo = async () => {
+      setWatchedVideosLoading(true);
       const token = localStorage.getItem("login-accessToken");
       const missionId = localStorage.getItem("currentMissionId");
       const levelId = localStorage.getItem("currentLevelId");
@@ -588,6 +574,7 @@ export default function Capsels({ id, capsuleId }) {
         }
       } finally {
         // setLoading(false);
+        setWatchedVideosLoading(false);
       }
     };
 
@@ -980,8 +967,16 @@ export default function Capsels({ id, capsuleId }) {
               {/* text */}
               <div className="h-fit w-full flex flex-col justify-center">
                 <LevelQuiz
-                  onQuizComplete={(passed) => {
-                    if (passed) {
+                  key={quizKey}
+                  onQuizComplete={(result) => {
+                    setQuizPerformance(result);
+                    if (result.error) {
+                      setQuizError(result.error);
+                    } else {
+                      setQuizError(null); // Clear previous errors
+                    }
+
+                    if (result.passed) {
                       setChangeStages(5);
                     } else {
                       setChangeStages(6);
@@ -996,66 +991,89 @@ export default function Capsels({ id, capsuleId }) {
 
       case 5:
         return (
-          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
-            <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
-              {/* Loading Bar - Fixed height */}
-              <div className="h-[60px] w-full flex items-center justify-between">
-                <LoadingBar
-                  completed={currentProgress.completed}
-                  total={currentProgress.total}
-                />
-              </div>
-
-              {/* Completion Content */}
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <div className="mb-6">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-24 w-24 text-green-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
-                  Module Completed!
+          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-4 sm:p-10">
+            <div className="w-full max-w-2xl">
+              <div className="text-center sm:text-left mb-8">
+                <h2 className="text-[#822A8D] font-bold text-2xl sm:text-3xl mb-2">
+                  Quiz Performance
                 </h2>
-                <p className="text-white text-lg mb-8 max-w-2xl">
-                  Congratulations! You have successfully completed this module.
-                  You've gained valuable knowledge and skills that will help you
-                  in your learning journey.
+                <p className="text-sm sm:text-base text-gray-400">
+                  See how you scored, track your growth, and unlock new powers
+                  with every quiz.
                 </p>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleRetakeQuiz}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+              </div>
+              <div className="bg-[#131313] p-6 sm:p-8 rounded-2xl text-center">
+                <h3 className="text-5xl sm:text-6xl font-bold mb-4 text-green-400">
+                  {quizPerformance?.percentage || "100"}%
+                </h3>
+                <p className="text-base sm:text-lg text-gray-300 max-w-md mx-auto">
+                  Here's how you fared in your latest challenge. Remember, every
+                  wrong answer is just training for your next evolution.
+                </p>
+                <div className="my-6 sm:my-8 border-t border-gray-700"></div>
+                <button
+                  onClick={() =>
+                    setShowPerformanceDetails(!showPerformanceDetails)
+                  }
+                  className="flex items-center justify-center gap-2 cursor-pointer w-full text-gray-400 hover:text-white transition-colors py-2"
+                >
+                  <span>Performance Details</span>
+                  <span
+                    className={`transform transition-transform ${
+                      showPerformanceDetails ? "rotate-180" : ""
+                    }`}
                   >
-                    Retake Quiz
-                  </button>
-                  <button
-                    onClick={() => {
-                      // Navigate back to mission levels
-                      const missionId =
-                        localStorage.getItem("currentMissionId");
-                      if (missionId) {
-                        window.location.href = `/student/student-dashboard/student-mission-study-levels/${missionId}`;
-                      } else {
-                        window.location.href = "/student/student-dashboard";
-                      }
-                    }}
-                    className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold py-2 px-4 rounded"
-                  >
-                    Back to Level Missions
-                  </button>
+                    ▼
+                  </span>
+                </button>
+                {showPerformanceDetails && (
+                  <div className="mt-4 space-y-3 text-sm sm:text-base text-left">
+                    <div className="flex justify-between">
+                      <p>Attempted Questions</p>
+                      <p>
+                        {quizPerformance?.total || 0}/
+                        {quizPerformance?.total || 0}
+                      </p>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Correct Answers</p>
+                      <p>
+                        {quizPerformance?.score || 0}/
+                        {quizPerformance?.total || 0}
+                      </p>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Duration</p>
+                      <p>{quizPerformance?.duration || "0:00"}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {quizError && (
+                <div className="mt-4 bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg text-center">
+                  {quizError}
                 </div>
+              )}
+              <div className="flex flex-col sm:flex-row items-center justify-center mt-8 gap-4">
+                <button
+                  onClick={handleReviewCapsules}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Review Answers
+                </button>
+                <button
+                  onClick={() => {
+                    const missionId = localStorage.getItem("currentMissionId");
+                    if (missionId) {
+                      window.location.href = `/student/student-dashboard/student-mission-study-levels/${missionId}`;
+                    } else {
+                      window.location.href = "/student/student-dashboard";
+                    }
+                  }}
+                  className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"
+                >
+                  Continue
+                </button>
               </div>
             </div>
           </div>
@@ -1063,50 +1081,83 @@ export default function Capsels({ id, capsuleId }) {
 
       case 6:
         return (
-          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-[10px]">
-            <div className="max-w-[1261px] mx-auto w-full h-full flex flex-col">
-              {/* Loading Bar - Fixed height */}
-              <div className="h-[60px] w-full flex items-center justify-between">
-                <LoadingBar
-                  completed={currentProgress.completed}
-                  total={currentProgress.total}
-                />
-              </div>
-
-              {/* Failure Content */}
-              <div className="flex-1 flex flex-col items-center justify-center text-center">
-                <div className="mb-6">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="h-24 w-24 text-red-500"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"
-                    />
-                  </svg>
-                </div>
-                <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
-                  Module Failed
+          <div className="w-full h-[82vh] flexcenter bg-[#0A0A0A] p-4 sm:p-10">
+            <div className="w-full max-w-2xl">
+              <div className="text-center sm:text-left mb-8">
+                <h2 className="text-[#822A8D] font-bold text-2xl sm:text-3xl mb-2">
+                  Quiz Performance
                 </h2>
-                <p className="text-white text-lg mb-8 max-w-2xl">
+                <p className="text-sm sm:text-base text-gray-400">
+                  See how you scored, track your growth, and unlock new powers
+                  with every quiz.
+                </p>
+              </div>
+              <div className="bg-[#131313] p-6 sm:p-8 rounded-2xl text-center">
+                <h3 className="text-5xl sm:text-6xl font-bold mb-4 text-red-500">
+                  {quizPerformance?.percentage || 0}%
+                </h3>
+                <p className="text-base sm:text-lg text-gray-300 max-w-md mx-auto">
                   Don't worry, failure is part of the learning process. Review
                   the material and try the quiz again.
                 </p>
-
-                <div className="flex gap-4">
-                  <button
-                    onClick={handleRetakeQuiz}
-                    className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+                <div className="my-6 sm:my-8 border-t border-gray-700"></div>
+                <button
+                  onClick={() =>
+                    setShowPerformanceDetails(!showPerformanceDetails)
+                  }
+                  className="flex items-center justify-center gap-2 cursor-pointer w-full text-gray-400 hover:text-white transition-colors py-2"
+                >
+                  <span>Performance Details</span>
+                  <span
+                    className={`transform transition-transform ${
+                      showPerformanceDetails ? "rotate-180" : ""
+                    }`}
                   >
-                    Retake Quiz
-                  </button>
+                    ▼
+                  </span>
+                </button>
+                {showPerformanceDetails && (
+                  <div className="mt-4 space-y-3 text-sm sm:text-base text-left">
+                    <div className="flex justify-between">
+                      <p>Attempted Questions</p>
+                      <p>
+                        {quizPerformance?.total || 0}/
+                        {quizPerformance?.total || 0}
+                      </p>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Correct Answers</p>
+                      <p>
+                        {quizPerformance?.score || 0}/
+                        {quizPerformance?.total || 0}
+                      </p>
+                    </div>
+                    <div className="flex justify-between">
+                      <p>Duration</p>
+                      <p>{quizPerformance?.duration || "0:00"}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+              {quizError && (
+                <div className="mt-4 bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-lg text-center">
+                  {quizError}
                 </div>
+              )}
+              <div className="flex flex-col sm:flex-row items-center justify-center mt-8 gap-4">
+                <button
+                  onClick={handleReviewCapsules}
+                  className="text-gray-400 hover:text-white transition-colors"
+                >
+                  Review Answers
+                </button>
+                <button
+                  onClick={handleRetakeQuiz}
+                  className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"
+                  disabled={!!quizError}
+                >
+                  Retry Level
+                </button>
               </div>
             </div>
           </div>
@@ -1128,7 +1179,8 @@ export default function Capsels({ id, capsuleId }) {
     // Clear quiz-related data from localStorage
     localStorage.removeItem("quizState");
     localStorage.removeItem("quizAlreadyTaken");
-
+    setQuizError(null);
+    setQuizKey((prevKey) => prevKey + 1); // Increment key to force remount
     // Go back to the quiz stage
     setChangeStages(4);
   };

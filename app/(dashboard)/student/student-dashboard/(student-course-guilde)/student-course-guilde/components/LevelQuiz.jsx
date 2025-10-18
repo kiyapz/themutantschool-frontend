@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useEffect, useState, useCallback } from "react";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import Image from "next/image";
 
 export default function LevelQuiz({
   width = "100%",
@@ -130,9 +131,11 @@ export default function LevelQuiz({
         console.log("API Response received:", apiResponse);
 
         // Get score and percentage from API response
-        const apiScore = apiResponse.data.score || 0;
+        const percentage = apiResponse.data.score || 0;
         const apiTotal = apiResponse.data.total || quizData.questions.length;
-        const percentage = Math.round((apiScore / apiTotal) * 100);
+        const apiScore = Math.round((percentage / 100) * apiTotal);
+
+        localStorage.setItem("quizPercentage", percentage);
 
         console.log("📊 QUIZ RESULTS - Processing API response:", {
           score: apiScore,
@@ -172,7 +175,13 @@ export default function LevelQuiz({
 
         // Call the completion callback to advance to next stage
         if (onQuizComplete) {
-          onQuizComplete(apiResponse.data.passed);
+          onQuizComplete({
+            passed: apiResponse.data.passed,
+            score: apiScore,
+            total: apiTotal,
+            duration: finalDuration,
+            percentage: percentage,
+          });
         }
       } catch (error) {
         console.error("Failed to submit quiz to API:", error);
@@ -180,8 +189,21 @@ export default function LevelQuiz({
         // Extract the specific error message from the backend response
         const errorMessage =
           error.response?.data?.message ||
+          error.message ||
           "Quiz submission failed. Please try again.";
         setUpdateError(errorMessage);
+
+        // Also pass this error up to the parent
+        if (onQuizComplete) {
+          onQuizComplete({
+            passed: false,
+            score: 0,
+            total: quizData.questions.length,
+            duration: finalDuration,
+            percentage: 0,
+            error: errorMessage, // Pass the error message
+          });
+        }
 
         // Don't calculate local score, just show error
         setQuizResult({
@@ -480,50 +502,15 @@ export default function LevelQuiz({
 
       // Log more detailed error information
       if (error.response) {
-        // console.log("📝 QUIZ SUBMIT - ERROR DETAILS:", {
-        //   status: error.response.status,
-        //   statusText: error.response.statusText,
-        //   data: error.response.data,
-        //   endpoint: `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/submit-quiz/${missionId}/level/${levelId}`,
-        //   timestamp: new Date().toISOString(),
-        // });
-        console.log("📝 QUIZ SUBMIT - ERROR HEADERS:", error);
+        console.log("📝 QUIZ SUBMIT - ERROR DETAILS:", error.response);
 
-        // Check if quiz was already taken (404 with "Quiz not found" message)
-        if (
-          error.response.status === 404 &&
-          error.response.data?.message === "Quiz not found"
-        ) {
-          console.log("Quiz already taken - showing previous results");
-          setQuizAlreadyTaken(true);
-          setQuizCompleted(true);
-          setLoading(false);
-          setUpdateError(response.data.message);
-          // Save the "already taken" state to localStorage
-          // localStorage.setItem("quizAlreadyTaken", "true");
-
-          // Create a mock result to show the user they've already taken the quiz
-          // setPreviousQuizResult({
-          //   message: "You have already completed this quiz!",
-          //   alreadyTaken: true,
-          //   canRetake: true,
-          // });
-
-          return {
-            status: "already_taken",
-            message: "Quiz already completed",
-            data: {
-              alreadyTaken: true,
-              canRetake: true,
-            },
-          };
+        // Handle specific 403 errors by re-throwing a simpler error
+        if (error.response.status === 403 && error.response.data?.message) {
+          throw new Error(error.response.data.message);
         }
-      } else if (error.request) {
-        console.log("Error request:", error.request);
-      } else {
-        console.log("Error message:", error.message);
       }
 
+      // For all other errors, throw the original error
       throw error;
     }
   };
@@ -677,50 +664,49 @@ export default function LevelQuiz({
     const attemptsLeft = maxAttempts - attemptsTaken;
 
     return (
-      <div
-        style={{
-          backgroundColor: "#020202",
-          color: "white",
-          fontFamily: "sans-serif",
-          padding: "2rem",
-          borderRadius: "10px",
-          // border: "1px solid red",
-        }}
-      >
-        <div className="flex flex-col gap-4 h-[70vh] ">
-          <h2 className="text-[#822A8D] font-[700] text-[30px] sm:text-[40px] leading-[43px] mb-4">
-            {quizData.title}
-          </h2>
+      <div className="bg-[#020202] text-white font-sans p-4 sm:p-8 rounded-lg flex flex-col items-center justify-center min-h-[70vh]">
+        <div className="flex flex-col items-center gap-6 sm:gap-8">
+          <Image
+            src="/images/students-images/readingrobot.png"
+            alt="Mutant Character"
+            width={150}
+            height={150}
+            className="w-24 h-24 sm:w-32 sm:h-32 object-contain"
+          />
 
-          <div
-            style={{ padding: "20px" }}
-            className="bg-[#131313] p-6 rounded-lg mb-6"
-          >
-            <div className="flex flex-col gap-4 text-left">
-              <div className="flex justify-between">
-                <span>Duration:</span>
-                <span>{quizData.durationMinutes || 15} minutes</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Questions:</span>
-                <span>{quizData.questions.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Passing Score:</span>
-                <span>{quizData.passingScore}%</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Attempts Allowed:</span>
-                <span>{maxAttempts}</span>
-              </div>
-            </div>
+          <div className="flex items-center gap-2 text-xl sm:text-2xl">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-6 w-6"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+              />
+            </svg>
+            <span>
+              {quizData.durationMinutes
+                ? `${quizData.durationMinutes.toString().padStart(2, "0")}:00`
+                : "10:00"}
+            </span>
           </div>
 
-          <div className="text-center text-sm text-gray-400 mb-6">
-            <p>
-              Note: You have a maximum of {maxAttempts} attempts to pass this
-              quiz.
-            </p>
+          <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+            <div className="bg-[#131313] border border-[#840B94] p-4 rounded-lg text-center w-full sm:w-48">
+              <p className="text-gray-400 text-sm">Total Questions</p>
+              <p className="text-xl sm:text-2xl font-bold">
+                {quizData.questions.length}
+              </p>
+            </div>
+            <div className="bg-[#131313] border border-[#840B94] p-4 rounded-lg text-center w-full sm:w-48">
+              <p className="text-gray-400 text-sm">Attempts</p>
+              <p className="text-xl sm:text-2xl font-bold">{maxAttempts}</p>
+            </div>
           </div>
 
           {updateError && (
@@ -732,7 +718,7 @@ export default function LevelQuiz({
           <button
             style={{ padding: "10px" }}
             onClick={startQuiz}
-            className={`px-8 py-3 rounded-lg font-bold text-lg transition-colors ${
+            className={`px-8 py-3 rounded-lg font-bold text-lg transition-colors w-full sm:w-48 ${
               attemptsLeft > 0
                 ? "bg-[#840B94] hover:bg-[#6a0876]"
                 : "bg-gray-500 cursor-not-allowed"
@@ -761,284 +747,144 @@ export default function LevelQuiz({
 
     return (
       <div
-        style={{
-          width,
-          backgroundColor: "#020202",
-          color: "white",
-          fontFamily: "sans-serif",
-          padding: "2rem",
-          borderRadius: "10px",
-        }}
-        className="flex h-[80vh] w-full flex-col  gap-8 "
+        style={{ width }}
+        className="bg-[#020202] text-white font-sans p-4 sm:p-8 rounded-lg flex flex-col items-center justify-center min-h-[80vh]"
       >
-        <div>
-          <p className="text-[#822A8D] font-[700] sm:text-[20px] leading-[21px]">
-            Quiz Performance
-          </p>
-          <p className="font-[700] sm:text-[15px] leading-[16px]">
-            See how you scored, track your growth, and unlock new powers with
-            every quiz.
-          </p>
-        </div>
+        <div className="w-full max-w-2xl">
+          <div className="text-center sm:text-left mb-8">
+            <h2 className="text-[#822A8D] font-bold text-2xl sm:text-3xl mb-2">
+              Quiz Performance
+            </h2>
+            <p className="text-sm sm:text-base text-gray-400">
+              See how you scored, track your growth, and unlock new powers with
+              every quiz.
+            </p>
+          </div>
 
-        <div
-          style={{ padding: "10px", margin: "auto" }}
-          className="bg-[#131313] items-center flex max-w-[600px] items-center gap-5 flex-col justify-center h-fit w-full rounded-[10px] xl:rounded-[20px] sm:rounded-[40px]"
-        >
-          <div className="flex flex-col h-[80%] items-center justify-center gap-3">
-            <div className="flex items-center gap-4">
-              <h2
-                className={`font-[500] sm:text-[48px] leading-[43px] ${
-                  hasPassed ? "text-green-400" : "text-red-400"
+          <div className="bg-[#131313] p-6 sm:p-8 rounded-2xl">
+            <div className="text-center">
+              <h3
+                className={`text-5xl sm:text-6xl font-bold mb-4 ${
+                  hasPassed ? "text-[#4CAF50]" : "text-[#F44336]"
                 }`}
               >
-                {hasPassed ? `${percentage}%` : ""}
-              </h2>
-              {resultData.apiResponse && (
-                <div
-                  className={`text-4xl ${
-                    hasPassed ? "text-green-400" : "text-red-400"
+                {percentage}%
+              </h3>
+              <p className="text-base sm:text-lg text-gray-300 max-w-md mx-auto">
+                {hasPassed
+                  ? "Here's how you fared in your latest challenge. Remember, every wrong answer is just training for your next evolution."
+                  : "Don't worry, failure is part of the learning process. Review the material and try the quiz again."}
+              </p>
+            </div>
+
+            <div className="my-6 sm:my-8 border-t border-gray-700"></div>
+
+            <div>
+              <button
+                onClick={() =>
+                  setShowPerformanceDetails(!showPerformanceDetails)
+                }
+                className="flex items-center justify-center gap-2 cursor-pointer w-full text-gray-400 hover:text-white transition-colors py-2"
+              >
+                <span>Performance Details</span>
+                <span
+                  className={`transform transition-transform ${
+                    showPerformanceDetails ? "rotate-180" : ""
                   }`}
                 >
-                  {hasPassed ? "🎉" : "💪"}
+                  ▼
+                </span>
+              </button>
+
+              {showPerformanceDetails && (
+                <div className="mt-4 space-y-3 text-sm sm:text-base">
+                  <div className="flex justify-between">
+                    <p>Attempted Questions</p>
+                    <p>
+                      {totalQuestions}/{totalQuestions}
+                    </p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>Correct Answers</p>
+                    <p>
+                      {displayScore}/{totalQuestions}
+                    </p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>Duration</p>
+                    <p>{formatDuration(quizDuration)}</p>
+                  </div>
                 </div>
               )}
             </div>
-
-            {/* Show raw score prominently */}
-            {hasPassed && (
-              <div className="text-white font-[600] text-[24px] sm:text-[32px] mb-2">
-                Score:{" "}
-                <span className="text-green-400">
-                  {displayScore}/{totalQuestions}
-                </span>
-              </div>
-            )}
-
-            <p className="font-[400] sm:text-[20px] text-center leading-[33px]">
-              {hasPassed
-                ? "🎉 Congratulations! You've successfully completed this challenge and evolved your skills!"
-                : "💪 Here's how you fared in your latest challenge. Remember, every wrong answer is just training for your next evolution"}
-            </p>
-
-            {resultData.apiResponse && (
-              <div className="text-green-400 text-sm">
-                ✓ Results verified by server
-              </div>
-            )}
-            {resultData.error && (
-              <div className="text-red-400 text-sm text-center">
-                ⚠️ {resultData.message}
-              </div>
-            )}
           </div>
 
-          {hasPassed && (
-            <div>
-              <div className="text-[#646464] font-[400] text-[14px] sm:text-[19px] leading-[43px]">
-                <button
-                  onClick={() =>
-                    setShowPerformanceDetails(!showPerformanceDetails)
-                  }
-                  className="flex items-center gap-2 cursor-pointer w-[300px] hover:text-white transition-colors"
-                >
-                  Performance Details
-                  <span
-                    className={`transform transition-transform ${
-                      showPerformanceDetails ? "rotate-180" : ""
-                    }`}
-                  >
-                    ▼
-                  </span>
-                </button>
-
-                {showPerformanceDetails && (
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-center justify-between w-[300px]">
-                      <p>Attempted Questions</p>
-                      <p>
-                        {totalQuestions}/{totalQuestions}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between w-[300px]">
-                      <p>Correct Answers</p>
-                      <p>
-                        {displayScore}/{totalQuestions}
-                      </p>
-                    </div>
-                    <div className="flex items-center justify-between w-[300px]">
-                      <p>Duration</p>
-                      <p>{formatDuration(quizDuration)}</p>
-                    </div>
-                    <div className="flex items-center justify-between w-[300px]">
-                      <p>Passing Score</p>
-                      <p>{quizData.passingScore}%</p>
-                    </div>
-                    {resultData.apiResponse && (
-                      <>
-                        <div className="flex items-center justify-between w-[300px]">
-                          <p>Server Status</p>
-                          <p className="text-green-400">
-                            {resultData.apiResponse.status
-                              ? resultData.apiResponse.status.toUpperCase()
-                              : "COMPLETED"}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between w-[300px]">
-                          <p>Quiz Result</p>
-                          <p
-                            className={
-                              hasPassed ? "text-green-400" : "text-red-400"
-                            }
-                          >
-                            {hasPassed ? "✅ PASSED" : "❌ FAILED"}
-                          </p>
-                        </div>
-                        <div className="flex items-center justify-between w-[300px]">
-                          <p>Attempt ID</p>
-                          <p className="text-xs text-gray-400">
-                            {resultData.apiResponse.data.attemptId?.slice(-8) ||
-                              "N/A"}
-                          </p>
-                        </div>
-                      </>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Answer Review Section */}
-        {resultData.apiResponse && resultData.apiResponse.data && (
-          <div className="w-full max-w-[800px] mx-auto">
+          <div className="flex flex-col sm:flex-row items-center justify-center mt-8 gap-4">
             <button
               onClick={() => setShowAnswerReview(!showAnswerReview)}
-              className="flex items-center gap-2 cursor-pointer w-full justify-center text-[#646464] hover:text-white transition-colors py-4 border-t border-gray-700"
+              className="text-gray-400 hover:text-white transition-colors"
             >
-              <span className="font-[400] text-[14px] sm:text-[19px]">
-                {showAnswerReview ? "Hide" : "Show"} Answer Review
-              </span>
-              <span
-                className={`transform transition-transform ${
-                  showAnswerReview ? "rotate-180" : ""
-                }`}
-              >
-                ▼
-              </span>
+              Review Answers
             </button>
-
-            {showAnswerReview && (
-              <div className="mt-4 space-y-4 max-h-[400px] overflow-y-auto">
-                {resultData.apiResponse.data.answers.map((answer, index) => (
-                  <div
-                    key={answer.questionId}
-                    className={`p-4 rounded-lg border-l-4 ${
-                      answer.isCorrect
-                        ? "bg-green-900/20 border-green-500"
-                        : "bg-red-900/20 border-red-500"
-                    }`}
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-white">
-                        Question {index + 1}
-                      </h4>
-                      <span
-                        className={`px-2 py-1 rounded text-xs font-bold ${
-                          answer.isCorrect
-                            ? "bg-green-600 text-white"
-                            : "bg-red-600 text-white"
-                        }`}
-                      >
-                        {answer.isCorrect ? "✓ Correct" : "✗ Incorrect"}
-                      </span>
-                    </div>
-
-                    <div className="space-y-2 text-sm">
-                      <div>
-                        <span className="text-gray-400">Your Answer:</span>
-                        <span
-                          className={`ml-2 ${
-                            answer.isCorrect ? "text-green-300" : "text-red-300"
-                          }`}
-                        >
-                          {answer.selectedOption}
-                        </span>
-                      </div>
-
-                      {!answer.isCorrect && (
-                        <div>
-                          <span className="text-gray-400">Correct Answer:</span>
-                          <span className="ml-2 text-green-300">
-                            {answer.correctOption}
-                          </span>
-                        </div>
-                      )}
-
-                      {answer.explanation && (
-                        <div>
-                          <span className="text-gray-400">Explanation:</span>
-                          <span className="ml-2 text-gray-300">
-                            {answer.explanation}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {updateError && (
-          <div className="bg-red-900 text-white p-3 rounded w-full text-center">
-            {updateError}
-          </div>
-        )}
-
-        <div className="flex items-center justify-end mt-6 gap-4 w-full">
-          {hasPassed ? (
-            <>
-              <button
-                style={{ padding: "16px 8px" }}
-                onClick={() => {
-                  // Navigate back to mission levels
-                  const missionId = localStorage.getItem("currentMissionId");
-                  if (missionId) {
-                    window.location.href = `/student/student-dashboard/student-mission-study-levels/${missionId}`;
-                  } else {
-                    window.location.href = "/student/student-dashboard";
-                  }
-                }}
-                className="bg-gray-700 hover:bg-gray-600 font-[700] sm:text-[20px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
-              >
-                Back to Levels
-              </button>
-              <button
-                style={{ padding: "16px 8px" }}
-                onClick={() => {
-                  if (onQuizComplete) {
-                    onQuizComplete();
-                  }
-                }}
-                className="bg-[#840B94] hover:bg-[#6a0876] font-[700] sm:text-[31px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
-                disabled={loading}
-              >
-                {loading ? "Processing..." : "Continue"}
-              </button>
-            </>
-          ) : (
             <button
               onClick={onReview}
-              className="bg-[#604196] cursor-pointer font-[700] sm:text-[18px] sm:leading-[100%] rounded-[10px] px-6 py-3 transition-colors"
-              style={{ padding: "16px 8px" }}
+              className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"
             >
-              Review Capsules
+              {hasPassed ? "Continue" : "Retry Level"}
             </button>
-          )}
+          </div>
         </div>
+        {showAnswerReview && (
+          <div className="w-full max-w-2xl mt-8">
+            <div className="mt-4 space-y-4 max-h-[400px] overflow-y-auto">
+              {resultData?.apiResponse?.data?.answers.map((answer, index) => (
+                <div
+                  key={answer.questionId}
+                  className={`p-4 rounded-lg border-l-4 ${
+                    answer.isCorrect
+                      ? "bg-green-900/20 border-green-500"
+                      : "bg-red-900/20 border-red-500"
+                  }`}
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <h4 className="font-semibold text-white">
+                      Question {index + 1}
+                    </h4>
+                    <span
+                      className={`px-2 py-1 rounded text-xs font-bold ${
+                        answer.isCorrect
+                          ? "bg-green-600 text-white"
+                          : "bg-red-600 text-white"
+                      }`}
+                    >
+                      {answer.isCorrect ? "✓ Correct" : "✗ Incorrect"}
+                    </span>
+                  </div>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-400">Your Answer:</span>
+                      <span
+                        className={`ml-2 ${
+                          answer.isCorrect ? "text-green-300" : "text-red-300"
+                        }`}
+                      >
+                        {answer.selectedOption}
+                      </span>
+                    </div>
+                    {!answer.isCorrect && (
+                      <div>
+                        <span className="text-gray-400">Correct Answer:</span>
+                        <span className="ml-2 text-green-300">
+                          {answer.correctOption}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     );
   }
