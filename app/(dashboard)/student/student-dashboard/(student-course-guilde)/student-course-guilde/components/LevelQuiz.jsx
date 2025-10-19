@@ -297,10 +297,20 @@ export default function LevelQuiz({
           timestamp: new Date().toISOString(),
         });
 
-        const quizLevel = allquiz.find((level) => level.quiz);
+        // Get the current level ID from localStorage
+        const currentLevelId = localStorage.getItem("currentLevelId");
+        console.log(
+          "🔍 QUIZ FETCH: Looking for quiz in current level:",
+          currentLevelId
+        );
+
+        // Find the specific level that matches the current level ID
+        const quizLevel = allquiz.find(
+          (level) => level._id === currentLevelId && level.quiz
+        );
         if (quizLevel) {
           const quiz = quizLevel.quiz;
-          console.log("🔍 QUIZ FETCH: Found quiz in level:", {
+          console.log("🔍 QUIZ FETCH: Found quiz in current level:", {
             levelId: quizLevel._id,
             quizId: quiz._id,
             quizTitle: quiz.title,
@@ -310,9 +320,14 @@ export default function LevelQuiz({
           setQuizData({ ...quiz, level: quizLevel._id });
           setUserAnswers(new Array(quiz.questions.length).fill(null));
         } else {
-          console.log("🔍 QUIZ FETCH: No quiz found in any of the levels", {
+          console.log("🔍 QUIZ FETCH: No quiz found in current level", {
+            currentLevelId: currentLevelId,
             levelsChecked: allquiz?.length || 0,
-            levels: allquiz?.map((level) => level._id) || [],
+            levels:
+              allquiz?.map((level) => ({
+                id: level._id,
+                hasQuiz: !!level.quiz,
+              })) || [],
           });
         }
       } catch (error) {
