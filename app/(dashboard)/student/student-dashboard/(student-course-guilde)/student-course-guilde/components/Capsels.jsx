@@ -988,6 +988,17 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                       setQuizError(null); // Clear previous errors
                     }
 
+                    // Track quiz completion in localStorage for parent component
+                    if (result.passed !== undefined) {
+                      const currentLevelId = localStorage.getItem("currentLevelId");
+                      if (currentLevelId) {
+                        const savedPassedQuizzes = JSON.parse(localStorage.getItem('passedQuizzes') || '{}');
+                        savedPassedQuizzes[currentLevelId] = result.passed;
+                        localStorage.setItem('passedQuizzes', JSON.stringify(savedPassedQuizzes));
+                        console.log(`Quiz completion tracked for level ${currentLevelId}: passed=${result.passed}`);
+                      }
+                    }
+
                     if (result.passed) {
                       setChangeStages(5);
                     } else {

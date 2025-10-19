@@ -22,6 +22,7 @@ export default function LevelsPath({
     level: null,
     id: null,
   });
+  const [passedQuizzes, setPassedQuizzes] = useState({});
 
   const level = Array.isArray(levelProp)
     ? levelProp
@@ -54,6 +55,43 @@ export default function LevelsPath({
         console.error("Error parsing saved level state:", error);
       }
     }
+
+    // Load passed quizzes from localStorage
+    const savedPassedQuizzes = localStorage.getItem('passedQuizzes');
+    if (savedPassedQuizzes) {
+      try {
+        const parsedPassedQuizzes = JSON.parse(savedPassedQuizzes);
+        setPassedQuizzes(parsedPassedQuizzes);
+      } catch (error) {
+        console.error("Error parsing saved passed quizzes:", error);
+      }
+    }
+  }, []);
+
+  // Listen for changes in passedQuizzes localStorage
+  useEffect(() => {
+    const handleStorageChange = () => {
+      const savedPassedQuizzes = localStorage.getItem('passedQuizzes');
+      if (savedPassedQuizzes) {
+        try {
+          const parsedPassedQuizzes = JSON.parse(savedPassedQuizzes);
+          setPassedQuizzes(parsedPassedQuizzes);
+        } catch (error) {
+          console.error("Error parsing passed quizzes from localStorage:", error);
+        }
+      }
+    };
+
+    // Listen for storage events (when localStorage changes in other tabs/components)
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check periodically for changes within the same tab
+    const interval = setInterval(handleStorageChange, 1000);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
 
   useEffect(() => {
@@ -220,6 +258,38 @@ export default function LevelsPath({
     return completedCount === totalCapsules && totalCapsules > 0;
   };
 
+  // Function to check if all quizzes in a level have been passed
+  const areAllQuizzesPassed = (containerIndex) => {
+    const currentLevel = level[containerIndex];
+    if (!currentLevel || !currentLevel.capsules) return false;
+
+    // Check if all capsules in this level have been completed
+    const completedCapsules = getCompletedCapsulesForLevel(currentLevel._id);
+    const totalCapsules = currentLevel.capsules.length;
+    const completedCount = completedCapsules.length;
+
+    // All capsules must be completed first
+    if (completedCount !== totalCapsules || totalCapsules === 0) {
+      return false;
+    }
+
+    // Check if the quiz for this level has been passed
+    const levelId = currentLevel._id;
+    const passedQuizzesForLevel = passedQuizzes[levelId] || false;
+    
+    console.log(
+      `Level ${containerIndex + 1} quiz status:`,
+      {
+        levelId,
+        passed: passedQuizzesForLevel,
+        capsulesCompleted: completedCount,
+        totalCapsules
+      }
+    );
+
+    return passedQuizzesForLevel;
+  };
+
   // Function to handle capsule click
   const handleCapsuleClick = (
     containerIndex,
@@ -239,6 +309,20 @@ export default function LevelsPath({
       localStorage.setItem("currentLevelId", currentlevelId);
       localStorage.setItem("currentCapsuleId", capsuleId);
     }
+  };
+
+  // Function to handle quiz completion
+  const handleQuizCompletion = (levelId, passed) => {
+    console.log(`Quiz completed for level ${levelId}, passed: ${passed}`);
+    setPassedQuizzes(prev => ({
+      ...prev,
+      [levelId]: passed
+    }));
+    
+    // Save to localStorage for persistence
+    const savedPassedQuizzes = JSON.parse(localStorage.getItem('passedQuizzes') || '{}');
+    savedPassedQuizzes[levelId] = passed;
+    localStorage.setItem('passedQuizzes', JSON.stringify(savedPassedQuizzes));
   };
 
   // Function to handle quiz click
@@ -528,12 +612,31 @@ export default function LevelsPath({
 
       {/* Final Quiz Button */}
       <div className="relative mt-16 flex justify-center translate-x-10">
-        <div
-          onClick={() => alert("Complete all levels to unlock final quiz!")}
-          className="relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
-        >
-          Final Quiz <span className="ml-2 text-xs">🔒</span>
-        </div>
+        {(() => {
+          // Check if all levels have passed their quizzes
+          const allLevelsPassed = level.every((_, index) => areAllQuizzesPassed(index));
+          const finalQuizEnabled = allLevelsPassed;
+          
+          return (
+            <div
+              onClick={() => {
+                if (finalQuizEnabled) {
+                  // Navigate to final quiz
+                  alert("Final quiz functionality - to be implemented");
+                } else {
+                  alert("Complete all level quizzes to unlock final quiz!");
+                }
+              }}
+              className={`relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 ${
+                finalQuizEnabled
+                  ? "bg-[#840B94] text-white cursor-pointer"
+                  : "bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
+              }`}
+            >
+              Final Quiz <span className="ml-2 text-xs">{finalQuizEnabled ? "🔓" : "🔒"}</span>
+            </div>
+          );
+        })()}
       </div>
     </div>
   );
