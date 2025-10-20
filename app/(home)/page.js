@@ -144,13 +144,13 @@ export default function Home() {
     };
   }, [setCartItems]);
 
-  // Additional useEffect to handle page refresh specifically
+  
   useEffect(() => {
     const handlePageLoad = () => {
-      // Clear any existing missions first
+     
       setMissions([]);
 
-      // Force refresh missions when page loads (including refresh)
+      
       const fetchMissionsOnLoad = async () => {
         try {
           setLoading(true);

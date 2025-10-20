@@ -9,7 +9,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const ITEMS_PER_PAGE = 10; // Match backend limit
+const ITEMS_PER_PAGE = 10; 
 
 // Filter options
 const options = [
