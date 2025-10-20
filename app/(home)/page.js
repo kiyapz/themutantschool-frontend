@@ -337,6 +337,11 @@ export default function Home() {
                 >
                   <div
                     className="h-[195px] rounded-t-[20px] bg-cover bg-center relative"
+                    onClick={() => {
+                      const slug = createSlug(mission.title);
+                      console.log("Navigating to mission:", slug);
+                      router.push(`/mission/${slug}`);
+                    }}
                     style={{
                       backgroundImage: `url(${
                         mission.thumbnail?.url ||
@@ -379,7 +384,14 @@ export default function Home() {
                       </div>
 
                       <div className="flex flex-col gap-2">
-                        <h3 className="text-[#E8EDF6] font-[600] text-2xl md:text-[32px] leading-tight md:leading-[35px]">
+                        <h3
+                          onClick={() => {
+                            const slug = createSlug(mission.title);
+                            console.log("Navigating to mission:", slug);
+                            router.push(`/mission/${slug}`);
+                          }}
+                          className="text-[#E8EDF6] font-[600] text-2xl md:text-[32px] leading-tight md:leading-[35px]"
+                        >
                           {mission.title || "Mission Title"}
                         </h3>
                         <h4 className="text-[#E8EDF6] font-semibold text-xl md:text-2xl leading-tight">

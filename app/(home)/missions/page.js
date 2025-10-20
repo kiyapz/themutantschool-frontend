@@ -675,7 +675,19 @@ export default function Mission() {
                                 <span>{course.averageRating}</span>
                               </p>
                             </div>
-                            <p className="text-[var(--gray-800-ish)] ibm-plex-mono-bold font-[700] text-[20px] leading-[23px] ">
+                            <p
+                              onClick={() => {
+                                const titleSlug = createSlug(course.title);
+                                console.log(
+                                  "Navigating to mission:",
+                                  course._id,
+                                  "with slug:",
+                                  titleSlug
+                                );
+                                router.push(`/mission/${titleSlug}`);
+                              }}
+                              className="text-[var(--gray-800-ish)] ibm-plex-mono-bold font-[700] text-[20px] leading-[23px] "
+                            >
                               {course.title}
                             </p>
                             <p className="text-[var(--green-strong)] font-[800] text-[15px] leading-[28px]">
