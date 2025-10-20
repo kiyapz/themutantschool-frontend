@@ -325,6 +325,40 @@ body {
     margin-top: 5% !important;
   }
 
+  /* Mobile login page improvements */
+  .btn {
+    background: linear-gradient(
+      135deg,
+      var(--primary) 0%,
+      var(--secondary) 100%
+    );
+    transition: all 0.3s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(145, 89, 209, 0.3);
+  }
+
+  /* Ensure inputs are touch-friendly on mobile */
+  input[type="email"],
+  input[type="password"] {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Desktop login page improvements */
+@media (min-width: 640px) {
+  /* Ensure background image covers full area */
+  .login-bg-image {
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    width: 100%;
+    height: 100%;
+    min-height: 100vh;
+  }
+
   .cut-box,
   .cut-box2 {
     position: relative;

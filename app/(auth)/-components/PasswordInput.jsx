@@ -13,11 +13,11 @@ export default function PasswordInput({
   const togglePassword = () => setShowPassword((prev) => !prev);
 
   return (
-    <div className="relative bg-[var(--accent)] rounded-[10px]  w-full ">
+    <div className="relative bg-[var(--accent)] rounded-[8px] sm:rounded-[10px] w-full">
       <input
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
-        className="w-full px h-[70.31px] outline-none rounded-[8px] sm:h-[75.16px]  text-white   sm:rounded-[10px]"
+        className="w-full px-3 sm:px-4 py-2 h-[50px] sm:h-[70px] outline-none rounded-[8px] sm:rounded-[10px] text-white placeholder-gray-400 text-[14px] sm:text-[17px] leading-[20px] sm:leading-[57px]"
         value={value}
         onChange={onchange}
       />
