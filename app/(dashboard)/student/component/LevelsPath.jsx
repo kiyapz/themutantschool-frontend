@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { generateCourseGuideSlug } from "@/lib/studentMissionUtils";
+import levelCompletionTracker from "@/lib/levelCompletionTracker";
 
 export default function LevelsPath({
   level: levelProp,
@@ -57,7 +58,7 @@ export default function LevelsPath({
     }
 
     // Load passed quizzes from localStorage
-    const savedPassedQuizzes = localStorage.getItem('passedQuizzes');
+    const savedPassedQuizzes = localStorage.getItem("passedQuizzes");
     if (savedPassedQuizzes) {
       try {
         const parsedPassedQuizzes = JSON.parse(savedPassedQuizzes);
@@ -71,25 +72,28 @@ export default function LevelsPath({
   // Listen for changes in passedQuizzes localStorage
   useEffect(() => {
     const handleStorageChange = () => {
-      const savedPassedQuizzes = localStorage.getItem('passedQuizzes');
+      const savedPassedQuizzes = localStorage.getItem("passedQuizzes");
       if (savedPassedQuizzes) {
         try {
           const parsedPassedQuizzes = JSON.parse(savedPassedQuizzes);
           setPassedQuizzes(parsedPassedQuizzes);
         } catch (error) {
-          console.error("Error parsing passed quizzes from localStorage:", error);
+          console.error(
+            "Error parsing passed quizzes from localStorage:",
+            error
+          );
         }
       }
     };
 
     // Listen for storage events (when localStorage changes in other tabs/components)
-    window.addEventListener('storage', handleStorageChange);
-    
+    window.addEventListener("storage", handleStorageChange);
+
     // Also check periodically for changes within the same tab
     const interval = setInterval(handleStorageChange, 1000);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener("storage", handleStorageChange);
       clearInterval(interval);
     };
   }, []);
@@ -276,16 +280,13 @@ export default function LevelsPath({
     // Check if the quiz for this level has been passed
     const levelId = currentLevel._id;
     const passedQuizzesForLevel = passedQuizzes[levelId] || false;
-    
-    console.log(
-      `Level ${containerIndex + 1} quiz status:`,
-      {
-        levelId,
-        passed: passedQuizzesForLevel,
-        capsulesCompleted: completedCount,
-        totalCapsules
-      }
-    );
+
+    console.log(`Level ${containerIndex + 1} quiz status:`, {
+      levelId,
+      passed: passedQuizzesForLevel,
+      capsulesCompleted: completedCount,
+      totalCapsules,
+    });
 
     return passedQuizzesForLevel;
   };
@@ -314,15 +315,17 @@ export default function LevelsPath({
   // Function to handle quiz completion
   const handleQuizCompletion = (levelId, passed) => {
     console.log(`Quiz completed for level ${levelId}, passed: ${passed}`);
-    setPassedQuizzes(prev => ({
+    setPassedQuizzes((prev) => ({
       ...prev,
-      [levelId]: passed
+      [levelId]: passed,
     }));
-    
+
     // Save to localStorage for persistence
-    const savedPassedQuizzes = JSON.parse(localStorage.getItem('passedQuizzes') || '{}');
+    const savedPassedQuizzes = JSON.parse(
+      localStorage.getItem("passedQuizzes") || "{}"
+    );
     savedPassedQuizzes[levelId] = passed;
-    localStorage.setItem('passedQuizzes', JSON.stringify(savedPassedQuizzes));
+    localStorage.setItem("passedQuizzes", JSON.stringify(savedPassedQuizzes));
   };
 
   // Function to handle quiz click
@@ -613,10 +616,12 @@ export default function LevelsPath({
       {/* Final Quiz Button */}
       <div className="relative mt-16 flex justify-center translate-x-10">
         {(() => {
-          // Check if all levels have passed their quizzes
-          const allLevelsPassed = level.every((_, index) => areAllQuizzesPassed(index));
-          const finalQuizEnabled = allLevelsPassed;
-          
+          // Use the level completion tracker to check if final quiz is available
+          const missionId = localStorage.getItem("currentMissionId");
+          const completionStats =
+            levelCompletionTracker.getMissionCompletionStats(missionId, level);
+          const finalQuizEnabled = completionStats.canTakeFinalQuiz;
+
           return (
             <div
               onClick={() => {
@@ -624,7 +629,11 @@ export default function LevelsPath({
                   // Navigate to final quiz
                   alert("Final quiz functionality - to be implemented");
                 } else {
-                  alert("Complete all level quizzes to unlock final quiz!");
+                  const completedCount = completionStats.completedLevels;
+                  const totalCount = completionStats.totalLevels;
+                  alert(
+                    `Complete all level quizzes to unlock final quiz! (${completedCount}/${totalCount} completed)`
+                  );
                 }
               }}
               className={`relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 ${
@@ -633,7 +642,10 @@ export default function LevelsPath({
                   : "bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
               }`}
             >
-              Final Quiz <span className="ml-2 text-xs">{finalQuizEnabled ? "🔓" : "🔒"}</span>
+              Final Quiz{" "}
+              <span className="ml-2 text-xs">
+                {finalQuizEnabled ? "🔓" : "🔒"}
+              </span>
             </div>
           );
         })()}

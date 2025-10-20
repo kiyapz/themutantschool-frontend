@@ -10,6 +10,8 @@ import { CourseGuideContext } from "./course-guild-contex/Contex";
 import { StudentContext } from "@/app/(dashboard)/student/component/Context/StudentContext";
 import refreshAccessToken from "@/components/RefreshToken";
 import axios from "axios";
+import levelCompletionTracker from "@/lib/levelCompletionTracker";
+import CompletionStatus from "./CompletionStatus";
 
 export default function Capsels({ id, capsuleId, startQuiz }) {
   const videoRef = useRef(null);
@@ -465,30 +467,63 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
     }
   }, [changeStages, setShowVideo]);
 
-  // Calculate progress
+  // Calculate progress using the level completion tracker
   const totalCapsules = currentCapsule.length;
   const watchedCapsules = watchedVideos.length;
+  const currentLevelId = localStorage.getItem("currentLevelId");
 
   const getStageProgress = () => {
-    // This function maps the overall progress to the four specific stages
-    const progressRatio =
-      totalCapsules > 0 ? watchedCapsules / totalCapsules : 0;
+    // Use the level completion tracker for accurate progress calculation
+    const progress = levelCompletionTracker.calculateLevelProgress(
+      currentLevelId,
+      watchedCapsules,
+      totalCapsules,
+      changeStages
+    );
 
-    if (changeStages === 1)
-      return { completed: 0, total: totalCapsules > 0 ? totalCapsules + 1 : 1 }; // Learning outcomes + Quiz
-    if (changeStages === 2)
+    // If level is completed, always show 100% progress
+    if (progress.isCompleted && progress.isQuizPassed) {
       return {
-        completed: Math.min(1, watchedCapsules),
-        total: totalCapsules + 1,
-      }; // Intro video + Quiz
-    if (changeStages === 3)
-      return { completed: watchedCapsules, total: totalCapsules + 1 }; // Capsule videos + Quiz
-    if (changeStages === 4)
-      return { completed: totalCapsules, total: totalCapsules + 1 }; // At the quiz stage
-    if (changeStages === 5)
-      return { completed: totalCapsules + 1, total: totalCapsules + 1 }; // Completion stage (Quiz passed)
+        completed: progress.total,
+        total: progress.total,
+        isCompleted: true,
+        isQuizPassed: true,
+      };
+    }
 
-    return { completed: watchedCapsules, total: totalCapsules + 1 };
+    // For non-completed levels, use stage-based calculation
+    let completed = 0;
+    const total = totalCapsules + 1; // Videos + quiz
+
+    switch (changeStages) {
+      case 1: // Learning outcomes
+        completed = 0;
+        break;
+      case 2: // Intro video
+        completed = Math.min(1, watchedCapsules);
+        break;
+      case 3: // Capsule videos
+        completed = watchedCapsules;
+        break;
+      case 4: // Quiz stage
+        completed = totalCapsules;
+        break;
+      case 5: // Quiz passed
+        completed = totalCapsules + 1;
+        break;
+      case 6: // Quiz failed
+        completed = totalCapsules;
+        break;
+      default:
+        completed = watchedCapsules;
+    }
+
+    return {
+      completed,
+      total,
+      isCompleted: progress.isCompleted,
+      isQuizPassed: progress.isQuizPassed,
+    };
   };
 
   const currentProgress = getStageProgress();
@@ -988,14 +1023,32 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                       setQuizError(null); // Clear previous errors
                     }
 
-                    // Track quiz completion in localStorage for parent component
+                    // Track quiz completion using the level completion tracker
                     if (result.passed !== undefined) {
-                      const currentLevelId = localStorage.getItem("currentLevelId");
+                      const currentLevelId =
+                        localStorage.getItem("currentLevelId");
                       if (currentLevelId) {
-                        const savedPassedQuizzes = JSON.parse(localStorage.getItem('passedQuizzes') || '{}');
+                        // Use the level completion tracker to mark level completion
+                        levelCompletionTracker.markLevelCompleted(
+                          currentLevelId,
+                          result.passed,
+                          result.score || 0,
+                          result.percentage || 0
+                        );
+
+                        // Also update the legacy localStorage for backward compatibility
+                        const savedPassedQuizzes = JSON.parse(
+                          localStorage.getItem("passedQuizzes") || "{}"
+                        );
                         savedPassedQuizzes[currentLevelId] = result.passed;
-                        localStorage.setItem('passedQuizzes', JSON.stringify(savedPassedQuizzes));
-                        console.log(`Quiz completion tracked for level ${currentLevelId}: passed=${result.passed}`);
+                        localStorage.setItem(
+                          "passedQuizzes",
+                          JSON.stringify(savedPassedQuizzes)
+                        );
+
+                        console.log(
+                          `Quiz completion tracked for level ${currentLevelId}: passed=${result.passed}`
+                        );
                       }
                     }
 
@@ -1030,8 +1083,8 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                   {quizPerformance?.percentage || "100"}%
                 </h3>
                 <p className="text-base sm:text-lg text-gray-300 max-w-md mx-auto">
-                  Here's how you fared in your latest challenge. Remember, every
-                  wrong answer is just training for your next evolution.
+                  Congratulations! You've successfully completed this level.
+                  Your progress has been saved.
                 </p>
                 <div className="my-6 sm:my-8 border-t border-gray-700"></div>
                 <button
@@ -1077,6 +1130,15 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                   {quizError}
                 </div>
               )}
+
+              {/* Completion Status */}
+              <div className="mt-4">
+                <CompletionStatus
+                  levelId={localStorage.getItem("currentLevelId")}
+                  showDetails={true}
+                />
+              </div>
+
               <div className="flex flex-col sm:flex-row items-center justify-center mt-8 gap-4">
                 <button
                   onClick={handleReviewCapsules}
