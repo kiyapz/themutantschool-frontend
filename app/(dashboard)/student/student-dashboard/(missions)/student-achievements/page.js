@@ -17,6 +17,7 @@ export default function Page(params) {
     bottomText: false,
   });
   const [certificates, setCertificates] = useState([]);
+  const [avatarStage, setAvatarStage] = useState("Newbie");
   const [xpProgress, setXpProgress] = useState({
     currentXpInLevel: 0,
     xpToNextLevel: 100,
@@ -111,8 +112,10 @@ export default function Page(params) {
           }
         );
         const data = await response.json();
+        console.log("Achievements page - Dashboard data:", data);
         if (data.success) {
           setXpProgress(data.data.progressToNextLevel);
+          setAvatarStage(data.data.avatarStage || "Newbie");
         }
       } catch (error) {
         console.error("Error fetching student data:", error);
@@ -125,10 +128,10 @@ export default function Page(params) {
     <div className="flex flex-col gap-6 w-full">
       <div
         style={{ padding: "16px" }}
-        className="w-full bg-[#0B0B0B]  relative xl:flex  gap-10 items-center  h-[438.49px] rounded-[20px] "
+        className="w-full bg-[#0B0B0B] relative xl:flex gap-10 items-center min-h-[300px] sm:h-[400px] xl:h-[438.49px] rounded-[20px]"
       >
-        <div className="">
-          <div className="border-[8px] border-[#E4BE00] flexcenter rounded-full w-[344.93px]  h-[312.1px]  xl:w-[344px] xl:h-[344px] ">
+        <div className="flex justify-center sm:justify-start">
+          <div className="border-[6px] sm:border-[8px] border-[#E4BE00] flexcenter rounded-full w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] xl:w-[344px] xl:h-[344px]">
             <div
               className={`transition-all duration-1000 ease-out ${
                 showElements.character
@@ -141,6 +144,7 @@ export default function Page(params) {
                 width={259.2}
                 height={207.86}
                 alt="mutant-robot"
+                className="w-[120px] h-auto sm:w-[180px] xl:w-[259px]"
               />
             </div>
           </div>
@@ -153,7 +157,7 @@ export default function Page(params) {
           </p>
           <div className="flex flex-col gap-10">
             <p
-              className={` Xirod text-[#FDDD3F] font-[500] text-[30px] xl:text-[67px] leading-[40px] transition-all duration-800 ease-out ${
+              className={` Xirod text-[#FDDD3F] font-[500] text-[24px] sm:text-[32px] xl:text-[45px] leading-[30px] sm:leading-[40px] transition-all duration-800 ease-out ${
                 showElements.newbieText
                   ? "opacity-100 translate-y-0 scale-100"
                   : "opacity-0 translate-y-[10px] scale-99"
@@ -164,7 +168,7 @@ export default function Page(params) {
                   showElements.newbieText ? "animate-pulse" : ""
                 }`}
               >
-                Newbie
+                {avatarStage}
               </span>
             </p>
 

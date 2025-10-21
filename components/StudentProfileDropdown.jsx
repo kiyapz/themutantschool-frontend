@@ -12,24 +12,44 @@ export default function StudentProfileDropdown({
   const [studentLevel, setStudentLevel] = useState("Novice");
   const dropdownRef = useRef(null);
 
-  // Get student name and determine level from localStorage
+  // Get student name and fetch avatar stage from API
   useEffect(() => {
-    const user = localStorage.getItem("USER");
-    if (user) {
-      const userData = JSON.parse(user);
-      const { firstName } = userData;
-      setStudentName(firstName || "Student");
+    const fetchStudentData = async () => {
+      // Get student name from localStorage
+      const user = localStorage.getItem("USER");
+      if (user) {
+        const userData = JSON.parse(user);
+        const { firstName } = userData;
+        setStudentName(firstName || "Student");
+      }
 
-      // Determine if student is Expert or Novice based on available data
-      // You can modify this logic based on your actual user data structure
-      const isExpert =
-        userData.level >= 5 ||
-        userData.completedMissions >= 10 ||
-        userData.experience >= 1000 ||
-        userData.role === "expert";
+      // Fetch avatar stage from API
+      const token = localStorage.getItem("login-accessToken");
+      if (!token) return;
 
-      setStudentLevel(isExpert ? "Expert" : "Novice");
-    }
+      try {
+        const response = await fetch(
+          "https://themutantschool-backend.onrender.com/api/student/dashboard",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const data = await response.json();
+        console.log("Dropdown - Dashboard data:", data);
+
+        if (data.success && data.data.avatarStage) {
+          setStudentLevel(data.data.avatarStage);
+        }
+      } catch (error) {
+        console.error("Error fetching student data:", error);
+      }
+    };
+
+    fetchStudentData();
   }, []);
 
   // Close dropdown when clicking outside
@@ -123,13 +143,28 @@ export default function StudentProfileDropdown({
               </p>
               <p
                 style={{
-                  color: studentLevel === "Expert" ? "#00ff88" : "#B0B0B0",
+                  color:
+                    studentLevel === "X-Master"
+                      ? "#EBB607"
+                      : studentLevel === "Expert"
+                      ? "#00ff88"
+                      : studentLevel === "Advanced"
+                      ? "#4A8DE8"
+                      : studentLevel === "Intermediate"
+                      ? "#9D54B1"
+                      : "#B0B0B0",
                   fontSize: "12px",
                   margin: "0",
                   fontWeight: "500",
                   textShadow:
-                    studentLevel === "Expert"
+                    studentLevel === "X-Master"
+                      ? "0 0 8px rgba(235, 182, 7, 0.3)"
+                      : studentLevel === "Expert"
                       ? "0 0 8px rgba(0, 255, 136, 0.3)"
+                      : studentLevel === "Advanced"
+                      ? "0 0 8px rgba(74, 141, 232, 0.3)"
+                      : studentLevel === "Intermediate"
+                      ? "0 0 8px rgba(157, 84, 177, 0.3)"
                       : "none",
                 }}
               >

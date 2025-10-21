@@ -33,7 +33,7 @@ export default function RootLayout({ children }) {
           </div>
         </div>
 
-        <div className="">
+        <div className="hidden sm:block">
           <LevelChallange />
         </div>
       </div>
