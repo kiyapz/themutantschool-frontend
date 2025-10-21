@@ -3,7 +3,6 @@ import { imageConfigDefault } from "next/dist/shared/lib/image-config";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { generateStudyMissionSlug } from "@/lib/studentMissionUtils";
 
 export default function MissionCard({
   text1,
@@ -206,10 +205,14 @@ export default function MissionCard({
             </Link>
           ) : (
             <Link
-              href={`/student/student-dashboard/student-mission-study-levels/${generateStudyMissionSlug(
-                missionId,
-                text1
-              )}`}
+              href={`/student/student-dashboard/student-mission-study-levels/${text1
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .substring(0, 50)}`}
+              onClick={() => {
+                localStorage.setItem("studyMissionId", missionId);
+              }}
             >
               <button className=" w-full  xl:w-[234.64px] h-[56.4px] cursor-pointer studentbtn2 rounded-[30px] ">
                 Continue Mission

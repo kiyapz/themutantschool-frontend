@@ -12,6 +12,7 @@ import {
   AiOutlineTrophy,
   AiOutlineSetting,
   AiOutlineLogout,
+  AiOutlineFileText,
 } from "react-icons/ai";
 
 export default function Sidebar() {
@@ -101,7 +102,11 @@ export default function Sidebar() {
             text={"My Missions"}
             icon={AiOutlineFlag}
           />
-
+          <Sidebtn
+            link={"/student/student-dashboard/quiz-history"}
+            text={"Quiz History"}
+            icon={AiOutlineFileText}
+          />
           <Sidebtn
             link={"/student/student-dashboard/mutation-history"}
             text={"Mutation History"}

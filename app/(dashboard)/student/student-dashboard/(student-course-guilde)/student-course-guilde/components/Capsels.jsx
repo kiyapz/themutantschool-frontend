@@ -12,6 +12,7 @@ import refreshAccessToken from "@/components/RefreshToken";
 import axios from "axios";
 import levelCompletionTracker from "@/lib/levelCompletionTracker";
 import CompletionStatus from "./CompletionStatus";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function Capsels({ id, capsuleId, startQuiz }) {
   const videoRef = useRef(null);
@@ -85,6 +86,10 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
   const [showPerformanceDetails, setShowPerformanceDetails] = useState(false);
   const [quizError, setQuizError] = useState(null);
   const [quizKey, setQuizKey] = useState(0);
+  const [quizHistory, setQuizHistory] = useState([]);
+  const [hasPassedCurrentLevelQuiz, setHasPassedCurrentLevelQuiz] =
+    useState(false);
+  const [isVideoLoading, setIsVideoLoading] = useState(true);
   console.log(missionDetails, "bbbbbbbbb");
 
   const handleReviewCapsules = () => {
@@ -465,6 +470,8 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
     } else {
       setShowVideo(false);
     }
+    // Reset video loading state when stage changes
+    setIsVideoLoading(true);
   }, [changeStages, setShowVideo]);
 
   // Calculate progress using the level completion tracker
@@ -480,6 +487,17 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
       totalCapsules,
       changeStages
     );
+
+    // If quiz has been passed (checked from quiz history API), always show 100% progress
+    if (hasPassedCurrentLevelQuiz) {
+      console.log("✅ PROGRESS BAR: Showing 100% - Quiz already passed");
+      return {
+        completed: totalCapsules + 1,
+        total: totalCapsules + 1,
+        isCompleted: true,
+        isQuizPassed: true,
+      };
+    }
 
     // If level is completed, always show 100% progress
     if (progress.isCompleted && progress.isQuizPassed) {
@@ -518,6 +536,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
         completed = watchedCapsules;
     }
 
+    console.log("📊 PROGRESS BAR:", { completed, total, stage: changeStages });
     return {
       completed,
       total,
@@ -628,6 +647,91 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
     fetchWachedVideo();
   }, [capsuleId, watchedVideosRefetchTrigger, currentCapsule.length]); // Refetch when capsuleId changes or when manually triggered
 
+  // Fetch quiz history and check if current level quiz is passed
+  useEffect(() => {
+    const fetchQuizHistory = async () => {
+      try {
+        const token = localStorage.getItem("login-accessToken");
+        if (!token) return;
+
+        const response = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/quiz-history?limit=100`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.data.status === "success") {
+          const history = response.data.data || [];
+          setQuizHistory(history);
+          console.log("📊 QUIZ HISTORY FETCHED:", history);
+
+          // Get current level's quiz ID and check if it has been passed
+          const currentLevelId = localStorage.getItem("currentLevelId");
+          if (currentLevelId) {
+            // Check if user has passed the quiz for the current level by matching quizId
+            // We need to get the quiz ID for the current level first
+            const checkQuizPassed = async () => {
+              try {
+                const missionId = localStorage.getItem("currentMissionId");
+                if (!missionId) return;
+
+                const levelResponse = await axios.get(
+                  `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${token}`,
+                      "Content-Type": "application/json",
+                    },
+                  }
+                );
+
+                const levels = levelResponse.data.data;
+                const currentLevel = levels.find(
+                  (level) => level._id === currentLevelId
+                );
+
+                if (currentLevel && currentLevel.quiz) {
+                  const currentQuizId = currentLevel.quiz._id;
+                  console.log("📊 CURRENT LEVEL QUIZ ID:", currentQuizId);
+
+                  // Check if this quiz has been passed in the history
+                  const passedQuiz = history.find(
+                    (attempt) =>
+                      attempt.quizId === currentQuizId &&
+                      attempt.passed === true
+                  );
+
+                  if (passedQuiz) {
+                    console.log(
+                      "✅ USER HAS PASSED THIS LEVEL'S QUIZ:",
+                      passedQuiz
+                    );
+                    setHasPassedCurrentLevelQuiz(true);
+                  } else {
+                    console.log("❌ USER HAS NOT PASSED THIS LEVEL'S QUIZ YET");
+                    setHasPassedCurrentLevelQuiz(false);
+                  }
+                }
+              } catch (error) {
+                console.error("Error checking quiz status:", error);
+              }
+            };
+
+            checkQuizPassed();
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching quiz history:", error);
+      }
+    };
+
+    fetchQuizHistory();
+  }, [id, quizPerformance]); // Refetch when level ID changes or quiz is completed
+
   // get missions and mission details including video URL
 
   useEffect(() => {
@@ -697,6 +801,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                 <LoadingBar
                   completed={currentProgress.completed}
                   total={currentProgress.total}
+                  isQuizPassed={hasPassedCurrentLevelQuiz}
                 />
               </div>
 
@@ -732,6 +837,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                 <LoadingBar
                   completed={currentProgress.completed}
                   total={currentProgress.total}
+                  isQuizPassed={hasPassedCurrentLevelQuiz}
                 />
               </div>
 
@@ -744,6 +850,12 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                 {showAutoAdvanceNotification && (
                   <div className="absolute top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-10 animate-pulse">
                     🎬 Moving to next video...
+                  </div>
+                )}
+                {/* Loading spinner */}
+                {isVideoLoading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-20">
+                    <LoadingSpinner size="xlarge" color="mutant" />
                   </div>
                 )}
                 <div className="w-full h-full max-h-[calc(100vh-160px)] flex items-center justify-center">
@@ -765,6 +877,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                           frameBorder="0"
                           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                           allowFullScreen
+                          onLoad={() => setIsVideoLoading(false)}
                         ></iframe>
                       );
                     } else if (missionVideoUrl) {
@@ -773,6 +886,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                           controls
                           className="w-full h-full max-h-full object-contain rounded-lg"
                           preload="metadata"
+                          onLoadedData={() => setIsVideoLoading(false)}
                         >
                           <source src={missionVideoUrl} type="video/mp4" />
                           Your browser does not support the video tag.
@@ -795,6 +909,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                             frameBorder="0"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowFullScreen
+                            onLoad={() => setIsVideoLoading(false)}
                           ></iframe>
                         );
                       } else {
@@ -807,6 +922,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                               currentCapsule[capselIndex]?.thumbnailUrl ||
                               "/default-poster.jpg"
                             }
+                            onLoadedData={() => setIsVideoLoading(false)}
                           >
                             <source
                               src={currentCapsule[capselIndex]?.videoUrl?.url}
@@ -817,6 +933,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                         );
                       }
                     } else {
+                      setIsVideoLoading(false);
                       return (
                         <div className="w-full h-full flex items-center justify-center text-gray-400">
                           No video available for this mission
@@ -856,6 +973,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                 <LoadingBar
                   completed={currentProgress.completed}
                   total={currentProgress.total}
+                  isQuizPassed={hasPassedCurrentLevelQuiz}
                 />
               </div>
 
@@ -1009,6 +1127,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                 <LoadingBar
                   completed={currentProgress.completed}
                   total={currentProgress.total}
+                  isQuizPassed={hasPassedCurrentLevelQuiz}
                 />
               </div>
               {/* text */}

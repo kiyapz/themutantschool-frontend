@@ -5,64 +5,32 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import LevelsPath from "@/app/(dashboard)/student/component/LevelsPath";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { decodeStudentMissionId } from "@/lib/studentMissionUtils";
 
 export default function MissionPage() {
-  const { id: encodedId } = useParams();
+  const { id: slug } = useParams();
   const [missionId, setMissionId] = useState("");
   const [mission, setMission] = useState([]);
   const [missionData, setMissionData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Decode the mission ID from the slug
+  // Get mission ID from localStorage
   useEffect(() => {
-    if (!encodedId) return;
+    const storedMissionId =
+      localStorage.getItem("studyMissionId") ||
+      localStorage.getItem("currentMissionId");
 
-    try {
-      console.log("Original slug/ID:", encodedId);
-
-      // Try to decode the ID
-      const decodedId = decodeStudentMissionId(encodedId);
-
-      console.log("Decoded ID:", decodedId);
-
-      if (
-        decodedId &&
-        decodedId.length === 24 &&
-        /^[0-9a-f]{24}$/.test(decodedId)
-      ) {
-        // Valid MongoDB ID
-        console.log("Valid MongoDB ID detected:", decodedId);
-        setMissionId(decodedId);
-        localStorage.setItem("currentMissionId", decodedId);
-      } else if (encodedId.length === 24 && /^[0-9a-f]{24}$/.test(encodedId)) {
-        // The encoded ID is already a valid MongoDB ID
-        console.log("Original ID is a valid MongoDB ID:", encodedId);
-        setMissionId(encodedId);
-        localStorage.setItem("currentMissionId", encodedId);
-      } else {
-        console.error("Could not extract a valid MongoDB ID from:", encodedId);
-        // Try to find a MongoDB ID pattern in the string as fallback
-        const match = encodedId.match(/[0-9a-f]{24}/);
-        if (match) {
-          const extractedId = match[0];
-          console.log("Extracted possible MongoDB ID:", extractedId);
-          setMissionId(extractedId);
-          localStorage.setItem("currentMissionId", extractedId);
-        } else {
-          // Last resort: use the raw encoded ID and let the API handle it
-          console.log("Using raw ID as fallback:", encodedId);
-          setMissionId(encodedId);
-          localStorage.setItem("currentMissionId", encodedId);
-        }
-      }
-    } catch (error) {
-      console.error("Error processing mission ID:", error);
-      // Fallback to using the raw ID
-      setMissionId(encodedId);
-      localStorage.setItem("currentMissionId", encodedId);
+    if (storedMissionId) {
+      console.log(
+        "Study Mission - Mission ID from localStorage:",
+        storedMissionId
+      );
+      setMissionId(storedMissionId);
+      localStorage.setItem("currentMissionId", storedMissionId);
+    } else {
+      console.error("No mission ID found in localStorage");
+      setLoading(false);
     }
-  }, [encodedId]);
+  }, [slug]);
 
   useEffect(() => {
     if (!missionId) return;

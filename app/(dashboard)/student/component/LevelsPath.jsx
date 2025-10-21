@@ -24,6 +24,8 @@ export default function LevelsPath({
     id: null,
   });
   const [passedQuizzes, setPassedQuizzes] = useState({});
+  const [quizHistory, setQuizHistory] = useState([]);
+  const [allLevelsCompleted, setAllLevelsCompleted] = useState(false);
 
   const level = Array.isArray(levelProp)
     ? levelProp
@@ -130,6 +132,56 @@ export default function LevelsPath({
       setLoading(false);
     }
   }, [levelState.id]);
+
+  // Fetch quiz history to check level completion
+  useEffect(() => {
+    const fetchQuizHistory = async () => {
+      try {
+        const token = localStorage.getItem("login-accessToken");
+        if (!token) return;
+
+        const response = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/mission-submit-quiz/quiz-history?limit=100`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.data.status === "success") {
+          const history = response.data.data || [];
+          setQuizHistory(history);
+          console.log("📊 MISSION QUIZ HISTORY FETCHED:", history);
+
+          // Check if all level quizzes have been passed
+          if (level && level.length > 0) {
+            const levelQuizIds = level
+              .map((lvl) => lvl.quiz?._id)
+              .filter(Boolean);
+
+            console.log("📊 LEVEL QUIZ IDs:", levelQuizIds);
+
+            // Check if each level quiz has been passed
+            const allPassed = levelQuizIds.every((quizId) =>
+              history.some(
+                (attempt) =>
+                  attempt.quizId === quizId && attempt.passed === true
+              )
+            );
+
+            console.log("📊 ALL LEVELS COMPLETED:", allPassed);
+            setAllLevelsCompleted(allPassed);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching quiz history:", error);
+      }
+    };
+
+    fetchQuizHistory();
+  }, [level]);
 
   useEffect(() => {
     const fetchWatchedVideo = async () => {
@@ -615,40 +667,48 @@ export default function LevelsPath({
 
       {/* Final Quiz Button */}
       <div className="relative mt-16 flex justify-center translate-x-10">
-        {(() => {
-          // Use the level completion tracker to check if final quiz is available
-          const missionId = localStorage.getItem("currentMissionId");
-          const completionStats =
-            levelCompletionTracker.getMissionCompletionStats(missionId, level);
-          const finalQuizEnabled = completionStats.canTakeFinalQuiz;
+        <div
+          onClick={() => {
+            if (allLevelsCompleted) {
+              // Navigate to final quiz with clean slug (mission title only)
+              const missionId = localStorage.getItem("currentMissionId");
+              localStorage.setItem("finalQuizMissionId", missionId);
 
-          return (
-            <div
-              onClick={() => {
-                if (finalQuizEnabled) {
-                  // Navigate to final quiz
-                  alert("Final quiz functionality - to be implemented");
-                } else {
-                  const completedCount = completionStats.completedLevels;
-                  const totalCount = completionStats.totalLevels;
-                  alert(
-                    `Complete all level quizzes to unlock final quiz! (${completedCount}/${totalCount} completed)`
-                  );
-                }
-              }}
-              className={`relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 ${
-                finalQuizEnabled
-                  ? "bg-[#840B94] text-white cursor-pointer"
-                  : "bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
-              }`}
-            >
-              Final Quiz{" "}
-              <span className="ml-2 text-xs">
-                {finalQuizEnabled ? "🔓" : "🔒"}
-              </span>
-            </div>
-          );
-        })()}
+              // Create clean URL slug from mission title
+              const cleanSlug = missionTitle
+                .toLowerCase()
+                .replace(/[^\w\s-]/g, "")
+                .replace(/\s+/g, "-")
+                .substring(0, 50);
+
+              window.location.href = `/student/student-dashboard/final-quiz/${cleanSlug}`;
+            } else {
+              // Count how many levels have passed quizzes
+              const levelQuizIds = level
+                .map((lvl) => lvl.quiz?._id)
+                .filter(Boolean);
+              const passedCount = levelQuizIds.filter((quizId) =>
+                quizHistory.some(
+                  (attempt) =>
+                    attempt.quizId === quizId && attempt.passed === true
+                )
+              ).length;
+              alert(
+                `Complete all level quizzes to unlock final quiz! (${passedCount}/${levelQuizIds.length} completed)`
+              );
+            }
+          }}
+          className={`relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 transition-all duration-300 ${
+            allLevelsCompleted
+              ? "bg-[#840B94] text-white cursor-pointer hover:bg-[#9A0DAF] hover:shadow-lg"
+              : "bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
+          }`}
+        >
+          Final Quiz{" "}
+          <span className="ml-2 text-xs">
+            {allLevelsCompleted ? "🔓" : "🔒"}
+          </span>
+        </div>
       </div>
     </div>
   );

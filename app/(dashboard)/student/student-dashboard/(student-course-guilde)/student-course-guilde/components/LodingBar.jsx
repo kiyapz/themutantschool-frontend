@@ -1,6 +1,6 @@
 import Image from "next/image";
 
-export default function LoadingBar({ completed, total }) {
+export default function LoadingBar({ completed, total, isQuizPassed }) {
   const progressPercentage = total > 0 ? (completed / total) * 100 : 0;
 
   return (
