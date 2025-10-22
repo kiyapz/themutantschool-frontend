@@ -17,9 +17,13 @@ export default function PasswordInput({
       <input
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
-        className="w-full px-3 sm:px-4 py-2 h-[50px] sm:h-[70px] outline-none rounded-[8px] sm:rounded-[10px] text-white placeholder-gray-400 text-[14px] sm:text-[17px] leading-[20px] sm:leading-[57px]"
+        className="w-full px-3 sm:px-4 py-2 h-[50px] sm:h-[70px] outline-none rounded-[8px] sm:rounded-[10px] bg-transparent text-white placeholder-gray-400 text-[14px] sm:text-[17px] leading-[20px] sm:leading-[57px] focus:bg-transparent active:bg-transparent"
         value={value}
         onChange={onchange}
+        style={{
+          WebkitBoxShadow: "0 0 0px 1000px var(--accent) inset",
+          WebkitTextFillColor: "white",
+        }}
       />
       <span
         onClick={togglePassword}

@@ -55,6 +55,7 @@ export default function QuizHistoryPage() {
 
   useEffect(() => {
     fetchQuizHistory(pagination.page);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handlePageChange = (newPage) => {
@@ -304,5 +305,3 @@ export default function QuizHistoryPage() {
     </div>
   );
 }
-
-

@@ -153,7 +153,7 @@ export default function Page() {
     } finally {
       setIsLoading(false);
     }
-  }, [router, setCartCount, setCartItems]);
+  }, [setCartCount, setCartItems]);
 
   useEffect(() => {
     fetchCartItems();

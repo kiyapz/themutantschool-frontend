@@ -290,7 +290,7 @@ export default function Createnewmission() {
     }
   };
 
-  const validateMissionForPublish = async () => {
+  const validateMissionForPublish = useCallback(async () => {
     const storedMissionId = localStorage.getItem("missionId");
     const accessToken = localStorage.getItem("login-accessToken");
 
@@ -371,12 +371,12 @@ export default function Createnewmission() {
         message: "Error validating mission. Please try again.",
       };
     }
-  };
+  }, [fetchMissionQuizzes]);
 
   const checkValidationStatus = useCallback(async () => {
     const validation = await validateMissionForPublish();
     setValidationStatus(validation);
-  }, []);
+  }, [validateMissionForPublish]);
 
   // Check validation when switching to Preview and Launch tab
   useEffect(() => {

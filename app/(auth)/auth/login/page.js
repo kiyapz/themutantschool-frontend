@@ -195,7 +195,7 @@ export default function Login() {
                   </Link>
                   <Link href="/auth/verify-email">
                     <p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[20px] hover:text-[var(--secondary)] cursor-pointer">
-                      Haven't verified your email?{" "}
+                      Haven&apos;t verified your email?{" "}
                       <span className="text-[var(--secondary)] underline">
                         Click here to verify
                       </span>

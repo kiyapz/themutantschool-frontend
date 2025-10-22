@@ -527,7 +527,7 @@ export default function IdentifyRole() {
                 placeholder=" password"
               />
               {registerStep === 4 && password && password.length < 8 && (
-                <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
+                <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">
                   {" "}
                   Password must be at least 8 characters{" "}
                 </p>
@@ -539,7 +539,7 @@ export default function IdentifyRole() {
                 placeholder="Confirm Password"
               />
               {registerStep === 4 && password !== confirmpassword && (
-                <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
+                <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">
                   Passwords do not match
                 </p>
               )}
@@ -555,7 +555,7 @@ export default function IdentifyRole() {
                 {buttonDisabledtext}
               </button>
               {errormessage && (
-                <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
+                <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">
                   {errormessage}
                 </p>
               )}
@@ -589,7 +589,7 @@ export default function IdentifyRole() {
                   {otpbtn}{" "}
                 </button>
                 {errormessage && (
-                  <p className="text-[var(--error-text-color)] font-[300] leading-[57px] text-[16px] text-center">
+                  <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">
                     {errormessage}
                   </p>
                 )}

@@ -9,7 +9,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
-const ITEMS_PER_PAGE = 10; 
+const ITEMS_PER_PAGE = 10;
 
 // Filter options
 const options = [
@@ -97,7 +97,6 @@ export default function Mission() {
     fetchMissions();
     // Keep all dependencies to maintain consistent array size (React requirement)
     // Filters are applied client-side in the useMemo below, not in the API call
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     currentPage,
     searchTerm,

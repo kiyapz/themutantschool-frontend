@@ -17,7 +17,11 @@ export default function RegisterInput({
         value={value}
         type={type}
         onChange={onchange}
-        className="w-full outline-none"
+        className="w-full outline-none bg-transparent text-white focus:bg-transparent active:bg-transparent"
+        style={{
+          WebkitBoxShadow: "0 0 0px 1000px var(--accent) inset",
+          WebkitTextFillColor: "white",
+        }}
       />
       <span
         className={`${

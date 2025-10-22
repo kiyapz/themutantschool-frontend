@@ -174,7 +174,7 @@ export default function VerifyEmail() {
             </button>
 
             <div className="text-center text-[var(--text)] flex items-center justify-center gap-2 font-[700] text-[14px]">
-              Didn't receive code?
+              Didn&apos;t receive code?
               <div className="text-sm">
                 {!canResend ? (
                   <span className="text-[var(--secondary)]">

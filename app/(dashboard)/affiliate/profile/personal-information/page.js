@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import {
   ShareIcon,
@@ -129,9 +130,11 @@ export default function PersonalInformationPage() {
             <div className="flex items-center space-x-6 mb-6 lg:mb-0">
               {/* Profile Picture */}
               <div className="w-24 h-24 rounded-full overflow-hidden">
-                <img
+                <Image
                   src="/images/default-avatar.jpg"
                   alt="Etieno Ekanem"
+                  width={96}
+                  height={96}
                   className="w-full h-full object-cover"
                 />
               </div>
