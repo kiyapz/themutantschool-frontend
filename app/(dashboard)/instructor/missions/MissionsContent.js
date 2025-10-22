@@ -245,8 +245,8 @@ export default function FilterableCoursesDashboard() {
       </div>
 
       {/* Course Grid */}
-      <div className="w-full h-fit flexcenter p-4">
-        <div className="grid gap-5 sm:grid-cols-2 w-full xl:grid-cols-3">
+      <div className="w-full h-fit p-2 sm:p-4">
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 w-full max-w-[450px] lg:max-w-none mx-auto">
           {filteredCourses.map((el) => (
             <Link
               href={`/instructor/missions/${encodeInstructorId(el._id)}`}
@@ -254,7 +254,7 @@ export default function FilterableCoursesDashboard() {
             >
               <div
                 key={el._id}
-                className="max-w-[380.5px] w-full flex flex-col sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
+                className="w-full flex flex-col h-[480px] md:h-[520px] bg-[#1C1124] rounded-[20px] p-3 md:p-4"
               >
                 <div
                   style={{ backgroundImage: `url(${el.thumbnail.url})` }}

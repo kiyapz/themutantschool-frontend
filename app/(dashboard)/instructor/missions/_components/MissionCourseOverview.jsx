@@ -303,7 +303,7 @@ export default function MissionCourseOverview({ course }) {
   };
 
   return (
-    <div className="flex flex-col w-full sm:max-w-[1200px] mx-auto gap-10">
+    <div className="flex flex-col w-full max-w-full gap-10">
       <div className="grid xl:grid-cols-3 gap-8">
         {/* Fixed the background image positioning */}
         <div
@@ -411,7 +411,7 @@ export default function MissionCourseOverview({ course }) {
             </div>
           </div>
         </div>
-        <div className="flex gap-4">
+        <div className="flex flex-col gap-4 w-full">
           {/* <button
             onClick={handleEditMission}
             style={{ padding: "15px 20px", margin: "0" }}
@@ -419,11 +419,14 @@ export default function MissionCourseOverview({ course }) {
           >
             Edit Mission
           </button> */}
-          <Link href={`/instructor/missions/createnewmission`}>
+          <Link
+            href={`/instructor/missions/createnewmission`}
+            className="w-full"
+          >
             <button
               onClick={() => handleAddLevelId(course._id)}
               style={{ padding: "15px 20px", margin: "0" }}
-              className="font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer hover:bg-[#7052a8] transition-colors"
+              className="w-full font-[500] text-[14px] leading-[40px] bg-[#604196] rounded-[10px] cursor-pointer hover:bg-[#7052a8] transition-colors"
             >
               + Level
             </button>

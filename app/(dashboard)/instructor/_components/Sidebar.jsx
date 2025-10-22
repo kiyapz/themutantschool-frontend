@@ -1,4 +1,4 @@
-'use client';
+"use client";
 import Link from "next/link";
 import Sidebarbtn from "./Sidebarbtn";
 import { usePathname } from "next/navigation";
@@ -11,21 +11,18 @@ export default function Sidebar() {
     useContext(InstructorContext);
 
   return (
-    <div className="max-w-[343.91px] overflow-auto scrollbar-hide w-full h-screen shadow-[1px_0px_4px_0px_#A6A6A640]">
+    <div className="w-full overflow-auto scrollbar-hide h-screen shadow-[1px_0px_4px_0px_#A6A6A640]">
       <div className="w-full h-full flex flex-col justify-between">
         <div>
           <p className="h-[79.88px] sm:h-[104.72px] Xirod text-[var(--mutant-color)] text-[16px] sm:text-[24px] flex items-center justify-center leading-[40px]">
             Mutant
           </p>
 
-          <div
-            style={{ padding: "10px" }}
-            className="w-fit flex flex-col px-5 py-4"
-          >
+          <div className="w-full flex flex-col px-5 py-4">
             <div className="gap-4 flex flex-col">
               {/* Core Nav */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   CORE NAVIGATION
                 </p>
                 <Link href="/instructor">
@@ -48,7 +45,7 @@ export default function Sidebar() {
 
               {/* Engagement */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   STUDENT ENGAGEMENT
                 </p>
                 <Sidebarbtn
@@ -73,7 +70,7 @@ export default function Sidebar() {
 
               {/* Performance */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   PERFORMANCE AND FEEDBACK
                 </p>
                 <Sidebarbtn
@@ -98,7 +95,7 @@ export default function Sidebar() {
 
               {/* Monetization */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   MONETIZATION AND EARNINGS
                 </p>
                 <Sidebarbtn
@@ -111,7 +108,7 @@ export default function Sidebar() {
 
               {/* Support */}
               <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)]">
+                <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   SUPPORT ROOM
                 </p>
                 <Sidebarbtn

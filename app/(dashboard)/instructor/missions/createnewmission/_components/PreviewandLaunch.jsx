@@ -13,6 +13,8 @@ export default function PreviewandLaunch() {
   const [levels, setLevels] = useState([]);
   const [missionById, setmissionById] = useState([]);
   const [validationStatus, setValidationStatus] = useState(null);
+  const [quizzes, setQuizzes] = useState([]);
+  const [imageError, setImageError] = useState(false);
   console.log("Thumbnail URL:", missionById?.thumbnail?.url);
 
   const router = useRouter();
@@ -75,17 +77,17 @@ export default function PreviewandLaunch() {
     }
   }, []);
 
-  const validateMission = (levels) => {
-    // Check if mission has at least 2 levels
-    if (levels.length < 2) {
+  const validateMission = (levels, quizzes) => {
+    // Check if mission has at least 1 level
+    if (levels.length < 1) {
       return {
         isValid: false,
-        message: `Mission must have at least 2 levels. Currently has ${levels.length} level(s).`,
-        details: "Please add more levels before publishing.",
+        message: `Mission must have at least 1 level. Currently has ${levels.length} level(s).`,
+        details: "Please add at least one level before publishing.",
       };
     }
 
-    // Check if each level has at least 3 capsules
+    // Check if each level has at least 1 capsule
     const invalidLevels = [];
     for (let i = 0; i < levels.length; i++) {
       const level = levels[i];
@@ -93,7 +95,7 @@ export default function PreviewandLaunch() {
         ? level.capsules.length
         : 0;
 
-      if (capsuleCount < 3) {
+      if (capsuleCount < 1) {
         invalidLevels.push({
           levelNumber: i + 1,
           levelTitle: level.title || "Untitled",
@@ -105,26 +107,47 @@ export default function PreviewandLaunch() {
     if (invalidLevels.length > 0) {
       return {
         isValid: false,
-        message: "Some levels don't have enough capsules:",
+        message: "Some levels don't have any capsules:",
         details: invalidLevels
           .map(
             (level) =>
-              `Level ${level.levelNumber} "${level.levelTitle}" has ${level.capsuleCount} capsule(s) (needs at least 3)`
+              `Level ${level.levelNumber} "${level.levelTitle}" has ${level.capsuleCount} capsule(s) (needs at least 1)`
           )
           .join(", "),
         invalidLevels,
       };
     }
 
+    // Check if there's at least one quiz
+    if (!quizzes || quizzes.length === 0) {
+      return {
+        isValid: false,
+        message: "Mission must have at least one quiz before publishing.",
+        details:
+          "Please add quizzes to your levels before publishing the mission.",
+      };
+    }
+
+    // Check if there's a final quiz (isFinal: true)
+    const hasFinalQuiz = quizzes.some((quiz) => quiz.isFinal === true);
+    if (!hasFinalQuiz) {
+      return {
+        isValid: false,
+        message: "Mission must have a Final Quiz before publishing.",
+        details:
+          "Please generate a Final Quiz (Boss Level Quiz) before publishing. Go to Add Levels and click 'Create Final Quiz' at the bottom.",
+      };
+    }
+
     return {
       isValid: true,
       message: "Mission is ready for publishing!",
-      details: `All ${levels.length} levels have at least 3 capsules each.`,
+      details: `All ${levels.length} level(s) have at least 1 capsule each, and Final Quiz is created.`,
     };
   };
 
   useEffect(() => {
-    const fetchMissionLevels = async () => {
+    const fetchMissionData = async () => {
       const storedMissionId = localStorage.getItem("missionId");
       const accessToken = localStorage.getItem("login-accessToken");
 
@@ -136,7 +159,8 @@ export default function PreviewandLaunch() {
       console.log("Stored Mission ID:", storedMissionId);
 
       try {
-        const res = await axios.get(
+        // Fetch mission levels
+        const levelsRes = await axios.get(
           `https://themutantschool-backend.onrender.com/api/mission-level/mission/${storedMissionId}`,
           {
             headers: {
@@ -146,21 +170,44 @@ export default function PreviewandLaunch() {
           }
         );
         console.log(
-          "Mission by id data retrieved successfully:",
-          res.data.data
+          "Mission levels retrieved successfully:",
+          levelsRes.data.data
         );
-        const fetchedLevels = res.data.data || [];
+        const fetchedLevels = levelsRes.data.data || [];
         setLevels(fetchedLevels);
 
-        // Validate the mission
-        const validation = validateMission(fetchedLevels);
+        // Fetch mission quizzes
+        const quizzesRes = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/mission-quiz/${storedMissionId}`,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+        console.log(
+          "Mission quizzes retrieved successfully:",
+          quizzesRes.data.data
+        );
+        const fetchedQuizzes = quizzesRes.data?.data || [];
+        setQuizzes(fetchedQuizzes);
+
+        // Validate the mission with both levels and quizzes
+        const validation = validateMission(fetchedLevels, fetchedQuizzes);
+        console.log("Validation result:", validation);
+        console.log(
+          "Has final quiz:",
+          fetchedQuizzes.some((quiz) => quiz.isFinal === true)
+        );
+        console.log("All quizzes:", fetchedQuizzes);
         setValidationStatus(validation);
       } catch (error) {
         console.log("Error retrieving mission data:", error);
       }
     };
 
-    fetchMissionLevels();
+    fetchMissionData();
   }, []);
 
   const renderTabContent = () => {
@@ -263,14 +310,95 @@ export default function PreviewandLaunch() {
 
   return (
     <div className="w-full h-full p-5">
-      <div
-        style={{
-          backgroundImage: `url(${missionById?.thumbnail?.url})`,
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
-        className="h-[343.54px] bg-cover bg-center w-full bg-[var(--purpel-btncolor)] rounded-[15px] mb-8"
-      />
+      {/* Validation Status - Moved to Top - HIGHLY VISIBLE */}
+      {validationStatus && (
+        <div
+          className={`mb-6 p-6 rounded-lg border-2 ${
+            validationStatus.isValid
+              ? "bg-green-900/30 border-green-500"
+              : "bg-red-900/30 border-red-500"
+          } animate-pulse`}
+          style={{
+            animation: !validationStatus.isValid
+              ? "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite"
+              : "none",
+          }}
+        >
+          <div className="flex items-start gap-4">
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${
+                validationStatus.isValid ? "bg-green-500" : "bg-red-500"
+              }`}
+            >
+              <span className="text-white font-bold text-lg">
+                {validationStatus.isValid ? "✓" : "✗"}
+              </span>
+            </div>
+            <div className="flex-1">
+              <h4
+                className={`font-bold text-xl mb-2 ${
+                  validationStatus.isValid ? "text-green-300" : "text-red-300"
+                }`}
+              >
+                {validationStatus.message}
+              </h4>
+              <p
+                className={`text-base leading-relaxed ${
+                  validationStatus.isValid ? "text-green-200" : "text-red-200"
+                }`}
+              >
+                {validationStatus.details}
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="h-[343.54px] w-full rounded-[15px] mb-8 overflow-hidden relative bg-gradient-to-r from-purple-600 to-indigo-600">
+        {missionById?.thumbnail?.url ? (
+          <img
+            src={missionById.thumbnail.url}
+            alt={missionById?.title || "Mission Thumbnail"}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              console.error("Image failed to load:", missionById.thumbnail.url);
+              setImageError(true);
+              e.target.style.display = "none";
+            }}
+            onLoad={() => {
+              console.log("Image loaded successfully");
+              setImageError(false);
+            }}
+          />
+        ) : null}
+
+        {/* Fallback overlay when no image or image fails to load */}
+        {(!missionById?.thumbnail?.url || imageError) && (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="text-center text-white">
+              <svg
+                className="w-24 h-24 mx-auto mb-4 opacity-50"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
+              <p className="text-lg font-semibold">Mission Thumbnail</p>
+              <p className="text-sm opacity-75 mt-2">
+                {imageError
+                  ? "Failed to load thumbnail"
+                  : "No thumbnail uploaded"}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
         <div
@@ -298,47 +426,6 @@ export default function PreviewandLaunch() {
           <div style={{ padding: "10px" }} className="pt-4">
             {renderTabContent()}
           </div>
-
-          {/* Validation Status */}
-          {validationStatus && (
-            <div
-              className={`mt-6 p-4 rounded-lg border ${
-                validationStatus.isValid
-                  ? "bg-green-900/20 border-green-500/50"
-                  : "bg-red-900/20 border-red-500/50"
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <div
-                  className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 ${
-                    validationStatus.isValid ? "bg-green-500" : "bg-red-500"
-                  }`}
-                >
-                  {validationStatus.isValid ? "✓" : "✗"}
-                </div>
-                <div className="flex-1">
-                  <h4
-                    className={`font-semibold text-sm ${
-                      validationStatus.isValid
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {validationStatus.message}
-                  </h4>
-                  <p
-                    className={`text-xs mt-1 ${
-                      validationStatus.isValid
-                        ? "text-green-300"
-                        : "text-red-300"
-                    }`}
-                  >
-                    {validationStatus.details}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
         </div>
 
         <div
@@ -356,18 +443,33 @@ export default function PreviewandLaunch() {
             style={{ marginBottom: "10px" }}
             className="flex items-center gap-4 mb-3"
           >
-            <div className="h-[40px] border border-[var(--sidebar-hovercolor)] w-[40px] rounded-full bg-gray-500">
-              <UserProfileImage />
+            <div className="h-[50px] w-[50px] rounded-full border-2 border-[var(--sidebar-hovercolor)] overflow-hidden relative bg-gray-700">
+              {userUpdatedValue?.url ? (
+                <img
+                  src={userUpdatedValue.url}
+                  alt={`${userUpdatedValue.firstName} ${userUpdatedValue.lastName}`}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.target.style.display = "none";
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-white font-bold text-lg">
+                  {userUpdatedValue?.firstName?.charAt(0) || "U"}
+                </div>
+              )}
             </div>
             <div>
-              <p className="font-medium">
-                {" "}
-                {userUpdatedValue.firstName}
-                <span>{userUpdatedValue.lastName}</span>
+              <p className="font-medium text-white">
+                {userUpdatedValue.firstName || "Instructor"}
+                {userUpdatedValue.lastName && (
+                  <span> {userUpdatedValue.lastName}</span>
+                )}
               </p>
               <p className="text-sm text-gray-400">
-                {" "}
-                {userUpdatedValue.Headline}
+                {userUpdatedValue.headline ||
+                  userUpdatedValue.Headline ||
+                  "Instructor"}
               </p>
             </div>
           </div>

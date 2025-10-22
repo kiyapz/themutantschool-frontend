@@ -534,6 +534,7 @@ export default function AddLevels() {
   const [isAddingLevel, setIsAddingLevel] = useState(false);
   const [isAddingCapsule, setIsAddingCapsule] = useState(false);
   const [isLoadingLevels, setIsLoadingLevels] = useState(false);
+  const [capsuleUploadError, setCapsuleUploadError] = useState(null);
 
   const [toast, setToast] = useState(null);
 
@@ -850,15 +851,23 @@ export default function AddLevels() {
     }
   };
 
-  const handleAddCapsuleClick = (levelId, order) => {
+  const handleAddCapsuleClick = (levelId, order, currentCapsuleCount) => {
+    // Check if level already has 5 capsules
+    if (currentCapsuleCount >= 5) {
+      showToast("Maximum of 5 capsules per level reached", "error");
+      return;
+    }
+
     setLeveld(levelId);
     setOder(order);
     console.log("Adding capsule to levelId:", levelId);
+    setCapsuleUploadError(null); // Clear any previous errors
     setOpenAddModel(true);
   };
 
   const handleAddCapsule = async () => {
     setIsAddingCapsule(true);
+    setCapsuleUploadError(null); // Clear any previous errors
 
     console.log("Adding capsule with levelId:", levelId);
 
@@ -880,6 +889,19 @@ export default function AddLevels() {
       return;
     }
 
+    // Check file size (100MB limit as per UI)
+    const maxSize = 100 * 1024 * 1024; // 100MB in bytes
+    if (selectedFile.size > maxSize) {
+      showToast(
+        `Video file is too large (${(selectedFile.size / 1024 / 1024).toFixed(
+          2
+        )}MB). Maximum allowed size is 100MB.`,
+        "error"
+      );
+      setIsAddingCapsule(false);
+      return;
+    }
+
     const accessToken = localStorage.getItem("login-accessToken");
     if (!accessToken) {
       showToast("Please login first to add a capsule", "error");
@@ -888,6 +910,21 @@ export default function AddLevels() {
     }
 
     try {
+      console.log("📤 Starting capsule upload...");
+      console.log(
+        "Video file size:",
+        (selectedFile.size / 1024 / 1024).toFixed(2),
+        "MB"
+      );
+      console.log("Video file type:", selectedFile.type);
+      if (selectedImage) {
+        console.log(
+          "Image file size:",
+          (selectedImage.size / 1024 / 1024).toFixed(2),
+          "MB"
+        );
+      }
+
       const formData = new FormData();
       formData.append("title", capsuleTitle);
       formData.append("description", capsuleDescription);
@@ -913,7 +950,9 @@ export default function AddLevels() {
       );
 
       if (res.ok) {
-        console.log("Capsule uploaded successfully:", res);
+        console.log("✅ Capsule uploaded successfully!");
+        const responseData = await res.json();
+        console.log("Response data:", responseData);
         showToast("Capsule uploaded successfully!", "success");
         setOpenAddModel(false);
         setCapsuleTitle("");
@@ -922,14 +961,79 @@ export default function AddLevels() {
         setSelectedImage(null);
         await getAllLevel();
       } else {
-        const errorData = await res.json();
-        throw new Error(
-          errorData.message || `HTTP error! status: ${res.status}`
-        );
+        console.error(`❌ Upload failed with status: ${res.status}`);
+        let errorMessage = `Server error (${res.status})`;
+        let errorDetails = null;
+
+        try {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            errorDetails = await res.json();
+            console.error("📋 Backend error response (JSON):", errorDetails);
+
+            // Try to extract meaningful error message
+            errorMessage =
+              errorDetails.message ||
+              errorDetails.error ||
+              errorDetails.msg ||
+              (errorDetails.errors && errorDetails.errors[0]?.msg) ||
+              errorMessage;
+          } else {
+            const textError = await res.text();
+            console.error("📋 Backend error response (Text):", textError);
+            if (textError) {
+              errorMessage = textError.substring(0, 200); // Limit error text length
+            }
+          }
+        } catch (parseError) {
+          console.error("⚠️ Could not parse error response:", parseError);
+        }
+
+        // Add common error hints based on status code
+        if (res.status === 500) {
+          console.error("🔧 Troubleshooting tips for 500 error:");
+          console.error("1. Try a smaller video file (< 30MB)");
+          console.error("2. Try re-encoding the video with standard settings");
+          console.error("3. Check if backend server is running properly");
+          console.error("4. Check backend server logs for the actual error");
+
+          errorMessage = `Server Error: ${errorMessage}
+
+Try these solutions:
+• Use a smaller video file (< 30MB recommended)
+• Re-encode your video with standard H.264 codec
+• Wait a few minutes and try again
+• Contact support if the issue persists`;
+        } else if (res.status === 413) {
+          errorMessage =
+            "File is too large for the server to process. Try a smaller file (< 50MB).";
+        } else if (res.status === 401) {
+          errorMessage = "Authentication failed. Please login again.";
+        } else if (res.status === 403) {
+          errorMessage = "You don't have permission to upload capsules.";
+        }
+
+        throw new Error(errorMessage);
       }
     } catch (error) {
-      console.log("Capsule upload failed:", error.message);
-      showToast("Capsule upload failed. Please try again.", "error");
+      console.error("💥 Capsule upload failed:", error);
+      console.error("📊 Error details:", {
+        message: error.message,
+        name: error.name,
+        levelId,
+        title: capsuleTitle,
+        videoSize: selectedFile
+          ? (selectedFile.size / 1024 / 1024).toFixed(2) + " MB"
+          : "N/A",
+        videoType: selectedFile?.type || "N/A",
+        hasImage: !!selectedImage,
+      });
+
+      // Show user-friendly error message
+      const errorMsg =
+        error.message || "Capsule upload failed. Please try again.";
+      setCapsuleUploadError(errorMsg); // Set error state for display in modal
+      showToast("Upload failed. See details below.", "error");
     } finally {
       setIsAddingCapsule(false);
     }
@@ -1318,7 +1422,7 @@ export default function AddLevels() {
                     </button>
                   </>
                 ) : (
-                  <>
+                  <div className="flex flex-col gap-3">
                     <p className="font-[600] text-[13px] sm:text-[25px] sm:leading-[40px] leading-[150%] ">
                       {level.title}
                     </p>
@@ -1363,12 +1467,25 @@ export default function AddLevels() {
                         onClick={() =>
                           handleAddCapsuleClick(
                             level._id,
-                            (level.capsules?.length || 0) + 1
+                            (level.capsules?.length || 0) + 1,
+                            level.capsules?.length || 0
                           )
                         }
-                        className="flex-1 h-[59.76px] sm:text-[21px] sm:leading-[40px]  text-[#CCCCCC] rounded-[12px] border border-dashed border-[#696969] text-white px-4 text-[12px] sm:text-[16px] font-medium hover:bg-[#1a1a1a] transition-colors cursor-pointer"
+                        disabled={(level.capsules?.length || 0) >= 5}
+                        className={`flex-1 h-[59.76px] sm:text-[21px] sm:leading-[40px] rounded-[12px] border border-dashed px-4 text-[12px] sm:text-[16px] font-medium transition-colors ${
+                          (level.capsules?.length || 0) >= 5
+                            ? "border-[#444444] text-[#666666] cursor-not-allowed opacity-50"
+                            : "border-[#696969] text-[#CCCCCC] text-white hover:bg-[#1a1a1a] cursor-pointer"
+                        }`}
+                        title={
+                          (level.capsules?.length || 0) >= 5
+                            ? "Maximum of 5 capsules reached"
+                            : "Add a new power capsule"
+                        }
                       >
                         + Add Power Capsule
+                        {level.capsules?.length > 0 &&
+                          ` (${level.capsules.length}/5)`}
                       </button>
                       <button
                         style={{ padding: "0px  10px" }}
@@ -1378,7 +1495,7 @@ export default function AddLevels() {
                         Add Quiz
                       </button>
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             ))
@@ -1432,7 +1549,10 @@ export default function AddLevels() {
                 Add Power Capsule
               </p>
               <button
-                onClick={() => setOpenAddModel(false)}
+                onClick={() => {
+                  setOpenAddModel(false);
+                  setCapsuleUploadError(null);
+                }}
                 className="text-[#9C9C9C] hover:text-white transition-colors"
               >
                 <FaTimes size={20} />
@@ -1618,6 +1738,46 @@ export default function AddLevels() {
               <ToggleButton label="Enable PublicPreview" />
             </div>
 
+            {/* Upload Status Message */}
+            {isAddingCapsule && (
+              <div className="bg-blue-900/30 border border-blue-500/50 rounded-lg p-4 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <LoadingSpinner />
+                  <div>
+                    <p className="text-blue-400 font-semibold">
+                      Uploading capsule...
+                    </p>
+                    <p className="text-blue-300 text-sm">
+                      This may take a while on slow networks. Please wait.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Error Display */}
+            {capsuleUploadError && !isAddingCapsule && (
+              <div className="bg-red-900/30 border-2 border-red-500/70 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <div className="text-red-500 text-xl font-bold mt-1">⚠️</div>
+                  <div className="flex-1">
+                    <p className="text-red-400 font-semibold mb-2">
+                      Upload Failed
+                    </p>
+                    <pre className="text-red-300 text-sm whitespace-pre-wrap font-sans">
+                      {capsuleUploadError}
+                    </pre>
+                  </div>
+                  <button
+                    onClick={() => setCapsuleUploadError(null)}
+                    className="text-red-400 hover:text-red-300 transition-colors"
+                  >
+                    <FaTimes size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
+
             <div className="flex items-center gap-2">
               <button
                 onClick={handleAddCapsule}
@@ -1627,7 +1787,7 @@ export default function AddLevels() {
                 {isAddingCapsule ? (
                   <>
                     <LoadingSpinner />
-                    <span>Saving...</span>
+                    <span>Uploading...</span>
                   </>
                 ) : (
                   "Save"
@@ -1635,7 +1795,10 @@ export default function AddLevels() {
               </button>
 
               <button
-                onClick={() => setOpenAddModel(false)}
+                onClick={() => {
+                  setOpenAddModel(false);
+                  setCapsuleUploadError(null);
+                }}
                 disabled={isAddingCapsule}
                 className="text-[16px] leading-[40px] font-[300] cursor-pointer hover:text-[#9C9C9C] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >

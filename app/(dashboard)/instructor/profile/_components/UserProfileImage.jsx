@@ -100,6 +100,7 @@ export default function UserProfileImage() {
   const [defaultImageError, setDefaultImageError] = useState(false);
   const [proxyAttempt, setProxyAttempt] = useState(0); // Track proxy attempts
   const PROXY_COUNT = 3; // Number of available proxies
+  const [previewUrl, setPreviewUrl] = useState(null); // Local preview before upload
 
   // Set the URL for display immediately when available
   useEffect(() => {
@@ -123,7 +124,7 @@ export default function UserProfileImage() {
     setImageError(false); // Always reset error state when we have a valid URL
     setProxyAttempt(0); // Reset proxy attempts for new URL
     setImageKey((prev) => prev + 1); // Force re-render immediately
-  }, []);
+  }, [userUpdatedValue?.url]);
 
   // Determine the best URL to display with CORS workaround
   const getDisplayUrl = useCallback(() => {
@@ -142,7 +143,7 @@ export default function UserProfileImage() {
 
     // Initially, try to load the URL directly
     return urlToUse;
-  }, []);
+  }, [preloadedUrl, userUpdatedValue?.url, proxyAttempt, PROXY_COUNT]);
 
   const displayUrl = getDisplayUrl();
 
@@ -152,7 +153,7 @@ export default function UserProfileImage() {
       console.log("Resetting image error state for valid URL:", displayUrl);
       setImageError(false);
     }
-  }, []);
+  }, [displayUrl, imageError]);
 
   const handleImageClick = () => {
     // Clear any previous error or success messages
@@ -176,6 +177,12 @@ export default function UserProfileImage() {
       setUploadError("Image size must be less than 5MB");
       return;
     }
+
+    // Create local preview URL immediately
+    const localPreviewUrl = URL.createObjectURL(file);
+    setPreviewUrl(localPreviewUrl);
+    setImageError(false); // Reset any previous image errors
+    setImageKey((prev) => prev + 1); // Force re-render with new preview
 
     setIsUploading(true);
     setUploadError(null);
@@ -255,6 +262,12 @@ export default function UserProfileImage() {
           setImageError(false);
           setPreloadedUrl(newUrl); // Set preloaded URL to prevent re-preloading
 
+          // Clear the preview URL after successful upload
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+          }
+
           console.log("Image uploaded and preloaded successfully:", result);
         } catch (preloadError) {
           console.warn(
@@ -270,6 +283,12 @@ export default function UserProfileImage() {
 
           setUploadError(null);
           setUploadSuccess(true);
+
+          // Clear the preview URL after successful upload
+          if (previewUrl) {
+            URL.revokeObjectURL(previewUrl);
+            setPreviewUrl(null);
+          }
         }
       } else {
         console.warn("No URL returned from upload");
@@ -283,6 +302,12 @@ export default function UserProfileImage() {
     } catch (error) {
       console.error("Error uploading image:", error);
       setUploadError("Failed to upload image. Please try again.");
+
+      // Clear preview URL on error
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
     } finally {
       setIsUploading(false);
       // Reset file input
@@ -310,11 +335,11 @@ export default function UserProfileImage() {
       !!displayUrl && !imageError
     );
   }, [
-    // userUpdatedValue?.url,
-    // preloadedUrl,
-    // displayUrl,
-    // imageError,
-    // isPreloading,
+    userUpdatedValue?.url,
+    preloadedUrl,
+    displayUrl,
+    imageError,
+    isPreloading,
   ]);
 
   // Force reset error state if we have a valid display URL
@@ -323,7 +348,16 @@ export default function UserProfileImage() {
       console.log("Force resetting image error for valid display URL");
       setImageError(false);
     }
-  }, []);
+  }, [displayUrl, imageError]);
+
+  // Cleanup preview URL on unmount to prevent memory leaks
+  useEffect(() => {
+    return () => {
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl]);
 
   // Let Next.js Image component handle the loading and errors
   // We'll only set imageError to true when the Image component's onError fires
@@ -344,11 +378,14 @@ export default function UserProfileImage() {
         onClick={handleImageClick}
         className="relative w-full h-full cursor-pointer"
       >
-        {!defaultImageError ? (
+        {!defaultImageError &&
+        (previewUrl || displayUrl || userUpdatedValue?.url) ? (
           <Image
-            key={`${imageKey}-${displayUrl}`}
+            key={`${imageKey}-${previewUrl || displayUrl}`}
             src={
-              displayUrl && !imageError
+              previewUrl
+                ? previewUrl
+                : displayUrl && !imageError
                 ? displayUrl
                 : "/images/default-avatar.jpg"
             }
@@ -357,6 +394,12 @@ export default function UserProfileImage() {
             onError={(e) => {
               const currentSrc = e.target.src;
               console.log("Next.js Image load error for URL:", currentSrc);
+
+              // Don't handle errors for preview URLs (blob URLs) - they should always work
+              if (previewUrl && currentSrc.includes("blob:")) {
+                console.log("Preview URL (blob) failed unexpectedly");
+                return;
+              }
 
               // Handle failure of the default avatar itself
               if (currentSrc.includes("default-avatar.jpg")) {
@@ -379,18 +422,21 @@ export default function UserProfileImage() {
               }
             }}
             onLoad={() => {
-              const isExternalImage = displayUrl && !imageError;
               console.log("Next.js Image loaded successfully");
-              console.log("Is external image loaded:", isExternalImage);
-              console.log("Loaded URL:", displayUrl);
-
-              if (isExternalImage) {
-                setImageError(false);
+              if (previewUrl) {
+                console.log("Preview image loaded:", previewUrl);
+              } else {
+                const isExternalImage = displayUrl && !imageError;
+                console.log("Is external image loaded:", isExternalImage);
+                console.log("Loaded URL:", displayUrl);
+                if (isExternalImage) {
+                  setImageError(false);
+                }
               }
             }}
             className="object-cover transition-opacity group-hover:opacity-75"
-            unoptimized={displayUrl ? true : false}
-            priority={!!displayUrl}
+            unoptimized={true}
+            priority={!!(previewUrl || displayUrl)}
           />
         ) : (
           // Fallback when even default image fails or 403 error

@@ -10,7 +10,7 @@ export default function Sidebarbtn({
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-5 cursor-pointer group transition duration-200 ${
+      className={`flex items-center gap-3 cursor-pointer group transition duration-200 py-1 ${
         active
           ? "text-[var(--sidebar-hovercolor)]"
           : "text-[var(--sidebar-linkcolor)] hover:text-[var(--sidebar-hovercolor)]"
@@ -59,7 +59,7 @@ export default function Sidebarbtn({
         </span>
       )}
 
-      <span className="text-[18px] leading-[40px]">{text}</span>
+      <span className="text-[15px] leading-[24px]">{text}</span>
     </button>
   );
 }

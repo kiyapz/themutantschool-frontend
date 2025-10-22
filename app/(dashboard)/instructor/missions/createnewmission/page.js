@@ -117,7 +117,7 @@ export default function Createnewmission() {
     const accessToken = localStorage.getItem("login-accessToken");
 
     if (!storedMissionId || !accessToken) {
-      return 0;
+      return { count: 0, quizzes: [], hasFinalQuiz: false };
     }
 
     try {
@@ -131,17 +131,21 @@ export default function Createnewmission() {
         }
       );
 
-      const count = response.data?.count || response.data?.data?.length || 0;
+      const quizzes = response.data?.data || [];
+      const count = response.data?.count || quizzes.length || 0;
+
+      // Check if there's a final quiz (isFinal: true)
+      const hasFinalQuiz = quizzes.some((quiz) => quiz.isFinal === true);
 
       setQuizCount(count);
-      return count;
+      return { count, quizzes, hasFinalQuiz };
     } catch (error) {
       console.error("Error fetching mission quizzes:", error);
       if (error.response) {
         console.error("Error response:", error.response.data);
         console.error("Error status:", error.response.status);
       }
-      return 0;
+      return { count: 0, quizzes: [], hasFinalQuiz: false };
     }
   }, []);
 
@@ -311,41 +315,51 @@ export default function Createnewmission() {
 
       const levels = response.data.data || [];
 
-      // Check if mission has at least 2 levels
-      if (levels.length < 2) {
+      // Check if mission has at least 1 level
+      if (levels.length < 1) {
         return {
           isValid: false,
-          message: `Mission must have at least 2 levels. Currently has ${levels.length} level(s). Please add more levels before publishing.`,
+          message: `Mission must have at least 1 level before publishing. Please add at least one level.`,
         };
       }
 
-      // Check if each level has at least 3 capsules
+      // Check if each level has at least 1 capsule
       for (let i = 0; i < levels.length; i++) {
         const level = levels[i];
         const capsuleCount = Array.isArray(level.capsules)
           ? level.capsules.length
           : 0;
 
-        if (capsuleCount < 3) {
+        if (capsuleCount < 1) {
           return {
             isValid: false,
             message: `Level ${i + 1} "${
               level.title || "Untitled"
-            }" must have at least 3 capsules. Currently has ${capsuleCount} capsule(s). Please add more capsules to this level before publishing.`,
+            }" must have at least 1 capsule. Currently has ${capsuleCount} capsule(s). Please add at least one capsule to this level before publishing.`,
           };
         }
       }
 
-      // Also fetch quizzes for debugging
-      const currentQuizCount = await fetchMissionQuizzes();
+      // Fetch quizzes and check for final quiz
+      const quizData = await fetchMissionQuizzes();
 
       // Check if there are any quizzes
-      if (currentQuizCount === 0) {
+      if (quizData.count === 0) {
         return {
           isValid: false,
           message: "Mission must have at least one quiz before publishing.",
           details:
             "Please add quizzes to your levels before publishing the mission.",
+        };
+      }
+
+      // Check if there's a final quiz
+      if (!quizData.hasFinalQuiz) {
+        return {
+          isValid: false,
+          message: "Mission must have a Final Quiz before publishing.",
+          details:
+            "Please generate a Final Quiz (Boss Level Quiz) before publishing. Go to Add Levels and click 'Create Final Quiz' at the bottom.",
         };
       }
 

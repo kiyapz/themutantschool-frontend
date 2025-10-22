@@ -9,6 +9,7 @@ import ToggleButton from "./notification/_components/ToggleButton";
 import profilebase from "./_components/profilebase";
 import UserProfileImage from "./_components/UserProfileImage";
 import { useRouter } from "next/navigation"; // Fixed import for Next.js 13+ App Router
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function Profile() {
   const router = useRouter();
@@ -317,8 +318,8 @@ export default function Profile() {
 
   if (isLoading && !userProfile) {
     return (
-      <div className="h-fit w-full max-w-[1200px] flex items-center justify-center">
-        <div className="text-white">Loading profile...</div>
+      <div className="h-fit w-full max-w-[1200px] flex items-center justify-center min-h-[400px]">
+        <LoadingSpinner size="large" color="mutant" />
       </div>
     );
   }
