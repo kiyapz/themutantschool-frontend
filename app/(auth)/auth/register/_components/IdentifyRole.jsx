@@ -451,11 +451,11 @@ export default function IdentifyRole() {
 
       case 2:
         return (
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-10 max-w-[330px] sm:max-w-[561px] mx-auto w-full">
             <Registerherosection
               gap="gap-2"
               heading="Enter Your Codename"
-              text="Every legend starts with a name. What’s yours?"
+              text="Every legend starts with a name. What's yours?"
             />
 
             <div className="flex flex-col px  gap-5">
@@ -475,7 +475,7 @@ export default function IdentifyRole() {
 
       case 3:
         return (
-          <div className="flex flex-col gap-10 max-w-[330px] sm:max-w-[561px]">
+          <div className="flex flex-col gap-10 max-w-[330px] sm:max-w-[561px] mx-auto w-full">
             <Registerherosection
               gap="gap-2"
               heading="Who Are You Before Mutation?"
@@ -505,7 +505,7 @@ export default function IdentifyRole() {
 
       case 4:
         return (
-          <div>
+          <div className="flex flex-col gap-10 max-w-[330px] sm:max-w-[561px] mx-auto w-full">
             <Registerherosection
               gap="gap-2"
               heading="Secure Your Portal"
@@ -566,11 +566,11 @@ export default function IdentifyRole() {
 
       case 5:
         return (
-          <div>
+          <div className="flex flex-col gap-10 max-w-[330px] sm:max-w-[561px] mx-auto w-full">
             <Registerherosection
               gap="gap-2"
               heading="Verify Your Signal"
-              text="We’ve sent a secret code to your email. Prove your authenticity."
+              text="We've sent a secret code to your email. Prove your authenticity."
             />
             <div className="flex flex-col gap-10">
               <div>
@@ -653,5 +653,9 @@ export default function IdentifyRole() {
     }
   };
 
-  return <div className="">{renderStep()}</div>;
+  return (
+    <div className="flex justify-center items-center w-full">
+      {renderStep()}
+    </div>
+  );
 }

@@ -13,9 +13,9 @@ export default function Registerbtn({ type, text }) {
       onClick={handleContinue}
       disabled={disablebtn}
       type={type}
-      className={`w-full h-[60.5px] sm:h-[57px] flex gap-2 items-center justify-center  transition-all ease-in  cursor-pointer rounded-[10px] text- text-[18px] font-[700] leading-[57px] ${
-        disablebtn ? "bg-[#404040]" : "btn "
-      } `}
+      className={`w-full h-[60.5px] sm:h-[57px] flex gap-2 items-center justify-center transition-all ease-in cursor-pointer rounded-[10px] text-[18px] font-[700] ${
+        disablebtn ? "bg-[#404040]" : "btn"
+      }`}
     >
       {text}
       <Image
@@ -23,7 +23,7 @@ export default function Registerbtn({ type, text }) {
         alt="arrow-right"
         width={20}
         height={20}
-        className="inline-block ml-2 sm:hidden"
+        className="sm:hidden"
       />
     </button>
   );

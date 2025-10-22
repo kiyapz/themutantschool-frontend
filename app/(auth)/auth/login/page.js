@@ -77,7 +77,26 @@ export default function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
-      setErrormessage(error.response.data.message || "Login failed.");
+
+      // Check if it's an email verification error (403)
+      if (
+        error?.response?.status === 403 &&
+        error?.response?.data?.message?.includes("not verified")
+      ) {
+        setErrormessage(
+          "Account not verified. Redirecting to verification page..."
+        );
+        setButtonvalue("Enter the Lab");
+        setIsLoading(false);
+
+        // Redirect to verification page after 2 seconds
+        setTimeout(() => {
+          router.push("/auth/verify-email");
+        }, 2000);
+        return;
+      }
+
+      setErrormessage(error.response?.data?.message || "Login failed.");
       setButtonvalue("Enter the Lab");
       setIsLoading(false);
       setTimeout(() => setErrormessage(""), 2000);
@@ -168,11 +187,21 @@ export default function Login() {
                   )}
                 </div>
 
-                <Link href="/auth/forgot-password">
-                  <p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[20px] sm:leading-[40px]">
-                    Forgot Password?
-                  </p>
-                </Link>
+                <div className="flex flex-col gap-1">
+                  <Link href="/auth/forgot-password">
+                    <p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[20px] sm:leading-[40px]">
+                      Forgot Password?
+                    </p>
+                  </Link>
+                  <Link href="/auth/verify-email">
+                    <p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[20px] hover:text-[var(--secondary)] cursor-pointer">
+                      Haven't verified your email?{" "}
+                      <span className="text-[var(--secondary)] underline">
+                        Click here to verify
+                      </span>
+                    </p>
+                  </Link>
+                </div>
                 <Link href="/academy/auth/register">
                   <p className="text-[14px] sm:text-[16px] text-center cursor-pointer hover:text-[var(--text)] leading-[20px] sm:leading-[40px] text-white">
                     Register as Institution

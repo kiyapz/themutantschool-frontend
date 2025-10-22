@@ -411,13 +411,6 @@ body {
     margin-bottom: 10px;
     width: 100%;
   }
-
-  .cut-box2 {
-    width: 100%;
-    background: var(--text-light);
-    padding: 1px;
-    clip-path: none;
-  }
 }
 
 /* Cart bump animation */
