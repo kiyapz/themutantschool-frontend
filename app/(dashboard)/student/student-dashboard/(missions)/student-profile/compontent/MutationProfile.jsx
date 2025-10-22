@@ -12,6 +12,40 @@ const LoadingSkeleton = ({ className }) => (
   <div className={`animate-pulse bg-gray-700 rounded ${className}`}></div>
 );
 
+// Helper function to parse phone number into country code and number
+const parsePhoneNumber = (fullPhone) => {
+  if (!fullPhone) return { countryCode: "+234", phoneNumber: "" };
+
+  const phone = fullPhone.toString();
+  // Common country codes (sorted by length, longest first to match correctly)
+  const countryCodes = [
+    "+234",
+    "+1",
+    "+44",
+    "+33",
+    "+49",
+    "+81",
+    "+86",
+    "+91",
+    "+27",
+    "+55",
+    "+61",
+    "+7",
+  ];
+
+  for (const code of countryCodes) {
+    if (phone.startsWith(code)) {
+      return {
+        countryCode: code,
+        phoneNumber: phone.substring(code.length),
+      };
+    }
+  }
+
+  // If no country code found, assume it's just the number
+  return { countryCode: "+234", phoneNumber: phone };
+};
+
 function MutationProfile() {
   const router = useRouter();
   const [model, setModel] = useState(false);
@@ -19,6 +53,7 @@ function MutationProfile() {
   const [isLoading, setIsLoading] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [imageLoading, setImageLoading] = useState(true);
   const avatarInputRef = useRef(null);
 
   useEffect(() => {
@@ -29,6 +64,13 @@ function MutationProfile() {
       }
     };
   }, [previewUrl]);
+
+  // Reset image loading when avatar URL changes
+  useEffect(() => {
+    if (userProfile?.profile?.avatar?.url) {
+      setImageLoading(true);
+    }
+  }, [userProfile?.profile?.avatar?.url]);
 
   const handleAvatarUpdate = async (event) => {
     const file = event.target.files?.[0];
@@ -97,7 +139,7 @@ function MutationProfile() {
         firstName: updatedData.firstName ?? "",
         lastName: updatedData.lastName ?? "",
         email: updatedData.email ?? "",
-        phoneNumber: updatedData.phoneNumber ?? "",
+        phoneNumber: updatedData.phoneE164 ?? updatedData.phoneNumber ?? "",
         nationality: updatedData.nationality ?? "",
         gender: updatedData.gender ?? "",
         dob: updatedData.dob ?? "",
@@ -122,6 +164,16 @@ function MutationProfile() {
 
       const url = `https://themutantschool-backend.onrender.com/api/user-profile/${userProfile?._id}`;
 
+      console.log("🚀 Submitting profile update with payload:", {
+        dob: payload.dob,
+        dobValue: `"${payload.dob}"`,
+        dobLength: payload.dob?.length,
+        dobType: typeof payload.dob,
+        phoneNumber: payload.phoneNumber,
+        phoneE164: updatedData.phoneE164,
+      });
+      console.log("🚀 FULL PAYLOAD:", payload);
+
       let res;
       if (updatedData?.avatarFile) {
         // ⛑️ Multipart: send file + NON-avatar fields (flat). Do NOT send avatar.url or profile JSON.
@@ -135,7 +187,13 @@ function MutationProfile() {
         form.append("phoneNumber", payload.phoneNumber);
         form.append("nationality", payload.nationality);
         form.append("gender", payload.gender);
-        form.append("dob", payload.dob);
+        // Only send dob if it has a value (not empty string)
+        if (payload.dob && payload.dob.trim() !== "") {
+          console.log("✅ Appending dob to FormData:", payload.dob);
+          form.append("dob", payload.dob);
+        } else {
+          console.log("❌ NOT appending dob - value is:", payload.dob);
+        }
         form.append("username", payload.username);
 
         // Profile bits EXCEPT avatar.url
@@ -152,23 +210,74 @@ function MutationProfile() {
         // form.append("profile.avatar.url", ...)
         // form.append("profile", JSON.stringify(payload.profile))
 
+        // Log what's in FormData
+        console.log("📤 Sending FormData (with avatar file):");
+        for (let [key, value] of form.entries()) {
+          console.log(`  ${key}: ${value}`);
+        }
+
         res = await axios.put(url, form, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
       } else {
         // JSON-only update (no file). Allow updating `profile.avatar.url` if the user typed one.
-        res = await axios.put(url, payload, {
+        // Remove dob from payload if it's empty to avoid backend validation errors
+        const jsonPayload = { ...payload };
+        if (!jsonPayload.dob || jsonPayload.dob.trim() === "") {
+          console.log("❌ Removing empty dob from JSON payload");
+          delete jsonPayload.dob;
+        } else {
+          console.log("✅ Keeping dob in JSON payload:", jsonPayload.dob);
+        }
+
+        console.log("📤 Sending JSON payload (no avatar file):", jsonPayload);
+
+        res = await axios.put(url, jsonPayload, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
       }
 
       // Prefer server response (it should include the uploaded avatar URL)
-      setUserProfile(res?.data?.data || payload);
+      console.log("✅ Profile update successful. Server response:", res?.data);
+
+      // Refetch the complete profile data to ensure we have the latest values
+      const storedUser = localStorage.getItem("USER");
+      const id = JSON.parse(storedUser)._id;
+
+      const [profileResponse, dashboardResponse] = await Promise.all([
+        axios.get(
+          `https://themutantschool-backend.onrender.com/api/user-profile/${id}`,
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        ),
+        axios.get(
+          "https://themutantschool-backend.onrender.com/api/student/dashboard",
+          { headers: { Authorization: `Bearer ${accessToken}` } }
+        ),
+      ]);
+
+      const profileData = profileResponse.data?.data || null;
+      const dashboardData = dashboardResponse.data?.data;
+
+      // Merge avatarStage from dashboard into profile
+      if (profileData && dashboardData) {
+        profileData.avatarStage = dashboardData.avatarStage || "Newbie";
+        profileData.level = dashboardData.level || 1;
+        profileData.xp = dashboardData.xp || 0;
+      }
+
+      setUserProfile(profileData);
       setModel(false);
+      alert("Profile updated successfully!");
     } catch (err) {
-      console.log(
-        "Failed to update profile:",
+      console.error(
+        "❌ Failed to update profile:",
         err.response?.data || err.message
+      );
+      console.error("Full error:", err);
+      alert(
+        `Failed to update profile: ${
+          err.response?.data?.message || err.message || "Unknown error"
+        }`
       );
     } finally {
       setIsUpdating(false);
@@ -187,12 +296,29 @@ function MutationProfile() {
         }
         const id = JSON.parse(storedUser)._id;
 
-        const response = await axios.get(
-          `https://themutantschool-backend.onrender.com/api/user-profile/${id}`,
-          { headers: { Authorization: `Bearer ${accessToken}` } }
-        );
+        // Fetch both user profile and dashboard data to get avatarStage
+        const [profileResponse, dashboardResponse] = await Promise.all([
+          axios.get(
+            `https://themutantschool-backend.onrender.com/api/user-profile/${id}`,
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          ),
+          axios.get(
+            "https://themutantschool-backend.onrender.com/api/student/dashboard",
+            { headers: { Authorization: `Bearer ${accessToken}` } }
+          ),
+        ]);
 
-        setUserProfile(response.data?.data || null);
+        const profileData = profileResponse.data?.data || null;
+        const dashboardData = dashboardResponse.data?.data;
+
+        // Merge avatarStage from dashboard into profile
+        if (profileData && dashboardData) {
+          profileData.avatarStage = dashboardData.avatarStage || "Newbie";
+          profileData.level = dashboardData.level || 1;
+          profileData.xp = dashboardData.xp || 0;
+        }
+
+        setUserProfile(profileData);
       } catch (error) {
         console.error(
           "Failed to load user profile:",
@@ -220,35 +346,56 @@ function MutationProfile() {
   }, [userProfile, isLoading]);
 
   const levelLabel = useMemo(() => {
-    const lvl = userProfile?.level ?? 1;
-    if (lvl <= 1) return "Newbie";
-    if (lvl <= 3) return "Rising Star";
-    return "Pro";
+    // Use avatarStage from backend if available, otherwise calculate from level
+    return userProfile?.avatarStage || "Newbie";
   }, [userProfile]);
 
-  const personalInfo = useMemo(
-    () => [
+  const personalInfo = useMemo(() => {
+    // Format date of birth for display
+    const formatDateForDisplay = (dateStr) => {
+      if (!dateStr) return "";
+      try {
+        const date = new Date(dateStr);
+        return date.toLocaleDateString("en-US", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+        });
+      } catch (e) {
+        return dateStr; // Return as-is if formatting fails
+      }
+    };
+
+    return [
       { label: "Email Address", value: userProfile?.email || "" },
       { label: "Phone Number", value: userProfile?.phoneNumber || "" },
       { label: "Gender", value: userProfile?.gender || "" },
       { label: "Nationality", value: userProfile?.nationality || "" },
-      { label: "Date of Birth", value: userProfile?.dob || "" },
+      {
+        label: "Date of Birth",
+        value: formatDateForDisplay(userProfile?.dob) || "",
+      },
       {
         label: "Preferred Language",
         value: userProfile?.preferredLanguage || "",
       },
-    ],
-    [userProfile]
-  );
+    ];
+  }, [userProfile]);
 
   const bio = userProfile?.profile?.bio || "";
 
-  // Cache-busted avatar URL
-  const rawAvatar = userProfile?.profile?.avatar?.url || DEFAULT_AVATAR;
-  const avatarUrl = `${rawAvatar}?v=${new Date().getTime()}`;
+  // Get avatar URL without adding cache buster to signed URLs
+  const rawAvatar = userProfile?.profile?.avatar?.url;
+  const displayAvatarUrl = previewUrl || rawAvatar || DEFAULT_AVATAR;
 
-  // Use previewUrl if it exists, otherwise use the server URL
-  const displayAvatarUrl = previewUrl || avatarUrl;
+  // Only show default avatar if there's no avatar URL at all
+  const shouldShowDefaultAvatar = !rawAvatar && !previewUrl;
+
+  console.log("🖼️ Avatar URL:", {
+    rawAvatar: rawAvatar,
+    displayUrl: displayAvatarUrl,
+    shouldShowDefault: shouldShowDefaultAvatar,
+  });
 
   if (isLoading) {
     return (
@@ -320,11 +467,13 @@ function MutationProfile() {
       {/* Header */}
       <div
         className="flex flex-col lg:flex-row items-center"
-        style={{ gap: "24px", padding: "16px" }}
+        style={{ gap: "32px", padding: "16px" }}
       >
         <div
           className="w-[200px] h-[200px] lg:w-[189px] lg:h-[140px] border-[4px] border-[#840B94] rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden cursor-pointer relative"
-          onClick={() => !isUpdating && avatarInputRef.current?.click()}
+          onClick={() =>
+            !isUpdating && !imageLoading && avatarInputRef.current?.click()
+          }
           title="Click to change profile picture"
         >
           <input
@@ -334,40 +483,49 @@ function MutationProfile() {
             accept="image/png, image/jpeg, image/gif"
             style={{ display: "none" }}
           />
-          {isUpdating ? (
-            <div className="relative w-full h-full">
-              <img
-                src={displayAvatarUrl}
-                alt="Profile avatar"
-                className="w-full h-full object-cover rounded-full opacity-50"
-                onError={(e) => {
-                  e.target.onerror = null; // Prevent infinite loops
-                  e.target.src = DEFAULT_AVATAR;
-                }}
-              />
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="w-8 h-8 border-2 border-[#840B94] border-t-transparent rounded-full animate-spin"></div>
-              </div>
+
+          {/* Show loading spinner while image is loading or updating */}
+          {(imageLoading || isUpdating) && (
+            <div className="absolute inset-0 flex items-center justify-center z-10">
+              <div className="w-12 h-12 border-4 border-[#840B94] border-t-transparent rounded-full animate-spin"></div>
             </div>
-          ) : (
-            <img
-              src={displayAvatarUrl}
-              alt="Profile avatar"
-              className="w-full h-full object-cover rounded-full"
-              onError={(e) => {
-                e.target.onerror = null; // Prevent infinite loops
-                e.target.src = DEFAULT_AVATAR;
-              }}
-            />
           )}
+
+          {/* Only show the uploaded image (no default avatar unless URL is empty) */}
+          <img
+            src={displayAvatarUrl}
+            alt="Profile avatar"
+            className={`w-full h-full object-cover rounded-full ${
+              imageLoading || isUpdating ? "opacity-0" : "opacity-100"
+            } transition-opacity duration-300`}
+            onLoadStart={() => setImageLoading(true)}
+            onLoad={() => {
+              console.log("✅ Avatar loaded");
+              setImageLoading(false);
+            }}
+            onError={(e) => {
+              console.error("❌ Failed to load avatar");
+              setImageLoading(false);
+              // Only use default if there's no avatar URL from backend
+              if (shouldShowDefaultAvatar) {
+                e.target.onerror = null;
+                e.target.src = DEFAULT_AVATAR;
+              }
+            }}
+          />
         </div>
 
         <div className="w-full flex flex-col lg:flex-row items-center justify-between">
-          <div>
-            <h2 className="text-[37px] leading-[20px] font-[500] text-white">
+          <div className="flex flex-col gap-1">
+            <h2 className="text-[37px] leading-[37px] font-[500] text-white">
               {displayName}
             </h2>
-            <p className="text-[#FDDD3F] font-[500] text-[22px] leading-[40px]">
+            {userProfile?.username && (
+              <p className="text-[#A9A9A9] font-[400] text-[16px] leading-[20px]">
+                @{userProfile.username}
+              </p>
+            )}
+            <p className="text-[#FDDD3F] font-[500] text-[22px] leading-[28px]">
               {levelLabel}
             </p>
           </div>
@@ -417,39 +575,50 @@ function MutationProfile() {
         </div>
       </InfoBox>
 
-      {model && userProfile && (
-        <div className="absolute top-0 left-0 h-screen w-screen z-50 bg-[rgba(0,0,0,0.6)]">
-          <UpdateProfileModal
-            key={userProfile._id} // Add this key
-            onClose={() => setModel(false)}
-            onUpdate={handleUpdate}
-            isUpdating={isUpdating}
-            defaults={{
-              firstName: userProfile?.firstName || "",
-              lastName: userProfile?.lastName || "",
-              username: userProfile?.username || "",
-              email: userProfile?.email || "",
-              phoneNumber: userProfile?.phoneNumber || "",
-              nationality: userProfile?.nationality || "",
-              gender: userProfile?.gender || "",
-              dob: userProfile?.dob || "",
-              profile: {
-                bio: userProfile?.profile?.bio || "",
-                avatar: userProfile?.profile?.avatar || { url: "" },
-                socialLinks: {
-                  facebook: userProfile?.profile?.socialLinks?.facebook || "",
-                  instagram: userProfile?.profile?.socialLinks?.instagram || "",
-                  linkedin: userProfile?.profile?.socialLinks?.linkedin || "",
-                  twitter: userProfile?.profile?.socialLinks?.twitter || "",
-                  website: userProfile?.profile?.socialLinks?.website || "",
-                  youtube: userProfile?.profile?.socialLinks?.youtube || "",
-                },
-              },
-            }}
-            defaultAvatarUrl={DEFAULT_AVATAR}
-          />
-        </div>
-      )}
+      {model &&
+        userProfile &&
+        (() => {
+          const { countryCode, phoneNumber } = parsePhoneNumber(
+            userProfile?.phoneNumber
+          );
+          return (
+            <div className="absolute top-0 left-0 h-screen w-screen z-50 bg-[rgba(0,0,0,0.6)]">
+              <UpdateProfileModal
+                key={userProfile._id} // Add this key
+                onClose={() => setModel(false)}
+                onUpdate={handleUpdate}
+                isUpdating={isUpdating}
+                defaults={{
+                  firstName: userProfile?.firstName || "",
+                  lastName: userProfile?.lastName || "",
+                  username: userProfile?.username || "",
+                  email: userProfile?.email || "",
+                  phoneCountry: countryCode,
+                  phoneNumber: phoneNumber,
+                  nationality: userProfile?.nationality || "",
+                  gender: userProfile?.gender || "",
+                  dob: userProfile?.dob || "",
+                  profile: {
+                    bio: userProfile?.profile?.bio || "",
+                    avatar: userProfile?.profile?.avatar || { url: "" },
+                    socialLinks: {
+                      facebook:
+                        userProfile?.profile?.socialLinks?.facebook || "",
+                      instagram:
+                        userProfile?.profile?.socialLinks?.instagram || "",
+                      linkedin:
+                        userProfile?.profile?.socialLinks?.linkedin || "",
+                      twitter: userProfile?.profile?.socialLinks?.twitter || "",
+                      website: userProfile?.profile?.socialLinks?.website || "",
+                      youtube: userProfile?.profile?.socialLinks?.youtube || "",
+                    },
+                  },
+                }}
+                defaultAvatarUrl={DEFAULT_AVATAR}
+              />
+            </div>
+          );
+        })()}
     </div>
   );
 }

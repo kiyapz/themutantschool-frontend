@@ -82,6 +82,14 @@ const UpdateProfileModal = ({
   };
 
   useEffect(() => {
+    const formattedDob = formatDateIn(defaults.dob);
+    console.log("🔄 Modal reset with defaults:", {
+      originalDob: defaults.dob,
+      formattedDob: formattedDob,
+      phoneCountry: defaults.phoneCountry,
+      phoneNumber: defaults.phoneNumber,
+    });
+
     reset({
       firstName: defaults.firstName || "",
       lastName: defaults.lastName || "",
@@ -91,7 +99,7 @@ const UpdateProfileModal = ({
       phoneNumber: defaults.phoneNumber || "",
       nationality: defaults.nationality || "",
       gender: normalizeGenderIn(defaults.gender),
-      dob: formatDateIn(defaults.dob),
+      dob: formattedDob,
       profile: {
         bio: defaults?.profile?.bio || "",
         avatar: defaults?.profile?.avatar || { url: "" },
@@ -127,6 +135,14 @@ const UpdateProfileModal = ({
   }, [chosenFile]);
 
   const onSubmit = (data) => {
+    console.log("📝 RAW Form data received:", data);
+    console.log(
+      "📝 Date of Birth value from form:",
+      data.dob,
+      "Type:",
+      typeof data.dob
+    );
+
     const payload = {
       firstName: data.firstName,
       lastName: data.lastName,
@@ -151,6 +167,17 @@ const UpdateProfileModal = ({
       /\D/g,
       ""
     )}`;
+
+    console.log("📝 Form data being submitted:", {
+      dob: data.dob,
+      dobInPayload: payload.dob,
+      phoneNumber: data.phoneNumber,
+      phoneCountry: data.phoneCountry,
+      phoneE164: payload.phoneE164,
+      gender: payload.gender,
+    });
+
+    console.log("📦 FULL PAYLOAD:", payload);
 
     onUpdate?.(payload);
   };

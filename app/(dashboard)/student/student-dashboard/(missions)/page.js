@@ -17,6 +17,8 @@ const missioncard = [
 export default function Page() {
   const [availableMissions, setAvailableMissions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [hasCompletedMission, setHasCompletedMission] = useState(false);
+  const [isProfileComplete, setIsProfileComplete] = useState(false);
 
   useEffect(() => {
     const fetchAvailableMissions = async () => {
@@ -95,6 +97,35 @@ export default function Page() {
 
         setAvailableMissions(missionsWithBg);
         console.log("Available Missions:", missionsWithBg);
+
+        // Check if student has completed any mission
+        const breakdownResponse = await axios.get(
+          "https://themutantschool-backend.onrender.com/api/student/breakdown/",
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const missions = breakdownResponse.data.data || [];
+        const hasCompleted = missions.some(
+          (mission) => mission.progressPercentage === 100
+        );
+        setHasCompletedMission(hasCompleted);
+        console.log("Has completed mission:", hasCompleted);
+
+        // Check if profile is complete
+        const studentProfileData = studentResponse.data.data;
+        const profileComplete = !!(
+          studentProfileData?.firstName &&
+          studentProfileData?.lastName &&
+          studentProfileData?.email &&
+          studentProfileData?.avatar
+        );
+        setIsProfileComplete(profileComplete);
+        console.log("Profile complete:", profileComplete);
       } catch (error) {
         console.error(
           "Error fetching available missions:",
@@ -167,6 +198,7 @@ export default function Page() {
             <SidePanelLayout
               text1={"Create your mutant account"}
               index={1}
+              completed={true}
               text2={"Welcome to Mutant School!"}
               text3={"+15 XP"}
               style={
@@ -179,6 +211,7 @@ export default function Page() {
             <SidePanelLayout
               text1={"Complete your first mission"}
               index={2}
+              completed={hasCompletedMission}
               text2={"Pick a beginner-friendly course to start for 20XP"}
               text3={"Start now"}
               link={"/student/student-dashboard/student-mission"}
@@ -194,6 +227,7 @@ export default function Page() {
               text2={"Finish your profile setup to get 5XP"}
               text3={"Start now"}
               index={3}
+              completed={isProfileComplete}
               link={"/student/student-dashboard/student-profile"}
               style={
                 "text-[#2B61C6] font-[700] xl:text-[17px] leading-[30px] bg-[#0D141F] "
