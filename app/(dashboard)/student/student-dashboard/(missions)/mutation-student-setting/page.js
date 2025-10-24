@@ -252,7 +252,7 @@ export default function Page() {
                     className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
                   />
                   <p className="text-xs text-gray-500 mt-2">
-                    We'll send a one-time password (OTP) to this email
+                    We&apos;ll send a one-time password (OTP) to this email
                   </p>
                 </div>
 

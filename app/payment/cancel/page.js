@@ -45,7 +45,7 @@ export default function PaymentCancel() {
                 </h3>
                 <p className="text-[var(--text)] text-[13px] sm:text-[14px] leading-[20px] sm:leading-[22px]">
                   Your payment method was not charged. You can complete your
-                  purchase whenever you're ready.
+                  purchase whenever you&apos;re ready.
                 </p>
               </div>
             </div>
@@ -75,7 +75,7 @@ export default function PaymentCancel() {
                 </h3>
                 <p className="text-[var(--text)] text-[13px] sm:text-[14px] leading-[20px] sm:leading-[22px]">
                   You can return to your cart and complete checkout whenever
-                  it's convenient.
+                  it&apos;s convenient.
                 </p>
               </div>
             </div>
@@ -110,7 +110,7 @@ export default function PaymentCancel() {
               >
                 Contact our support team
               </Link>{" "}
-              and we'll assist you.
+              and we&apos;ll assist you.
             </p>
           </div>
         </div>
