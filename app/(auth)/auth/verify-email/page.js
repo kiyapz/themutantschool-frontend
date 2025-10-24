@@ -41,6 +41,15 @@ export default function VerifyEmail() {
     try {
       const response = await authApiUrl.post("resend-verification", { email });
 
+      // Log full response from backend
+      console.log("=== RESEND VERIFICATION - FULL RESPONSE ===");
+      console.log("Status:", response.status);
+      console.log("Status Text:", response.statusText);
+      console.log("Headers:", response.headers);
+      console.log("Data:", response.data);
+      console.log("Full Response Object:", response);
+      console.log("===========================================");
+
       if (response.status === 200 || response.status === 201) {
         setSuccessMessage("Verification code sent! Check your email.");
         setStep(2);
@@ -49,6 +58,17 @@ export default function VerifyEmail() {
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (error) {
+      // Log full error response from backend
+      console.log("=== RESEND VERIFICATION - ERROR RESPONSE ===");
+      console.log("Error Object:", error);
+      console.log("Error Response:", error?.response);
+      console.log("Error Status:", error?.response?.status);
+      console.log("Error Status Text:", error?.response?.statusText);
+      console.log("Error Headers:", error?.response?.headers);
+      console.log("Error Data:", error?.response?.data);
+      console.log("Error Message:", error?.message);
+      console.log("============================================");
+
       const errorMsg =
         error?.response?.data?.message || "Failed to send verification code.";
       setErrorMessage(errorMsg);
@@ -75,6 +95,15 @@ export default function VerifyEmail() {
         otp,
       });
 
+      // Log full response from backend
+      console.log("=== VERIFY OTP - FULL RESPONSE ===");
+      console.log("Status:", response.status);
+      console.log("Status Text:", response.statusText);
+      console.log("Headers:", response.headers);
+      console.log("Data:", response.data);
+      console.log("Full Response Object:", response);
+      console.log("===================================");
+
       if (response.status === 200 || response.status === 201) {
         setSuccessMessage(
           "Email verified successfully! Redirecting to login..."
@@ -84,6 +113,17 @@ export default function VerifyEmail() {
         }, 2000);
       }
     } catch (error) {
+      // Log full error response from backend
+      console.log("=== VERIFY OTP - ERROR RESPONSE ===");
+      console.log("Error Object:", error);
+      console.log("Error Response:", error?.response);
+      console.log("Error Status:", error?.response?.status);
+      console.log("Error Status Text:", error?.response?.statusText);
+      console.log("Error Headers:", error?.response?.headers);
+      console.log("Error Data:", error?.response?.data);
+      console.log("Error Message:", error?.message);
+      console.log("====================================");
+
       const errorMsg =
         error?.response?.data?.message || "Invalid verification code.";
       setErrorMessage(errorMsg);

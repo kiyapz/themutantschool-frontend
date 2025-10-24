@@ -11,51 +11,6 @@ import { useContext, useEffect, useCallback } from "react";
 import { InstructorContext } from "./_components/context/InstructorContex";
 import profilebase from "./profile/_components/profilebase";
 
-const studentcourse = [
-  {
-    id: 1,
-    name: "Kabir Usman",
-    purpose: " left a comment",
-    time: "2 hours ago",
-  },
-  {
-    id: 2,
-    name: "Kabir Usman",
-    purpose: " left a comment",
-    time: "2 hours ago",
-  },
-  {
-    id: 3,
-    name: "Kabir Usman",
-    purpose: " left a comment",
-    time: "2 hours ago",
-  },
-  {
-    id: 4,
-    name: "Kabir Usman",
-    purpose: " left a comment",
-    time: "2 hours ago",
-  },
-  {
-    id: 5,
-    name: "Kabir Usman",
-    purpose: " left a comment",
-    time: "2 hours ago",
-  },
-  {
-    id: 6,
-    name: "Kabir Usman",
-    purpose: " left a comment",
-    time: "2 hours ago",
-  },
-  {
-    id: 7,
-    name: "Kabir Usman",
-    purpose: " left a comment",
-    time: "2 hours ago",
-  },
-];
-
 const Mission = [
   {
     id: 1,
@@ -95,6 +50,11 @@ export default function InstructorDashboard() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [studentProgress, setStudentProgress] = useState(null);
+  const [recentActivities, setRecentActivities] = useState([]);
+  const [showAllActivities, setShowAllActivities] = useState(false);
+  const [showAllMissions, setShowAllMissions] = useState(false);
+  const [showAllActive, setShowAllActive] = useState(false);
 
   const {
     setUserProfile,
@@ -105,26 +65,50 @@ export default function InstructorDashboard() {
     courses,
   } = useContext(InstructorContext);
 
+  // Helper function to format relative time
+  const formatRelativeTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInMs = now - date;
+    const diffInMinutes = Math.floor(diffInMs / 60000);
+    const diffInHours = Math.floor(diffInMinutes / 60);
+    const diffInDays = Math.floor(diffInHours / 24);
+
+    if (diffInMinutes < 60) {
+      return `${diffInMinutes} minute${diffInMinutes !== 1 ? "s" : ""} ago`;
+    } else if (diffInHours < 24) {
+      return `${diffInHours} hour${diffInHours !== 1 ? "s" : ""} ago`;
+    } else if (diffInDays < 7) {
+      return `${diffInDays} day${diffInDays !== 1 ? "s" : ""} ago`;
+    } else {
+      return date.toLocaleDateString();
+    }
+  };
+
   const data = [
     {
       id: 1,
-      sub: "Active Missions",
-      qunatity: courses?.length || 0,
+      sub: "Total Students",
+      qunatity: studentProgress?.totalStudents || 0,
     },
     {
       id: 2,
-      sub: "Total Recruits",
-      qunatity: userProfile?.completedMissions?.length || 0,
+      sub: "Completion Rate",
+      qunatity: studentProgress?.capsuleCompletionRate
+        ? `${studentProgress.capsuleCompletionRate}%`
+        : "0%",
     },
     {
       id: 3,
-      sub: "Total Revenue",
-      qunatity: `$${userProfile?.earningsBalance || 0}`,
+      sub: "Average Score",
+      qunatity: studentProgress?.averageScore
+        ? `${studentProgress.averageScore}%`
+        : "N/A",
     },
     {
       id: 4,
-      sub: "Ratings",
-      qunatity: 4.8,
+      sub: "Total Missions",
+      qunatity: studentProgress?.totalMissions || courses?.length || 0,
     },
   ];
 
@@ -292,12 +276,51 @@ export default function InstructorDashboard() {
         `instructor/report/${id}`
       );
 
-      console.log("Fetched missions response:", response.data.missions);
-      setMission(response.data.missions);
+      console.log("Fetched instructor report:", response.data);
+
+      // Store missions data
+      if (response.data.missions) {
+        setMission(response.data.missions);
+        console.log(
+          "Total missions from backend:",
+          response.data.missions.length
+        );
+      }
+
+      // Store student progress data
+      if (response.data.studentProgress) {
+        setStudentProgress(response.data.studentProgress);
+
+        // Log topPerformingMissions count
+        if (response.data.studentProgress.topPerformingMissions) {
+          console.log(
+            "Top Performing Missions count from backend:",
+            response.data.studentProgress.topPerformingMissions.length
+          );
+          console.log(
+            "Top Performing Missions data:",
+            response.data.studentProgress.topPerformingMissions
+          );
+        }
+
+        // Set recent activities
+        if (response.data.studentProgress.recentActivities) {
+          setRecentActivities(response.data.studentProgress.recentActivities);
+        }
+      }
     } catch (error) {
       console.error("Error fetching missions:", error);
+
+      // Handle 403 Forbidden - Access denied
+      if (error.response?.status === 403) {
+        console.log("Access denied, redirecting to login");
+        localStorage.removeItem("USER");
+        localStorage.removeItem("login-accessToken");
+        localStorage.removeItem("login-refreshToken");
+        router.push("/auth/login");
+      }
     }
-  }, [makeAuthenticatedRequest, setMission]);
+  }, [makeAuthenticatedRequest, setMission, router]);
 
   // Note: userUpdatedValue is now managed only in the profile page to avoid conflicts
 
@@ -373,24 +396,22 @@ export default function InstructorDashboard() {
             <div className="w-full py bg-[#0F0F0F] rounded-[16px] flexcenter h-[288px]">
               <SingleValueChart />
             </div>
-            <div className="w-full flex items-center justify-between ">
-              <div>
-                <div className="relative py px bg-[#0F0F0F] gap-5 flex flex-col justify-between rounded-[17px]">
-                  <p className="h-[30px] absolute top-[20px] right-[-50px] w-[56px] bg-[#2C2C2C] rounded-[6px] text-[#66CB9F] font-[700] text-[12px] leading-[16px] flexcenter ">
-                    +12%
-                  </p>
-                  <p className="font-[600] text-[41px] leaning-[150%] sm:text-[66px] text-[var(--background)] sm:leading-[40px] ">
-                    25.500
-                  </p>
-                  <p className="text-[14px] leading-[150%] sm:text-[20px] text-[#C7C7C7] sm:leading-[40px] ">
-                    Course Engagement
-                  </p>
-                </div>
+            <div className="w-full grid grid-cols-2 gap-3">
+              <div className="py px bg-[#0F0F0F] gap-3 flex flex-col justify-center rounded-[17px]">
+                <p className="text-[14px] leading-[150%] text-[#C7C7C7] ">
+                  Total Levels
+                </p>
+                <p className="font-[600] text-[35px] leaning-[150%] text-[var(--background)] ">
+                  {studentProgress?.totalLevels || 0}
+                </p>
               </div>
-              <div className="flexcenter px py">
-                <div className="h-[46px] rounded-[6px] flexcenter bg-[#4C6FFF] w-[46px] ">
-                  <FaArrowUp size={24} />
-                </div>
+              <div className="py px bg-[#0F0F0F] gap-3 flex flex-col justify-center rounded-[17px]">
+                <p className="text-[14px] leading-[150%] text-[#C7C7C7] ">
+                  Total Quizzes
+                </p>
+                <p className="font-[600] text-[35px] leaning-[150%] text-[var(--background)] ">
+                  {studentProgress?.totalQuizzes || 0}
+                </p>
               </div>
             </div>
           </div>
@@ -411,31 +432,49 @@ export default function InstructorDashboard() {
             <p className="font-[700] text-[20px] leading-[40px] text-[var(--background)] ">
               Recent Activities
             </p>
-            <p className="text-[#208045] font-[500] text-[15px] leading-[40px] ">
-              View All
-            </p>
+            <button
+              onClick={() => setShowAllActivities(!showAllActivities)}
+              className="text-[#208045] hover:text-[#2aa057] transition-colors font-[500] text-[15px] leading-[40px] cursor-pointer "
+            >
+              {showAllActivities ? "Show Less" : "View All"}
+            </button>
           </div>
 
-          <div className="w-full h-[450px] flex-1 flex flex-col gap-10 overflow-auto scrollbar-hide">
-            {studentcourse.slice(0, 4).map((el, i) => (
-              <div
-                key={el.id}
-                className="h-[112px] flex items-center gap-5 w-full rounded-[15px] bg-[#0F0F0F] "
-              >
-                <div className="h-[63px] w-[63px] rounded-full bg-pink-100 "></div>
-                <div>
-                  <p className="font-[500] text-[18px] leading-[40px] ">
-                    {el.name}
-                    <span className="font-[400] text-[var(--text)] ">
-                      {el.purpose}
-                    </span>
-                  </p>
-                  <p className="text-[#774A82] text-[15px] leading-[40px] font-[500] ">
-                    {el.time}
-                  </p>
-                </div>
+          <div
+            className={`w-full ${
+              showAllActivities ? "max-h-[650px]" : "h-[450px]"
+            } flex flex-col gap-10 overflow-y-auto scrollbar-hide pb-6`}
+          >
+            {recentActivities && recentActivities.length > 0 ? (
+              recentActivities
+                .slice(0, showAllActivities ? recentActivities.length : 7)
+                .map((activity, i) => (
+                  <div
+                    key={i}
+                    className="h-fit min-h-[112px] flex items-center gap-5 w-full rounded-[15px] bg-[#0F0F0F] p-3"
+                  >
+                    <div className="h-[63px] w-[63px] rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex items-center justify-center text-white font-bold text-xl flex-shrink-0">
+                      {activity.studentName
+                        ? activity.studentName.charAt(0).toUpperCase()
+                        : "S"}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-[500] text-[16px] leading-[24px] text-[var(--background)]">
+                        {activity.message}
+                      </p>
+                      <p className="text-[#774A82] text-[14px] leading-[24px] font-[500] mt-1">
+                        {formatRelativeTime(activity.time)}
+                      </p>
+                    </div>
+                  </div>
+                ))
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <p className="text-[var(--text)] text-center">
+                  No recent activities yet
+                </p>
               </div>
-            ))}
+            )}
           </div>
         </div>
 
@@ -448,13 +487,20 @@ export default function InstructorDashboard() {
               <p className="font-[700] text-[20px] leading-[40px] text-[var(--background)] ">
                 Top Performing Missions
               </p>
-              <p className="text-[#208045] font-[500] text-[15px] leading-[40px] ">
-                View All
-              </p>
+              <button
+                onClick={() => setShowAllMissions(!showAllMissions)}
+                className="text-[#208045] hover:text-[#2aa057] transition-colors font-[500] text-[15px] leading-[40px] cursor-pointer "
+              >
+                {showAllMissions ? "Show Less" : "View All"}
+              </button>
             </div>
 
-            <div className="w-full h-[450px] flex-1 flex flex-col gap-1 overflow-auto scrollbar-hide">
-              <div className="grid grid-cols-5">
+            <div
+              className={`w-full ${
+                showAllMissions ? "max-h-[650px]" : "h-[450px]"
+              } flex flex-col overflow-y-auto scrollbar-hide`}
+            >
+              <div className="grid grid-cols-5 sticky top-0 bg-[#0F0F0F] z-10 pb-2">
                 <div className="col-span-2 text-[#7C7C7C] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
                   Mission
                 </div>
@@ -462,58 +508,81 @@ export default function InstructorDashboard() {
                   Recruits
                 </div>
                 <div className="col-span-1 text-[#7C7C7C] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
-                  Revenue
+                  Engagement
                 </div>
                 <div className="col-span-1 text-[#7C7C7C] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
-                  Rating
+                  Avg Score
                 </div>
               </div>
 
-              {[...Mission]
-                .sort((a, b) => b.recruits - a.recruits)
-                .slice(0, 4)
-                .map((el, i) => (
-                  <div
-                    key={el.id}
-                    className="border-t-[1px] h-fit border-[#3C3C3C]"
-                  >
-                    <div className="grid py h-fit rounded-[15px] bg-[#0F0F0F] grid-cols-5">
-                      <div className="col-span-2 overflow-hidden">
-                        <div className="flex items-center gap-2">
-                          <div className="h-[45.59px] sm:h-[62px] w-[45.59px] sm:w-[62px] bg-pink-100 rounded-[10px] flex-shrink-0"></div>
-                          <div className="min-w-0 flex-1 overflow-hidden">
-                            <p className="font-[700] text-[12px] leading-[20px] sm:text-[12px] sm:leadig-[20px] truncate max-w-[150px] sm:max-w-[200px]">
-                              {el.purpose}
-                            </p>
-                            <p className="font-[700] text-[12px] leading-[30px] sm:text-[16px] sm:leadig-[20px] truncate max-w-[150px] sm:max-w-[200px]">
-                              {el.type}
-                            </p>
+              <div className="flex flex-col gap-1 pb-6">
+                {studentProgress?.topPerformingMissions &&
+                studentProgress.topPerformingMissions.length > 0 ? (
+                  studentProgress.topPerformingMissions
+                    .slice(
+                      0,
+                      showAllMissions
+                        ? studentProgress.topPerformingMissions.length
+                        : 4
+                    )
+                    .map((el, i) => {
+                      // Find the matching mission from courses array to get the thumbnail
+                      const mission = courses?.find(
+                        (course) => course._id === el.missionId
+                      );
+                      const thumbnailUrl = mission?.thumbnail?.url || null;
+
+                      return (
+                        <div
+                          key={el.missionId || i}
+                          className="border-t-[1px] h-fit min-h-[90px] border-[#3C3C3C]"
+                        >
+                          <div className="grid py-3 h-fit rounded-[15px] bg-[#0F0F0F] grid-cols-5">
+                            <div className="col-span-2 overflow-hidden">
+                              <div className="flex items-center gap-2">
+                                {thumbnailUrl ? (
+                                  <div
+                                    style={{
+                                      backgroundImage: `url(${thumbnailUrl})`,
+                                      backgroundSize: "cover",
+                                      backgroundPosition: "center",
+                                    }}
+                                    className="h-[45.59px] sm:h-[62px] w-[45.59px] sm:w-[62px] rounded-[10px] flex-shrink-0"
+                                  ></div>
+                                ) : (
+                                  <div className="h-[45.59px] sm:h-[62px] w-[45.59px] sm:w-[62px] bg-gradient-to-br from-purple-500 to-pink-500 rounded-[10px] flex-shrink-0"></div>
+                                )}
+                                <div className="min-w-0 flex-1 overflow-hidden">
+                                  <p className="font-[700] text-[12px] leading-[20px] sm:text-[14px] sm:leadig-[20px] truncate max-w-[150px] sm:max-w-[200px]">
+                                    {el.missionTitle}
+                                  </p>
+                                  <p className="font-[500] text-[11px] leading-[20px] sm:text-[12px] text-[#ABABAB] sm:leadig-[20px] truncate max-w-[150px] sm:max-w-[200px]">
+                                    Engagement: {el.engagementRate}%
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="col-span-1 self-center text-[#7C7C7C] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
+                              {el.totalStudents}
+                            </div>
+                            <div className="col-span-1 self-center text-[#66CB9F] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
+                              {el.engagementRate}%
+                            </div>
+                            <div className="col-span-1 self-center text-[#7C7C7C] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
+                              {el.avgScore}%
+                            </div>
                           </div>
                         </div>
-                      </div>
-                      <div className="col-span-1 self-center text-[#7C7C7C] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
-                        {el.recruits}
-                      </div>
-                      <div className="col-span-1 self-center text-[#7C7C7C] font-[600] text-[11px] sm:text-[13px] leading-[40px] ">
-                        {el.revenue}
-                      </div>
-                      <div className="col-span-1 self-center w-fit ">
-                        <div className="flex space-x-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <FaStar
-                              key={star}
-                              size={8}
-                              color={star <= el.rating ? "#EFDB3F" : "#E5E7EB"}
-                            />
-                          ))}
-                        </div>
-                        <p className="text-[#7C7C7C] text-center font-[600] text-[13px] leading-[40px] ">
-                          {el.rating}
-                        </p>
-                      </div>
-                    </div>
+                      );
+                    })
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center py-10">
+                    <p className="text-[var(--text)] text-center">
+                      No mission data available yet
+                    </p>
                   </div>
-                ))}
+                )}
+              </div>
             </div>
           </div>
         </div>
@@ -530,88 +599,93 @@ export default function InstructorDashboard() {
           <p className="font-[700] text-[20px] leading-[40px] text-[var(--background)] ">
             Active Missions
           </p>
-          <p className="text-[#208045] font-[500] text-[15px] leading-[40px] ">
-            View All
-          </p>
+          <button
+            onClick={() => setShowAllActive(!showAllActive)}
+            className="text-[#208045] hover:text-[#2aa057] transition-colors font-[500] text-[15px] leading-[40px] cursor-pointer "
+          >
+            {showAllActive ? "Show Less" : "View All"}
+          </button>
         </div>
 
         <div className="w-full flexcenter h-fit">
           <div className="flex scrollbar-hide py w-[350px] sm:w-[500px] xl:w-[1000px] overflow-auto gap-4 pb-2">
-            {courses?.slice(0, 4).map((el, i) => (
-              <div
-                key={i}
-                className="max-w-[300px] flex flex-col w-full sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
-              >
+            {courses
+              ?.slice(0, showAllActive ? courses.length : 4)
+              .map((el, i) => (
                 <div
-                  style={{ backgroundImage: `url(${el.thumbnail.url})` }}
-                  className="h-[173.34px] bg-cover bg-center rounded-t-[20px] w-full "
-                ></div>
-                <div className="px w-full flex-1 flex flex-col justify-between py">
-                  <div className="flex flex-col gap-3">
-                    <div className="w-full flex items-center justify-between">
-                      <button className="bg-[#393D4E] rounded-[5px] px text-[#ABABAB] font-[500] text-[13px] leading-[25px] ">
-                        {el.category}
-                      </button>
+                  key={i}
+                  className="max-w-[300px] flex flex-col w-full sm:max-w-[410.14px] h-[447.91px] bg-[#1C1124] rounded-[20px] p-4 shrink-0"
+                >
+                  <div
+                    style={{ backgroundImage: `url(${el.thumbnail.url})` }}
+                    className="h-[173.34px] bg-cover bg-center rounded-t-[20px] w-full "
+                  ></div>
+                  <div className="px w-full flex-1 flex flex-col justify-between py">
+                    <div className="flex flex-col gap-3">
+                      <div className="w-full flex items-center justify-between">
+                        <button className="bg-[#393D4E] rounded-[5px] px text-[#ABABAB] font-[500] text-[13px] leading-[25px] ">
+                          {el.category}
+                        </button>
 
-                      <div className="flex space-x-1">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <FaStar
-                            key={star}
-                            size={10}
-                            color={
-                              star <= el.averageRating ? "#EFDB3F" : "#E5E7EB"
-                            }
-                          />
-                        ))}
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-[#E8EDF6] font-[600] text-[15px] sm:text-[27px] leading-[35px] ">
-                        {el.title}:
-                      </p>
-                      <p className="text-[#E8EDF6] h-[50px] font-[600] text-[27px] leading-[35px] overflow-y-auto scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                        {el.shortDescription}
-                      </p>
-                      <p className="text-[#ABABAB] text-[12px] mt-1">
-                        {el.estimatedDuration} • {el.skillLevel} •{" "}
-                        {el.isFree ? "Free" : `$${el.price}`}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="w-full self-end ">
-                    <div className="w-full flex items-center justify-between">
-                      <p className="text-[#767E8F] font-[400] text-[10px] leading-[20px] ">
-                        Recruit Progress
-                      </p>
-                      <p className="text-[10px] text-right mt-1 text-[#767E8F]">
-                        {el.__v}%
-                      </p>
-                    </div>
-
-                    <div>
-                      <div className="w-full max-w-md">
-                        <div className="w-full bg-[#000000] rounded-full h-[8px] overflow-hidden">
-                          <div
-                            className="h-full bg-[#4F3457] transition-all duration-200"
-                            style={{ width: `${el.__v}%` }}
-                          />
+                        <div className="flex space-x-1">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <FaStar
+                              key={star}
+                              size={10}
+                              color={
+                                star <= el.averageRating ? "#EFDB3F" : "#E5E7EB"
+                              }
+                            />
+                          ))}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="flex items-center w-full justify-between">
                       <div>
-                        <p>
-                          <span>24 </span>Recruits
+                        <p className="text-[#E8EDF6] font-[600] text-[15px] sm:text-[27px] leading-[35px] ">
+                          {el.title}:
+                        </p>
+                        <p className="text-[#E8EDF6] h-[50px] font-[600] text-[27px] leading-[35px] overflow-y-auto scrollbar-hide">
+                          {el.shortDescription}
+                        </p>
+                        <p className="text-[#ABABAB] text-[12px] mt-1">
+                          {el.estimatedDuration} • {el.skillLevel} •{" "}
+                          {el.isFree ? "Free" : `$${el.price}`}
                         </p>
                       </div>
-                      <p>{`>`}</p>
+                    </div>
+
+                    <div className="w-full self-end ">
+                      <div className="w-full flex items-center justify-between">
+                        <p className="text-[#767E8F] font-[400] text-[10px] leading-[20px] ">
+                          Recruit Progress
+                        </p>
+                        <p className="text-[10px] text-right mt-1 text-[#767E8F]">
+                          {el.__v}%
+                        </p>
+                      </div>
+
+                      <div>
+                        <div className="w-full max-w-md">
+                          <div className="w-full bg-[#000000] rounded-full h-[8px] overflow-hidden">
+                            <div
+                              className="h-full bg-[#4F3457] transition-all duration-200"
+                              style={{ width: `${el.__v}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center w-full justify-between">
+                        <div>
+                          <p>
+                            <span>24 </span>Recruits
+                          </p>
+                        </div>
+                        <p>{`>`}</p>
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
           </div>
         </div>
       </div>

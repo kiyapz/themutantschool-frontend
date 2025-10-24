@@ -45,9 +45,12 @@ export default function PaymentSuccessContent() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center px-4">
         <div className="text-center">
-          <p className="text-2xl">Verifying your payment...</p>
+          <div className="w-12 h-12 border-4 border-t-[#844CDC] border-gray-700 rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-xl sm:text-2xl text-[var(--text)]">
+            Verifying your payment...
+          </p>
         </div>
       </div>
     );
@@ -55,15 +58,18 @@ export default function PaymentSuccessContent() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center text-center">
-        <div>
-          <h1 className="text-3xl font-bold text-red-500 mb-4">
-            Payment Error
+      <div className="min-h-screen flex items-center justify-center text-center px-4">
+        <div className="max-w-md w-full">
+          <div className="text-5xl sm:text-6xl mb-4 sm:mb-6">❌</div>
+          <h1 className="font-[400] text-[32px] sm:text-[40px] leading-[40px] sm:leading-[50px] Xirod text-[var(--error-text-color)] mb-3 sm:mb-4 px-2">
+            PAYMENT ERROR
           </h1>
-          <p className="text-gray-400 mb-8">{error}</p>
+          <p className="text-[var(--text)] mb-6 sm:mb-8 text-[15px] sm:text-[16px] leading-[23px] sm:leading-[24px] px-2">
+            {error}
+          </p>
           <Link
             href="/missions"
-            className="px-6 py-2 bg-[#844CDC] text-white rounded hover:bg-[#6a3ab0] transition-colors"
+            className="inline-block px-6 sm:px-8 py-3 sm:py-4 btn font-[700] text-[15px] sm:text-[16px] rounded-[10px] hover:opacity-90 active:opacity-80 transition-opacity"
           >
             Explore Missions
           </Link>
@@ -73,59 +79,118 @@ export default function PaymentSuccessContent() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white flex items-center justify-center px-4">
-      <div className="max-w-2xl w-full bg-[#131313] p-8 rounded-lg border-2 border-[#844CDC] shadow-xl text-center">
-        <h1 className="text-4xl font-bold text-[#844CDC] mb-4">
-          Payment Successful!
-        </h1>
-        <p className="text-gray-300 mb-6">
-          Welcome to The Mutant School! Your mission access has been granted.
-        </p>
+    <div className="min-h-screen flex items-center justify-center px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-3xl w-full">
+        {/* Success Icon */}
+        <div className="text-center mb-4 sm:mb-6">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-3 sm:mb-4 rounded-full bg-gradient-to-br from-[#844CDC] to-[#6a3ab0] flex items-center justify-center shadow-lg">
+            <svg
+              className="w-10 h-10 sm:w-12 sm:h-12 text-white"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={3}
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
+          </div>
 
+          <h1 className="font-[400] text-[28px] sm:text-[38px] md:text-[45px] leading-[36px] sm:leading-[46px] md:leading-[55px] Xirod text-[#844CDC] mb-2 sm:mb-3 px-2">
+            PAYMENT SUCCESSFUL!
+          </h1>
+          <p className="text-[var(--text)] text-[15px] sm:text-[17px] md:text-[18px] leading-[24px] sm:leading-[26px] md:leading-[28px] font-[400] max-w-xl mx-auto px-2">
+            Welcome to The Mutant School! Your mission access has been granted.
+          </p>
+        </div>
+
+        {/* Credentials Section */}
         {username && password ? (
-          <div className="bg-[#0A0A0A] p-6 rounded border border-gray-700 mb-8">
-            <h2 className="text-xl font-semibold mb-4">
-              Your Guest Account Credentials
+          <div className="bg-[var(--accent)] rounded-[12px] sm:rounded-[15px] p-5 sm:p-6 md:p-8 mb-6 sm:mb-8 border border-[#844CDC]/30">
+            <h2 className="font-[700] text-[20px] sm:text-[22px] md:text-[24px] text-[var(--background)] mb-2 sm:mb-3 text-center">
+              Your Account Credentials
             </h2>
-            <p className="text-sm text-gray-400 mb-4">
-              Please save these credentials. You will need them to log in and
-              access your courses.
+            <p className="text-[13px] sm:text-[14px] text-[var(--text)] mb-5 sm:mb-6 text-center px-2">
+              Save these credentials to access your courses
             </p>
-            <div className="space-y-3 text-left">
-              <div className="flex justify-between items-center bg-[#232323] p-3 rounded">
-                <span className="text-gray-400">Username:</span>
-                <span className="font-mono text-lg">{username}</span>
+
+            <div className="space-y-3 sm:space-y-4 max-w-md mx-auto">
+              <div className="bg-[var(--background)]/10 backdrop-blur-sm p-3 sm:p-4 rounded-[10px]">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[var(--text)] text-[13px] sm:text-[14px] font-[500] flex-shrink-0">
+                    Username
+                  </span>
+                  <span className="font-mono text-[14px] sm:text-[16px] text-[var(--background)] font-[600] break-all text-right">
+                    {username}
+                  </span>
+                </div>
               </div>
-              <div className="flex justify-between items-center bg-[#232323] p-3 rounded">
-                <span className="text-gray-400">Password:</span>
-                <span className="font-mono text-lg">{password}</span>
+
+              <div className="bg-[var(--background)]/10 backdrop-blur-sm p-3 sm:p-4 rounded-[10px]">
+                <div className="flex items-center justify-between gap-3">
+                  <span className="text-[var(--text)] text-[13px] sm:text-[14px] font-[500] flex-shrink-0">
+                    Password
+                  </span>
+                  <span className="font-mono text-[14px] sm:text-[16px] text-[var(--background)] font-[600] break-all text-right">
+                    {password}
+                  </span>
+                </div>
               </div>
+            </div>
+
+            <div className="mt-5 sm:mt-6 p-3 sm:p-4 bg-[#844CDC]/10 rounded-[10px] border border-[#844CDC]/30">
+              <p className="text-[12px] sm:text-[13px] text-[var(--text)] text-center leading-[19px] sm:leading-[20px] px-2">
+                💡 <span className="font-[600]">Important:</span> These
+                credentials have also been sent to your email. Please keep them
+                safe!
+              </p>
             </div>
           </div>
         ) : (
-          <p className="text-yellow-400 my-4">
-            Could not retrieve guest credentials. Please check your email.
-          </p>
+          <div className="bg-[var(--accent)] rounded-[12px] sm:rounded-[15px] p-6 sm:p-8 mb-6 sm:mb-8 border border-[#FFA500]/30">
+            <div className="text-center">
+              <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">📧</div>
+              <h2 className="font-[700] text-[20px] sm:text-[22px] text-[var(--background)] mb-2 sm:mb-3 px-2">
+                Check Your Email
+              </h2>
+              <p className="text-[var(--warning-text-color)] text-[14px] sm:text-[16px] leading-[22px] sm:leading-[24px] max-w-md mx-auto px-2">
+                Your account credentials have been sent to your email address.
+                Please check your inbox (and spam folder) for login details.
+              </p>
+            </div>
+          </div>
         )}
 
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button
-            onClick={() => {
-              navigator.clipboard.writeText(
-                `Username: ${username}\nPassword: ${password}`
-              );
-              alert("Credentials copied to clipboard!");
-            }}
-            className="w-full sm:w-auto px-6 py-3 bg-gray-700 text-white rounded hover:bg-gray-600 transition-colors"
-          >
-            Copy Credentials
-          </button>
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-3 sm:gap-4 mb-6 sm:mb-8">
           <Link
             href="/auth/login"
-            className="w-full sm:w-auto px-10 py-3 bg-[#844CDC] text-white font-bold rounded hover:bg-[#6a3ab0] transition-colors"
+            className="w-full sm:w-auto sm:min-w-[200px] h-[54px] sm:h-[60px] flex items-center justify-center btn font-[700] text-[16px] sm:text-[18px] rounded-[10px] hover:opacity-90 active:opacity-80 transition-opacity"
           >
             Login Now
           </Link>
+          <Link
+            href="/missions"
+            className="w-full sm:w-auto sm:min-w-[200px] h-[54px] sm:h-[60px] flex items-center justify-center bg-[var(--accent)] text-[var(--background)] font-[700] text-[16px] sm:text-[18px] rounded-[10px] hover:opacity-90 active:opacity-80 transition-opacity border border-[#844CDC]/30"
+          >
+            Explore Missions
+          </Link>
+        </div>
+
+        {/* Additional Info */}
+        <div className="mt-6 sm:mt-8 text-center px-2">
+          <p className="text-[var(--text)] text-[13px] sm:text-[14px]">
+            Need help?{" "}
+            <Link
+              href="/support"
+              className="text-[#844CDC] hover:underline active:text-[#6a3ab0] font-[600]"
+            >
+              Contact Support
+            </Link>
+          </p>
         </div>
       </div>
     </div>

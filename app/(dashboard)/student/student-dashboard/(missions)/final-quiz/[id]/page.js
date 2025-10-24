@@ -4,13 +4,15 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import LevelQuiz from "@/app/(dashboard)/student/student-dashboard/(student-course-guilde)/student-course-guilde/components/LevelQuiz";
+import FinalQuizComponent from "../components/FinalQuizComponent";
 
 export default function FinalQuizPage() {
   const { id: slug } = useParams();
   const router = useRouter();
   const [missionId, setMissionId] = useState("");
   const [quizData, setQuizData] = useState(null);
+  const [missionData, setMissionData] = useState(null);
+  const [finalQuizByMissionId, setFinalQuizByMissionId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [quizPerformance, setQuizPerformance] = useState(null);
@@ -36,23 +38,21 @@ export default function FinalQuizPage() {
     }
   }, [slug]);
 
+  // Fetch MISSION DATA to get finalQuiz ID
   useEffect(() => {
     if (!missionId) return;
 
-    const fetchFinalQuiz = async () => {
+    const fetchMissionData = async () => {
       const token = localStorage.getItem("login-accessToken");
 
       if (!token) {
-        setError("No authentication token found");
-        setLoading(false);
+        console.error("No authentication token found");
         return;
       }
 
       try {
-        console.log("🔍 FETCHING FINAL QUIZ for mission:", missionId);
-
         const response = await axios.get(
-          `https://themutantschool-backend.onrender.com/api/mission-quiz/final/${missionId}`,
+          `https://themutantschool-backend.onrender.com/api/mission/${missionId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -61,26 +61,78 @@ export default function FinalQuizPage() {
           }
         );
 
-        console.log("📊 FINAL QUIZ DATA:", response.data);
-
-        if (response.data && response.data.data) {
-          setQuizData(response.data.data);
-        } else {
-          setError("No final quiz found for this mission");
-        }
-      } catch (error) {
-        console.error("Error fetching final quiz:", error);
-        setError(
-          error.response?.data?.message ||
-            "Failed to load final quiz. Please make sure all level quizzes are completed."
+        const mission = response.data.data || response.data;
+        console.log(
+          "✅ Mission data fetched - Final Quiz ID:",
+          mission.finalQuiz
         );
-      } finally {
-        setLoading(false);
+        setMissionData(mission);
+      } catch (error) {
+        console.error("❌ Error fetching mission data:", error);
+        setError(
+          error.response?.data?.message || "Failed to load mission data"
+        );
       }
     };
 
-    fetchFinalQuiz();
+    fetchMissionData();
   }, [missionId]);
+
+  // Fetch FINAL QUIZ using the finalQuiz ID from mission data
+  useEffect(() => {
+    if (!missionId || !missionData || !missionData.finalQuiz) return;
+
+    const fetchFinalQuizByMissionId = async () => {
+      const token = localStorage.getItem("login-accessToken");
+
+      if (!token) {
+        console.error("No authentication token found");
+        return;
+      }
+
+      try {
+        const finalQuizId = missionData.finalQuiz;
+
+        console.log("🏆 Fetching Final Quiz:", finalQuizId);
+
+        const response = await axios.get(
+          `https://themutantschool-backend.onrender.com/api/mission-quiz/${missionId}/${finalQuizId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        const quiz = response.data.data;
+        console.log("✅ Final quiz loaded:", quiz.title);
+
+        setFinalQuizByMissionId(quiz);
+      } catch (error) {
+        console.error("❌ Error fetching final quiz:", error);
+        setError(error.response?.data?.message || "Failed to load final quiz");
+      }
+    };
+
+    fetchFinalQuizByMissionId();
+  }, [missionId, missionData]);
+
+  // Set quizData when finalQuizByMissionId is fetched
+  useEffect(() => {
+    if (finalQuizByMissionId) {
+      setQuizData(finalQuizByMissionId);
+      setLoading(false);
+    }
+  }, [finalQuizByMissionId]);
+
+  // Check if we have an error after trying to fetch
+  useEffect(() => {
+    if (missionData && !missionData.finalQuiz) {
+      setError("No final quiz found for this mission");
+      setLoading(false);
+    }
+  }, [missionData]);
 
   const handleQuizComplete = (result) => {
     setQuizPerformance(result);
@@ -88,7 +140,6 @@ export default function FinalQuizPage() {
   };
 
   const handleBackToMission = () => {
-    // Get mission title from quizData if available, or use slug from URL
     const missionTitle = quizData?.mission?.title || slug;
     const cleanSlug =
       typeof missionTitle === "string"
@@ -123,7 +174,7 @@ export default function FinalQuizPage() {
             onClick={handleBackToMission}
             className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-6 py-3 rounded-lg transition-colors"
           >
-            Back to Mission
+            Go Back to Levels
           </button>
         </div>
       </div>
@@ -168,7 +219,7 @@ export default function FinalQuizPage() {
               onClick={handleBackToMission}
               className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"
             >
-              Back to Mission
+              Go Back to Levels
             </button>
           </div>
         </div>
@@ -179,24 +230,13 @@ export default function FinalQuizPage() {
   return (
     <div className="min-h-screen bg-[#0A0A0A] p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
-        <div className="mb-8 text-center">
-          <h1 className="text-4xl font-bold text-white mb-2">Final Quiz</h1>
-          <p className="text-gray-400">
-            This is the final challenge to complete this mission
-          </p>
-        </div>
-
         {/* Quiz Component */}
         {quizData && (
-          <div className="bg-[#131313] border border-[#840B94] rounded-lg p-6">
-            <LevelQuiz
-              finalQuizData={quizData}
-              isFinalQuiz={true}
-              onQuizComplete={handleQuizComplete}
-              onReview={handleBackToMission}
-            />
-          </div>
+          <FinalQuizComponent
+            quizData={quizData}
+            onQuizComplete={handleQuizComplete}
+            onReview={handleBackToMission}
+          />
         )}
       </div>
     </div>

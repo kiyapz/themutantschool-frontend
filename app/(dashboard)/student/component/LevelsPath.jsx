@@ -100,6 +100,57 @@ export default function LevelsPath({
     };
   }, []);
 
+  // Check if all levels are completed (all capsules + all quizzes passed)
+  useEffect(() => {
+    if (!level || level.length === 0 || !watchedData || !quizHistory) {
+      setAllLevelsCompleted(false);
+      return;
+    }
+
+    // Check if all levels have:
+    // 1. All capsules completed
+    // 2. Quiz passed
+    const allCompleted = level.every((currentLevel, index) => {
+      if (!currentLevel || !currentLevel.capsules) return false;
+
+      // Check if all capsules in this level are completed
+      const completedCapsules = getCompletedCapsulesForLevel(currentLevel._id);
+      const totalCapsules = currentLevel.capsules.length;
+      const allCapsulesCompleted =
+        completedCapsules.length === totalCapsules && totalCapsules > 0;
+
+      if (!allCapsulesCompleted) {
+        console.log(
+          `Level ${index + 1}: Not all capsules completed (${
+            completedCapsules.length
+          }/${totalCapsules})`
+        );
+        return false;
+      }
+
+      // Check if quiz for this level has been passed
+      const quizId = currentLevel.quiz?._id;
+      if (!quizId) {
+        console.log(`Level ${index + 1}: No quiz found`);
+        return false;
+      }
+
+      const quizPassed = quizHistory.some(
+        (attempt) => attempt.quizId === quizId && attempt.passed === true
+      );
+
+      if (!quizPassed) {
+        console.log(`Level ${index + 1}: Quiz not passed yet`);
+        return false;
+      }
+
+      return true;
+    });
+
+    console.log(`All levels completed: ${allCompleted}`);
+    setAllLevelsCompleted(allCompleted);
+  }, [level, watchedData, quizHistory, passedQuizzes]);
+
   useEffect(() => {
     const fetchMissionData = async () => {
       const token = localStorage.getItem("login-accessToken");

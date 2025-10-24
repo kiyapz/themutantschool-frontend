@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
 import MissionCard from "./components/MissionCard";
+import MissionCardSkeleton from "./components/MissionCardSkeleton";
 import LoadingSpinner from "./components/LoadingSpinner";
 import { useEffect, useState } from "react";
 import Link from "next/link";
@@ -47,7 +48,7 @@ export default function Page() {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
-            timeout: 15000, // 15 second timeout
+            timeout: 30000, // 30 second timeout
           }
         );
 
@@ -134,10 +135,16 @@ export default function Page() {
         } else if (error.request) {
           // The request was made but no response was received
           console.error("No response received:", error.request);
+        } else if (error.code === "ECONNABORTED") {
+          // Timeout error
+          console.error("Request timeout - server took too long to respond");
         } else {
           // Something happened in setting up the request that triggered an Error
           console.error("Error setting up request:", error.message);
         }
+
+        // Set empty array on error to show "no missions" message
+        setMissionPurchases([]);
       } finally {
         setLoading(false);
       }
@@ -149,8 +156,11 @@ export default function Page() {
   return (
     <>
       {loading ? (
-        <div className="flex items-center justify-center py-16">
-          <LoadingSpinner size="large" color="primary" />
+        <div className="flex flex-col gap-5">
+          {/* Show 3 skeleton cards while loading */}
+          <MissionCardSkeleton />
+          <MissionCardSkeleton />
+          <MissionCardSkeleton />
         </div>
       ) : missionPurchases.length === 0 ? (
         <div className="flex items-center justify-center py-8">
@@ -181,7 +191,6 @@ export default function Page() {
               missionId={item.missionId}
               image={item.thumbnail?.url}
               text1={item.missionTitle}
-              text2={item.estimatedDuration}
               text3={`${item.progressPercentage || 0}% Complete`}
               bg={item.bg}
               isAvailable={false}

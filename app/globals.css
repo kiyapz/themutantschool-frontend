@@ -303,11 +303,15 @@ body {
 }
 
 @media (max-width: 640px) {
+  body {
+    overflow-x: hidden;
+  }
+
   .padding-left {
     padding-left: 0px;
   }
   .margin-btn-smallScreen {
-    margin-top: 50px;
+    margin-top: 60px;
   }
   .px {
     padding-left: 13px;
@@ -344,6 +348,13 @@ body {
   input[type="email"],
   input[type="password"] {
     font-size: 16px; /* Prevents zoom on iOS */
+  }
+
+  /* Prevent horizontal overflow on mobile */
+  html,
+  body {
+    overflow-x: hidden;
+    position: relative;
   }
 }
 

@@ -3,6 +3,7 @@ import Image from "next/image";
 import SidePanelLayout from "../../component/SidePanelLayout";
 import Link from "next/link";
 import MissionCard from "./student-mission/components/MissionCard";
+import MissionCardSkeletonSmall from "./student-mission/components/MissionCardSkeletonSmall";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -143,17 +144,14 @@ export default function Page() {
   const firstMission = availableMissions[0];
 
   return (
-    <div className="flex flex-col justify-between h-full">
+    <div className="flex flex-col justify-between h-full w-full overflow-x-hidden">
       {/* Show loading state, first mission, or empty state */}
       {loading ? (
-        <div className="flex items-center justify-center py-8">
-          <div className="text-center text-gray-500">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-300 mx-auto mb-2"></div>
-            Loading missions...
-          </div>
+        <div className="relative w-full mb-6">
+          <MissionCardSkeletonSmall />
         </div>
       ) : firstMission ? (
-        <div className="relative">
+        <div className="relative w-full">
           <MissionCard
             image={
               firstMission.thumbnail?.url ||
@@ -162,7 +160,7 @@ export default function Page() {
             text1={firstMission.missionTitle || "Available Mission"}
             text2={firstMission.estimatedDuration || "Duration not specified"}
             text3={`${firstMission.isFree ? "Free" : `$${firstMission.price}`}`}
-            className={firstMission.bg}
+            bg={firstMission.bg}
             missionId={firstMission.missionId}
             isAvailable={true}
             instructor={firstMission.instructor}
@@ -170,6 +168,8 @@ export default function Page() {
             shortDescription={firstMission.shortDescription}
             price={firstMission.price}
             isFree={firstMission.isFree}
+            category={firstMission.category}
+            averageRating={firstMission.averageRating}
           />
         </div>
       ) : (
@@ -188,12 +188,12 @@ export default function Page() {
         </div>
       )}
 
-      <div className="w-full">
-        <p className="text-[#909090] px font-[800] text-[27px] leading-[60px] ">
+      <div className="w-full mt-6 sm:mt-8">
+        <p className="text-[#909090] font-[800] text-[20px] sm:text-[27px] leading-[40px] sm:leading-[60px] mb-4">
           Let&apos;s Get You Started
         </p>
 
-        <div className="flex flex-col padding-left gap-5">
+        <div className="flex flex-col gap-4 sm:gap-5">
           <div>
             <SidePanelLayout
               text1={"Create your mutant account"}
@@ -202,7 +202,7 @@ export default function Page() {
               text2={"Welcome to Mutant School!"}
               text3={"+15 XP"}
               style={
-                "text-[#25AF35] font-[700] text-[20px] xl:text-[30px] leading-[60px] "
+                "text-[#25AF35] font-[700] text-[14px] sm:text-[20px] xl:text-[30px] leading-[40px] sm:leading-[60px] "
               }
             />
           </div>
@@ -216,7 +216,7 @@ export default function Page() {
               text3={"Start now"}
               link={"/student/student-dashboard/student-mission"}
               style={
-                "text-[#AF2BC6] font-[700] xl:text-[17px] leading-[30px] bg-[#1F0D1F] "
+                "text-[#AF2BC6] font-[700] text-[12px] sm:text-[15px] xl:text-[17px] leading-[24px] sm:leading-[30px] bg-[#1F0D1F] "
               }
             />
           </div>
@@ -230,7 +230,7 @@ export default function Page() {
               completed={isProfileComplete}
               link={"/student/student-dashboard/student-profile"}
               style={
-                "text-[#2B61C6] font-[700] xl:text-[17px] leading-[30px] bg-[#0D141F] "
+                "text-[#2B61C6] font-[700] text-[12px] sm:text-[15px] xl:text-[17px] leading-[24px] sm:leading-[30px] bg-[#0D141F] "
               }
             />
           </div>

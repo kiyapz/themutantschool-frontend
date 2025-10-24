@@ -5,11 +5,9 @@ export default function MutationHistory() {
         Our History
       </h1>
 
-      <section className="mb-8 p-6 bg-[var(--black-background)] rounded border border-[var(--purple-border)]">
-        <h2 className="text-xl font-semibold mb-4 text-[var(--primary-light)]">
-          The Beginning
-        </h2>
-        <p className="text-[var(--text-light-2)] mb-4">
+      <section className="mb-8 p-6 bg-[var(--black-background)] rounded">
+        <h2 className="text-xl font-semibold mb-4 text-white">The Beginning</h2>
+        <p className="text-gray-400 mb-4">
           Mutant School began as a small training outpost where gifted
           individuals gathered to learn how to control and refine their
           abilities. Founded by a coalition of scientists, educators, and
@@ -18,11 +16,9 @@ export default function MutationHistory() {
         </p>
       </section>
 
-      <section className="mb-8 p-6 bg-[var(--black-background)] rounded border border-[var(--purple-border)]">
-        <h2 className="text-xl font-semibold mb-4 text-[var(--primary-light)]">
-          Early Years
-        </h2>
-        <p className="text-[var(--text-light-2)] mb-4">
+      <section className="mb-8 p-6 bg-[var(--black-background)] rounded">
+        <h2 className="text-xl font-semibold mb-4 text-white">Early Years</h2>
+        <p className="text-gray-400 mb-4">
           Early years were focused on discovery and safety: instructors mapped
           abilities, created containment and training protocols, and designed
           the first mission-based curricula. As the school grew, it became a hub
@@ -31,50 +27,42 @@ export default function MutationHistory() {
         </p>
       </section>
 
-      <section className="mb-8 p-6 bg-[var(--black-background)] rounded border border-[var(--purple-border)]">
-        <h2 className="text-xl font-semibold mb-4 text-[var(--primary-light)]">
+      <section className="mb-8 p-6 bg-[var(--black-background)] rounded">
+        <h2 className="text-xl font-semibold mb-4 text-white">
           Key Milestones
         </h2>
-        <ul className="list-disc pl-5 space-y-2 text-[var(--text-light-2)]">
+        <ul className="list-disc pl-5 space-y-2 text-gray-400">
           <li>
-            <strong className="text-[var(--purple-glow)]">Founding:</strong>{" "}
-            Established as a research and training outpost to study emergent
-            abilities responsibly.
+            <strong className="text-white">Founding:</strong> Established as a
+            research and training outpost to study emergent abilities
+            responsibly.
           </li>
           <li>
-            <strong className="text-[var(--purple-glow)]">
-              First graduates:
-            </strong>{" "}
-            Early cohorts completed the mission track and were deployed as field
+            <strong className="text-white">First graduates:</strong> Early
+            cohorts completed the mission track and were deployed as field
             operatives and community leaders.
           </li>
           <li>
-            <strong className="text-[var(--purple-glow)]">
-              Curriculum expansion:
-            </strong>{" "}
-            New modules introduced for leadership, ethics, and advanced
+            <strong className="text-white">Curriculum expansion:</strong> New
+            modules introduced for leadership, ethics, and advanced
             tech-integration.
           </li>
           <li>
-            <strong className="text-[var(--purple-glow)]">
-              Community programs:
-            </strong>{" "}
-            Outreach and mentorship initiatives connected students with
-            instructors, researchers, and allied organizations.
+            <strong className="text-white">Community programs:</strong> Outreach
+            and mentorship initiatives connected students with instructors,
+            researchers, and allied organizations.
           </li>
           <li>
-            <strong className="text-[var(--purple-glow)]">Modern era:</strong> A
-            balanced focus on capability, accountability, and personal growth —
-            with a robust mutation history system to track progress and changes.
+            <strong className="text-white">Modern era:</strong> A balanced focus
+            on capability, accountability, and personal growth — with a robust
+            mutation history system to track progress and changes.
           </li>
         </ul>
       </section>
 
-      <section className="mb-8 p-6 bg-[var(--black-background)] rounded border border-[var(--purple-border)]">
-        <h2 className="text-xl font-semibold mb-4 text-[var(--primary-light)]">
-          Today
-        </h2>
-        <p className="text-[var(--text-light-2)]">
+      <section className="mb-8 p-6 bg-[var(--black-background)] rounded">
+        <h2 className="text-xl font-semibold mb-4 text-white">Today</h2>
+        <p className="text-gray-400">
           Today, Mutant School blends cutting-edge research, practical mission
           experience, and ethical training. Students graduate not only with
           enhanced abilities, but with the judgment to use them well. The

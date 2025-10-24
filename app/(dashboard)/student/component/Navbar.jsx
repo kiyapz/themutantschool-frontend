@@ -24,12 +24,9 @@ export default function Navbar() {
   }, [router]);
 
   return (
-    <div
-      style={{ padding: "0 30px" }}
-      className="h-[10vh] flex w-full  justify-between items-center"
-    >
-      <div>
-        <p className="text-[#919191] font-[300] text-[15px] sm:text-[25px] leading-[40px]">
+    <div className="h-[60px] sm:h-[10vh] flex w-full px-4 sm:px-6 md:px-8 justify-between items-center">
+      <div className="flex-1 min-w-0">
+        <p className="text-[#919191] font-[300] text-[14px] sm:text-[18px] md:text-[25px] leading-[20px] sm:leading-[40px] truncate">
           Hello {name}
         </p>
       </div>
@@ -37,12 +34,12 @@ export default function Navbar() {
       {/* Menu Icon */}
       <div
         onClick={() => setMenuOpen(!menuOpen)}
-        className="sm:hidden relative z-30 cursor-pointer transition-transform duration-300"
+        className="sm:hidden relative z-30 cursor-pointer transition-transform duration-300 flex-shrink-0 ml-2"
       >
         {menuOpen ? (
-          <IoClose size={22} className="text-white" />
+          <IoClose size={24} className="text-white" />
         ) : (
-          <FiMenu size={18} className="text-white" />
+          <FiMenu size={20} className="text-white" />
         )}
       </div>
 
@@ -53,7 +50,7 @@ export default function Navbar() {
         }`}
       >
         <div
-          className={`w-[80%] h-full shadow-lg p-4 transition-transform duration-500 ease-in-out ${
+          className={`w-[80%] max-w-[300px] h-full shadow-lg p-4 transition-transform duration-500 ease-in-out ${
             menuOpen ? "translate-x-0" : "translate-x-full"
           }`}
         >

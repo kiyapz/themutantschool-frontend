@@ -48,12 +48,14 @@ export default function Sidebar() {
                 <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   STUDENT ENGAGEMENT
                 </p>
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Group (8).png"
-                  text="My Recruits"
-                  active={pathname === "/instructor/recruits"}
-                />
+                <Link href="/instructor/recruits">
+                  <Sidebarbtn
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    image="/images/sidebaricons/Group (8).png"
+                    text="My Recruits"
+                    active={pathname === "/instructor/recruits"}
+                  />
+                </Link>
                 <Sidebarbtn
                   onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (7).png"
@@ -73,12 +75,14 @@ export default function Sidebar() {
                 <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   PERFORMANCE AND FEEDBACK
                 </p>
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Group (6).png"
-                  text="Mission Analytics"
-                  active={pathname === "/instructor/analytics"}
-                />
+                <Link href="/instructor/analytics">
+                  <Sidebarbtn
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    image="/images/sidebaricons/Group (6).png"
+                    text="Mission Analytics"
+                    active={pathname === "/instructor/analytics"}
+                  />
+                </Link>
                 <Sidebarbtn
                   onClick={() => setIsMobileMenuOpen(false)}
                   image="/images/sidebaricons/Group (5).png"
