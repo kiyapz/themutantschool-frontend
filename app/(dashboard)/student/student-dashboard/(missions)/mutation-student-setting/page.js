@@ -1,6 +1,12 @@
 "use client";
 import { useState } from "react";
-import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineLoading3Quarters, AiOutlineCheckCircle, AiOutlineCloseCircle } from "react-icons/ai";
+import {
+  AiOutlineEye,
+  AiOutlineEyeInvisible,
+  AiOutlineLoading3Quarters,
+  AiOutlineCheckCircle,
+  AiOutlineCloseCircle,
+} from "react-icons/ai";
 
 export default function Page() {
   const [activeTab, setActiveTab] = useState("overview"); // "overview" or "change-password"
@@ -105,7 +111,9 @@ export default function Page() {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccess("Password changed successfully! You can now use your new password.");
+        setSuccess(
+          "Password changed successfully! You can now use your new password."
+        );
         setTimeout(() => {
           setActiveTab("overview");
           resetForm();
@@ -120,14 +128,16 @@ export default function Page() {
     }
   };
 
-    return (
+  return (
     <div className="p-4 sm:p-6 h-full w-full bg-[#0F0F0F]">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2">
           Security Settings
         </h1>
-        <p className="text-gray-500 text-sm">Manage your account security and password</p>
+        <p className="text-gray-500 text-sm">
+          Manage your account security and password
+        </p>
       </div>
 
       {/* Tabs */}
@@ -172,20 +182,21 @@ export default function Page() {
                   <div className="flex items-center gap-2 mb-2">
                     <span className="text-2xl">🔐</span>
                     <h2 className="text-lg sm:text-xl font-semibold text-white">
-              Change Password
+                      Change Password
                     </h2>
                   </div>
                   <p className="text-gray-400 text-sm sm:text-base">
-                    Set a unique password to protect your account and keep your lab secure
-            </p>
-          </div>
+                    Set a unique password to protect your account and keep your
+                    lab secure
+                  </p>
+                </div>
 
                 <button
                   onClick={() => setActiveTab("change-password")}
                   className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/50 hover:scale-105"
                 >
-            Change Password
-          </button>
+                  Change Password
+                </button>
               </div>
             </div>
 
@@ -200,7 +211,9 @@ export default function Page() {
                   <p className="text-gray-400 text-sm mb-4">
                     Add an extra layer of security to your account
                   </p>
-                  <span className="text-sm text-gray-500 italic">Coming soon...</span>
+                  <span className="text-sm text-gray-500 italic">
+                    Coming soon...
+                  </span>
                 </div>
               </div>
             </div>
@@ -216,7 +229,9 @@ export default function Page() {
                 {step === 1 ? "Request Password Reset" : "Reset Your Password"}
               </h2>
               <p className="text-sm text-gray-400">
-                {step === 1 ? "Step 1 of 2: Verify your email" : "Step 2 of 2: Set new password"}
+                {step === 1
+                  ? "Step 1 of 2: Verify your email"
+                  : "Step 2 of 2: Set new password"}
               </p>
             </div>
 
@@ -347,7 +362,9 @@ export default function Page() {
                     />
                     <button
                       type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      onClick={() =>
+                        setShowConfirmPassword(!showConfirmPassword)
+                      }
                       className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
                     >
                       {showConfirmPassword ? (
@@ -376,7 +393,9 @@ export default function Page() {
                   </button>
                   <button
                     type="submit"
-                    disabled={loading || !otp || !newPassword || !confirmPassword}
+                    disabled={
+                      loading || !otp || !newPassword || !confirmPassword
+                    }
                     className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/50 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loading ? (
@@ -393,7 +412,7 @@ export default function Page() {
             )}
           </div>
         )}
-        </div>
       </div>
-    );
+    </div>
+  );
 }

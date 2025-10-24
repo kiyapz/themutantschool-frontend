@@ -11,17 +11,17 @@ export const metadata = {
 export default function RootLayout({ children }) {
   return (
     <ProtectedRoute allowedRoles={["instructor"]}>
-      <div className="flex min-h-screen w-full">
+      <div className="flex h-screen w-full overflow-hidden">
         {/* Sidebar  */}
-        <div className="hidden sm:block w-[200px] md:w-[250px] lg:w-[260px] xl:w-[300px] flex-shrink-0">
+        <div className="hidden sm:block w-[200px] md:w-[250px] lg:w-[260px] xl:w-[300px] flex-shrink-0 h-screen overflow-y-auto">
           <Sidebar />
         </div>
 
         {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-h-screen sm:h-screen overflow-hidden">
+        <div className="flex-1 flex flex-col h-screen overflow-hidden">
           <NavBar />
           {/* Page Content */}
-          <main className="flex-1 overflow-auto scrollbar-hide p-2 sm:p-4">
+          <main className="flex-1 overflow-y-auto overflow-x-hidden scrollbar-hide p-2 sm:p-4">
             {children}
           </main>
         </div>

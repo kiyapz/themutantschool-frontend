@@ -444,7 +444,7 @@ export default function Page() {
               responseLevel.image ||
               responseLevel.thumbnail?.url ||
               missionData?.thumbnail?.url ? (
-                <div className="w-full h-[438px] rounded-[30px] overflow-hidden">
+                <div className="relative w-full h-[438px] rounded-[30px] overflow-hidden">
                   <Image
                     src={
                       responseLevel.imageUrl ||
@@ -617,7 +617,11 @@ export default function Page() {
         </div>
 
         <div className="flex flex-col gap-5">
-          <MutationProcess missionStatus={missionData?.status} />
+          <MutationProcess 
+            missionStatus={missionData?.status} 
+            levels={levels}
+            missionData={missionData}
+          />
 
           {/* Level Progress Section */}
           {levelProgress && (

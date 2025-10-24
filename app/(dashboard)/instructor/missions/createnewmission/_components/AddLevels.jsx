@@ -279,14 +279,18 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [error, setError] = useState("");
   const [selectedImage, setSelectedImage] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [isDraggingImage, setIsDraggingImage] = useState(false);
+  const [isDraggingVideo, setIsDraggingVideo] = useState(false);
   const imageInputRef = useRef(null);
+  const videoInputRef = useRef(null);
 
   useEffect(() => {
     if (capsule) {
       setEditTitle(capsule.title || "");
       setEditDescription(capsule.description || "");
       setSelectedImage(null);
+      setSelectedVideo(null);
       setError("");
     }
   }, [capsule]);
@@ -309,6 +313,34 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
     imageInputRef.current?.click();
   };
 
+  const handleVideoSelect = (file) => {
+    if (!file.type.startsWith("video/")) {
+      setError("Please select a video file");
+      return;
+    }
+    // Check file size (100MB limit)
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setError(
+        `Video file is too large (${(file.size / 1024 / 1024).toFixed(
+          2
+        )}MB). Maximum allowed size is 100MB.`
+      );
+      return;
+    }
+    setSelectedVideo(file);
+    setError("");
+  };
+
+  const handleVideoInputChange = (e) => {
+    const file = e.target.files[0];
+    if (file) handleVideoSelect(file);
+  };
+
+  const handleBrowseVideoClick = () => {
+    videoInputRef.current?.click();
+  };
+
   const handleSave = async () => {
     setError("");
 
@@ -325,6 +357,11 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
         description: editDescription.trim(),
       };
 
+      // Add video file if selected
+      if (selectedVideo) {
+        updateData.videoFile = selectedVideo;
+      }
+
       // Add image file if selected
       if (selectedImage) {
         updateData.imageFile = selectedImage;
@@ -333,6 +370,7 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
       console.log("=== CAPSULE EDIT MODAL DEBUG ===");
       console.log("Edit title:", editTitle);
       console.log("Edit description:", editDescription);
+      console.log("Selected video:", selectedVideo);
       console.log("Selected image:", selectedImage);
       console.log("Update data:", updateData);
 
@@ -354,6 +392,7 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
     setEditTitle("");
     setEditDescription("");
     setSelectedImage(null);
+    setSelectedVideo(null);
     onClose();
   };
 
@@ -398,6 +437,95 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
             onchange={(e) => setEditDescription(e.target.value)}
             placeholder="Summary (Optional)"
             disabled={isUpdating}
+          />
+        </div>
+
+        {/* Current Video Info */}
+        {capsule?.videoUrl && (
+          <div className="bg-[#1C1C1C] p-3 rounded-[8px] border border-[#3C3C3C]">
+            <p className="text-[#8C8C8C] text-[12px] mb-1">Current Video:</p>
+            <p className="text-[#CCCCCC] text-[13px] truncate">
+              {capsule.videoUrl.url ? "Video uploaded ✓" : "No video"}
+            </p>
+          </div>
+        )}
+
+        {/* Video Upload Section */}
+        <div className="flex flex-col gap-3">
+          <label className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]">
+            Video Upload (Optional - Update existing video)
+          </label>
+
+          <div
+            className={`w-full h-[200px] flexcenter flex-col rounded-[12px] bg-[#131313] border-2 border-dashed transition-all duration-200 ${
+              isDraggingVideo
+                ? "border-[#19569C] bg-[#19569C]/10"
+                : "border-[#404040] hover:border-[#19569C]/50"
+            }`}
+            onDragOver={(e) => {
+              e.preventDefault();
+              setIsDraggingVideo(true);
+            }}
+            onDragLeave={(e) => {
+              e.preventDefault();
+              setIsDraggingVideo(false);
+            }}
+            onDrop={(e) => {
+              e.preventDefault();
+              setIsDraggingVideo(false);
+              const files = e.dataTransfer.files;
+              if (files.length > 0) {
+                handleVideoSelect(files[0]);
+              }
+            }}
+          >
+            {!selectedVideo ? (
+              <>
+                <p className="text-center mb-4">
+                  <FaVideo
+                    size={60}
+                    title="Video Icon"
+                    className="text-[#8C8C8C]"
+                  />
+                </p>
+                <p className="font-[400] text-[14px] leading-[20px] text-center">
+                  Drag and drop a video, or{" "}
+                  <span
+                    className="text-[#19569C] cursor-pointer hover:underline"
+                    onClick={handleBrowseVideoClick}
+                  >
+                    Browse
+                  </span>
+                </p>
+                <p className="text-[#787878] text-[12px] mt-2">
+                  MP4 (max 100MB)
+                </p>
+              </>
+            ) : (
+              <div className="text-center">
+                <p className="text-[#19569C] font-[600] text-[14px] mb-2">
+                  {selectedVideo.name}
+                </p>
+                <p className="text-[#787878] text-[12px] mb-4">
+                  Video selected (
+                  {(selectedVideo.size / 1024 / 1024).toFixed(2)} MB)
+                </p>
+                <button
+                  onClick={() => setSelectedVideo(null)}
+                  className="text-[#FF6363] hover:text-red-500 text-[12px] underline"
+                >
+                  Remove video
+                </button>
+              </div>
+            )}
+          </div>
+
+          <input
+            ref={videoInputRef}
+            type="file"
+            accept="video/*"
+            onChange={handleVideoInputChange}
+            className="hidden"
           />
         </div>
 

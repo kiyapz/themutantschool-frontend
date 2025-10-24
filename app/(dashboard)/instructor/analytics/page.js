@@ -170,7 +170,7 @@ export default function MissionAnalytics() {
   }
 
   return (
-    <div className="flex flex-col h-full gap-6 w-full p-4 sm:p-6">
+    <div className="flex flex-col gap-6 w-full p-4 sm:p-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
@@ -577,4 +577,3 @@ export default function MissionAnalytics() {
     </div>
   );
 }
-
