@@ -160,6 +160,39 @@ export default function IdentifyRole() {
       setLastNameSuccess(isLastValid);
 
       setdisablebtn(!(isFirstValid && isLastValid)); // only enable if both valid
+    } else if (registerStep === 4) {
+      // Email and password validation for step 4
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const hasEmail = email && email.trim().length > 0;
+      const hasPassword = password && password.trim().length > 0;
+      const hasConfirmPassword =
+        confirmpassword && confirmpassword.trim().length > 0;
+
+      const isEmailValid = hasEmail ? emailRegex.test(email.trim()) : false;
+      const isPasswordValid = hasPassword && password.trim().length >= 8;
+      const allFieldsFilled = hasEmail && hasPassword && hasConfirmPassword;
+      const passwordsMatch =
+        hasPassword && hasConfirmPassword && password === confirmpassword;
+
+      const isFormValid =
+        allFieldsFilled && passwordsMatch && isEmailValid && isPasswordValid;
+
+      setIsValidEmail(!isFormValid); // Disable button if form is NOT valid
+      setCheckEmail(isEmailValid);
+      setsuccessvalue(isEmailValid);
+
+      console.log("Step 4 Validation:", {
+        email,
+        hasEmail,
+        hasPassword,
+        hasConfirmPassword,
+        isEmailValid,
+        isPasswordValid,
+        allFieldsFilled,
+        passwordsMatch,
+        isFormValid,
+        buttonShouldBeDisabled: !isFormValid,
+      });
     } else if (registerStep === 5) {
       setIsValidEmail(!isCompleteOtp);
     }
@@ -170,43 +203,10 @@ export default function IdentifyRole() {
     firstName,
     lastName,
     isCompleteOtp,
+    email,
+    password,
+    confirmpassword,
   ]);
-
-  useEffect(() => {
-    setErrormessage("");
-    setSuccessmessage("");
-    console.log(
-      "Email, Password, Confirm Password: in effect",
-      email,
-      password,
-      confirmpassword
-    );
-
-    // Email validation regex
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    const isValidEmail = email ? emailRegex.test(email.trim()) : false;
-    setsuccessvalue(isValidEmail);
-    setCheckEmail(isValidEmail);
-
-    const isValidPasswordLength = password && password.trim().length >= 8;
-
-    const allFieldsFilled =
-      email?.trim() && password?.trim() && confirmpassword?.trim();
-    const passwordsMatch = password === confirmpassword;
-
-    if (password?.trim() && password.trim().length < 8) {
-      console.error("Password must be at least 8 characters long");
-    }
-
-    setIsValidEmail(
-      !(
-        allFieldsFilled &&
-        passwordsMatch &&
-        isValidEmail &&
-        isValidPasswordLength
-      )
-    );
-  }, [email, password, confirmpassword]);
 
   const handleEmailVerification = async () => {
     setErrormessage("");
@@ -236,8 +236,14 @@ export default function IdentifyRole() {
         const { accessToken, refreshToken, user } = res.data;
 
         localStorage.setItem("accessToken", accessToken);
+        localStorage.setItem("login-accessToken", accessToken); // For dashboard access
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("USER", JSON.stringify(user));
+
+        // Set flag for new student welcome modal (15 XP reward)
+        if (user.role === "student") {
+          localStorage.setItem("newStudentWelcome", "true");
+        }
 
         setTimeout(() => {
           setSuccessmessage("");
@@ -566,10 +572,10 @@ export default function IdentifyRole() {
               <button
                 disabled={isValidEmail}
                 onClick={handleEmailVerification}
-                className={` text-white font-bold py-2 px-4 rounded-[10px] btn cursor-pointer w-full h-[57px] text-[18px] leading-[57px] ${
+                className={`text-white font-bold py-2 px-4 rounded-[10px] w-full h-[57px] text-[18px] leading-[57px] transition-all duration-200 ${
                   isValidEmail
                     ? "bg-[var(--disabled-button-bg)] cursor-not-allowed"
-                    : "btn"
+                    : "btn cursor-pointer hover:opacity-90"
                 }`}
               >
                 {buttonDisabledtext}
@@ -643,7 +649,7 @@ export default function IdentifyRole() {
       default:
         return (
           <div className="w-full h-full flexcenter flex-col gap-5  max-w-[330px] sm:max-w-[561px] ">
-            <div className="h-[130px] border w-[130px] rounded-full bg-[var(--success-bg-light)] flexcenter  ">
+            <div className="h-[130px] w-[130px] rounded-full bg-[#4A9B7F] flexcenter  ">
               <Image
                 src="/images/markgood.png"
                 alt="markgood"
@@ -651,13 +657,13 @@ export default function IdentifyRole() {
                 height={50.14}
               />
             </div>
-            <p className="font-[700] text-[23px] leading-[27px] text-[var(--info)] text-center ">
+            <p className="font-[700] text-[23px] leading-[27px] text-[#D4AF37] text-center ">
               Amazing!
             </p>
             <Registerherosection
               gap="gap-2"
-              heading="Congratulations"
-              subheading="You’ve been admmited"
+              heading="CONGRATULATIONS"
+              subheading="you've been Admitted"
             />
             {/* <Link href={handleRedirectLogin}> */}
             <button

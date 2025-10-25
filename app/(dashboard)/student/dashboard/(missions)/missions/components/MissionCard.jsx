@@ -113,88 +113,90 @@ export default function MissionCard({
           </div>
         </div>
 
-        {/* Progress Bar and Levels */}
-        {isLoadingProgress ? (
-          <div className="w-full flex items-center gap-2 animate-pulse">
-            <div className="flex items-center flex-1">
-              <span className="flex-1 max-w-[60%] sm:max-w-[50%]">
-                <div className="w-full rounded-[5px] h-[5px] bg-gray-700"></div>
-              </span>
-              <span className="ml-2">
-                <div className="h-4 w-20 bg-gray-700 rounded"></div>
-              </span>
-            </div>
-            <div className="flex-shrink-0">
-              <div className="w-[24px] h-[24px] sm:w-[30.72px] sm:h-[29.59px] bg-gray-700 rounded-full"></div>
-            </div>
-          </div>
-        ) : (
-          <div className="w-full flex items-center gap-2">
-            <div className="flex items-center flex-1">
-              <span className="flex-1 max-w-[60%] sm:max-w-[50%]">
-                <div
-                  className="w-full rounded-[5px] h-[5px] bg-gray-600"
-                  style={{ backgroundColor: "var(--gray-600)" }}
-                >
-                  <div
-                    className="rounded-[5px] h-[5px] transition-all duration-300"
-                    style={{
-                      backgroundColor: "var(--warning)",
-                      width: `${actualProgress}%`,
-                    }}
-                  ></div>
-                </div>
-              </span>
-              {(progress?.length || 0) > 0 && (
-                <span
-                  className="font-[700] text-[10px] sm:text-[11px] leading-[18px] sm:leading-[20px] ml-2 whitespace-nowrap"
-                  style={{ color: "var(--text)" }}
-                >
-                  {progress?.length || 0}/{displayTotalLevels || "?"} Levels
+        <div className="flex flex-col gap-3">
+          {/* Progress Bar and Levels */}
+          {isLoadingProgress ? (
+            <div className="w-full flex items-center gap-2 animate-pulse bg-black rounded-[8px] px-3 py-1.5">
+              <div className="flex items-center flex-1">
+                <span className="flex-1 max-w-[60%] sm:max-w-[50%]">
+                  <div className="w-full rounded-[5px] h-[5px] bg-gray-700"></div>
                 </span>
-              )}
+                <span className="ml-2">
+                  <div className="h-4 w-20 bg-gray-700 rounded"></div>
+                </span>
+              </div>
+              <div className="flex-shrink-0">
+                <div className="w-[14px] h-[14px] sm:w-[16px] sm:h-[16px] bg-gray-700 rounded-full"></div>
+              </div>
             </div>
-            <div className="flex-shrink-0">
-              <Image
-                src={"/images/students-images/Group (16).png"}
-                width={24}
-                height={24}
-                className="sm:w-[30.72px] sm:h-[29.59px]"
-                alt="star"
-              />
-            </div>
-          </div>
-        )}
-
-        <div>
-          {isAvailable ? (
-            <Link
-              href={`/mission/${text1
-                .toLowerCase()
-                .replace(/[^\w\s-]/g, "")
-                .replace(/\s+/g, "-")
-                .replace(/-+/g, "-")}`}
-            >
-              <button className="w-full xl:w-[234.64px] h-[48px] sm:h-[56.4px] cursor-pointer studentbtn2 rounded-[30px] text-[14px] sm:text-[16px]">
-                Explore Missions
-              </button>
-            </Link>
           ) : (
-            <Link
-              href={`/student/dashboard/student-mission-study-levels/${text1
-                .toLowerCase()
-                .replace(/[^\w\s-]/g, "")
-                .replace(/\s+/g, "-")
-                .substring(0, 50)}`}
-              onClick={() => {
-                localStorage.setItem("studyMissionId", missionId);
-              }}
-            >
-              <button className="w-full xl:w-[234.64px] h-[48px] sm:h-[56.4px] cursor-pointer studentbtn2 rounded-[30px] text-[14px] sm:text-[16px]">
-                Continue Mission
-              </button>
-            </Link>
+            <div className="w-full flex items-center gap-2 bg-black rounded-[8px] px-3 py-1.5">
+              <div className="flex items-center flex-1">
+                <span className="flex-1 max-w-[60%] sm:max-w-[50%]">
+                  <div
+                    className="w-full rounded-[5px] h-[5px] bg-gray-600"
+                    style={{ backgroundColor: "var(--gray-600)" }}
+                  >
+                    <div
+                      className="rounded-[5px] h-[5px] transition-all duration-300"
+                      style={{
+                        backgroundColor: "var(--warning)",
+                        width: `${actualProgress}%`,
+                      }}
+                    ></div>
+                  </div>
+                </span>
+                {(progress?.length || 0) > 0 && (
+                  <span
+                    className="font-[700] text-[10px] sm:text-[11px] leading-[18px] sm:leading-[20px] ml-2 whitespace-nowrap"
+                    style={{ color: "var(--text)" }}
+                  >
+                    {progress?.length || 0}/{displayTotalLevels || "?"} Levels
+                  </span>
+                )}
+              </div>
+              <div className="flex-shrink-0">
+                <Image
+                  src={"/images/students-images/Group (16).png"}
+                  width={14}
+                  height={14}
+                  className="sm:w-[16px] sm:h-[16px]"
+                  alt="star"
+                />
+              </div>
+            </div>
           )}
+
+          <div>
+            {isAvailable ? (
+              <Link
+                href={`/mission/${text1
+                  .toLowerCase()
+                  .replace(/[^\w\s-]/g, "")
+                  .replace(/\s+/g, "-")
+                  .replace(/-+/g, "-")}`}
+              >
+                <button className="w-full xl:w-[234.64px] h-[48px] sm:h-[56.4px] cursor-pointer studentbtn2 rounded-[30px] text-[14px] sm:text-[16px]">
+                  Explore Missions
+                </button>
+              </Link>
+            ) : (
+              <Link
+                href={`/student/dashboard/student-mission-study-levels/${text1
+                  .toLowerCase()
+                  .replace(/[^\w\s-]/g, "")
+                  .replace(/\s+/g, "-")
+                  .substring(0, 50)}`}
+                onClick={() => {
+                  localStorage.setItem("studyMissionId", missionId);
+                }}
+              >
+                <button className="w-full xl:w-[234.64px] h-[48px] sm:h-[56.4px] cursor-pointer studentbtn2 rounded-[30px] text-[14px] sm:text-[16px]">
+                  Continue Mission
+                </button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

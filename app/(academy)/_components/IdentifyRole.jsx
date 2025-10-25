@@ -520,7 +520,7 @@ export default function IdentifyRole() {
       default:
         return (
           <div className="w-[100vw] h-[90vh]  flex flex-col items-center justify-center gap-5 ">
-            <div className="h-[130px] border w-[130px] rounded-full bg-green-300 flexcenter  ">
+            <div className="h-[130px] w-[130px] rounded-full bg-[#4A9B7F] flexcenter  ">
               <Image
                 src="/images/markgood.png"
                 alt="markgood"
@@ -528,20 +528,20 @@ export default function IdentifyRole() {
                 height={50.14}
               />
             </div>
-            <p className="font-[700] text-[23px] leading-[27px] text-[var(--info)] text-center ">
+            <p className="font-[700] text-[23px] leading-[27px] text-[#D4AF37] text-center ">
               Amazing!
             </p>
 
             <Registerherosection
               gap="gap-2"
-              heading="Congratulations"
+              heading="CONGRATULATIONS"
               subheading="your academy portal is ready"
             />
             <button
               onClick={handleviewdashboard}
               className="w-full btn2 max-w-[330px] w-full sm:max-w-[561px]   h-[57px] rounded-[10px] text-[18px] font-[700] leading-[57px]"
             >
-              continue to the lab
+              Continue to the Lab.
             </button>
           </div>
         );

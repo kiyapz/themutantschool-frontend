@@ -4,6 +4,7 @@ import SidePanelLayout from "../../component/SidePanelLayout";
 import Link from "next/link";
 import MissionCard from "./missions/components/MissionCard";
 import MissionCardSkeletonSmall from "./missions/components/MissionCardSkeletonSmall";
+import WelcomeModal from "../../component/WelcomeModal";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -20,6 +21,23 @@ export default function Page() {
   const [loading, setLoading] = useState(true);
   const [hasCompletedMission, setHasCompletedMission] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+
+  useEffect(() => {
+    // Check if this is the first visit after registration
+    if (typeof window !== "undefined") {
+      const isNewStudent = localStorage.getItem("newStudentWelcome");
+      if (isNewStudent === "true") {
+        setShowWelcomeModal(true);
+        // Remove the flag so modal doesn't show again
+        localStorage.removeItem("newStudentWelcome");
+      }
+    }
+  }, []);
+
+  const handleCloseWelcomeModal = () => {
+    setShowWelcomeModal(false);
+  };
 
   useEffect(() => {
     const fetchAvailableMissions = async () => {
@@ -144,8 +162,12 @@ export default function Page() {
   const firstMission = availableMissions[0];
 
   return (
-    <div className="flex flex-col justify-between h-full w-full overflow-x-hidden">
-      {/* Show loading state, first mission, or empty state */}
+    <>
+      {/* Welcome Modal */}
+      {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
+
+      <div className="flex flex-col justify-between h-full w-full overflow-x-hidden">
+        {/* Show loading state, first mission, or empty state */}
       {loading ? (
         <div className="relative w-full mb-6">
           <MissionCardSkeletonSmall />
@@ -237,5 +259,6 @@ export default function Page() {
         </div>
       </div>
     </div>
+    </>
   );
 }
