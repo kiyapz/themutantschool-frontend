@@ -12,6 +12,7 @@ export default function Page() {
   const [activeTab, setActiveTab] = useState("overview"); // "overview" or "change-password"
   const [step, setStep] = useState(1); // 1: email, 2: OTP + new password
   const [email, setEmail] = useState("");
+  const [isValidEmail, setIsValidEmail] = useState(false);
   const [otp, setOtp] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -21,10 +22,24 @@ export default function Page() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Email validation function
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  // Handle email change
+  const handleEmailChange = (e) => {
+    const value = e.target.value.toLowerCase();
+    setEmail(value);
+    setIsValidEmail(validateEmail(value));
+  };
+
   // Reset all fields
   const resetForm = () => {
     setStep(1);
     setEmail("");
+    setIsValidEmail(false);
     setOtp("");
     setNewPassword("");
     setConfirmPassword("");
@@ -129,19 +144,19 @@ export default function Page() {
   };
 
   return (
-    <div className="p-4 sm:p-6 h-full w-full bg-[#0F0F0F]">
+    <div className="p-4 sm:p-6 h-full w-full bg-[var(--foreground)]">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-400 mb-2">
+        <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
           Security Settings
         </h1>
-        <p className="text-gray-500 text-sm">
+        <p className="text-[var(--text)] text-sm">
           Manage your account security and password
         </p>
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 mb-6 border-b border-gray-800">
+      <div className="flex gap-2 mb-6">
         <button
           onClick={() => {
             setActiveTab("overview");
@@ -149,8 +164,8 @@ export default function Page() {
           }}
           className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 ${
             activeTab === "overview"
-              ? "border-purple-500 text-purple-400"
-              : "border-transparent text-gray-400 hover:text-gray-300"
+              ? "border-[var(--mutant-color)] text-[var(--mutant-color)]"
+              : "border-transparent text-[var(--text)] hover:text-[var(--text-light-2)]"
           }`}
         >
           Overview
@@ -162,8 +177,8 @@ export default function Page() {
           }}
           className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 ${
             activeTab === "change-password"
-              ? "border-purple-500 text-purple-400"
-              : "border-transparent text-gray-400 hover:text-gray-300"
+              ? "border-[var(--mutant-color)] text-[var(--mutant-color)]"
+              : "border-transparent text-[var(--text)] hover:text-[var(--text-light-2)]"
           }`}
         >
           Change Password
@@ -176,7 +191,7 @@ export default function Page() {
         {activeTab === "overview" && (
           <div className="space-y-6">
             {/* Change Password Card */}
-            <div className="w-full bg-gradient-to-br from-[#0B0B0B] to-purple-950/10 rounded-xl p-4 sm:p-6 border border-gray-800 hover:border-purple-700/50 transition-all duration-300 shadow-lg">
+            <div className="w-full bg-[var(--card)] rounded-xl p-4 sm:p-6 transition-all duration-300">
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
@@ -185,7 +200,7 @@ export default function Page() {
                       Change Password
                     </h2>
                   </div>
-                  <p className="text-gray-400 text-sm sm:text-base">
+                  <p className="text-[var(--text)] text-sm sm:text-base">
                     Set a unique password to protect your account and keep your
                     lab secure
                   </p>
@@ -193,7 +208,7 @@ export default function Page() {
 
                 <button
                   onClick={() => setActiveTab("change-password")}
-                  className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/50 hover:scale-105"
+                  className="w-full sm:w-auto px-6 py-3 btn text-white rounded-[10px] font-semibold"
                 >
                   Change Password
                 </button>
@@ -201,17 +216,17 @@ export default function Page() {
             </div>
 
             {/* Additional security settings can go here */}
-            <div className="w-full bg-gradient-to-br from-[#0B0B0B] to-blue-950/10 rounded-xl p-4 sm:p-6 border border-gray-800 transition-all duration-300">
+            <div className="w-full bg-[var(--card)] rounded-xl p-4 sm:p-6 transition-all duration-300">
               <div className="flex items-start gap-3">
                 <span className="text-2xl">🔒</span>
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-2">
                     Two-Factor Authentication
                   </h3>
-                  <p className="text-gray-400 text-sm mb-4">
+                  <p className="text-[var(--text)] text-sm mb-4">
                     Add an extra layer of security to your account
                   </p>
-                  <span className="text-sm text-gray-500 italic">
+                  <span className="text-sm text-[var(--text-light)] italic">
                     Coming soon...
                   </span>
                 </div>
@@ -222,13 +237,13 @@ export default function Page() {
 
         {/* Change Password Tab */}
         {activeTab === "change-password" && (
-          <div className="w-full bg-gradient-to-br from-[#0B0B0B] to-purple-950/10 rounded-xl p-6 sm:p-8 border border-gray-800 shadow-xl">
+          <div className="w-full bg-[var(--card)] rounded-xl p-6 sm:p-8">
             {/* Header */}
             <div className="mb-6">
               <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">
                 {step === 1 ? "Request Password Reset" : "Reset Your Password"}
               </h2>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-[var(--text)]">
                 {step === 1
                   ? "Step 1 of 2: Verify your email"
                   : "Step 2 of 2: Set new password"}
@@ -237,17 +252,17 @@ export default function Page() {
 
             {/* Success Message */}
             {success && (
-              <div className="mb-6 p-4 bg-green-900/20 border border-green-700/50 rounded-lg flex items-start gap-3 animate-in fade-in duration-300">
-                <AiOutlineCheckCircle className="text-green-400 text-xl flex-shrink-0 mt-0.5" />
-                <p className="text-green-400 text-sm">{success}</p>
+              <div className="mb-6 p-4 bg-[var(--success)]/20 rounded-[10px] flex items-start gap-3 animate-in fade-in duration-300">
+                <AiOutlineCheckCircle className="text-[var(--success)] text-xl flex-shrink-0 mt-0.5" />
+                <p className="text-[var(--success)] text-sm">{success}</p>
               </div>
             )}
 
             {/* Error Message */}
             {error && (
-              <div className="mb-6 p-4 bg-red-900/20 border border-red-700/50 rounded-lg flex items-start gap-3 animate-in fade-in duration-300">
-                <AiOutlineCloseCircle className="text-red-400 text-xl flex-shrink-0 mt-0.5" />
-                <p className="text-red-400 text-sm">{error}</p>
+              <div className="mb-6 p-4 bg-[var(--error)]/20 rounded-[10px] flex items-start gap-3 animate-in fade-in duration-300">
+                <AiOutlineCloseCircle className="text-[var(--error)] text-xl flex-shrink-0 mt-0.5" />
+                <p className="text-[var(--error)] text-sm">{error}</p>
               </div>
             )}
 
@@ -255,26 +270,26 @@ export default function Page() {
             {step === 1 && (
               <form onSubmit={handleRequestOTP} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={handleEmailChange}
                     placeholder="Enter your email"
                     required
-                    className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                    className="w-full px-4 py-3 bg-[var(--accent)] rounded-[10px] text-white placeholder-[var(--text-light)] focus:outline-none transition-all"
                   />
-                  <p className="text-xs text-gray-500 mt-2">
+                  <p className="text-xs text-[var(--text-light)] mt-2">
                     We&apos;ll send a one-time password (OTP) to this email
                   </p>
                 </div>
 
                 <button
                   type="submit"
-                  disabled={loading || !email}
-                  className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/50 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  disabled={loading || !isValidEmail}
+                  className="w-full px-6 py-3 btn text-white rounded-[10px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {loading ? (
                     <>
@@ -292,33 +307,37 @@ export default function Page() {
             {step === 2 && (
               <form onSubmit={handleResetPassword} className="space-y-6">
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     Email Address
                   </label>
                   <input
                     type="email"
                     value={email}
                     disabled
-                    className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 cursor-not-allowed"
+                    className="w-full px-4 py-3 bg-[var(--accent)] rounded-[10px] text-[var(--text)] cursor-not-allowed"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     OTP Code
                   </label>
                   <input
                     type="text"
                     value={otp}
-                    onChange={(e) => setOtp(e.target.value)}
+                    onChange={(e) =>
+                      setOtp(
+                        e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "")
+                      )
+                    }
                     placeholder="Enter OTP from email"
                     required
-                    className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                    className="w-full px-4 py-3 bg-[var(--accent)] rounded-[10px] text-white placeholder-[var(--text-light)] focus:outline-none transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     New Password
                   </label>
                   <div className="relative">
@@ -328,12 +347,12 @@ export default function Page() {
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Enter new password"
                       required
-                      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all pr-12"
+                      className="w-full px-4 py-3 bg-[var(--accent)] rounded-[10px] text-white placeholder-[var(--text-light)] focus:outline-none transition-all pr-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text)] hover:text-white transition-colors"
                     >
                       {showPassword ? (
                         <AiOutlineEyeInvisible className="text-xl" />
@@ -342,13 +361,13 @@ export default function Page() {
                       )}
                     </button>
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-[var(--text-light)] mt-1">
                     Must be at least 6 characters
                   </p>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-semibold text-gray-300 mb-2">
+                  <label className="block text-sm font-semibold text-white mb-2">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -358,14 +377,14 @@ export default function Page() {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Confirm new password"
                       required
-                      className="w-full px-4 py-3 bg-gray-900 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all pr-12"
+                      className="w-full px-4 py-3 bg-[var(--accent)] rounded-[10px] text-white placeholder-[var(--text-light)] focus:outline-none transition-all pr-12"
                     />
                     <button
                       type="button"
                       onClick={() =>
                         setShowConfirmPassword(!showConfirmPassword)
                       }
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-[var(--text)] hover:text-white transition-colors"
                     >
                       {showConfirmPassword ? (
                         <AiOutlineEyeInvisible className="text-xl" />
@@ -387,7 +406,7 @@ export default function Page() {
                       setError("");
                       setSuccess("");
                     }}
-                    className="flex-1 px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-xl font-semibold transition-all duration-300"
+                    className="flex-1 px-6 py-3 bg-[var(--button-background)] hover:bg-[var(--accent)] text-white rounded-[10px] font-semibold transition-all duration-300"
                   >
                     Back
                   </button>
@@ -396,7 +415,7 @@ export default function Page() {
                     disabled={
                       loading || !otp || !newPassword || !confirmPassword
                     }
-                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/50 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className="flex-1 px-6 py-3 btn text-white rounded-[10px] font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                   >
                     {loading ? (
                       <>

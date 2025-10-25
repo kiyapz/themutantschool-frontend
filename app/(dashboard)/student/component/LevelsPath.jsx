@@ -437,7 +437,7 @@ export default function LevelsPath({
       const currentLevel = level[containerIndex];
       if (currentLevel && currentLevel._id) {
         // Navigate to the course guide page for this level
-        window.location.href = `/student/student-dashboard/student-course-guilde/${generateCourseGuideSlug(
+        window.location.href = `/student/dashboard/student-course-guilde/${generateCourseGuideSlug(
           currentLevel._id,
           currentLevel.title,
           null
@@ -463,7 +463,7 @@ export default function LevelsPath({
       {/* Mission Title Header */}
       <div className="flex items-center gap-3 mb-8">
         <Link
-          href="/student/student-dashboard"
+          href="/student/dashboard"
           className="text-white hover:text-gray-300"
         >
           <svg
@@ -652,7 +652,7 @@ export default function LevelsPath({
 
                   return isEnabled ? (
                     <Link
-                      href={`/student/student-dashboard/student-course-guilde/${generateCourseGuideSlug(
+                      href={`/student/dashboard/student-course-guilde/${generateCourseGuideSlug(
                         currentlevel._id,
                         currentlevel.title,
                         capsule._id
@@ -732,7 +732,7 @@ export default function LevelsPath({
                 .replace(/\s+/g, "-")
                 .substring(0, 50);
 
-              window.location.href = `/student/student-dashboard/final-quiz/${cleanSlug}`;
+              window.location.href = `/student/dashboard/final-quiz/${cleanSlug}`;
             } else {
               // Count how many levels have passed quizzes
               const levelQuizIds = level

@@ -128,10 +128,10 @@ export default function Page(params) {
     <div className="flex flex-col gap-6 w-full">
       <div
         style={{ padding: "16px" }}
-        className="w-full bg-[#0B0B0B] relative xl:flex gap-10 items-center min-h-[300px] sm:h-[400px] xl:h-[438.49px] rounded-[20px]"
+        className="w-full bg-[#0B0B0B] relative xl:flex gap-10 items-center min-h-[250px] sm:h-[400px] xl:h-[438.49px] rounded-[20px]"
       >
-        <div className="flex justify-center sm:justify-start">
-          <div className="border-[6px] sm:border-[8px] border-[#E4BE00] flexcenter rounded-full w-[200px] h-[200px] sm:w-[280px] sm:h-[280px] xl:w-[344px] xl:h-[344px]">
+        <div className="flex justify-center sm:justify-start mb-4 sm:mb-0">
+          <div className="border-[4px] sm:border-[8px] border-[#E4BE00] flexcenter rounded-full w-[140px] h-[140px] sm:w-[280px] sm:h-[280px] xl:w-[344px] xl:h-[344px]">
             <div
               className={`transition-all duration-1000 ease-out ${
                 showElements.character
@@ -144,20 +144,20 @@ export default function Page(params) {
                 width={259.2}
                 height={207.86}
                 alt="mutant-robot"
-                className="w-[120px] h-auto sm:w-[180px] xl:w-[259px]"
+                className="w-[90px] h-auto sm:w-[180px] xl:w-[259px]"
               />
             </div>
           </div>
         </div>
 
         {/* second layer */}
-        <div className="flex flex-col w-full justify-between col-span-2">
-          <p className="absolute top-5 right-5 text-[#BF8BDB] font-[800] sm:text-[27px] leading-[40px] ">
+        <div className="flex flex-col w-full justify-between col-span-2 mt-4 sm:mt-0">
+          <p className="absolute top-3 right-3 text-[#BF8BDB] font-[800] text-[18px] sm:text-[27px] leading-[24px] sm:leading-[40px]">
             XP Progress
           </p>
-          <div className="flex flex-col gap-10">
+          <div className="flex flex-col gap-6 sm:gap-10 mt-8 sm:mt-0">
             <p
-              className={` Xirod text-[#FDDD3F] font-[500] text-[24px] sm:text-[32px] xl:text-[45px] leading-[30px] sm:leading-[40px] transition-all duration-800 ease-out ${
+              className={`Xirod text-[#FDDD3F] font-[500] text-[16px] sm:text-[32px] xl:text-[45px] leading-[20px] sm:leading-[40px] text-center sm:text-left transition-all duration-800 ease-out ${
                 showElements.newbieText
                   ? "opacity-100 translate-y-0 scale-100"
                   : "opacity-0 translate-y-[10px] scale-99"
@@ -172,7 +172,7 @@ export default function Page(params) {
               </span>
             </p>
 
-            <div>
+            <div className="flex justify-center sm:justify-start w-full">
               {/* Progress section with smooth reveal */}
               <div
                 className={`w-full max-w-[363px] transition-all duration-800 ease-out ${
@@ -187,7 +187,7 @@ export default function Page(params) {
                     className={`h-[15px] rounded-full relative z-30 bg-gradient-to-r from-[#1D5DAC] to-[#950F9C] transition-all duration-1500 ease-out shadow-lg`}
                   ></div>
                 </div>
-                <p className=" font-[400] text-[14px] text-[#957AA3] leading-[40px]">
+                <p className="font-[400] text-[12px] sm:text-[14px] text-[#957AA3] leading-[20px] sm:leading-[40px] text-center sm:text-left">
                   {xpProgress.xpToNextLevel} XP to next level
                 </p>
               </div>
@@ -196,10 +196,10 @@ export default function Page(params) {
         </div>
       </div>
       <div className="w-full flex items-center justify-between">
-        <p className="font-[600] sm:text-[35px] sm:leading-[20px] ">
+        <p className="font-[600] text-[24px] sm:text-[35px] leading-[28px] sm:leading-[20px]">
           Certificates
         </p>
-        <p className="font-[500] sm:text-[25px] text-[#840B94] cursor-pointer sm:leading-[20px] ">
+        <p className="font-[500] text-[16px] sm:text-[25px] text-[var(--mutant-color)] cursor-pointer leading-[20px] hover:text-[var(--primary)] transition-colors">
           View All
         </p>
       </div>

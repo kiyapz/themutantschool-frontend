@@ -13,6 +13,7 @@ export default function MissionCard({
   isAvailable = false,
   instructor,
   levels,
+  totalLevels,
   shortDescription,
   price,
   isFree,
@@ -53,9 +54,9 @@ export default function MissionCard({
   // Calculate actual progress percentage based on completed levels
   const calculateProgress = () => {
     const completedLevels = progress?.length || 0;
-    const totalLevels = levels?.length || 5;
-    if (totalLevels === 0) return 0;
-    const calculatedPercentage = (completedLevels / totalLevels) * 100;
+    const total = totalLevels || levels?.length || 0;
+    if (total === 0) return 0;
+    const calculatedPercentage = (completedLevels / total) * 100;
     return Math.min(
       Math.max(calculatedPercentage, completedLevels > 0 ? 5 : 0),
       100
@@ -63,6 +64,7 @@ export default function MissionCard({
   };
 
   const actualProgress = calculateProgress();
+  const displayTotalLevels = totalLevels || levels?.length || 0;
 
   return (
     <div
@@ -76,98 +78,6 @@ export default function MissionCard({
           >
             {text1}
           </p>
-
-          {/* Compact Levels Progress Indicator */}
-          {progress && levels?.length > 0 && (
-            <div className="flex items-center gap-2 mb-3">
-              <div className="flex-1">
-                <div className="flex items-center justify-between mb-1">
-                  <span
-                    className="font-[700] text-[11px] sm:text-[12px] leading-[14px]"
-                    style={{ color: "var(--text-light-2)" }}
-                  >
-                    {progress?.length || 0}/{levels.length} Levels
-                  </span>
-                </div>
-                <div
-                  className="w-full h-[6px] rounded-full"
-                  style={{ backgroundColor: "var(--gray-700)" }}
-                >
-                  <div
-                    className="h-[6px] rounded-full transition-all duration-300"
-                    style={{
-                      backgroundColor: "var(--warning)",
-                      width: `${actualProgress}%`,
-                    }}
-                  ></div>
-                </div>
-              </div>
-              <div className="flex-shrink-0">
-                <span className="text-[20px]">⭐</span>
-              </div>
-            </div>
-          )}
-
-          {/* Short Description */}
-          {shortDescription && (
-            <p
-              className="font-[400] text-[11px] sm:text-[12px] xl:text-[14px] leading-[16px] sm:leading-[18px] mb-3 line-clamp-2"
-              style={{ color: "var(--gray-400)" }}
-            >
-              {shortDescription}
-            </p>
-          )}
-
-          {/* Category and Rating */}
-          {((category && category !== "Course") ||
-            (averageRating && averageRating > 0)) && (
-            <div className="flex items-center justify-between mb-2 flex-wrap gap-2">
-              {category && category !== "Course" && (
-                <p
-                  className="font-[500] text-[9px] sm:text-[10px] xl:text-[12px] leading-[12px] sm:leading-[14px] px-2 py-1 rounded-[5px] border"
-                  style={{
-                    color: "var(--text)",
-                    borderColor: "var(--gray-400)",
-                  }}
-                >
-                  {category}
-                </p>
-              )}
-              {averageRating && averageRating > 0 && (
-                <p
-                  className="font-[600] text-[9px] sm:text-[10px] xl:text-[12px] leading-[12px] sm:leading-[14px] flex items-center gap-1"
-                  style={{ color: "var(--warning)" }}
-                >
-                  ⭐ {averageRating}/5
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Mission Details: Levels & Instructor */}
-          {(levels?.length || instructor) && (
-            <div className="flex items-center gap-3 mb-2 flex-wrap">
-              {levels?.length > 0 && (
-                <p
-                  className="font-[500] text-[10px] sm:text-[11px] xl:text-[13px] leading-[14px] flex items-center gap-1"
-                  style={{ color: "var(--gray-400)" }}
-                >
-                  📚 {levels.length} Levels
-                </p>
-              )}
-              {instructor && (
-                <p
-                  className="font-[500] text-[10px] sm:text-[11px] xl:text-[13px] leading-[14px] flex items-center gap-1"
-                  style={{ color: "var(--gray-400)" }}
-                >
-                  👤{" "}
-                  {instructor.firstName && instructor.lastName
-                    ? `${instructor.firstName} ${instructor.lastName}`
-                    : instructor.name || instructor.username || "Instructor"}
-                </p>
-              )}
-            </div>
-          )}
 
           {/* Difficulty - Only show if not default "Beginner" */}
           {difficulty && difficulty !== "Beginner" && (
@@ -240,7 +150,7 @@ export default function MissionCard({
                   className="font-[700] text-[10px] sm:text-[11px] leading-[18px] sm:leading-[20px] ml-2 whitespace-nowrap"
                   style={{ color: "var(--text)" }}
                 >
-                  {progress?.length || 0}/{levels?.length || 5} Levels
+                  {progress?.length || 0}/{displayTotalLevels || "?"} Levels
                 </span>
               )}
             </div>
@@ -271,7 +181,7 @@ export default function MissionCard({
             </Link>
           ) : (
             <Link
-              href={`/student/student-dashboard/student-mission-study-levels/${text1
+              href={`/student/dashboard/student-mission-study-levels/${text1
                 .toLowerCase()
                 .replace(/[^\w\s-]/g, "")
                 .replace(/\s+/g, "-")

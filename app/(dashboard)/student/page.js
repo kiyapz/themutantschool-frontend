@@ -105,7 +105,7 @@ export default function Page() {
             </div>
 
             <div style={{ margin: "30px 20px" }} className="self-end">
-              <Link href={"/student/student-dashboard"}>
+              <Link href={"/student/dashboard"}>
                 <Changebtn text={"Proceed to the lab"} />
               </Link>
             </div>

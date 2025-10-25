@@ -10,20 +10,214 @@ const UpdateProfileModal = ({
   defaultAvatarUrl = "/default-avatar.png",
   isLoading = false,
 }) => {
+  // Add custom styles for select dropdown
+  React.useEffect(() => {
+    const style = document.createElement("style");
+    style.innerHTML = `
+      select option {
+        background-color: var(--accent);
+        color: white;
+        padding: 8px;
+      }
+      select option:hover,
+      select option:checked {
+        background-color: var(--mutant-color) !important;
+        color: white;
+      }
+      select::-webkit-scrollbar {
+        width: 8px;
+      }
+      select::-webkit-scrollbar-track {
+        background: var(--card);
+        border-radius: 10px;
+      }
+      select::-webkit-scrollbar-thumb {
+        background: var(--mutant-color);
+        border-radius: 10px;
+      }
+      select::-webkit-scrollbar-thumb:hover {
+        background: var(--primary);
+      }
+    `;
+    document.head.appendChild(style);
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
   const countries = useMemo(
     () => [
-      { code: "+234", flag: "🇳🇬", name: "Nigeria" },
-      { code: "+1", flag: "🇺🇸", name: "United States" },
-      { code: "+44", flag: "🇬🇧", name: "United Kingdom" },
-      { code: "+33", flag: "🇫🇷", name: "France" },
-      { code: "+49", flag: "🇩🇪", name: "Germany" },
-      { code: "+81", flag: "🇯🇵", name: "Japan" },
-      { code: "+86", flag: "🇨🇳", name: "China" },
-      { code: "+91", flag: "🇮🇳", name: "India" },
-      { code: "+27", flag: "🇿🇦", name: "South Africa" },
-      { code: "+55", flag: "🇧🇷", name: "Brazil" },
+      { code: "+93", flag: "🇦🇫", name: "Afghanistan" },
+      { code: "+355", flag: "🇦🇱", name: "Albania" },
+      { code: "+213", flag: "🇩🇿", name: "Algeria" },
+      { code: "+376", flag: "🇦🇩", name: "Andorra" },
+      { code: "+244", flag: "🇦🇴", name: "Angola" },
+      { code: "+54", flag: "🇦🇷", name: "Argentina" },
+      { code: "+374", flag: "🇦🇲", name: "Armenia" },
       { code: "+61", flag: "🇦🇺", name: "Australia" },
+      { code: "+43", flag: "🇦🇹", name: "Austria" },
+      { code: "+994", flag: "🇦🇿", name: "Azerbaijan" },
+      { code: "+973", flag: "🇧🇭", name: "Bahrain" },
+      { code: "+880", flag: "🇧🇩", name: "Bangladesh" },
+      { code: "+375", flag: "🇧🇾", name: "Belarus" },
+      { code: "+32", flag: "🇧🇪", name: "Belgium" },
+      { code: "+501", flag: "🇧🇿", name: "Belize" },
+      { code: "+229", flag: "🇧🇯", name: "Benin" },
+      { code: "+975", flag: "🇧🇹", name: "Bhutan" },
+      { code: "+591", flag: "🇧🇴", name: "Bolivia" },
+      { code: "+387", flag: "🇧🇦", name: "Bosnia and Herzegovina" },
+      { code: "+267", flag: "🇧🇼", name: "Botswana" },
+      { code: "+55", flag: "🇧🇷", name: "Brazil" },
+      { code: "+673", flag: "🇧🇳", name: "Brunei" },
+      { code: "+359", flag: "🇧🇬", name: "Bulgaria" },
+      { code: "+226", flag: "🇧🇫", name: "Burkina Faso" },
+      { code: "+257", flag: "🇧🇮", name: "Burundi" },
+      { code: "+855", flag: "🇰🇭", name: "Cambodia" },
+      { code: "+237", flag: "🇨🇲", name: "Cameroon" },
+      { code: "+1", flag: "🇨🇦", name: "Canada" },
+      { code: "+238", flag: "🇨🇻", name: "Cape Verde" },
+      { code: "+236", flag: "🇨🇫", name: "Central African Republic" },
+      { code: "+235", flag: "🇹🇩", name: "Chad" },
+      { code: "+56", flag: "🇨🇱", name: "Chile" },
+      { code: "+86", flag: "🇨🇳", name: "China" },
+      { code: "+57", flag: "🇨🇴", name: "Colombia" },
+      { code: "+269", flag: "🇰🇲", name: "Comoros" },
+      { code: "+242", flag: "🇨🇬", name: "Congo" },
+      { code: "+506", flag: "🇨🇷", name: "Costa Rica" },
+      { code: "+385", flag: "🇭🇷", name: "Croatia" },
+      { code: "+53", flag: "🇨🇺", name: "Cuba" },
+      { code: "+357", flag: "🇨🇾", name: "Cyprus" },
+      { code: "+420", flag: "🇨🇿", name: "Czech Republic" },
+      { code: "+45", flag: "🇩🇰", name: "Denmark" },
+      { code: "+253", flag: "🇩🇯", name: "Djibouti" },
+      { code: "+593", flag: "🇪🇨", name: "Ecuador" },
+      { code: "+20", flag: "🇪🇬", name: "Egypt" },
+      { code: "+503", flag: "🇸🇻", name: "El Salvador" },
+      { code: "+240", flag: "🇬🇶", name: "Equatorial Guinea" },
+      { code: "+291", flag: "🇪🇷", name: "Eritrea" },
+      { code: "+372", flag: "🇪🇪", name: "Estonia" },
+      { code: "+251", flag: "🇪🇹", name: "Ethiopia" },
+      { code: "+679", flag: "🇫🇯", name: "Fiji" },
+      { code: "+358", flag: "🇫🇮", name: "Finland" },
+      { code: "+33", flag: "🇫🇷", name: "France" },
+      { code: "+241", flag: "🇬🇦", name: "Gabon" },
+      { code: "+220", flag: "🇬🇲", name: "Gambia" },
+      { code: "+995", flag: "🇬🇪", name: "Georgia" },
+      { code: "+49", flag: "🇩🇪", name: "Germany" },
+      { code: "+233", flag: "🇬🇭", name: "Ghana" },
+      { code: "+30", flag: "🇬🇷", name: "Greece" },
+      { code: "+502", flag: "🇬🇹", name: "Guatemala" },
+      { code: "+224", flag: "🇬🇳", name: "Guinea" },
+      { code: "+245", flag: "🇬🇼", name: "Guinea-Bissau" },
+      { code: "+592", flag: "🇬🇾", name: "Guyana" },
+      { code: "+509", flag: "🇭🇹", name: "Haiti" },
+      { code: "+504", flag: "🇭🇳", name: "Honduras" },
+      { code: "+852", flag: "🇭🇰", name: "Hong Kong" },
+      { code: "+36", flag: "🇭🇺", name: "Hungary" },
+      { code: "+354", flag: "🇮🇸", name: "Iceland" },
+      { code: "+91", flag: "🇮🇳", name: "India" },
+      { code: "+62", flag: "🇮🇩", name: "Indonesia" },
+      { code: "+98", flag: "🇮🇷", name: "Iran" },
+      { code: "+964", flag: "🇮🇶", name: "Iraq" },
+      { code: "+353", flag: "🇮🇪", name: "Ireland" },
+      { code: "+972", flag: "🇮🇱", name: "Israel" },
+      { code: "+39", flag: "🇮🇹", name: "Italy" },
+      { code: "+225", flag: "🇨🇮", name: "Ivory Coast" },
+      { code: "+81", flag: "🇯🇵", name: "Japan" },
+      { code: "+962", flag: "🇯🇴", name: "Jordan" },
+      { code: "+7", flag: "🇰🇿", name: "Kazakhstan" },
+      { code: "+254", flag: "🇰🇪", name: "Kenya" },
+      { code: "+965", flag: "🇰🇼", name: "Kuwait" },
+      { code: "+996", flag: "🇰🇬", name: "Kyrgyzstan" },
+      { code: "+856", flag: "🇱🇦", name: "Laos" },
+      { code: "+371", flag: "🇱🇻", name: "Latvia" },
+      { code: "+961", flag: "🇱🇧", name: "Lebanon" },
+      { code: "+266", flag: "🇱🇸", name: "Lesotho" },
+      { code: "+231", flag: "🇱🇷", name: "Liberia" },
+      { code: "+218", flag: "🇱🇾", name: "Libya" },
+      { code: "+423", flag: "🇱🇮", name: "Liechtenstein" },
+      { code: "+370", flag: "🇱🇹", name: "Lithuania" },
+      { code: "+352", flag: "🇱🇺", name: "Luxembourg" },
+      { code: "+853", flag: "🇲🇴", name: "Macau" },
+      { code: "+389", flag: "🇲🇰", name: "Macedonia" },
+      { code: "+261", flag: "🇲🇬", name: "Madagascar" },
+      { code: "+265", flag: "🇲🇼", name: "Malawi" },
+      { code: "+60", flag: "🇲🇾", name: "Malaysia" },
+      { code: "+960", flag: "🇲🇻", name: "Maldives" },
+      { code: "+223", flag: "🇲🇱", name: "Mali" },
+      { code: "+356", flag: "🇲🇹", name: "Malta" },
+      { code: "+222", flag: "🇲🇷", name: "Mauritania" },
+      { code: "+230", flag: "🇲🇺", name: "Mauritius" },
+      { code: "+52", flag: "🇲🇽", name: "Mexico" },
+      { code: "+373", flag: "🇲🇩", name: "Moldova" },
+      { code: "+377", flag: "🇲🇨", name: "Monaco" },
+      { code: "+976", flag: "🇲🇳", name: "Mongolia" },
+      { code: "+382", flag: "🇲🇪", name: "Montenegro" },
+      { code: "+212", flag: "🇲🇦", name: "Morocco" },
+      { code: "+258", flag: "🇲🇿", name: "Mozambique" },
+      { code: "+95", flag: "🇲🇲", name: "Myanmar" },
+      { code: "+264", flag: "🇳🇦", name: "Namibia" },
+      { code: "+977", flag: "🇳🇵", name: "Nepal" },
+      { code: "+31", flag: "🇳🇱", name: "Netherlands" },
+      { code: "+64", flag: "🇳🇿", name: "New Zealand" },
+      { code: "+505", flag: "🇳🇮", name: "Nicaragua" },
+      { code: "+227", flag: "🇳🇪", name: "Niger" },
+      { code: "+234", flag: "🇳🇬", name: "Nigeria" },
+      { code: "+850", flag: "🇰🇵", name: "North Korea" },
+      { code: "+47", flag: "🇳🇴", name: "Norway" },
+      { code: "+968", flag: "🇴🇲", name: "Oman" },
+      { code: "+92", flag: "🇵🇰", name: "Pakistan" },
+      { code: "+970", flag: "🇵🇸", name: "Palestine" },
+      { code: "+507", flag: "🇵🇦", name: "Panama" },
+      { code: "+675", flag: "🇵🇬", name: "Papua New Guinea" },
+      { code: "+595", flag: "🇵🇾", name: "Paraguay" },
+      { code: "+51", flag: "🇵🇪", name: "Peru" },
+      { code: "+63", flag: "🇵🇭", name: "Philippines" },
+      { code: "+48", flag: "🇵🇱", name: "Poland" },
+      { code: "+351", flag: "🇵🇹", name: "Portugal" },
+      { code: "+974", flag: "🇶🇦", name: "Qatar" },
+      { code: "+40", flag: "🇷🇴", name: "Romania" },
       { code: "+7", flag: "🇷🇺", name: "Russia" },
+      { code: "+250", flag: "🇷🇼", name: "Rwanda" },
+      { code: "+966", flag: "🇸🇦", name: "Saudi Arabia" },
+      { code: "+221", flag: "🇸🇳", name: "Senegal" },
+      { code: "+381", flag: "🇷🇸", name: "Serbia" },
+      { code: "+248", flag: "🇸🇨", name: "Seychelles" },
+      { code: "+232", flag: "🇸🇱", name: "Sierra Leone" },
+      { code: "+65", flag: "🇸🇬", name: "Singapore" },
+      { code: "+421", flag: "🇸🇰", name: "Slovakia" },
+      { code: "+386", flag: "🇸🇮", name: "Slovenia" },
+      { code: "+252", flag: "🇸🇴", name: "Somalia" },
+      { code: "+27", flag: "🇿🇦", name: "South Africa" },
+      { code: "+82", flag: "🇰🇷", name: "South Korea" },
+      { code: "+211", flag: "🇸🇸", name: "South Sudan" },
+      { code: "+34", flag: "🇪🇸", name: "Spain" },
+      { code: "+94", flag: "🇱🇰", name: "Sri Lanka" },
+      { code: "+249", flag: "🇸🇩", name: "Sudan" },
+      { code: "+597", flag: "🇸🇷", name: "Suriname" },
+      { code: "+268", flag: "🇸🇿", name: "Swaziland" },
+      { code: "+46", flag: "🇸🇪", name: "Sweden" },
+      { code: "+41", flag: "🇨🇭", name: "Switzerland" },
+      { code: "+963", flag: "🇸🇾", name: "Syria" },
+      { code: "+886", flag: "🇹🇼", name: "Taiwan" },
+      { code: "+992", flag: "🇹🇯", name: "Tajikistan" },
+      { code: "+255", flag: "🇹🇿", name: "Tanzania" },
+      { code: "+66", flag: "🇹🇭", name: "Thailand" },
+      { code: "+228", flag: "🇹🇬", name: "Togo" },
+      { code: "+216", flag: "🇹🇳", name: "Tunisia" },
+      { code: "+90", flag: "🇹🇷", name: "Turkey" },
+      { code: "+993", flag: "🇹🇲", name: "Turkmenistan" },
+      { code: "+256", flag: "🇺🇬", name: "Uganda" },
+      { code: "+380", flag: "🇺🇦", name: "Ukraine" },
+      { code: "+971", flag: "🇦🇪", name: "United Arab Emirates" },
+      { code: "+44", flag: "🇬🇧", name: "United Kingdom" },
+      { code: "+1", flag: "🇺🇸", name: "United States" },
+      { code: "+598", flag: "🇺🇾", name: "Uruguay" },
+      { code: "+998", flag: "🇺🇿", name: "Uzbekistan" },
+      { code: "+58", flag: "🇻🇪", name: "Venezuela" },
+      { code: "+84", flag: "🇻🇳", name: "Vietnam" },
+      { code: "+967", flag: "🇾🇪", name: "Yemen" },
+      { code: "+260", flag: "🇿🇲", name: "Zambia" },
+      { code: "+263", flag: "🇿🇼", name: "Zimbabwe" },
     ],
     []
   );
@@ -95,7 +289,7 @@ const UpdateProfileModal = ({
       lastName: defaults.lastName || "",
       username: defaults.username || "",
       email: defaults.email || "",
-      phoneCountry: defaults.phoneCountry || countries[0]?.code || "+234",
+      phoneCountry: defaults.phoneCountry || "+234",
       phoneNumber: defaults.phoneNumber || "",
       nationality: defaults.nationality || "",
       gender: normalizeGenderIn(defaults.gender),
@@ -190,6 +384,7 @@ const UpdateProfileModal = ({
     required = false,
     extraLabel = null,
     children,
+    disabled = false,
     ...props
   }) => (
     <div>
@@ -207,10 +402,10 @@ const UpdateProfileModal = ({
         <input
           id={id}
           type={type}
-          className={`bg-[#070707] text-sm rounded px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[#840B94] ${
-            isLoading ? "opacity-50 cursor-not-allowed" : ""
+          className={`bg-[var(--accent)] text-sm rounded-[10px] px-3 py-2 w-full text-white focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)] ${
+            disabled ? "opacity-50 cursor-not-allowed" : ""
           }`}
-          disabled={isLoading}
+          disabled={disabled}
           {...register(
             name,
             required ? { required: `${label} is required` } : {}
@@ -227,53 +422,10 @@ const UpdateProfileModal = ({
     </div>
   );
 
-  const LoadingSpinner = () => (
-    <svg
-      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-      xmlns="http://www.w3.org/2000/svg"
-      fill="none"
-      viewBox="0 0 24 24"
-    >
-      <circle
-        className="opacity-25"
-        cx="12"
-        cy="12"
-        r="10"
-        stroke="currentColor"
-        strokeWidth="4"
-      />
-      <path
-        className="opacity-75"
-        fill="currentColor"
-        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-      />
-    </svg>
-  );
-
   return (
     <div className="fixed inset-0 flex justify-center items-center z-50">
-      {/* Loading overlay */}
-      {isLoading && (
-        <div className="absolute inset-0 bg-black bg-opacity-50 flex items-center justify-center z-10">
-          <div
-            className="bg-[#101010] rounded-lg flex items-center justify-center"
-            style={{ padding: "40px" }}
-          >
-            <LoadingSpinner />
-            <span
-              className="text-white text-lg font-semibold"
-              style={{ marginLeft: "12px" }}
-            >
-              Loading...
-            </span>
-          </div>
-        </div>
-      )}
-
       <div
-        className={`bg-[#101010] rounded-[10px] w-[955px] max-w-full text-white ${
-          isLoading ? "opacity-50" : ""
-        }`}
+        className="bg-[#101010] rounded-[10px] w-[955px] max-w-full text-white"
         style={{ padding: "32px" }}
       >
         <div style={{ marginBottom: "24px" }}>
@@ -285,25 +437,23 @@ const UpdateProfileModal = ({
             style={{ marginBottom: "24px" }}
           >
             <button
-              className={`text-sm font-semibold ${
+              className={`text-sm font-semibold transition-colors ${
                 activeTab === "personal"
-                  ? "text-[#840B94] border-b-2 border-[#840B94]"
-                  : "text-gray-400"
+                  ? "text-[var(--mutant-color)] border-b-2 border-[var(--mutant-color)]"
+                  : "text-[var(--text)] hover:text-[var(--mutant-color)]"
               }`}
               onClick={() => setActiveTab("personal")}
-              disabled={isLoading}
               style={{ padding: "10px 16px" }}
             >
               Personal
             </button>
             <button
-              className={`text-sm font-semibold ${
+              className={`text-sm font-semibold transition-colors ${
                 activeTab === "social"
-                  ? "text-[#840B94] border-b-2 border-[#840B94]"
-                  : "text-gray-400"
+                  ? "text-[var(--mutant-color)] border-b-2 border-[var(--mutant-color)]"
+                  : "text-[var(--text)] hover:text-[var(--mutant-color)]"
               }`}
               onClick={() => setActiveTab("social")}
-              disabled={isLoading}
               style={{ padding: "10px 16px" }}
             >
               Social Links
@@ -336,12 +486,18 @@ const UpdateProfileModal = ({
                 className="grid grid-cols-2 gap-4"
                 style={{ marginBottom: "16px" }}
               >
-                <InputField label="Username" id="username" name="username" />
+                <InputField
+                  label="Username"
+                  id="username"
+                  name="username"
+                  disabled={true}
+                />
                 <InputField
                   label="Email Address"
                   id="email"
                   name="email"
                   type="email"
+                  disabled={true}
                 />
               </div>
 
@@ -374,10 +530,7 @@ const UpdateProfileModal = ({
                               shouldTouch: true,
                             });
                         }}
-                        className={`bg-[#070707] text-xs rounded focus:outline-none focus:ring-2 focus:ring-purple-600 appearance-none cursor-pointer ${
-                          isLoading ? "opacity-50 cursor-not-allowed" : ""
-                        }`}
-                        disabled={isLoading}
+                        className="bg-[var(--accent)] text-white text-xs rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)] appearance-none cursor-pointer"
                         style={{
                           padding: "10px",
                           paddingRight: "24px",
@@ -392,7 +545,7 @@ const UpdateProfileModal = ({
                       </select>
                       <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">
                         <svg
-                          className="w-3 h-3 text-gray-400"
+                          className="w-3 h-3 text-[var(--text)]"
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -409,10 +562,8 @@ const UpdateProfileModal = ({
                     <input
                       id="phoneNumber"
                       type="text"
-                      className={`bg-[#070707] text-sm rounded w-full focus:outline-none focus:ring-2 focus:ring-purple-600 ${
-                        isLoading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
-                      disabled={isLoading}
+                      placeholder="Phone number"
+                      className="bg-[var(--accent)] text-sm text-white rounded-[10px] w-full focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)]"
                       {...register("phoneNumber")}
                       style={{ padding: "10px" }}
                     />
@@ -433,17 +584,14 @@ const UpdateProfileModal = ({
                     <label
                       className={`${
                         watch("gender") === "male" &&
-                        "border border-[#604196] bg-[#1C0A22] rounded-[6px]"
-                      } flex items-center space-x-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#840B94] ${
-                        isLoading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                        "border border-[var(--mutant-color)] bg-[var(--card)] rounded-[6px]"
+                      } flex items-center space-x-1 text-sm cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)]`}
                       style={{ padding: "10px" }}
                     >
                       <input
                         type="radio"
                         value="male"
-                        className="accent-[#840B94]"
-                        disabled={isLoading}
+                        className="accent-[var(--mutant-color)]"
                         {...register("gender")}
                       />
                       <span>Male</span>
@@ -451,17 +599,14 @@ const UpdateProfileModal = ({
                     <label
                       className={`${
                         watch("gender") === "female" &&
-                        "border border-[#604196] bg-[#1C0A22] rounded-[6px]"
-                      } flex items-center space-x-1 text-sm cursor-pointer ${
-                        isLoading ? "opacity-50 cursor-not-allowed" : ""
-                      }`}
+                        "border border-[var(--mutant-color)] bg-[var(--card)] rounded-[6px]"
+                      } flex items-center space-x-1 text-sm cursor-pointer`}
                       style={{ padding: "10px" }}
                     >
                       <input
                         type="radio"
                         value="female"
-                        className="accent-[#840B94]"
-                        disabled={isLoading}
+                        className="accent-[var(--mutant-color)]"
                         {...register("gender")}
                       />
                       <span>Female</span>
@@ -474,11 +619,21 @@ const UpdateProfileModal = ({
                 className="grid grid-cols-2 gap-4"
                 style={{ marginBottom: "16px" }}
               >
-                <InputField
-                  label="Nationality"
-                  id="nationality"
-                  name="nationality"
-                />
+                <InputField label="Country" id="nationality" name="nationality">
+                  <select
+                    id="nationality"
+                    {...register("nationality")}
+                    className="bg-[var(--accent)] text-white text-sm rounded-[10px] px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)] cursor-pointer"
+                    style={{ padding: "10px" }}
+                  >
+                    <option value="">Select your country</option>
+                    {countries.map((c) => (
+                      <option key={c.name} value={c.name}>
+                        {c.flag} {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </InputField>
                 <InputField
                   label="Date Of Birth"
                   id="dob"
@@ -493,10 +648,7 @@ const UpdateProfileModal = ({
                 <InputField label="Bio" id="bio" name="profile.bio">
                   <textarea
                     rows={4}
-                    className={`bg-[#070707] text-sm rounded w-full focus:outline-none focus:ring-2 focus:ring-[#840B94] ${
-                      isLoading ? "opacity-50 cursor-not-allowed" : ""
-                    }`}
-                    disabled={isLoading}
+                    className="bg-[var(--accent)] text-sm text-white rounded-[10px] w-full focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)]"
                     {...register("profile.bio")}
                     placeholder="Tell us about yourself..."
                     style={{ padding: "10px" }}
@@ -551,14 +703,14 @@ const UpdateProfileModal = ({
             <button
               type="submit"
               disabled={isSubmitting || isLoading}
-              className={`bg-[#840B94] text-white text-sm font-bold rounded hover:bg-[#6a0979] transition-colors flex items-center ${
+              className={`btn text-white text-sm font-bold rounded-[10px] transition-colors flex items-center gap-2 ${
                 isSubmitting || isLoading ? "opacity-50 cursor-not-allowed" : ""
               }`}
               style={{ padding: "10px 20px" }}
             >
               {isSubmitting || isLoading ? (
                 <>
-                  <LoadingSpinner />
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                   Updating...
                 </>
               ) : (
@@ -568,10 +720,7 @@ const UpdateProfileModal = ({
             <button
               type="button"
               onClick={onClose}
-              disabled={isLoading}
-              className={`text-gray-400 hover:text-gray-200 text-sm transition-colors ${
-                isLoading ? "opacity-50 cursor-not-allowed" : ""
-              }`}
+              className="text-[var(--text)] hover:text-[var(--mutant-color)] text-sm transition-colors"
               style={{ padding: "10px" }}
             >
               Cancel

@@ -93,37 +93,37 @@ export default function Sidebar() {
 
         <div className="flex flex-col   gap-5">
           <Sidebtn
-            link={"/student/student-dashboard"}
+            link={"/student/dashboard"}
             text={"Home"}
             icon={AiOutlineHome}
           />
           <Sidebtn
-            link={"/student/student-dashboard/student-mission"}
+            link={"/student/dashboard/missions"}
             text={"My Missions"}
             icon={AiOutlineFlag}
           />
           <Sidebtn
-            link={"/student/student-dashboard/quiz-history"}
+            link={"/student/dashboard/quiz-history"}
             text={"Quiz History"}
             icon={AiOutlineFileText}
           />
           <Sidebtn
-            link={"/student/student-dashboard/mutation-history"}
+            link={"/student/dashboard/history"}
             text={"Mutation History"}
             icon={AiOutlineHistory}
           />
           <Sidebtn
-            link={"/student/student-dashboard/student-profile"}
+            link={"/student/dashboard/profile"}
             text={"Mutation Profile"}
             icon={AiOutlineUser}
           />
           <Sidebtn
-            link={"/student/student-dashboard/student-achievements"}
+            link={"/student/dashboard/achievements"}
             text={"Achievements"}
             icon={AiOutlineTrophy}
           />
           <Sidebtn
-            link={"/student/student-dashboard/mutation-student-setting"}
+            link={"/student/dashboard/setting"}
             text={"Settings"}
             icon={AiOutlineSetting}
           />

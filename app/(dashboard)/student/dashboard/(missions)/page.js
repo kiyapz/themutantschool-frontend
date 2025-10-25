@@ -2,8 +2,8 @@
 import Image from "next/image";
 import SidePanelLayout from "../../component/SidePanelLayout";
 import Link from "next/link";
-import MissionCard from "./student-mission/components/MissionCard";
-import MissionCardSkeletonSmall from "./student-mission/components/MissionCardSkeletonSmall";
+import MissionCard from "./missions/components/MissionCard";
+import MissionCardSkeletonSmall from "./missions/components/MissionCardSkeletonSmall";
 import axios from "axios";
 import { useEffect, useState } from "react";
 
@@ -214,7 +214,7 @@ export default function Page() {
               completed={hasCompletedMission}
               text2={"Pick a beginner-friendly course to start for 20XP"}
               text3={"Start now"}
-              link={"/student/student-dashboard/student-mission"}
+              link={"/student/dashboard/missions"}
               style={
                 "text-[#AF2BC6] font-[700] text-[12px] sm:text-[15px] xl:text-[17px] leading-[24px] sm:leading-[30px] bg-[#1F0D1F] "
               }
@@ -228,7 +228,7 @@ export default function Page() {
               text3={"Start now"}
               index={3}
               completed={isProfileComplete}
-              link={"/student/student-dashboard/student-profile"}
+              link={"/student/dashboard/profile"}
               style={
                 "text-[#2B61C6] font-[700] text-[12px] sm:text-[15px] xl:text-[17px] leading-[24px] sm:leading-[30px] bg-[#0D141F] "
               }

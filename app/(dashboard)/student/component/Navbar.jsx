@@ -13,14 +13,31 @@ export default function Navbar() {
   const [name, setName] = useState("");
 
   useEffect(() => {
-    const user = localStorage.getItem("USER");
-    if (user) {
-      const { firstName, lastName } = JSON.parse(user);
-      setName(`${firstName} ${lastName}`);
-    } else {
-      console.log("No user found in localStorage");
-      router.push("/");
-    }
+    const updateName = () => {
+      const user = localStorage.getItem("USER");
+      if (user) {
+        const { firstName, lastName } = JSON.parse(user);
+        setName(`${firstName} ${lastName}`);
+      } else {
+        console.log("No user found in localStorage");
+        router.push("/");
+      }
+    };
+
+    // Update name on mount
+    updateName();
+
+    // Listen for profile updates
+    const handleProfileUpdate = (event) => {
+      updateName();
+    };
+
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+
+    // Cleanup listener on unmount
+    return () => {
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
+    };
   }, [router]);
 
   return (

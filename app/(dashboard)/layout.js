@@ -2,7 +2,7 @@
 import { usePathname } from "next/navigation";
 import InstructorNavBar from "./instructor/_components/NavBar";
 // import StudentNavBar from "./student/student-dashboard/(student-course-guilde)/student-course-guilde/components/NavBar";
-import CourseGuideProvider from "./student/student-dashboard/(student-course-guilde)/student-course-guilde/components/course-guild-contex/Contex"; // Corrected import
+import CourseGuideProvider from "./student/dashboard/(student-course-guilde)/student-course-guilde/components/course-guild-contex/Contex"; // Corrected import
 import { StudentProvider } from "./student/component/Context/StudentContext.jsx";
 import InstructorContextProvider from "./instructor/_components/context/InstructorContex.js";
 

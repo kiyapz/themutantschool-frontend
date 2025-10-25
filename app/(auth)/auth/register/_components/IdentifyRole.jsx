@@ -15,7 +15,7 @@ import { useRouter } from "next/navigation";
 
 export default function IdentifyRole() {
   const router = useRouter();
-  const [buttonDisabledtext, setButtonDisabled] = useState("continue");
+  const [buttonDisabledtext, setButtonDisabled] = useState("Continue");
   const [isValidEmail, setIsValidEmail] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
   const [canResend, setCanResend] = useState(false);
@@ -247,7 +247,7 @@ export default function IdentifyRole() {
         setRegisterStep((prev) => prev + 1);
       }
     } catch (error) {
-      setButtonDisabled("continue");
+      setButtonDisabled("Continue");
 
       if (error.response) {
         console.log("Error response:", error.response);
@@ -461,7 +461,13 @@ export default function IdentifyRole() {
             <div className="flex flex-col px  gap-5">
               <RegisterInput
                 successValue={isusername}
-                onchange={(e) => setCodeName(e.target.value)}
+                onchange={(e) => {
+                  // Convert to uppercase and allow only letters and numbers
+                  const sanitized = e.target.value
+                    .toUpperCase()
+                    .replace(/[^A-Z0-9]/g, "");
+                  setCodeName(sanitized);
+                }}
                 value={username}
                 textCenter={"text-start"}
                 placeholder="ENTER YOUR USERNAME"
@@ -486,7 +492,14 @@ export default function IdentifyRole() {
                 successValue={firstNameSuccess}
                 handledelete={() => setFirstName("")}
                 hidden="hidden"
-                onchange={(e) => setFirstName(e.target.value)}
+                onchange={(e) => {
+                  // Capitalize first letter
+                  const value = e.target.value;
+                  const capitalized =
+                    value.charAt(0).toUpperCase() +
+                    value.slice(1).toLowerCase();
+                  setFirstName(capitalized);
+                }}
                 value={firstName}
                 placeholder="First Name"
               />
@@ -494,7 +507,14 @@ export default function IdentifyRole() {
                 successValue={lastNameSuccess}
                 handledelete={() => setLastName("")}
                 hidden="hidden"
-                onchange={(e) => setLastName(e.target.value)}
+                onchange={(e) => {
+                  // Capitalize first letter
+                  const value = e.target.value;
+                  const capitalized =
+                    value.charAt(0).toUpperCase() +
+                    value.slice(1).toLowerCase();
+                  setLastName(capitalized);
+                }}
                 value={lastName}
                 placeholder="Last Name"
               />
@@ -515,7 +535,7 @@ export default function IdentifyRole() {
               <RegisterInput
                 successValue={checkEmail}
                 handledelete={() => setEmail("")}
-                onchange={(e) => setEmail(e.target.value)}
+                onchange={(e) => setEmail(e.target.value.toLowerCase())}
                 value={email}
                 type="email"
                 placeholder="Email Address"
@@ -645,7 +665,7 @@ export default function IdentifyRole() {
               style={{ padding: " 6px 30px" }}
               className=" btn cursor-pointer w-full  rounded-[10px] text-[18px] font-[700] leading-[57px]"
             >
-              continue to the lab
+              Continue to the Lab.
             </button>
             {/* </Link> */}
           </div>

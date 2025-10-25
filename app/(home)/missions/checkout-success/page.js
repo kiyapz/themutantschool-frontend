@@ -103,7 +103,7 @@ function CheckoutSuccessContent() {
           {error}
         </p>
         <Link
-          href="/dashboard/student/student-dashboard"
+          href="/student/dashboard"
           className="px-6 py-2 rounded-lg transition-colors font-semibold"
           style={{
             backgroundColor: "var(--success)",
@@ -192,7 +192,7 @@ function CheckoutSuccessContent() {
 
       {/* Start Course Button */}
       <Link
-        href="/dashboard/student/student-dashboard"
+        href="/student/dashboard"
         className="px-8 py-3 rounded-lg transition-colors font-semibold text-lg"
         style={{
           backgroundColor: "var(--success)",

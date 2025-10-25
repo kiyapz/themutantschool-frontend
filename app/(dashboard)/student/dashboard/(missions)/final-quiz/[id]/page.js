@@ -150,9 +150,7 @@ export default function FinalQuizPage() {
             .substring(0, 50)
         : slug;
 
-    router.push(
-      `/student/student-dashboard/student-mission-study-levels/${cleanSlug}`
-    );
+    router.push(`/student/dashboard/student-mission-study-levels/${cleanSlug}`);
   };
 
   if (loading) {

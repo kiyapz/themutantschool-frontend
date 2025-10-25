@@ -1269,9 +1269,9 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
                   onClick={() => {
                     const missionId = localStorage.getItem("currentMissionId");
                     if (missionId) {
-                      window.location.href = `/student/student-dashboard/student-mission-study-levels/${missionId}`;
+                      window.location.href = `/student/dashboard/student-mission-study-levels/${missionId}`;
                     } else {
-                      window.location.href = "/student/student-dashboard";
+                      window.location.href = "/student/dashboard";
                     }
                   }}
                   className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"

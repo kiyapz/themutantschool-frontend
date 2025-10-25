@@ -367,11 +367,7 @@ export default function LevelChallange() {
                 <Changebtn
                   sm="sm:text-[7px] xl:text-[10px]"
                   text={"VIEW ACHIEVEMENTS"}
-                  onclick={() =>
-                    router.push(
-                      "/student/student-dashboard/student-achievements"
-                    )
-                  }
+                  onclick={() => router.push("/student/dashboard/achievements")}
                 />
               </div>
             </div>

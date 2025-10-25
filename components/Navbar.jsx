@@ -56,7 +56,7 @@ export default function Navbar() {
           setIsStudent(role === "student");
           setProfileHref(
             role === "student"
-              ? "/student/student-dashboard"
+              ? "/student/dashboard"
               : role === "instructor"
               ? "/instructor"
               : "/"

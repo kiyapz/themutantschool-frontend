@@ -75,35 +75,63 @@ export default function Page() {
           return;
         }
 
-        const missionsWithBg = response.data.data.enrolledCourses.map(
-          (course, index) => ({
-            missionId: course.mission._id,
-            missionTitle: course.mission.title,
-            thumbnail: course.mission.thumbnail,
-            progress: course.progress.completedLevels || [],
-            progressPercentage: course.progressToNextLevel?.percent || 0,
-            category: course.mission.category || "Course",
-            price: course.mission.price || course.paymentInfo?.amount || 0,
-            isFree: course.mission.isFree || course.paymentInfo?.amount === 0,
-            estimatedDuration:
-              course.mission.estimatedDuration || "Duration not specified",
-            averageRating: course.mission.averageRating || 0,
-            instructor: course.mission.instructor || {
-              name: "Unknown Instructor",
-            },
-            levels: course.mission.levels || [],
-            shortDescription:
-              course.mission.shortDescription ||
-              course.mission.description ||
-              "No description available",
-            description:
-              course.mission.description || "No description available",
-            difficulty:
-              course.mission.difficulty || course.mission.level || "Beginner",
-            enrolledAt: course.enrolledAt,
-            paymentStatus: course.paymentStatus,
-            paymentInfo: course.paymentInfo,
-            bg: missioncard[index % missioncard.length].bg,
+        const missionsWithBg = await Promise.all(
+          response.data.data.enrolledCourses.map(async (course, index) => {
+            // Fetch full mission data to get accurate level count
+            let totalLevels = 0;
+            try {
+              const missionResponse = await axios.get(
+                `https://themutantschool-backend.onrender.com/api/mission/${course.mission._id}`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                  },
+                }
+              );
+              totalLevels = missionResponse.data.data.levels?.length || 0;
+              console.log(
+                `✅ Mission "${course.mission.title}" has ${totalLevels} levels`
+              );
+            } catch (error) {
+              console.warn(
+                `⚠️ Could not fetch level count for mission ${course.mission.title}:`,
+                error.message
+              );
+              // Fallback to existing data if API call fails
+              totalLevels = course.mission.levels?.length || 0;
+            }
+
+            return {
+              missionId: course.mission._id,
+              missionTitle: course.mission.title,
+              thumbnail: course.mission.thumbnail,
+              progress: course.progress.completedLevels || [],
+              progressPercentage: course.progressToNextLevel?.percent || 0,
+              category: course.mission.category || "Course",
+              price: course.mission.price || course.paymentInfo?.amount || 0,
+              isFree: course.mission.isFree || course.paymentInfo?.amount === 0,
+              estimatedDuration:
+                course.mission.estimatedDuration || "Duration not specified",
+              averageRating: course.mission.averageRating || 0,
+              instructor: course.mission.instructor || {
+                name: "Unknown Instructor",
+              },
+              levels: course.mission.levels || [],
+              totalLevels: totalLevels,
+              shortDescription:
+                course.mission.shortDescription ||
+                course.mission.description ||
+                "No description available",
+              description:
+                course.mission.description || "No description available",
+              difficulty:
+                course.mission.difficulty || course.mission.level || "Beginner",
+              enrolledAt: course.enrolledAt,
+              paymentStatus: course.paymentStatus,
+              paymentInfo: course.paymentInfo,
+              bg: missioncard[index % missioncard.length].bg,
+            };
           })
         );
 
@@ -196,6 +224,7 @@ export default function Page() {
               isAvailable={false}
               instructor={item.instructor}
               levels={item.levels}
+              totalLevels={item.totalLevels}
               shortDescription={item.shortDescription}
               price={item.price}
               isFree={item.isFree}

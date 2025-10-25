@@ -265,6 +265,28 @@ function MutationProfile() {
         profileData.xp = dashboardData.xp || 0;
       }
 
+      // Update localStorage USER object to refresh navbar
+      const storedUserData = localStorage.getItem("USER");
+      if (storedUserData) {
+        const userData = JSON.parse(storedUserData);
+        // Update the user data with new profile information
+        const updatedUserData = {
+          ...userData,
+          firstName: profileData.firstName,
+          lastName: profileData.lastName,
+          username: profileData.username,
+          email: profileData.email,
+        };
+        localStorage.setItem("USER", JSON.stringify(updatedUserData));
+
+        // Dispatch custom event to notify navbar of profile update
+        window.dispatchEvent(
+          new CustomEvent("profileUpdated", {
+            detail: { updatedUserData },
+          })
+        );
+      }
+
       setUserProfile(profileData);
       setModel(false);
       alert("Profile updated successfully!");
@@ -584,10 +606,9 @@ function MutationProfile() {
           return (
             <div className="absolute top-0 left-0 h-screen w-screen z-50 bg-[rgba(0,0,0,0.6)]">
               <UpdateProfileModal
-                key={userProfile._id} // Add this key
                 onClose={() => setModel(false)}
                 onUpdate={handleUpdate}
-                isUpdating={isUpdating}
+                isLoading={isUpdating}
                 defaults={{
                   firstName: userProfile?.firstName || "",
                   lastName: userProfile?.lastName || "",

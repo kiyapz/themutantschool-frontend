@@ -112,6 +112,17 @@ export default function FinalQuizComponent({
     try {
       const token = localStorage.getItem("login-accessToken");
 
+      // Validate quiz data before submission
+      if (!initialQuizData?._id) {
+        throw new Error("Quiz ID is missing. Cannot submit quiz.");
+      }
+
+      if (!token) {
+        throw new Error(
+          "Authentication token is missing. Please log in again."
+        );
+      }
+
       // Format answers with selectedOption (the actual text) instead of index
       const answers = initialQuizData.questions.map((question, index) => {
         const selectedIndex = userAnswers[index];
@@ -120,8 +131,13 @@ export default function FinalQuizComponent({
             ? question.options[selectedIndex]
             : "";
 
+        // Validate question data
+        if (!question._id) {
+          console.warn(`⚠️ Question at index ${index} is missing _id`);
+        }
+
         return {
-          questionId: question._id,
+          questionId: question._id || `temp_${index}`,
           selectedOption: selectedOptionText,
         };
       });
@@ -156,14 +172,48 @@ export default function FinalQuizComponent({
       }
     } catch (error) {
       console.error("❌ Error submitting final quiz:", error);
+      console.error("❌ Error response:", error.response);
       console.error("❌ Error response data:", error.response?.data);
+      console.error("❌ Error status:", error.response?.status);
 
-      // Extract the error message
-      const errorMessage =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        error.message ||
-        "Failed to submit quiz";
+      // Extract the error message with more details
+      let errorMessage = "Failed to submit quiz";
+
+      if (error.response) {
+        // Server responded with error
+        const status = error.response.status;
+        const data = error.response.data;
+
+        if (status === 500) {
+          errorMessage = `Server Error (500): ${
+            data?.message ||
+            data?.error ||
+            "The server encountered an error processing your quiz. Your score has been saved locally."
+          }`;
+        } else if (status === 401) {
+          errorMessage = "Authentication failed. Please log in again.";
+        } else if (status === 404) {
+          errorMessage = "Quiz not found. Please try refreshing the page.";
+        } else if (status === 400) {
+          errorMessage = `Invalid request: ${
+            data?.message ||
+            data?.error ||
+            "Please check your answers and try again."
+          }`;
+        } else {
+          errorMessage =
+            data?.message ||
+            data?.error ||
+            `Error ${status}: Failed to submit quiz`;
+        }
+      } else if (error.request) {
+        // Request made but no response
+        errorMessage =
+          "Network error: Unable to reach the server. Please check your internet connection.";
+      } else {
+        // Something else happened
+        errorMessage = error.message || "An unexpected error occurred";
+      }
 
       console.error("❌ Setting error message:", errorMessage);
       setUpdateError(errorMessage);
@@ -247,7 +297,7 @@ export default function FinalQuizComponent({
 
           {/* CRITICAL: Always show error message if it exists */}
           {updateError && updateError.trim() !== "" && (
-            <div className="mb-6 p-6 bg-gradient-to-r from-red-900/60 to-red-800/60 border-4 border-red-500 rounded-2xl shadow-2xl animate-pulse">
+            <div className="mb-6 p-6 bg-gradient-to-r from-red-900/60 to-red-800/60 border-4 border-red-500 rounded-2xl shadow-2xl">
               <div className="flex items-start gap-4">
                 <div className="text-red-300 text-5xl animate-bounce">⚠️</div>
                 <div className="flex-1">
@@ -260,19 +310,32 @@ export default function FinalQuizComponent({
                     ℹ️ Your quiz was completed locally, but could not be
                     submitted to the server.
                   </p>
+                  <button
+                    onClick={() => {
+                      setUpdateError(null);
+                      setQuizResult(null);
+                      setQuizCompleted(false);
+                      handleQuizSubmit();
+                    }}
+                    className="mt-4 bg-red-600 hover:bg-red-700 text-white font-bold px-6 py-2 rounded-lg transition-colors flex items-center gap-2"
+                  >
+                    🔄 Retry Submission
+                  </button>
                 </div>
               </div>
             </div>
           )}
 
-          {onReview && (
-            <button
-              onClick={onReview}
-              className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"
-            >
-              Go Back to Levels
-            </button>
-          )}
+          <div className="flex gap-4 justify-center">
+            {onReview && (
+              <button
+                onClick={onReview}
+                className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"
+              >
+                Go Back to Levels
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
