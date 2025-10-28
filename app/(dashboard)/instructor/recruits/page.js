@@ -12,6 +12,7 @@ export default function MyRecruits() {
   const [filterMission, setFilterMission] = useState("all");
   const [missions, setMissions] = useState([]);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [expandedMission, setExpandedMission] = useState(null);
   const dropdownRef = useRef(null);
 
   // Enhanced token refresh function
@@ -108,12 +109,42 @@ export default function MyRecruits() {
 
       console.log("Fetched recruits data:", response.data);
 
+      // Set missions from the top-level missions array or from studentProgress.missions
       if (response.data.missions) {
         setMissions(response.data.missions);
       }
 
-      // Extract mission stats which contains student counts per mission
-      if (response.data.studentProgress?.missionStats) {
+      // Extract mission stats for recruits display
+      if (
+        response.data.studentProgress?.missions &&
+        Array.isArray(response.data.studentProgress.missions)
+      ) {
+        // The missions array already contains students for each mission
+        const missionsData = response.data.studentProgress.missions;
+
+        // Update missions state if not already set from top-level
+        if (!response.data.missions || response.data.missions.length === 0) {
+          // Convert mission data to full mission objects for dropdown
+          const missionObjects = missionsData.map((mission) => ({
+            _id: mission.missionId,
+            title: mission.missionTitle,
+          }));
+          setMissions(missionObjects);
+        }
+
+        // Extract the student data from each mission
+        const recruitsWithStudents = missionsData.map((mission) => ({
+          missionId: mission.missionId,
+          missionTitle: mission.missionTitle,
+          totalStudents: mission.totalStudents || 0,
+          engagementRate: mission.engagementRate || "0.0",
+          avgScore: mission.avgScore || "0.0",
+          students: mission.students || [], // Students are already in the mission object
+        }));
+
+        setRecruits(recruitsWithStudents);
+      } else if (response.data.studentProgress?.missionStats) {
+        // Fallback to missionStats if missions array is not available
         setRecruits(response.data.studentProgress.missionStats);
       } else {
         setRecruits([]);
@@ -326,125 +357,184 @@ export default function MyRecruits() {
               Engagement
             </div>
             <div className="col-span-3 text-[#7C7C7C] font-[600] text-[13px] text-right">
-              Avg Score
+              Action
             </div>
           </div>
 
           {/* List/Table Body */}
-          <div className="max-h-[600px] overflow-y-auto scrollbar-hide">
+          <div
+            className="max-h-[calc(100vh-400px)] md:max-h-[600px] overflow-y-auto scrollbar-hide"
+            style={{ WebkitOverflowScrolling: "touch" }}
+          >
             {filteredRecruits.map((recruit, index) => {
               const mission = missions.find((m) => m._id === recruit.missionId);
               const thumbnailUrl = mission?.thumbnail?.url || null;
+              const isExpanded = expandedMission === recruit.missionId;
+              const studentsList = recruit.students || [];
 
               return (
-                <div
-                  key={recruit.missionId || index}
-                  className="md:grid md:grid-cols-12 gap-4 px-4 sm:px-6 py-4 border-b border-[#3C3C3C] hover:bg-[#1A1A1A] transition-colors"
-                >
-                  {/* Mobile Card Layout */}
-                  <div className="md:hidden flex flex-col gap-3">
-                    {/* Mission Info */}
-                    <div className="flex items-center gap-3">
-                      {thumbnailUrl ? (
-                        <div
-                          style={{
-                            backgroundImage: `url(${thumbnailUrl})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                          }}
-                          className="h-[60px] w-[60px] rounded-[10px] flex-shrink-0"
-                        ></div>
-                      ) : (
-                        <div className="h-[60px] w-[60px] rounded-[10px] bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0"></div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-[600] text-[15px] text-[var(--background)] truncate">
-                          {recruit.missionTitle || "Unknown Mission"}
-                        </p>
-                        <p className="text-[12px] text-[#ABABAB] mt-1">
-                          {recruit.totalStudents || 0} student
-                          {recruit.totalStudents !== 1 ? "s" : ""} enrolled
-                        </p>
+                <div key={recruit.missionId || index}>
+                  {/* Render mission stats card */}
+                  <div className="md:grid md:grid-cols-12 gap-4 px-4 sm:px-6 py-4 border-b border-[#3C3C3C] hover:bg-[#1A1A1A] transition-colors">
+                    {/* Mobile Card Layout */}
+                    <div className="md:hidden flex flex-col gap-3">
+                      {/* Mission Info */}
+                      <div className="flex items-center gap-3">
+                        {thumbnailUrl ? (
+                          <div
+                            style={{
+                              backgroundImage: `url(${thumbnailUrl})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                            className="h-[60px] w-[60px] rounded-[10px] flex-shrink-0"
+                          ></div>
+                        ) : (
+                          <div className="h-[60px] w-[60px] rounded-[10px] bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0"></div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <p className="font-[600] text-[15px] text-[var(--background)] truncate">
+                            {recruit.missionTitle || "Unknown Mission"}
+                          </p>
+                          <p className="text-[12px] text-[#ABABAB] mt-1">
+                            {recruit.totalStudents || 0} student
+                            {recruit.totalStudents !== 1 ? "s" : ""} enrolled
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Stats Grid */}
+                      <div className="grid grid-cols-3 gap-3">
+                        <div className="bg-[#1A1A1A] p-3 rounded-[8px]">
+                          <p className="text-[10px] text-[#7C7C7C] mb-1">
+                            Students
+                          </p>
+                          <p className="text-[16px] font-[600] text-[var(--background)]">
+                            {recruit.totalStudents || 0}
+                          </p>
+                        </div>
+                        <div className="bg-[#1A1A1A] p-3 rounded-[8px]">
+                          <p className="text-[10px] text-[#7C7C7C] mb-1">
+                            Engagement
+                          </p>
+                          <p className="text-[16px] font-[600] text-[#66CB9F]">
+                            {recruit.engagementRate || "0.0"}%
+                          </p>
+                        </div>
+                        <div className="bg-[#1A1A1A] p-3 rounded-[8px]">
+                          <p className="text-[10px] text-[#7C7C7C] mb-1">
+                            Avg Score
+                          </p>
+                          <p className="text-[16px] font-[600] text-[var(--background)]">
+                            {recruit.avgScore || "0.0"}%
+                          </p>
+                        </div>
                       </div>
                     </div>
 
-                    {/* Stats Grid */}
-                    <div className="grid grid-cols-3 gap-3">
-                      <div className="bg-[#1A1A1A] p-3 rounded-[8px]">
-                        <p className="text-[10px] text-[#7C7C7C] mb-1">
-                          Students
-                        </p>
-                        <p className="text-[16px] font-[600] text-[var(--background)]">
+                    {/* Desktop Table Layout */}
+                    <>
+                      {/* Mission Info */}
+                      <div className="hidden md:flex md:col-span-5 items-center gap-3">
+                        {thumbnailUrl ? (
+                          <div
+                            style={{
+                              backgroundImage: `url(${thumbnailUrl})`,
+                              backgroundSize: "cover",
+                              backgroundPosition: "center",
+                            }}
+                            className="h-[48px] w-[48px] rounded-[10px] flex-shrink-0"
+                          ></div>
+                        ) : (
+                          <div className="h-[48px] w-[48px] rounded-[10px] bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0"></div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="font-[600] text-[14px] text-[var(--background)] truncate">
+                            {recruit.missionTitle || "Unknown Mission"}
+                          </p>
+                          <p className="text-[12px] text-[#ABABAB]">
+                            {recruit.totalStudents || 0} student
+                            {recruit.totalStudents !== 1 ? "s" : ""} enrolled
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Total Students */}
+                      <div className="hidden md:flex md:col-span-2 items-center">
+                        <span className="text-[16px] font-[600] text-[var(--background)]">
                           {recruit.totalStudents || 0}
-                        </p>
+                        </span>
                       </div>
-                      <div className="bg-[#1A1A1A] p-3 rounded-[8px]">
-                        <p className="text-[10px] text-[#7C7C7C] mb-1">
-                          Engagement
-                        </p>
-                        <p className="text-[16px] font-[600] text-[#66CB9F]">
+
+                      {/* Engagement Rate */}
+                      <div className="hidden md:flex md:col-span-2 items-center">
+                        <span className="text-[14px] font-[600] text-[#66CB9F]">
                           {recruit.engagementRate || "0.0"}%
-                        </p>
+                        </span>
                       </div>
-                      <div className="bg-[#1A1A1A] p-3 rounded-[8px]">
-                        <p className="text-[10px] text-[#7C7C7C] mb-1">
-                          Avg Score
-                        </p>
-                        <p className="text-[16px] font-[600] text-[var(--background)]">
-                          {recruit.avgScore || "0.0"}%
-                        </p>
+
+                      {/* View Students Button */}
+                      <div className="hidden md:flex md:col-span-3 items-center justify-end">
+                        <button
+                          onClick={() =>
+                            setExpandedMission(
+                              isExpanded ? null : recruit.missionId
+                            )
+                          }
+                          className="bg-[#604196] hover:bg-[#533080] text-white px-4 py-2 rounded-[8px] text-[13px] font-[500] transition-colors"
+                        >
+                          {isExpanded ? "Hide Students" : "View Students"}
+                        </button>
                       </div>
-                    </div>
+                    </>
                   </div>
 
-                  {/* Desktop Table Layout */}
-                  <>
-                    {/* Mission Info */}
-                    <div className="hidden md:flex md:col-span-5 items-center gap-3">
-                      {thumbnailUrl ? (
-                        <div
-                          style={{
-                            backgroundImage: `url(${thumbnailUrl})`,
-                            backgroundSize: "cover",
-                            backgroundPosition: "center",
-                          }}
-                          className="h-[48px] w-[48px] rounded-[10px] flex-shrink-0"
-                        ></div>
-                      ) : (
-                        <div className="h-[48px] w-[48px] rounded-[10px] bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0"></div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="font-[600] text-[14px] text-[var(--background)] truncate">
-                          {recruit.missionTitle || "Unknown Mission"}
-                        </p>
-                        <p className="text-[12px] text-[#ABABAB]">
-                          {recruit.totalStudents || 0} student
-                          {recruit.totalStudents !== 1 ? "s" : ""} enrolled
-                        </p>
+                  {/* Expandable Students List */}
+                  {isExpanded && studentsList.length > 0 && (
+                    <div className="bg-[#1A1A1A] px-4 sm:px-6 py-4">
+                      <h3 className="text-[var(--background)] font-[600] text-[14px] mb-3">
+                        Enrolled Students ({studentsList.length})
+                      </h3>
+                      <div className="space-y-2">
+                        {studentsList.map((student) => (
+                          <div
+                            key={student.id || student._id}
+                            className="flex items-center gap-3 p-3 bg-[#0F0F0F] rounded-[8px]"
+                          >
+                            <div className="h-[40px] w-[40px] rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0 flex items-center justify-center">
+                              {student.profilePic ? (
+                                <img
+                                  src={student.profilePic}
+                                  alt={student.fullName}
+                                  className="h-full w-full rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="text-white font-bold text-sm">
+                                  {student.fullName?.charAt(0).toUpperCase()}
+                                </span>
+                              )}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="font-[500] text-[14px] text-[var(--background)] truncate">
+                                {student.fullName || "Unknown Student"}
+                              </p>
+                              <p className="text-[12px] text-[#ABABAB]">
+                                {student.nationality || "Unknown"}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
+                  )}
 
-                    {/* Total Students */}
-                    <div className="hidden md:flex md:col-span-2 items-center">
-                      <span className="text-[16px] font-[600] text-[var(--background)]">
-                        {recruit.totalStudents || 0}
-                      </span>
+                  {isExpanded && studentsList.length === 0 && (
+                    <div className="bg-[#1A1A1A] px-4 sm:px-6 py-8 text-center">
+                      <p className="text-[#7C7C7C] text-[14px]">
+                        No students enrolled in this mission yet
+                      </p>
                     </div>
-
-                    {/* Engagement Rate */}
-                    <div className="hidden md:flex md:col-span-2 items-center">
-                      <span className="text-[14px] font-[600] text-[#66CB9F]">
-                        {recruit.engagementRate || "0.0"}%
-                      </span>
-                    </div>
-
-                    {/* Average Score */}
-                    <div className="hidden md:flex md:col-span-3 items-center justify-end">
-                      <span className="text-[14px] font-[600] text-[var(--background)]">
-                        {recruit.avgScore || "0.0"}%
-                      </span>
-                    </div>
-                  </>
+                  )}
                 </div>
               );
             })}

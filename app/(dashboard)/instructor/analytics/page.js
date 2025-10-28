@@ -128,36 +128,34 @@ export default function MissionAnalytics() {
   }, [fetchAnalytics]);
 
   // Filter mission stats based on selection
+  // Use missions array if available, otherwise fall back to missionStats
+  const missionStats =
+    analyticsData?.missions || analyticsData?.missionStats || [];
+
   const filteredMissionStats =
     selectedMission === "all"
-      ? analyticsData?.missionStats || []
-      : analyticsData?.missionStats?.filter(
-          (m) => m.missionId === selectedMission
-        ) || [];
+      ? missionStats
+      : missionStats.filter((m) => m.missionId === selectedMission);
 
   // Calculate totals for filtered data
   const totalStudents = filteredMissionStats.reduce(
     (sum, m) => sum + (m.totalStudents || 0),
     0
   );
+
+  // Use the global average from studentProgress if available, otherwise calculate from individual missions
   const avgEngagement =
-    filteredMissionStats.length > 0
+    analyticsData?.missions?.length > 0
       ? (
-          filteredMissionStats.reduce(
+          analyticsData.missions.reduce(
             (sum, m) => sum + parseFloat(m.engagementRate || 0),
             0
-          ) / filteredMissionStats.length
+          ) / analyticsData.missions.length
         ).toFixed(1)
       : "0.0";
-  const avgScore =
-    filteredMissionStats.length > 0
-      ? (
-          filteredMissionStats.reduce(
-            (sum, m) => sum + parseFloat(m.avgScore || 0),
-            0
-          ) / filteredMissionStats.length
-        ).toFixed(1)
-      : "0.0";
+
+  // Use the global averageScore from studentProgress (49.38%)
+  const avgScore = analyticsData?.averageScore || "0.0";
 
   if (isLoading) {
     return (
@@ -497,7 +495,10 @@ export default function MissionAnalytics() {
             </div>
 
             {/* Mobile Cards */}
-            <div className="md:hidden divide-y divide-[#3C3C3C]">
+            <div
+              className="md:hidden divide-y divide-[#3C3C3C] max-h-[calc(100vh-400px)] overflow-y-auto scrollbar-hide"
+              style={{ WebkitOverflowScrolling: "touch" }}
+            >
               {filteredMissionStats.map((mission, index) => {
                 const missionData = missions.find(
                   (m) => m._id === mission.missionId

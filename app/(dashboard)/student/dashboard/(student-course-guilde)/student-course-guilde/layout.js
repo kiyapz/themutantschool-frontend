@@ -1,12 +1,7 @@
-
-
 import { StudentProvider } from "../../../component/Context/StudentContext";
 import CourseGuideProvider from "./components/course-guild-contex/Contex";
 import MissionVideo from "./components/MissionVideos";
 import NavBar from "./components/NavBar";
-
-
-
 
 export const metadata = {
   title: "Mutant School | Students Dashboard Course Guide",
@@ -15,7 +10,6 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
-  
   return (
     <CourseGuideProvider>
       <StudentProvider>
@@ -25,7 +19,7 @@ export default function RootLayout({ children }) {
           </div>
 
           <div className=" px w-full  max-w-[1800px]   py  flexcenter h-[90vh]  ">
-            <main className="overflow-auto w-full scrollbar-hide h-full    p-4">
+            <main className="overflow-auto scrollbar-hide w-full h-full    p-4">
               {children}
             </main>
             <div className="">

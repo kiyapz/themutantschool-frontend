@@ -35,6 +35,27 @@ export default function OTPInput({ length = 6, onComplete }) {
     }
   };
 
+  const handlePaste = (e) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData
+      .getData("text")
+      .replace(/[^0-9a-zA-Z]/g, "")
+      .toUpperCase();
+
+    if (pastedData.length >= length) {
+      const newOtp = pastedData.slice(0, length).split("");
+      setOtp(newOtp);
+      setOtpCode(newOtp.join(""));
+
+      // Focus the last input
+      inputs.current[length - 1]?.focus();
+
+      if (onComplete && newOtp.length === length) {
+        onComplete(newOtp.join(""));
+      }
+    }
+  };
+
   useEffect(() => {
     const complete = otp.every((val) => val.length === 1);
     setIsCompleteOtp(complete);
@@ -55,6 +76,7 @@ export default function OTPInput({ length = 6, onComplete }) {
             value={otp[i]}
             onChange={(e) => handleChange(e, i)}
             onKeyDown={(e) => handleKeyDown(e, i)}
+            onPaste={handlePaste}
             className="w-12 h-12 text-center text-xl border-b border-b-gray-300 focus:outline-none"
           />
         ))}
