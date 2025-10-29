@@ -3,19 +3,14 @@
 import Link from "next/link";
 import { InstructorContext } from "../../_components/context/InstructorContex";
 import { useContext, useState } from "react";
-import { set } from "zod";
-import { Editprofilebtn } from "./_components/Editprofilebtn";
 import ChangePasswordValue from "./_components/ChangePassword";
 import UserProfileImage from "../_components/UserProfileImage";
 
 export default function Profilesetting() {
-  const {
-    profiledisplay,
-    setprofiledisplay,
-    ChangePassword,
-    setChangePassword,
-    userUpdatedValue,
-  } = useContext(InstructorContext);
+  const { profiledisplay, setprofiledisplay, userUpdatedValue } =
+    useContext(InstructorContext);
+
+  const [activeTab, setActiveTab] = useState("overview");
 
   return (
     <div className="h-fit w-full max-w-[1200px] flex flex-col gap-[10px] ">
@@ -47,11 +42,11 @@ export default function Profilesetting() {
             className="bg-[var(--black-background)] xl:flex flex-col gap-5 hidden"
           >
             <div className="flexcenter w-full h-fit flex-col gap-3">
-              <div className="h-[100px] w-[100px] relative left-[10px] sm:left-0 xl:h-[150px] xl:w-[150px] rounded-full border-[11px]">
+              <div className="h-[150px] w-[150px] xl:h-[180px] xl:w-[180px]">
                 <UserProfileImage />
               </div>
 
-              <div>
+              <div className="text-center">
                 <p className="font-[600] text-[26px] sm:text-[25px] leading-[150%]">
                   {userUpdatedValue?.firstName || "First"}{" "}
                   <span>{userUpdatedValue?.lastName || "Last"}</span>
@@ -126,37 +121,83 @@ export default function Profilesetting() {
               Security Settings
             </p>
 
-            <div
-              style={{ padding: "10px" }}
-              className="border w-full flex items-center justify-between h-[121.39px] border-[#B2B2B221]"
-            >
-              <div>
-                <p className="font-[600] text-[19px] leading-[150%]">
-                  Change Password
-                </p>
-                <p className="text-[#4B4B4B] text-[16px] leading-[150%]">
-                  Set a unique password to protect your lab
-                </p>
-              </div>
-              <div>
-                <button
-                  onClick={() => setChangePassword(!ChangePassword)}
-                  style={{ padding: "10px" }}
-                  className="bg-[#604196] text-[11px] rounded-[8px]"
-                >
-                  Change Password
-                </button>
-              </div>
+            {/* Tabs */}
+            <div className="flex gap-2 border-b border-[#323232]">
+              <button
+                onClick={() => setActiveTab("overview")}
+                className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 ${
+                  activeTab === "overview"
+                    ? "border-[#8D5FCA] text-[#8D5FCA]"
+                    : "border-transparent text-[#999999] hover:text-white"
+                }`}
+              >
+                Overview
+              </button>
+              <button
+                onClick={() => setActiveTab("change-password")}
+                className={`px-6 py-3 font-semibold transition-all duration-300 border-b-2 ${
+                  activeTab === "change-password"
+                    ? "border-[#8D5FCA] text-[#8D5FCA]"
+                    : "border-transparent text-[#999999] hover:text-white"
+                }`}
+              >
+                Change Password
+              </button>
             </div>
+
+            {/* Tab Content */}
+            {activeTab === "overview" ? (
+              <div>
+                <div
+                  style={{ padding: "10px" }}
+                  className="border w-full flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 min-h-[121.39px] border-[#B2B2B221] rounded-lg"
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      <span className="text-2xl">🔐</span>
+                      <p className="font-[600] text-[19px] leading-[150%]">
+                        Change Password
+                      </p>
+                    </div>
+                    <p className="text-[#4B4B4B] text-[16px] leading-[150%]">
+                      Set a unique password to protect your lab
+                    </p>
+                  </div>
+                  <div>
+                    <button
+                      onClick={() => setActiveTab("change-password")}
+                      style={{ padding: "10px 20px" }}
+                      className="bg-[#604196] text-[13px] rounded-[8px] hover:bg-[#7051a8] transition-all whitespace-nowrap"
+                    >
+                      Change Password
+                    </button>
+                  </div>
+                </div>
+
+                <div
+                  style={{ padding: "10px", marginTop: "20px" }}
+                  className="border w-full flex items-start gap-3 min-h-[121.39px] border-[#B2B2B221] rounded-lg"
+                >
+                  <span className="text-2xl">🔒</span>
+                  <div>
+                    <h3 className="font-[600] text-[19px] leading-[150%] mb-2">
+                      Two-Factor Authentication
+                    </h3>
+                    <p className="text-[#4B4B4B] text-[16px] leading-[150%] mb-3">
+                      Add an extra layer of security to your account
+                    </p>
+                    <span className="text-sm text-[#999999] italic">
+                      Coming soon...
+                    </span>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <ChangePasswordValue onBack={() => setActiveTab("overview")} />
+            )}
           </div>
         </div>
       </div>
-
-      {ChangePassword && (
-        <div className="absolute left-0 top-0 z-20 w-screen h-screen flexcenter bg-[rgba(0,0,0,0.9)] ">
-          <ChangePasswordValue />
-        </div>
-      )}
     </div>
   );
 }

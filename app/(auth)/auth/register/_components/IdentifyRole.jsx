@@ -468,10 +468,10 @@ export default function IdentifyRole() {
               <RegisterInput
                 successValue={isusername}
                 onchange={(e) => {
-                  // Convert to uppercase and allow only letters and numbers
+                  // Convert to lowercase and allow only letters and numbers
                   const sanitized = e.target.value
-                    .toUpperCase()
-                    .replace(/[^A-Z0-9]/g, "");
+                    .toLowerCase()
+                    .replace(/[^a-z0-9]/g, "");
                   setCodeName(sanitized);
                 }}
                 value={username}
@@ -499,8 +499,8 @@ export default function IdentifyRole() {
                 handledelete={() => setFirstName("")}
                 hidden="hidden"
                 onchange={(e) => {
-                  // Capitalize first letter
-                  const value = e.target.value;
+                  // Remove spaces and capitalize first letter
+                  const value = e.target.value.replace(/\s/g, "");
                   const capitalized =
                     value.charAt(0).toUpperCase() +
                     value.slice(1).toLowerCase();
@@ -514,8 +514,8 @@ export default function IdentifyRole() {
                 handledelete={() => setLastName("")}
                 hidden="hidden"
                 onchange={(e) => {
-                  // Capitalize first letter
-                  const value = e.target.value;
+                  // Remove spaces and capitalize first letter
+                  const value = e.target.value.replace(/\s/g, "");
                   const capitalized =
                     value.charAt(0).toUpperCase() +
                     value.slice(1).toLowerCase();
@@ -550,7 +550,7 @@ export default function IdentifyRole() {
                 onchange={(e) => setPassword(e.target.value)}
                 value={password}
                 type="password"
-                placeholder=" password"
+                placeholder="Password"
               />
               {registerStep === 4 && password && password.length < 8 && (
                 <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">

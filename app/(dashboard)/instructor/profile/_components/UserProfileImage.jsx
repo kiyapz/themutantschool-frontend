@@ -363,7 +363,7 @@ export default function UserProfileImage() {
   // We'll only set imageError to true when the Image component's onError fires
 
   return (
-    <div className="relative w-full h-full max-w-[200px] max-h-[200px] rounded-full overflow-hidden group border-4 border-transparent hover:border-purple-500 transition-all duration-200">
+    <div className="relative w-full h-full rounded-full overflow-hidden group border-[3px] border-[#604196] hover:border-[#7051a8] transition-all duration-200">
       {/* Hidden file input */}
       <input
         ref={fileInputRef}
