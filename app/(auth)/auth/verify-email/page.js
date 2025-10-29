@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import authApiUrl from "@/lib/baseUrl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function VerifyEmail() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [token, setToken] = useState("");
+  const [token, setOtp] = useState("");
   const [step, setStep] = useState(1); // 1 = enter email, 2 = enter OTP
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -17,7 +17,7 @@ export default function VerifyEmail() {
   const [canResend, setCanResend] = useState(false);
 
   // Countdown timer for resend
-  useEffect(() => {
+  useState(() => {
     let interval;
     if (step === 2 && timeLeft > 0) {
       interval = setInterval(() => {
@@ -187,7 +187,7 @@ export default function VerifyEmail() {
               type="text"
               value={token}
               onChange={(e) =>
-                setToken(e.target.value.replace(/\D/g, "").slice(0, 6))
+                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
               }
               placeholder="Enter 6-digit code"
               maxLength={6}
@@ -238,7 +238,7 @@ export default function VerifyEmail() {
             <button
               onClick={() => {
                 setStep(1);
-                setToken("");
+                setOtp("");
                 setEmail("");
               }}
               className="text-[var(--text-light)] text-[14px] underline"

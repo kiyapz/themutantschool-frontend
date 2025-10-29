@@ -102,12 +102,14 @@ export default function Sidebar() {
                 <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
                   MONETIZATION AND EARNINGS
                 </p>
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Layer_1.png"
-                  text="The Vault"
-                  active={pathname === "/instructor/vault"}
-                />
+                <Link href="/instructor/vault">
+                  <Sidebarbtn
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    image="/images/sidebaricons/Layer_1.png"
+                    text="The Vault"
+                    active={pathname === "/instructor/vault"}
+                  />
+                </Link>
               </div>
 
               {/* Support */}
