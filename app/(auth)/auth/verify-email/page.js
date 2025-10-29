@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import authApiUrl from "@/lib/baseUrl";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import Link from "next/link";
 export default function VerifyEmail() {
   const router = useRouter();
   const [email, setEmail] = useState("");
-  const [otp, setOtp] = useState("");
+  const [token, setToken] = useState("");
   const [step, setStep] = useState(1); // 1 = enter email, 2 = enter OTP
   const [errorMessage, setErrorMessage] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
@@ -17,7 +17,7 @@ export default function VerifyEmail() {
   const [canResend, setCanResend] = useState(false);
 
   // Countdown timer for resend
-  useState(() => {
+  useEffect(() => {
     let interval;
     if (step === 2 && timeLeft > 0) {
       interval = setInterval(() => {
@@ -79,7 +79,7 @@ export default function VerifyEmail() {
   };
 
   const handleVerifyOtp = async () => {
-    if (otp.length !== 6) {
+    if (token.length !== 6) {
       setErrorMessage("Please enter a valid 6-digit code.");
       setTimeout(() => setErrorMessage(""), 2000);
       return;
@@ -90,9 +90,9 @@ export default function VerifyEmail() {
     setSuccessMessage("");
 
     try {
-      const response = await authApiUrl.post("verify-otp", {
+      const response = await authApiUrl.post("verify", {
         email,
-        otp,
+        token,
       });
 
       // Log full response from backend
@@ -185,9 +185,9 @@ export default function VerifyEmail() {
 
             <input
               type="text"
-              value={otp}
+              value={token}
               onChange={(e) =>
-                setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))
+                setToken(e.target.value.replace(/\D/g, "").slice(0, 6))
               }
               placeholder="Enter 6-digit code"
               maxLength={6}
@@ -196,9 +196,9 @@ export default function VerifyEmail() {
 
             <button
               onClick={handleVerifyOtp}
-              disabled={isLoading || otp.length !== 6}
+              disabled={isLoading || token.length !== 6}
               className={`h-[60px] w-full rounded-[10px] flex items-center justify-center font-[700] text-[18px] ${
-                isLoading || otp.length !== 6
+                isLoading || token.length !== 6
                   ? "bg-[var(--disabled-button-bg)] cursor-not-allowed"
                   : "btn cursor-pointer"
               }`}
@@ -238,7 +238,7 @@ export default function VerifyEmail() {
             <button
               onClick={() => {
                 setStep(1);
-                setOtp("");
+                setToken("");
                 setEmail("");
               }}
               className="text-[var(--text-light)] text-[14px] underline"
