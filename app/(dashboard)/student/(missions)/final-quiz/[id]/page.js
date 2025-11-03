@@ -3,7 +3,6 @@
 import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import FinalQuizComponent from "../components/FinalQuizComponent";
 
 export default function FinalQuizPage() {
@@ -150,13 +149,27 @@ export default function FinalQuizPage() {
             .substring(0, 50)
         : slug;
 
-    router.push(`/student/dashboard/student-mission-study-levels/${cleanSlug}`);
+    router.push(`/student/student-mission-study-levels/${cleanSlug}`);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-screen bg-[#0A0A0A]">
-        <LoadingSpinner size="xlarge" color="mutant" />
+      <div className="flex items-center justify-center min-h-screen bg-[#0A0A0A]">
+        <div className="text-center">
+          <div className="relative w-16 h-16 mx-auto mb-6">
+            <div className="absolute inset-0 animate-spin rounded-full border-4 border-purple-500/30 border-t-purple-500"></div>
+            <div
+              className="absolute inset-2 animate-spin rounded-full border-4 border-pink-500/30 border-t-pink-500 animate-reverse"
+              style={{ animationDuration: "1.5s" }}
+            ></div>
+          </div>
+          <p className="text-gray-300 text-lg font-semibold mb-2">
+            Loading Final Quiz...
+          </p>
+          <p className="text-gray-500 text-sm">
+            Please wait while we prepare your quiz
+          </p>
+        </div>
       </div>
     );
   }

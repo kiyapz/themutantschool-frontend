@@ -76,6 +76,7 @@ export default function Login() {
       }
     } catch (error) {
       console.error("Login error:", error);
+      console.error("Backend error response:", error.response?.data);
 
       // Check if it's an email verification error (403)
       if (

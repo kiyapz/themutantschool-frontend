@@ -33,13 +33,13 @@ export default function LevelQuiz({
 
   // Load saved quiz state from localStorage on component mount
   useEffect(() => {
-    const savedAlreadyTaken = localStorage.getItem("quizAlreadyTaken");
-    if (savedAlreadyTaken === "true") {
-      if (onQuizComplete) {
-        onQuizComplete(true);
-        return;
-      }
-    }
+    // const savedAlreadyTaken = localStorage.getItem("quizAlreadyTaken");
+    // if (savedAlreadyTaken === "true") {
+    //   if (onQuizComplete) {
+    //     onQuizComplete(true);
+    //     return;
+    //   }
+    // }
 
     const savedQuizState = localStorage.getItem("quizState");
     if (savedQuizState) {

@@ -9,13 +9,11 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <GloblaxcontexProvider>
-          <AuthNavBar />
-          {children}
-        </GloblaxcontexProvider>
-      </body>
-    </html>
+    <>
+      <GloblaxcontexProvider>
+        <AuthNavBar />
+        {children}
+      </GloblaxcontexProvider>
+    </>
   );
 }

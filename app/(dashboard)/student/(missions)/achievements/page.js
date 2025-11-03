@@ -1,7 +1,7 @@
 "use client";
 import Image from "next/image";
 import { useContext, useEffect, useState } from "react";
-import { StudentContext } from "../../../component/Context/StudentContext";
+import { StudentContext } from "../../component/Context/StudentContext";
 import CertificateCard from "./component/CertificateCard";
 
 export default function Page(params) {

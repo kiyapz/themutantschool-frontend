@@ -732,7 +732,7 @@ export default function LevelsPath({
                 .replace(/\s+/g, "-")
                 .substring(0, 50);
 
-              window.location.href = `/student/dashboard/final-quiz/${cleanSlug}`;
+              window.location.href = `/student/final-quiz/${cleanSlug}`;
             } else {
               // Count how many levels have passed quizzes
               const levelQuizIds = level

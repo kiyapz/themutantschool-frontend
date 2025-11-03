@@ -1,4 +1,4 @@
-import { StudentProvider } from "../../../component/Context/StudentContext";
+import { StudentProvider } from "../../../../student/component/Context/StudentContext";
 import CourseGuideProvider from "./components/course-guild-contex/Contex";
 import MissionVideo from "./components/MissionVideos";
 import NavBar from "./components/NavBar";

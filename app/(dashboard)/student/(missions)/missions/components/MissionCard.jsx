@@ -182,7 +182,7 @@ export default function MissionCard({
               </Link>
             ) : (
               <Link
-                href={`/student/dashboard/student-mission-study-levels/${text1
+                href={`/student/student-mission-study-levels/${text1
                   .toLowerCase()
                   .replace(/[^\w\s-]/g, "")
                   .replace(/\s+/g, "-")

@@ -98,32 +98,32 @@ export default function Sidebar() {
             icon={AiOutlineHome}
           />
           <Sidebtn
-            link={"/student/dashboard/missions"}
+            link={"/student/missions"}
             text={"My Missions"}
             icon={AiOutlineFlag}
           />
           <Sidebtn
-            link={"/student/dashboard/quiz-history"}
+            link={"/student/quiz-history"}
             text={"Quiz History"}
             icon={AiOutlineFileText}
           />
           <Sidebtn
-            link={"/student/dashboard/history"}
+            link={"/student/history"}
             text={"Mutation History"}
             icon={AiOutlineHistory}
           />
           <Sidebtn
-            link={"/student/dashboard/profile"}
+            link={"/student/profile"}
             text={"Mutation Profile"}
             icon={AiOutlineUser}
           />
           <Sidebtn
-            link={"/student/dashboard/achievements"}
+            link={"/student/achievements"}
             text={"Achievements"}
             icon={AiOutlineTrophy}
           />
           <Sidebtn
-            link={"/student/dashboard/setting"}
+            link={"/student/settings"}
             text={"Settings"}
             icon={AiOutlineSetting}
           />

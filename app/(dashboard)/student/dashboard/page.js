@@ -1,10 +1,10 @@
 "use client";
 import Image from "next/image";
-import SidePanelLayout from "../../component/SidePanelLayout";
+import SidePanelLayout from "../component/SidePanelLayout";
 import Link from "next/link";
-import MissionCard from "./missions/components/MissionCard";
-import MissionCardSkeletonSmall from "./missions/components/MissionCardSkeletonSmall";
-import WelcomeModal from "../../component/WelcomeModal";
+import MissionCard from "../(missions)/missions/components/MissionCard";
+import MissionCardSkeletonSmall from "../(missions)/missions/components/MissionCardSkeletonSmall";
+import WelcomeModal from "../component/WelcomeModal";
 import axios from "axios";
 import { useEffect, useState } from "react";
 

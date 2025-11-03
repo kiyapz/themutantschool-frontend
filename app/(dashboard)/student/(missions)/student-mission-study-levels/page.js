@@ -1,13 +1,13 @@
-'use client'
+"use client";
 import { useContext, useEffect } from "react";
-import LevelsPath from "../../../component/LevelsPath";
-import { StudentContext } from "../../../component/Context/StudentContext";
+import LevelsPath from "../../component/LevelsPath";
+import { StudentContext } from "../../component/Context/StudentContext";
 
 export default function Page() {
   const { setViewStudentName } = useContext(StudentContext);
-   useEffect(() => {
-     setViewStudentName(false);
-   }, [setViewStudentName]);
+  useEffect(() => {
+    setViewStudentName(false);
+  }, [setViewStudentName]);
   return (
     <div className="flex flex-col gap-[100px]">
       <div
@@ -32,8 +32,6 @@ export default function Page() {
           className="  bg-center bg-cover h-[20vh] order-1 w-full sm:h-full"
         ></div>
       </div>
-
-      
 
       <div className="w-full flexcenter h-fit  ">
         <LevelsPath />
