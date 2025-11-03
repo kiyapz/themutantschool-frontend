@@ -124,23 +124,31 @@ export default function FinalQuizComponent({
       }
 
       // Format answers with selectedOption (the actual text) instead of index
-      const answers = initialQuizData.questions.map((question, index) => {
+      const answers = initialQuizData.questions.reduce((acc, question, index) => {
         const selectedIndex = userAnswers[index];
-        const selectedOptionText =
-          selectedIndex !== null && selectedIndex !== undefined
-            ? question.options[selectedIndex]
-            : "";
 
-        // Validate question data
-        if (!question._id) {
-          console.warn(`⚠️ Question at index ${index} is missing _id`);
+        // Only include questions that were actually answered
+        if (selectedIndex !== null && selectedIndex !== undefined) {
+          // Guard against invalid index and empty option text
+          const optionWithinRange = Array.isArray(question.options) && selectedIndex >= 0 && selectedIndex < question.options.length;
+          const selectedOptionText = optionWithinRange ? question.options[selectedIndex] : undefined;
+
+          if (typeof selectedOptionText === "string" && selectedOptionText.trim() !== "") {
+            if (!question._id) {
+              console.warn(`⚠️ Question at index ${index} is missing _id`);
+            }
+            acc.push({
+              questionId: question._id || `temp_${index}`,
+              selectedOption: selectedOptionText,
+            });
+          } else {
+            console.warn(
+              `⚠️ Skipping question ${index + 1}: invalid or empty selected option (selectedIndex=${selectedIndex}, optionWithinRange=${optionWithinRange})`
+            );
+          }
         }
-
-        return {
-          questionId: question._id || `temp_${index}`,
-          selectedOption: selectedOptionText,
-        };
-      });
+        return acc;
+      }, []);
 
       console.log("📤 Submitting final quiz:", {
         quizId: initialQuizData._id,
@@ -232,6 +240,20 @@ export default function FinalQuizComponent({
     const minutes = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${minutes}:${secs.toString().padStart(2, "0")}`;
+  };
+
+  // Allow user to retake the quiz by resetting all relevant state
+  const handleRetake = () => {
+    setQuizCompleted(false);
+    setIsSubmitting(false);
+    setUpdateError(null);
+    setQuizResult(null);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setIsAnswered(false);
+    setUserAnswers(new Array(initialQuizData.questions.length).fill(null));
+    setTimeLeft(20);
+    setQuizStartTime(Date.now());
   };
 
   if (!initialQuizData) {
@@ -327,6 +349,14 @@ export default function FinalQuizComponent({
           )}
 
           <div className="flex gap-4 justify-center">
+            {!quizResult.passed && (
+              <button
+                onClick={handleRetake}
+                className="bg-[#840B94] hover:bg-[#6a0876] text-white font-bold px-8 py-3 rounded-lg transition-colors"
+              >
+                Retake Quiz
+              </button>
+            )}
             {onReview && (
               <button
                 onClick={onReview}

@@ -17,6 +17,7 @@ export default function Page(params) {
     bottomText: false,
   });
   const [certificates, setCertificates] = useState([]);
+  const [studentName, setStudentName] = useState("");
   const [avatarStage, setAvatarStage] = useState("Newbie");
   const [xpProgress, setXpProgress] = useState({
     currentXpInLevel: 0,
@@ -89,6 +90,7 @@ export default function Page(params) {
         const data = await response.json();
         console.log("Certificates:", data);
         setCertificates(data.certificates || []);
+        setStudentName(data.studentName || "");
       } catch (error) {
         console.error("Error fetching certificates:", error);
       }
@@ -212,10 +214,10 @@ export default function Page(params) {
             certificates.map((cert) => (
               <CertificateCard
                 key={cert.id}
-                title={cert.title}
+                title={cert.missionTitle || cert.title}
                 date={new Date(cert.issuedAt).toLocaleDateString()}
-                studentName={cert.student}
-                instructor={cert.instructor}
+                studentName={cert.studentName || cert.student || studentName}
+                instructor={cert.instructorName || cert.instructor}
               />
             ))
           )}

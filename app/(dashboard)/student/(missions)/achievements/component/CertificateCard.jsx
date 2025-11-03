@@ -72,16 +72,26 @@ const CertificateCard = ({
           el.style.fontWeight = "normal";
         });
 
-        // Use dom-to-image with additional filter to fix font issues
+        // Preload background image to ensure it's available for capture
+        const bgImageUrl = '/images/students-images/newstudentcertificate.png';
+        const bgImage = new Image();
+        await new Promise((resolve, reject) => {
+          bgImage.onload = resolve;
+          bgImage.onerror = () => {
+            console.warn("Background image preload failed, continuing anyway");
+            resolve(); // Continue even if preload fails
+          };
+          bgImage.src = bgImageUrl;
+        });
+
+        // Use dom-to-image with background image included
         const imgData = await domtoimage.toPng(certificateRef.current, {
           quality: 1.0,
           bgcolor: "#000000",
           width: certificateRef.current.offsetWidth,
           height: certificateRef.current.offsetHeight,
-          style: {
-            // Force any problematic styles
-            "background-image": "none",
-          },
+          useCORS: true, // Enable CORS for background images
+          cacheBust: true, // Force fresh image load
           fontEmbedCSS: fontStyles, // Include font CSS directly
         });
 

@@ -372,26 +372,28 @@ export default function LevelQuiz({
         const question = quizData.questions[questionIndex];
         const questionId = question._id;
 
-        // Only include questions that were actually answered
+        // Only include questions that were actually answered and have a non-empty selected option
         if (answerIndex !== null && answerIndex !== undefined) {
           // Get the actual answer text from the selected option
           const selectedAnswerText = question.options[answerIndex];
 
-          formattedAnswers.push({
-            questionId: questionId,
-            selectedOption: selectedAnswerText,
-          });
+          if (selectedAnswerText !== "") {
+            formattedAnswers.push({
+              questionId: questionId,
+              selectedOption: selectedAnswerText,
+            });
 
-          console.log(
-            `Question ${
-              questionIndex + 1
-            }: ID=${questionId}, Selected Option: "${selectedAnswerText}"`
-          );
+            console.log(
+              `Question ${questionIndex + 1}: ID=${questionId}, Selected Option: "${selectedAnswerText}"`
+            );
+          } else {
+            console.warn(
+              `Question ${questionIndex + 1}: ID=${questionId}, SKIPPED (selected option was an empty string)`
+            );
+          }
         } else {
           console.log(
-            `Question ${
-              questionIndex + 1
-            }: ID=${questionId}, SKIPPED (no answer selected)`
+            `Question ${questionIndex + 1}: ID=${questionId}, SKIPPED (no answer selected)`
           );
         }
       });
