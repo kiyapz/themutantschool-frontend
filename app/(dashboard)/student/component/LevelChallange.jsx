@@ -171,10 +171,10 @@ export default function LevelChallange() {
     <>
       {showLevelCkallenge && (
         <div
-          style={{ padding: "20px 0" }}
-          className="max-w-[804.15625px] w-full h-full justify-between flex flex-col items-center"
+          style={{ padding: "0 0 20px 0" }}
+          className="w-full max-w-full lg:w-full h-full grid grid-cols-1 gap-4 justify-items-center items-start px-4"
         >
-          <div>
+          <div className="grid grid-cols-1 gap-4 w-full max-w-full items-center justify-items-center">
             {/* Top Icons with staggered knockout animation */}
             <div className="flex items-center h-[10vh] justify-between w-full">
               {/* First Icon - Total Progress */}
@@ -275,9 +275,9 @@ export default function LevelChallange() {
               </div>
             </div>
 
-            <div className="flex flex-col gap-10">
+            <div className="flex flex-col gap-10 items-center justify-center w-full">
               {/* Character Image with dramatic entrance */}
-              <div>
+              <div className="flex flex-col items-center justify-center">
                 <div
                   className={`transition-all duration-1000 ease-out ${
                     showElements.character
@@ -313,7 +313,7 @@ export default function LevelChallange() {
 
               {/* Progress section with smooth reveal */}
               <div
-                className={`w-full max-w-[363px] transition-all duration-800 ease-out ${
+                className={`w-full max-w-full lg:max-w-[363px] mx-auto transition-all duration-800 ease-out ${
                   showElements.progressBar
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-[20px]"
@@ -358,7 +358,7 @@ export default function LevelChallange() {
 
               {/* Button with bounce effect */}
               <div
-                className={`transition-all duration-700 ease-out ${
+                className={`w-full max-w-full lg:max-w-[363px] mx-auto transition-all duration-700 ease-out ${
                   showElements.button
                     ? "opacity-100 translate-y-0 scale-100"
                     : "opacity-0 translate-y-[20px] scale-95"
@@ -368,13 +368,14 @@ export default function LevelChallange() {
                   sm="sm:text-[7px] xl:text-[10px]"
                   text={"VIEW ACHIEVEMENTS"}
                   onclick={() => router.push("/student/dashboard/achievements")}
+                  className="w-full"
                 />
               </div>
             </div>
           </div>
 
           <div
-            className={`max-w-[296.89px] transition-all duration-900 ease-out ${
+            className={`w-full max-w-full lg:max-w-[296.89px] mx-auto mt-20 sm:mt-24 transition-all duration-900 ease-out ${
               showElements.bottomText
                 ? "opacity-100 translate-y-0"
                 : "opacity-0 translate-y-[30px]"

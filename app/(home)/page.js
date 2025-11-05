@@ -89,27 +89,10 @@ export default function Home() {
           setCartItems(minimalItems);
         }
       } catch (err) {
-        console.error("Failed to fetch cart items on home page:", err);
-
-        // Only show error for 500 errors, not for 401/403 (unauthorized)
-        if (err.response?.status >= 500) {
-          setError("Server error loading cart. Please try again later.");
-        } else if (
-          err.response?.status === 401 ||
-          err.response?.status === 403
-        ) {
-          console.log("User not authenticated, skipping cart fetch");
-          // Don't show error for auth issues, just skip cart fetch
-        } else {
-          setError("Failed to load your cart. Please try refreshing the page.");
-        }
-
-        // Automatically clear the error message after 3 seconds
-        const timer = setTimeout(() => {
-          setError(null);
-        }, 3000);
-        // Cleanup the timer if the component unmounts
-        return () => clearTimeout(timer);
+        // Suppress cart-loading notifications on the home page.
+        // Keep mission errors intact elsewhere.
+        console.warn("[Home] Cart fetch skipped or failed:", err?.message || err);
+        return;
       }
     };
 

@@ -94,10 +94,17 @@ export default function Page() {
           averageRating: mission.averageRating,
           instructor: mission.instructor,
           levels: mission.levels,
+          totalQuizzes:
+            (Array.isArray(mission.levels)
+              ? mission.levels.reduce(
+                  (sum, lvl) => sum + (lvl?.quizzes?.length || lvl?.quizCount || 0),
+                  0
+                )
+              : 0) || mission.totalQuizzes || (Array.isArray(mission.quizzes) ? mission.quizzes.length : 0) || 0,
           shortDescription: mission.shortDescription,
           createdAt: mission.createdAt,
           updatedAt: mission.updatedAt,
-          bg: missioncard[index % missioncard.length].bg,
+          bg: "bg-[#000000]",
         }));
 
         // Sort missions by creation date (most recent first)
@@ -173,7 +180,7 @@ export default function Page() {
             <MissionCardSkeletonSmall />
           </div>
         ) : firstMission ? (
-          <div className="relative w-full">
+          <div className="relative w-full mb-6 sm:mb-8 xl:mb-12 px-4 sm:px-6 md:px-8">
             <MissionCard
               image={
                 firstMission.thumbnail?.url ||
@@ -181,9 +188,7 @@ export default function Page() {
               }
               text1={firstMission.missionTitle || "Available Mission"}
               text2={firstMission.estimatedDuration || "Duration not specified"}
-              text3={`${
-                firstMission.isFree ? "Free" : `$${firstMission.price}`
-              }`}
+              text3={firstMission.levels?.length || 0}
               bg={firstMission.bg}
               missionId={firstMission.missionId}
               isAvailable={true}
@@ -194,6 +199,9 @@ export default function Page() {
               isFree={firstMission.isFree}
               category={firstMission.category}
               averageRating={firstMission.averageRating}
+              totalQuizzes={firstMission.totalQuizzes}
+              showLevelsInsteadOfPrice={true}
+              isDashboardView={true}
             />
           </div>
         ) : (
@@ -212,7 +220,7 @@ export default function Page() {
           </div>
         )}
 
-        <div className="w-full mt-6 sm:mt-8">
+        <div className="w-full mt-6 sm:mt-8 xl:mt-12 pl-4 sm:pl-6 md:pl-8">
           <p className="text-[#909090] font-[800] text-[20px] sm:text-[27px] leading-[40px] sm:leading-[60px] mb-4">
             Let&apos;s Get You Started
           </p>

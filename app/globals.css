@@ -146,7 +146,8 @@ body {
 }
 
 .btn:hover {
-  background: linear-gradient(to right, var(--primary-light), var(--secondary));
+  /* Keep the same gradient on hover to prevent white/flash effect */
+  background: linear-gradient(to right, var(--primary), var(--secondary));
 }
 
 .studentbtn2 {

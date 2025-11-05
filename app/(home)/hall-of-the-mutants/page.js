@@ -28,7 +28,7 @@ export default function HallOfTheMutants() {
       <div className="overflow-x-hidden">
         <div
           style={{ padding: "20px 30px" }}
-          className="w-full max-w-full flexcenter bg-white h-fit overflow-hidden"
+          className="w-full max-w-full flexcenter bg-black h-fit overflow-hidden"
         >
           <Leaderboard />
         </div>

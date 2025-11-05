@@ -26,10 +26,11 @@ function LayoutContent({ children }) {
     "/dashboard/student-course-guilde"
   );
 
-
   const isRootStudentRoute = pathname === "/student";
 
-  
+  const isDashboardRoute =
+    pathname === "/student/dashboard" || pathname === "/student/dashboard/";
+
   if (isCourseGuideRoute || isRootStudentRoute) {
     return (
       <ProtectedRoute allowedRoles={["student"]}>{children}</ProtectedRoute>
@@ -38,7 +39,7 @@ function LayoutContent({ children }) {
 
   return (
     <ProtectedRoute allowedRoles={["student"]}>
-      <div className="flex min-h-screen w-full max-w-[1800px] mx-auto overflow-x-hidden">
+      <div className="flex min-h-screen w-full max-w-[1800px]    mx-auto overflow-x-hidden">
         {/* Sidebar  */}
         <div className="hidden sm:block w-80 flex-shrink-0">
           <Sidebar />
@@ -47,7 +48,7 @@ function LayoutContent({ children }) {
         {/* Main Content Area */}
         <div
           className={`w-full flex flex-col min-h-screen sm:h-screen ${
-            showLevelCkallenge ? "sm:max-w-4xl" : "flex-1"
+            showLevelCkallenge ? "flex-1" : "flex-1"
           }`}
         >
           {/* Navbar  */}
@@ -64,7 +65,13 @@ function LayoutContent({ children }) {
         </div>
 
         {showLevelCkallenge && (
-          <div className="hidden lg:block flex-shrink-0">
+          <div
+            className={`flex flex-col self-start ${
+              isDashboardRoute
+                ? "hidden xl:flex xl:w-[448.45px] xl:flex-shrink-0"
+                : "hidden lg:flex lg:w-[448.45px] lg:flex-shrink-0"
+            }`}
+          >
             <LevelChallange />
           </div>
         )}
