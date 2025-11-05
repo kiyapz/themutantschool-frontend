@@ -6,7 +6,7 @@ import { AiFillStar } from "react-icons/ai";
 import { useState, useMemo, useEffect } from "react";
 import { useCart } from "@/components/mutantcart/CartContext";
 import axios from "axios";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 const ITEMS_PER_PAGE = 10;
@@ -65,6 +65,17 @@ export default function Mission() {
   const [totalPages, setTotalPages] = useState(1);
   const [currentPage, setCurrentPage] = useState(1);
   const router = useRouter();
+  const searchParams = useSearchParams();
+
+  // Seed category from URL (?category=...)
+  useEffect(() => {
+    const cat = searchParams?.get("category");
+    if (cat) {
+      setPowerDiscipline(cat);
+    }
+    // Do not add setPowerDiscipline as dep to avoid loop
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const fetchMissions = async () => {

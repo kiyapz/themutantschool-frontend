@@ -1,99 +1,117 @@
 "use client";
 import Image from "next/image";
 import React, { useState, useMemo } from "react";
+import { BASE_URL } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 const Categories = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
+  const [missions, setMissions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState("");
   const itemsPerPage = 3;
+  const router = useRouter();
 
-  const allCategories = [
-    {
-      title: "Design",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-orange-100",
-      textColor: "text-orange-800",
-    },
-    {
-      title: "Code",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-purple-200",
-      textColor: "text-purple-800",
-    },
-    {
-      title: "Growth Hacking",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-blue-100",
-      textColor: "text-blue-800",
-    },
-    {
-      title: "Marketing",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-green-100",
-      textColor: "text-green-800",
-    },
-    {
-      title: "Analytics",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-red-100",
-      textColor: "text-red-800",
-    },
-    {
-      title: "Photography",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-yellow-100",
-      textColor: "text-yellow-800",
-    },
-    {
-      title: "Writing",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-indigo-100",
-      textColor: "text-indigo-800",
-    },
-    {
-      title: "Business",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-pink-100",
-      textColor: "text-pink-800",
-    },
-    {
-      title: "Technology",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-teal-100",
-      textColor: "text-teal-800",
-    },
-    {
-      title: "Data Science",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-cyan-100",
-      textColor: "text-cyan-800",
-    },
-    {
-      title: "AI & Machine Learning",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-violet-100",
-      textColor: "text-violet-800",
-    },
-   
-    {
-      title: "E-commerce",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-slate-100",
-      textColor: "text-slate-800",
-    },
-    {
-      title: "Leadership",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-zinc-100",
-      textColor: "text-zinc-800",
-    },
-    {
-      title: "Productivity",
-      image: "/api/placeholder/300/200",
-      bgColor: "bg-stone-100",
-      textColor: "text-stone-800",
-    },
-  ];
+  // Fetch missions once (client-side)
+  React.useEffect(() => {
+    const fetchAllMissions = async () => {
+      try {
+        setLoading(true);
+        const PER_PAGE = 50;
+
+        const firstRes = await fetch(`${BASE_URL}/mission?page=1&limit=${PER_PAGE}`, {
+          headers: { "Content-Type": "application/json" },
+        });
+        const firstJson = await firstRes.json();
+        if (!firstRes.ok) throw new Error(firstJson?.message || "Failed to fetch missions");
+
+        const missionsAccumulator = Array.isArray(firstJson?.data) ? [...firstJson.data] : [];
+        const totalPages = Number(firstJson?.totalPages || 1);
+
+        if (totalPages > 1) {
+          const pageRequests = [];
+          for (let p = 2; p <= totalPages; p += 1) {
+            pageRequests.push(
+              fetch(`${BASE_URL}/mission?page=${p}&limit=${PER_PAGE}`, {
+                headers: { "Content-Type": "application/json" },
+              })
+                .then((r) => r.json())
+                .catch(() => ({}))
+            );
+          }
+          const pages = await Promise.all(pageRequests);
+          pages.forEach((j) => {
+            if (Array.isArray(j?.data)) missionsAccumulator.push(...j.data);
+          });
+        }
+
+        setMissions(missionsAccumulator);
+      } catch (e) {
+        setError(e.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAllMissions();
+  }, []);
+
+  // Map categories to soft background/text colors
+  const colorPalette = {
+    design: { bg: "bg-orange-100", text: "text-orange-800" },
+    code: { bg: "bg-purple-200", text: "text-purple-800" },
+    "growth hacking": { bg: "bg-blue-100", text: "text-blue-800" },
+    marketing: { bg: "bg-green-100", text: "text-green-800" },
+    technology: { bg: "bg-indigo-100", text: "text-indigo-800" },
+    education: { bg: "bg-amber-100", text: "text-amber-800" },
+    health: { bg: "bg-rose-100", text: "text-rose-800" },
+    environment: { bg: "bg-emerald-100", text: "text-emerald-800" },
+    social: { bg: "bg-cyan-100", text: "text-cyan-800" },
+    programming: { bg: "bg-purple-100", text: "text-purple-800" },
+  };
+
+  // Build categories from missions
+  const allCategories = useMemo(() => {
+    const unique = new Map();
+
+    // Seed baseline categories so they always show
+    const baseCategoryTitles = [
+      "Programming",
+      "Technology",
+      "Education",
+      "Health",
+      "Environment",
+      "Social",
+    ];
+    for (const raw of baseCategoryTitles) {
+      const key = raw.toLowerCase();
+      if (!unique.has(key)) {
+        const colors = colorPalette[key] || { bg: "bg-slate-100", text: "text-slate-800" };
+        unique.set(key, {
+          title: raw,
+          image: "/api/placeholder/300/200",
+          bgColor: colors.bg,
+          textColor: colors.text,
+        });
+      }
+    }
+    for (const m of missions) {
+      const raw = (m.category || "").trim();
+      if (!raw) continue;
+      const key = raw.toLowerCase();
+      if (!unique.has(key)) {
+        const colors = colorPalette[key] || { bg: "bg-slate-100", text: "text-slate-800" };
+        unique.set(key, {
+          title: raw,
+          image: "/api/placeholder/300/200",
+          bgColor: colors.bg,
+          textColor: colors.text,
+        });
+      }
+    }
+    return Array.from(unique.values());
+  }, [missions]);
 
   // Filter categories based on search term
   const filteredCategories = useMemo(() => {
@@ -101,7 +119,7 @@ const Categories = () => {
     return allCategories.filter((category) =>
       category.title.toLowerCase().includes(searchTerm.toLowerCase())
     );
-  }, [searchTerm]);
+  }, [searchTerm, allCategories]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
@@ -183,6 +201,7 @@ const Categories = () => {
           currentCategories.map((category, index) => (
             <div
               key={index}
+              onClick={() => router.push(`/missions?category=${encodeURIComponent(category.title)}`)}
               className={`${category.bgColor} flex rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 hover:shadow-lg h-[529px] w-full`}
               style={{ padding: "24px" }}
             >
