@@ -90,7 +90,7 @@ export default function MissionCard({
       >
         <div className={isDashboardView ? "flex-1 flex flex-col" : ""}>
           <p
-            className={`font-[800] text-[16px] sm:text-[18px] md:text-[21px] xl:text-[32px] 2xl:text-[38px] leading-[24px] sm:leading-[30px] xl:leading-[38px] 2xl:leading-[34px] ${
+            className={`font-[800] text-[16px] sm:text-[18px] md:text-[19px] lg:text-[22px] xl:text-[28px] 2xl:text-[38px] leading-[24px] sm:leading-[26px] md:leading-[28px] lg:leading-[30px] xl:leading-[34px] 2xl:leading-[34px] ${
               isDashboardView ? "mb-4 sm:mb-5 xl:mb-6" : "mb-4"
             }`}
             style={{ color: "var(--text-light-2)" }}
@@ -261,7 +261,7 @@ export default function MissionCard({
       </div>
 
       <div
-        className={`bg-center bg-cover flexcenter h-[200px] sm:h-[220px] xl:h-[240px] 2xl:h-full order-1 2xl:order-2 w-full rounded-[10px] ${
+        className={`bg-center bg-cover flexcenter h-[200px] sm:h-[220px] xl:h-[240px] 2xl:h-full order-1 2xl:order-2 w-full rounded-[15px] md:rounded-[20px] overflow-hidden ${
           isDashboardView ? "items-center justify-center" : ""
         }`}
       >
@@ -271,7 +271,7 @@ export default function MissionCard({
             width={259.2}
             height={207.86}
             alt="mutant-robot"
-            className="w-[90px] h-auto sm:w-[180px] xl:w-[259px]"
+            className="w-[90px] h-auto sm:w-[180px] xl:w-[259px] rounded-[15px] md:rounded-[20px]"
             priority
             loading="eager"
           />

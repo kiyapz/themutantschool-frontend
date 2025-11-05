@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import UpdateProfileModal from "./UpdateProfileModal";
+import Image from "next/image";
 
 const DEFAULT_AVATAR = "/images/default-avatar.jpg"; // Corrected path
 
@@ -492,7 +493,8 @@ function MutationProfile() {
         style={{ gap: "32px", padding: "16px" }}
       >
         <div
-          className="w-[200px] h-[200px] lg:w-[189px] lg:h-[140px] border-[4px] border-[#840B94] rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden cursor-pointer relative"
+          className="w-[100px] aspect-square lg:w-[189px] border-[4px] border-[#840B94] rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden cursor-pointer relative"
+          style={{ borderRadius: "50%" }}
           onClick={() =>
             !isUpdating && !imageLoading && avatarInputRef.current?.click()
           }
@@ -514,12 +516,15 @@ function MutationProfile() {
           )}
 
           {/* Only show the uploaded image (no default avatar unless URL is empty) */}
-          <img
+          <Image
+            width={189}
+            height={189}
             src={displayAvatarUrl}
             alt="Profile avatar"
-            className={`w-full h-full object-cover rounded-full ${
+            className={`w-full h-full object-cover rounded-full aspect-square ${
               imageLoading || isUpdating ? "opacity-0" : "opacity-100"
             } transition-opacity duration-300`}
+            style={{ borderRadius: "50%" }}
             onLoadStart={() => setImageLoading(true)}
             onLoad={() => {
               console.log("✅ Avatar loaded");
@@ -539,7 +544,7 @@ function MutationProfile() {
 
         <div className="w-full flex flex-col lg:flex-row items-center justify-between">
           <div className="flex flex-col gap-1">
-            <h2 className="text-[37px] leading-[37px] font-[500] text-white">
+            <h2 className="text-[24px] sm:text-[28px] md:text-[20px] xl:text-[37px] leading-[28px] sm:leading-[32px] md:leading-[34px] lg:leading-[37px] font-[500] text-white">
               {displayName}
             </h2>
             {userProfile?.username && (
@@ -547,7 +552,7 @@ function MutationProfile() {
                 @{userProfile.username}
               </p>
             )}
-            <p className="text-[#FDDD3F] font-[500] text-[22px] leading-[28px]">
+            <p className="text-[#FDDD3F] font-[500] xl:text-[22px] leading-[28px]">
               {levelLabel}
             </p>
           </div>

@@ -66,11 +66,11 @@ function LayoutContent({ children }) {
 
         {showLevelCkallenge && (
           <div
-            className={`flex flex-col self-start ${
+            className={`${
               isDashboardRoute
-                ? "hidden xl:flex xl:w-[448.45px] xl:flex-shrink-0"
-                : "hidden lg:flex lg:w-[448.45px] lg:flex-shrink-0"
-            }`}
+                ? "hidden md:hidden xl:flex xl:flex-col xl:w-[448.45px] xl:flex-shrink-0"
+                : "hidden md:hidden lg:flex lg:flex-col lg:w-[448.45px] lg:flex-shrink-0"
+            } self-start`}
           >
             <LevelChallange />
           </div>

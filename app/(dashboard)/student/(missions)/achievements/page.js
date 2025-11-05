@@ -154,12 +154,12 @@ export default function Page(params) {
 
         {/* second layer */}
         <div className="flex flex-col w-full justify-between col-span-2 mt-4 sm:mt-0">
-          <p className="absolute top-3 right-3 text-[#BF8BDB] font-[800] text-[18px] sm:text-[27px] leading-[24px] sm:leading-[40px]">
+          <p className="absolute top-3 right-3 text-[#BF8BDB] font-[800] text-[16px] sm:text-[20px] leading-[22px] sm:leading-[28px]">
             XP Progress
           </p>
           <div className="flex flex-col gap-6 sm:gap-10 mt-8 sm:mt-0">
             <p
-              className={`Xirod text-[#FDDD3F] font-[500] text-[16px] sm:text-[32px] xl:text-[45px] leading-[20px] sm:leading-[40px] text-center sm:text-left transition-all duration-800 ease-out ${
+              className={`Xirod text-[#FDDD3F] font-[500] text-[16px] sm:text-[18px] xl:text-[26px] leading-[20px] sm:leading-[32px] text-center sm:text-left transition-all duration-800 ease-out ${
                 showElements.newbieText
                   ? "opacity-100 translate-y-0 scale-100"
                   : "opacity-0 translate-y-[10px] scale-99"
@@ -198,10 +198,10 @@ export default function Page(params) {
         </div>
       </div>
       <div className="w-full flex items-center justify-between">
-        <p className="font-[600] text-[24px] sm:text-[35px] leading-[28px] sm:leading-[20px]">
+        <p className="font-[600] text-[22px] sm:text-[28px] leading-[26px] sm:leading-[28px]">
           Certificates
         </p>
-        <p className="font-[500] text-[16px] sm:text-[25px] text-[var(--mutant-color)] cursor-pointer leading-[20px] hover:text-[var(--primary)] transition-colors">
+        <p className="font-[500] text-[14px] sm:text-[18px] text-[var(--mutant-color)] cursor-pointer leading-[20px] hover:text-[var(--primary)] transition-colors">
           View All
         </p>
       </div>
