@@ -73,8 +73,6 @@ export default function Mission() {
     if (cat) {
       setPowerDiscipline(cat);
     }
-    // Do not add setPowerDiscipline as dep to avoid loop
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
   useEffect(() => {
