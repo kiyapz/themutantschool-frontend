@@ -2,6 +2,7 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import profilebase from "../profile/_components/profilebase";
+import Image from "next/image";
 
 export default function MyRecruits() {
   const router = useRouter();
@@ -501,11 +502,13 @@ export default function MyRecruits() {
                             key={student.id || student._id}
                             className="flex items-center gap-3 p-3 bg-[#0F0F0F] rounded-[8px]"
                           >
-                            <div className="h-[40px] w-[40px] rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0 flex items-center justify-center">
+                            <div className="h-[40px] w-[40px] rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0 flex items-center justify-center overflow-hidden">
                               {student.profilePic ? (
-                                <img
+                                <Image
                                   src={student.profilePic}
-                                  alt={student.fullName}
+                                  alt={student.fullName || "Student avatar"}
+                                  width={40}
+                                  height={40}
                                   className="h-full w-full rounded-full object-cover"
                                 />
                               ) : (
