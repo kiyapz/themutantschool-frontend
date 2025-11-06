@@ -262,19 +262,13 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Profile (show on navbar, not inside slide-out menu) */}
-            {isAuthenticated ? (
+            {isAuthenticated && (
               <div className="flex items-center w-9 h-9">
                 <StudentProfileDropdown
                   avatarUrl={avatarUrl}
                   profileHref={profileHref}
                 />
               </div>
-            ) : (
-              <Link href={"/auth/login"}>
-                <div className="flex items-center justify-center w-9 h-9 text-[12px] font-[700] cursor-pointer text-white bg-[var(--foreground)] rounded-md">
-                  Login
-                </div>
-              </Link>
             )}
           </div>
         </div>
