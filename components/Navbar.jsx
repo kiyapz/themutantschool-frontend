@@ -107,9 +107,20 @@ export default function Navbar() {
         className="max-w-[350px] sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8"
       >
         <div className="flex items-center justify-between w-full">
+          {/* Mobile Menu Button - Left of logo */}
+          <div className="sm:hidden flex items-center mr-[2px]">
+            <button
+              onClick={toggleMobileMenu}
+              className="md:hidden flex items-center justify-center w-9 h-9 focus:outline-none text-white bg-[var(--foreground)] rounded-md"
+              aria-label="Toggle mobile menu"
+            >
+              <HiMenu className="text-[18px]" />
+            </button>
+          </div>
+
           {/* Logo */}
           <div className="flex items-center">
-            <Link href={"/"} className="flex items-center gap-2">
+            <Link href={"/"} className="flex items-center gap-[2px] sm:gap-2">
               <span className="text-[20px] sm:text-[23px] Xirod text-[var(--primary-dark)] leading-[24px]">
                 Mutant
               </span>
@@ -221,7 +232,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile Menu Button */}
+          {/* Mobile: Cart + Profile (menu moved to left) */}
           <div className="sm:hidden flex items-center justify-end gap-2">
             {/* Show cart icon for all users, not just students */}
             <div>
@@ -230,7 +241,7 @@ export default function Navbar() {
                   onClick={() => {
                     closeMobileMenu();
                   }}
-                  className="flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 text-white bg-[var(--foreground)] rounded-md relative"
+                  className="flex items-center justify-center w-9 h-9 text-white bg-[var(--foreground)] rounded-md relative"
                   aria-label="Cart"
                 >
                   <Image
@@ -249,19 +260,22 @@ export default function Navbar() {
                 </div>
               </Link>
             </div>
-            <button
-              onClick={toggleMobileMenu}
-              className="md:hidden flex flex-col items-center justify-center w-8 h-8 space-y-1 focus:outline-none"
-              aria-label="Toggle mobile menu"
-            >
-              <span
-                className={`block w-5 h-0.5  transition-all duration-300 ${
-                  isMobileMenuOpen ? "opacity-0" : ""
-                }`}
-              >
-                <HiMenu />
-              </span>
-            </button>
+
+            {/* Mobile Profile (show on navbar, not inside slide-out menu) */}
+            {isAuthenticated ? (
+              <div className="flex items-center w-9 h-9">
+                <StudentProfileDropdown
+                  avatarUrl={avatarUrl}
+                  profileHref={profileHref}
+                />
+              </div>
+            ) : (
+              <Link href={"/auth/login"}>
+                <div className="flex items-center justify-center w-9 h-9 text-[12px] font-[700] cursor-pointer text-white bg-[var(--foreground)] rounded-md">
+                  Login
+                </div>
+              </Link>
+            )}
           </div>
         </div>
       </div>
@@ -334,54 +348,46 @@ export default function Navbar() {
             </ul>
           </nav>
 
-          {/* Mobile Auth / Profile */}
-          <div className="flex flex-col gap-3 px-4 pb-4">
-            {isAuthenticated ? (
-              <StudentProfileDropdown
-                avatarUrl={avatarUrl}
-                profileHref={profileHref}
-                onItemClick={closeMobileMenu}
-              />
-            ) : (
-              <>
-                <div className="cut-box3">
-                  <Link href={"/auth/login"}>
-                    <div
-                      onClick={() => {
-                        handleClick("signup");
-                        closeMobileMenu();
-                      }}
-                      className={`cut-box-inner3 cursor-pointer flex items-center justify-center text-[12px] font-[700] px-3 py-2 ${
-                        active === "signup"
-                          ? "bg-white text-black"
-                          : "text-white bg-[var(--foreground)] "
-                      }`}
-                    >
-                      <button>Login</button>
-                    </div>
-                  </Link>
-                </div>
+          {/* Mobile Auth (only for guests; profile lives in navbar now) */}
+          {!isAuthenticated && (
+            <div className="flex flex-col gap-3 px-4 pb-4">
+              <div className="cut-box3">
+                <Link href={"/auth/login"}>
+                  <div
+                    onClick={() => {
+                      handleClick("signup");
+                      closeMobileMenu();
+                    }}
+                    className={`cut-box-inner3 cursor-pointer flex items-center justify-center text-[12px] font-[700] px-3 py-2 ${
+                      active === "signup"
+                        ? "bg-white text-black"
+                        : "text-white bg-[var(--foreground)] "
+                    }`}
+                  >
+                    <button>Login</button>
+                  </div>
+                </Link>
+              </div>
 
-                <div className="cut-box4">
-                  <Link href={"/auth/register"}>
-                    <div
-                      onClick={() => {
-                        handleClick("register");
-                        closeMobileMenu();
-                      }}
-                      className={`cut-box-inner4 flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 ${
-                        active === "register"
-                          ? "bg-white text-black"
-                          : "text-white bg-[var(--foreground)]"
-                      }`}
-                    >
-                      <button>Register</button>
-                    </div>
-                  </Link>
-                </div>
-              </>
-            )}
-          </div>
+              <div className="cut-box4">
+                <Link href={"/auth/register"}>
+                  <div
+                    onClick={() => {
+                      handleClick("register");
+                      closeMobileMenu();
+                    }}
+                    className={`cut-box-inner4 flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 ${
+                      active === "register"
+                        ? "bg-white text-black"
+                        : "text-white bg-[var(--foreground)]"
+                    }`}
+                  >
+                    <button>Register</button>
+                  </div>
+                </Link>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
