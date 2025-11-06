@@ -130,10 +130,10 @@ export default function Page(params) {
     <div className="flex flex-col gap-6 w-full">
       <div
         style={{ padding: "16px" }}
-        className="w-full bg-[#0B0B0B] relative xl:flex gap-10 items-center min-h-[250px] sm:h-[400px] xl:h-[438.49px] rounded-[20px]"
+        className="w-full bg-[#0B0B0B] relative lg:flex lg:justify-between gap-8 lg:gap-10 items-center min-h-[250px] sm:min-h-[380px] xl:min-h-[438.49px] h-auto rounded-[20px]"
       >
         <div className="flex justify-center sm:justify-start mb-4 sm:mb-0">
-          <div className="border-[4px] sm:border-[8px] border-[#E4BE00] flexcenter rounded-full w-[140px] h-[140px] sm:w-[280px] sm:h-[280px] xl:w-[344px] xl:h-[344px]">
+          <div className="border-[4px] sm:border-[8px] border-[#E4BE00] flexcenter rounded-full w-[120px] h-[120px] sm:w-[240px] sm:h-[240px] xl:w-[300px] xl:h-[300px]">
             <div
               className={`transition-all duration-1000 ease-out ${
                 showElements.character
@@ -143,23 +143,23 @@ export default function Page(params) {
             >
               <Image
                 src={"/images/students-images/Layer 2.png"}
-                width={259.2}
-                height={207.86}
+                width={220}
+                height={176}
                 alt="mutant-robot"
-                className="w-[90px] h-auto sm:w-[180px] xl:w-[259px]"
+                className="w-[70px] h-auto sm:w-[140px] xl:w-[200px]"
               />
             </div>
           </div>
         </div>
 
         {/* second layer */}
-        <div className="flex flex-col w-full justify-between col-span-2 mt-4 sm:mt-0">
-          <p className="absolute top-3 right-3 text-[#BF8BDB] font-[800] text-[16px] sm:text-[20px] leading-[22px] sm:leading-[28px]">
+        <div className="flex flex-col w-full lg:flex-1 justify-between col-span-2 mt-4 sm:mt-0">
+          <p className="absolute top-3 right-3 text-[#BF8BDB] font-[800] text-[14px] sm:text-[18px] leading-[20px] sm:leading-[26px]">
             XP Progress
           </p>
           <div className="flex flex-col gap-6 sm:gap-10 mt-8 sm:mt-0">
             <p
-              className={`Xirod text-[#FDDD3F] font-[500] text-[16px] sm:text-[18px] xl:text-[26px] leading-[20px] sm:leading-[32px] text-center sm:text-left transition-all duration-800 ease-out ${
+              className={`Xirod text-[#FDDD3F] font-[500] text-[14px] sm:text-[16px] xl:text-[22px] leading-[18px] sm:leading-[26px] text-center sm:text-left transition-all duration-800 ease-out ${
                 showElements.newbieText
                   ? "opacity-100 translate-y-0 scale-100"
                   : "opacity-0 translate-y-[10px] scale-99"
@@ -174,10 +174,10 @@ export default function Page(params) {
               </span>
             </p>
 
-            <div className="flex justify-center sm:justify-start w-full">
+            <div className="flex justify-center lg:justify-start w-full">
               {/* Progress section with smooth reveal */}
               <div
-                className={`w-full max-w-[363px] transition-all duration-800 ease-out ${
+                className={`w-full lg:max-w-none transition-all duration-800 ease-out ${
                   showElements.progressBar
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-[20px]"
@@ -198,10 +198,10 @@ export default function Page(params) {
         </div>
       </div>
       <div className="w-full flex items-center justify-between">
-        <p className="font-[600] text-[22px] sm:text-[28px] leading-[26px] sm:leading-[28px]">
+        <p className="font-[600] text-[20px] sm:text-[24px] leading-[24px] sm:leading-[26px]">
           Certificates
         </p>
-        <p className="font-[500] text-[14px] sm:text-[18px] text-[var(--mutant-color)] cursor-pointer leading-[20px] hover:text-[var(--primary)] transition-colors">
+        <p className="font-[500] text-[12px] sm:text-[16px] text-[var(--mutant-color)] cursor-pointer leading-[18px] hover:text-[var(--primary)] transition-colors">
           View All
         </p>
       </div>

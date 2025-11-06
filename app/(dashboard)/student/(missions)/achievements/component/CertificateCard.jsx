@@ -141,8 +141,8 @@ const CertificateCard = ({
   };
 
   return (
-    <div className="bg-[#0C0C0C] rounded-xl p-4 md:p-6 grid grid-cols-1 items-center shadow-lg gap-4 w-full">
-      <div className="w-full ">
+    <div className="bg-[#0C0C0C] rounded-xl p-4 md:p-6 grid grid-cols-1 2xl:grid-cols-10 items-start shadow-lg gap-6 2xl:gap-8 w-full">
+      <div className="w-full 2xl:col-span-7">
         <div
           ref={certificateRef}
           className="relative w-full aspect-[1377/871] bg-center rounded-lg" // Using image aspect ratio
@@ -210,14 +210,14 @@ const CertificateCard = ({
         </div>
       </div>
 
-      <div className="space-y-3">
+      <div className="space-y-3 w-full 2xl:self-stretch 2xl:col-span-3">
         <h3 className=" md:text-[20px] font-[600] leading-[28px] ">{title}</h3>
-        <p className=" text-[27px] font-[200] italic leading-[40px]  ">
+        <p className="text-[14px] sm:text-[16px] lg:text-[18px] font-[200] italic leading-[20px] sm:leading-[22px] lg:leading-[24px]">
           Completed {date}
         </p>
         <button
           onClick={handleDownload}
-          className="inline-flex items-center justify-center h-[54.19px] w-[243.47px] rounded-[10px] bg-gradient-to-r from-[#840B94] to-[#FF8D01] text-white text-sm px-4 py-2 transition hover:opacity-90"
+          className="inline-flex items-center justify-center h-[54.19px] w-full rounded-[10px] bg-gradient-to-r from-[#840B94] to-[#FF8D01] text-white text-sm px-4 py-2 transition hover:opacity-90"
         >
           ⬇ Download Certificate (PDF)
         </button>

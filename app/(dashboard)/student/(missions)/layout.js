@@ -20,7 +20,7 @@ function LayoutContent({ children }) {
   const { showLevelCkallenge } = useContext(StudentContext);
 
   return (
-    <div className="flex min-h-screen w-full max-w-[1800px] mx-auto overflow-x-hidden">
+    <div className="flex min-h-screen  w-full max-w-[1800px] mx-auto overflow-x-hidden">
      
 
       {/* Main Content Area */}
