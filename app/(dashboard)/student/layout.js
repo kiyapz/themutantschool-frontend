@@ -46,7 +46,7 @@ function LayoutContent({ children }) {
 
   return (
     <ProtectedRoute allowedRoles={["student"]}>
-      <div className="flex min-h-screen w-full max-w-[1800px] border-[10px] border-red-500   mx-auto overflow-x-hidden">
+      <div className="flex min-h-screen w-full max-w-[1800px]    mx-auto overflow-x-hidden">
         {/* Sidebar  */}
         <div className="hidden sm:block w-80 flex-shrink-0">
           <Sidebar />
