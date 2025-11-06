@@ -138,7 +138,7 @@ export default function MissionCard({
                 {isFree ? "Free" : price ? `$${price}` : "Price not set"}
               </p>
             )}
-            {!isDashboardView && !showLevelsInsteadOfPrice && paymentStatus && (
+            {/* {!isDashboardView && !showLevelsInsteadOfPrice && paymentStatus && (
               <p
                 className={`font-[600] text-[9px] sm:text-[10px] xl:text-[12px] leading-[12px] sm:leading-[14px] px-2 py-1 rounded-[5px] ${
                   paymentStatus === "completed"
@@ -150,7 +150,7 @@ export default function MissionCard({
               >
                 {paymentStatus.toUpperCase()}
               </p>
-            )}
+            )} */}
           </div>
         </div>
 
@@ -186,20 +186,13 @@ export default function MissionCard({
                           width: `${barProgress}%`,
                         }}
                       ></div>
-                      {/* Centered overlay text showing X/5 */}
-                      <div
-                        className="absolute inset-0 flex items-center justify-center font-[700] text-[10px] sm:text-[11px] leading-[18px] sm:leading-[20px] pointer-events-none"
-                        style={{ color: "var(--text)" }}
-                      >
-                        {progress?.length || 0}/5
-                      </div>
                     </div>
                   </span>
                   <span
                     className="font-[700] text-[10px] sm:text-[11px] leading-[18px] sm:leading-[20px] mx-4 sm:mx-5 whitespace-nowrap"
                     style={{ color: "var(--text)" }}
                   >
-                    {displayTotalLevels || 0}
+                    {progress?.length || 0}/5
                   </span>
                   <div className="flex-shrink-0">
                     <Image
