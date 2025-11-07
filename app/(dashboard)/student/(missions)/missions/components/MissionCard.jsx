@@ -76,7 +76,7 @@ export default function MissionCard({
           ? "h-fit min-h-[400px] sm:min-h-[420px] xl:min-h-[450px]"
           : "h-fit sm:h-[382.25px]"
       } w-full grid grid-cols-1 ${
-        isDashboardView ? "2xl:grid-cols-2" : "lg:grid-cols-2"
+        isDashboardView ? "sm:grid-cols-2" : "lg:grid-cols-2"
       } gap-4 sm:gap-6 xl:gap-8 rounded-[20px] ${
         isDashboardView
           ? "p-4 sm:p-6 md:p-8 xl:p-8 2xl:p-10"
@@ -88,7 +88,7 @@ export default function MissionCard({
           isDashboardView
             ? "justify-between h-full"
             : "gap-5 sm:gap-6 md:gap-0 justify-between"
-        } order-2 ${isDashboardView ? "2xl:order-1" : "lg:order-1"} w-full`}
+        } order-2 ${isDashboardView ? "sm:order-1" : "lg:order-1"} w-full`}
       >
         <div className={isDashboardView ? "flex-1 flex flex-col" : ""}>
           <p
@@ -194,7 +194,7 @@ export default function MissionCard({
                   >
                     {progress?.length || 0}/5
                   </span>
-                  <div className="flex-shrink-0">
+                  <div className="flex-shrink-0 border">
                     <Image
                       src={"/images/students-images/Group (16).png"}
                       width={14}
@@ -256,11 +256,11 @@ export default function MissionCard({
       </div>
 
       <div
-        className={`bg-center bg-cover flexcenter h-[200px] sm:h-[220px] xl:h-[240px] ${
+        className={`bg-center bg-cover flex items-center justify-center h-[200px] sm:h-[220px] xl:h-[240px] ${
           isDashboardView ? "2xl:h-full 2xl:order-2" : "lg:order-2"
         } order-1 w-full rounded-[15px] md:rounded-[20px] overflow-hidden ${
           isDashboardView ? "items-center justify-center" : ""
-        }`}
+        } ${isDashboardView ? "sm:justify-self-center" : ""}`}
       >
         {isDashboardView && (
           <Image

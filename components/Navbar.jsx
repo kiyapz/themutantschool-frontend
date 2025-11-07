@@ -286,7 +286,7 @@ export default function Navbar() {
       <div
         style={{ padding: "20px" }}
         className={`
-                fixed top-0 right-0 h-full w-[280px] sm:w-[320px] bg-black shadow-xl transform transition-transform duration-300 ease-in-out z-50 md:hidden overflow-y-auto
+                fixed top-0 right-0 h-full w-[320px] sm:w-[360px] bg-black shadow-xl transform transition-transform duration-300 ease-in-out z-50 md:hidden overflow-y-auto
                 ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
             `}
       >
@@ -312,7 +312,7 @@ export default function Navbar() {
                 <li>
                   <button
                     onClick={closeMobileMenu}
-                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                    className="w-full text-left text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
                   >
                     MISSIONS
                   </button>
@@ -323,7 +323,7 @@ export default function Navbar() {
                 <li>
                   <button
                     onClick={closeMobileMenu}
-                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                    className="w-full text-left text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
                   >
                     THE LAB
                   </button>
@@ -333,7 +333,7 @@ export default function Navbar() {
                 <li>
                   <button
                     onClick={closeMobileMenu}
-                    className="w-full text-left  text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
+                    className="w-full text-left text-[14px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200 py-2"
                   >
                     HALL OF MUTANTS
                   </button>
@@ -344,7 +344,7 @@ export default function Navbar() {
 
           {/* Mobile Auth (only for guests; profile lives in navbar now) */}
           {!isAuthenticated && (
-            <div className="flex flex-col gap-3 px-4 pb-4">
+            <div className="grid grid-cols-2 gap-3 px-4 pb-4 justify-items-center">
               <div className="cut-box3">
                 <Link href={"/auth/login"}>
                   <div
