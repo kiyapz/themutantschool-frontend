@@ -34,17 +34,18 @@ export default function QuizHistoryPage() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
-      }
-
       const data = await response.json();
       console.log("Quiz History:", data);
 
-      if (data.status === "success") {
-        setQuizHistory(data.data || []);
-        setPagination(data.pagination || {});
+      if (!response.ok || data.status === "error") {
+        const message =
+          data?.message ||
+          `HTTP error! Status: ${response.status}`;
+        throw new Error(message);
       }
+
+      setQuizHistory(data.data || []);
+      setPagination(data.pagination || {});
     } catch (error) {
       console.error("Error fetching quiz history:", error);
       setError(error.message);
@@ -105,20 +106,32 @@ export default function QuizHistoryPage() {
   }
 
   if (error) {
+    const isNoAttempts = error
+      ?.toLowerCase()
+      ?.includes("no quiz attempts");
+
     return (
       <div className="flex items-center justify-center min-h-[400px]">
         <div className="text-center bg-gradient-to-br from-red-950/20 to-[#0B0B0B] p-8 rounded-xl">
           <AiOutlineCloseCircle className="text-red-400 text-6xl mx-auto mb-4 animate-pulse" />
           <p className="text-red-400 text-xl font-semibold mb-2">
-            Oops! Something went wrong
+            {isNoAttempts
+              ? "No quiz attempts found"
+              : "Oops! Something went wrong"}
           </p>
-          <p className="text-gray-400 text-sm mb-6 max-w-md">{error}</p>
-          <button
-            onClick={() => fetchQuizHistory(pagination.page)}
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/50 hover:scale-105"
-          >
-            🔄 Try Again
-          </button>
+          <p className="text-gray-400 text-sm mb-6 max-w-md">
+            {isNoAttempts
+              ? "You haven't taken any quizzes yet. Once you do, your results will appear here."
+              : error}
+          </p>
+          {!isNoAttempts && (
+            <button
+              onClick={() => fetchQuizHistory(pagination.page)}
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-xl font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/50 hover:scale-105"
+            >
+              🔄 Try Again
+            </button>
+          )}
         </div>
       </div>
     );
@@ -168,14 +181,24 @@ export default function QuizHistoryPage() {
 
       {/* Quiz History List */}
       {quizHistory.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-16 bg-gradient-to-br from-[#0B0B0B] to-purple-950/10 rounded-xl transition-all duration-300">
-          <div className="text-6xl mb-4 opacity-50">📝</div>
-          <p className="text-gray-300 text-lg sm:text-xl font-semibold mb-2">
-            No quiz history found
-          </p>
-          <p className="text-gray-500 text-sm sm:text-base text-center max-w-md">
-            Your quiz attempts will appear here once you start taking quizzes
-          </p>
+        <div className="flex flex-col items-center justify-center py-20 bg-gradient-to-br from-[#0B0B0B] via-[#080808] to-purple-950/20 rounded-2xl border border-purple-900/40 text-center space-y-5 transition-all duration-300">
+          <div className="w-20 h-20 rounded-full bg-purple-500/10 flex items-center justify-center animate-pulse">
+            <span className="text-4xl">📝</span>
+          </div>
+          <div className="space-y-2 px-6">
+            <p className="text-gray-200 text-xl sm:text-2xl font-semibold">
+              No quiz history yet
+            </p>
+            <p className="text-gray-500 text-sm sm:text-base leading-relaxed">
+              Once you begin taking quizzes, your progress and scores will be tracked here.
+            </p>
+          </div>
+          <button
+            onClick={() => window.location.href = "/student/missions"}
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-lg font-semibold transition-all duration-300 shadow-lg hover:shadow-purple-600/40 hover:scale-105"
+          >
+            Explore Missions
+          </button>
         </div>
       ) : (
         <div className="space-y-4">

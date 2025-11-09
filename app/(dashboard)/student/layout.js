@@ -1,10 +1,11 @@
 "use client";
-import { useContext } from "react";
+import { useContext, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import ProtectedRoute from "../_components/ProtectedRoutes";
 import LevelChallange from "./component/LevelChallange";
 import Navbar from "./component/Navbar";
 import Sidebar from "./component/Sidebar";
+import "./scrollbar.css";
 import {
   StudentContext,
   StudentProvider,
@@ -21,6 +22,15 @@ export default function RootLayout({ children }) {
 function LayoutContent({ children }) {
   const { showLevelCkallenge } = useContext(StudentContext);
   const pathname = usePathname();
+
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      document.body.classList.add("dashboard-scroll-hidden");
+      return () => {
+        document.body.classList.remove("dashboard-scroll-hidden");
+      };
+    }
+  }, []);
 
   const isCourseGuideRoute = pathname?.includes(
     "/dashboard/student-course-guilde"
@@ -46,15 +56,15 @@ function LayoutContent({ children }) {
 
   return (
     <ProtectedRoute allowedRoles={["student"]}>
-      <div className="flex min-h-screen w-full max-w-[1800px]    mx-auto overflow-x-hidden">
+      <div className="flex h-screen w-full max-w-[1800px] mx-auto overflow-hidden">
         {/* Sidebar  */}
-        <div className="hidden sm:block w-80 flex-shrink-0">
+        <div className="hidden sm:block w-80 flex-shrink-0 h-full overflow-hidden">
           <Sidebar />
         </div>
 
         {/* Main Content Area */}
         <div
-          className={`w-full flex flex-col min-h-screen sm:h-screen ${
+          className={`w-full flex flex-col h-full ${
             showLevelCkallenge ? "flex-1" : "flex-1"
           }`}
         >
@@ -64,8 +74,8 @@ function LayoutContent({ children }) {
           </div>
           {/* Page Content */}
 
-          <div className="flex-1 px-4 sm:px-6 pt-[60px] sm:pt-0 py-4 sm:py-6 h-auto sm:h-[90vh]">
-            <main className="overflow-auto scrollbar-hide h-full w-full">
+          <div className="flex-1 px-4 sm:px-6 pt-[60px] sm:pt-0 py-4 sm:py-6 h-full overflow-hidden">
+            <main className="h-full max-h-full w-full overflow-y-auto scrollbar-hidden">
               {children}
             </main>
           </div>
@@ -73,7 +83,7 @@ function LayoutContent({ children }) {
 
         {showLevelCkallenge && (
           <div
-            className={`${"hidden 2xl:flex 2xl:flex-col 2xl:w-[448.45px] 2xl:flex-shrink-0"} self-start`}
+            className={`${"hidden 2xl:flex 2xl:flex-col 2xl:w-[448.45px] 2xl:flex-shrink-0 h-full overflow-hidden"} self-start`}
           >
             <LevelChallange />
           </div>

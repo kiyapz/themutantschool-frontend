@@ -18,6 +18,7 @@ const missioncard = [
 
 export default function Page() {
   const [availableMissions, setAvailableMissions] = useState([]);
+  const [enrolledMissions, setEnrolledMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [hasCompletedMission, setHasCompletedMission] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
@@ -72,11 +73,118 @@ export default function Page() {
         console.log("Student enrolled courses:", studentResponse.data);
 
         // Get enrolled mission IDs
+        const enrolledCourses =
+          studentResponse?.data?.data?.enrolledCourses ?? [];
         const enrolledMissionIds = new Set(
-          (studentResponse?.data?.data?.enrolledCourses ?? []).map(
-            (course) => course.mission._id
-          )
+          enrolledCourses
+            .filter((course) => course?.mission?._id)
+            .map((course) => course.mission._id)
         );
+
+        const enrolledMissionsDataRaw = enrolledCourses
+          .map((course, index) => {
+            const mission = course?.mission ?? {};
+            const progressInfo = course?.progress ?? {};
+            const progressToNextLevel = course?.progressToNextLevel ?? {};
+
+            const completedLevels = Array.isArray(progressInfo?.completedLevels)
+              ? progressInfo.completedLevels
+              : [];
+            const completedCount = completedLevels.length;
+
+            const missionLevels = Array.isArray(mission?.levels)
+              ? mission.levels
+              : [];
+
+            const candidateTotals = [
+              missionLevels.length,
+              progressInfo?.totalLevels,
+              progressInfo?.total,
+              progressInfo?.levelCount,
+              progressInfo?.levels?.length,
+              progressToNextLevel?.totalLevels,
+              completedCount,
+            ]
+              .map((value) =>
+                typeof value === "number" && value > 0 ? value : 0
+              )
+              .filter((value) => value > 0);
+
+            const totalLevelsCount =
+              candidateTotals.length > 0 ? Math.max(...candidateTotals) : 0;
+
+            let derivedProgress =
+              totalLevelsCount > 0
+                ? (completedCount / totalLevelsCount) * 100
+                : progressToNextLevel?.percent ?? 0;
+
+            if (
+              typeof progressToNextLevel?.percent === "number" &&
+              progressToNextLevel.percent > derivedProgress
+            ) {
+              derivedProgress = progressToNextLevel.percent;
+            }
+
+            if (totalLevelsCount > 0 && completedCount >= totalLevelsCount) {
+              derivedProgress = 100;
+            }
+
+            derivedProgress = Math.min(
+              100,
+              Math.max(
+                0,
+                Number.isFinite(derivedProgress) ? derivedProgress : 0
+              )
+            );
+
+            const isCompleted =
+              progressInfo?.isCompleted === true ||
+              derivedProgress >= 99.9 ||
+              (totalLevelsCount > 0 && completedCount >= totalLevelsCount);
+
+            return {
+              missionId: mission._id,
+              missionTitle: mission.title,
+              thumbnail: mission.thumbnail,
+              progress: completedLevels,
+              progressPercentage: derivedProgress,
+              category: mission.category || "Course",
+              price: mission.price || course?.paymentInfo?.amount || 0,
+              isFree:
+                mission.isFree || course?.paymentInfo?.amount === 0 || false,
+              estimatedDuration:
+                mission.estimatedDuration || "Duration not specified",
+              averageRating: mission.averageRating || 0,
+              instructor: mission.instructor,
+              levels: missionLevels,
+              totalLevels: totalLevelsCount,
+              shortDescription:
+                mission.shortDescription ||
+                mission.description ||
+                "No description available",
+              difficulty: mission.difficulty || mission.level || "Beginner",
+              enrolledAt: course.enrolledAt,
+              paymentStatus: course.paymentStatus,
+              paymentInfo: course.paymentInfo,
+              bg: missioncard[index % missioncard.length]?.bg,
+              isCompleted,
+              completedLevelsCount: completedCount,
+            };
+          })
+          .filter((course) => course.missionId);
+        const enrolledMissionsData = enrolledMissionsDataRaw
+          .filter((mission) => !mission.isCompleted)
+          .sort((a, b) => {
+            if (a.progressPercentage !== b.progressPercentage) {
+              return b.progressPercentage - a.progressPercentage;
+            }
+            if (a.enrolledAt && b.enrolledAt) {
+              return new Date(b.enrolledAt) - new Date(a.enrolledAt);
+            }
+            return 0;
+          });
+
+        setEnrolledMissions(enrolledMissionsData);
 
         // Filter out enrolled missions to get available ones
         const availableMissionsData = missionsResponse.data.data.filter(
@@ -97,10 +205,14 @@ export default function Page() {
           totalQuizzes:
             (Array.isArray(mission.levels)
               ? mission.levels.reduce(
-                  (sum, lvl) => sum + (lvl?.quizzes?.length || lvl?.quizCount || 0),
+                  (sum, lvl) =>
+                    sum + (lvl?.quizzes?.length || lvl?.quizCount || 0),
                   0
                 )
-              : 0) || mission.totalQuizzes || (Array.isArray(mission.quizzes) ? mission.quizzes.length : 0) || 0,
+              : 0) ||
+            mission.totalQuizzes ||
+            (Array.isArray(mission.quizzes) ? mission.quizzes.length : 0) ||
+            0,
           shortDescription: mission.shortDescription,
           createdAt: mission.createdAt,
           updatedAt: mission.updatedAt,
@@ -166,40 +278,76 @@ export default function Page() {
   }, []); // safe, missioncard is module-scoped
 
   // Get the first available mission
-  const firstMission = availableMissions[0];
+  const firstAvailableMission = availableMissions[0];
+  const firstEnrolledMission = enrolledMissions[0];
+  const hasEnrolledMissions = Boolean(firstEnrolledMission);
 
   return (
     <>
       {/* Welcome Modal */}
       {showWelcomeModal && <WelcomeModal onClose={handleCloseWelcomeModal} />}
 
-      <div className="flex flex-col justify-between h-full w-full overflow-auto scrollbar-hide">
+      <div className="flex flex-col justify-between h-full w-full overflow-y-auto  scrollbar-hide">
         {/* Show loading state, first mission, or empty state */}
         {loading ? (
           <div className="relative w-full mb-6">
             <MissionCardSkeletonSmall />
           </div>
-        ) : firstMission ? (
+        ) : hasEnrolledMissions ? (
+          <div className="relative w-full mb-6 sm:mb-8 xl:mb-12 px-4 sm:px-6 md:px-8">
+            <MissionCard
+              key={firstEnrolledMission.missionId}
+              image={
+                firstEnrolledMission.thumbnail?.url ||
+                "/images/students-images/Group (18).png"
+              }
+              text1={firstEnrolledMission.missionTitle || "Your Mission"}
+              text3={`${
+                firstEnrolledMission.progressPercentage || 0
+              }% Complete`}
+              bg={firstEnrolledMission.bg}
+              missionId={firstEnrolledMission.missionId}
+              isAvailable={false}
+              instructor={firstEnrolledMission.instructor}
+              levels={firstEnrolledMission.levels}
+              totalLevels={firstEnrolledMission.totalLevels}
+              shortDescription={firstEnrolledMission.shortDescription}
+              price={firstEnrolledMission.price}
+              isFree={firstEnrolledMission.isFree}
+              category={firstEnrolledMission.category}
+              averageRating={firstEnrolledMission.averageRating}
+              difficulty={firstEnrolledMission.difficulty}
+              progress={firstEnrolledMission.progress}
+              progressPercentage={firstEnrolledMission.progressPercentage}
+              paymentStatus={firstEnrolledMission.paymentStatus}
+              paymentInfo={firstEnrolledMission.paymentInfo}
+              showProgressOnDashboard={true}
+            />
+          </div>
+        ) : firstAvailableMission ? (
           <div className="relative w-full mb-6 sm:mb-8 xl:mb-12 px-4 sm:px-6 md:px-8">
             <MissionCard
               image={
-                firstMission.thumbnail?.url ||
+                firstAvailableMission.thumbnail?.url ||
                 "https://files.ably.io/ghost/prod/2023/12/choosing-the-best-javascript-frameworks-for-your-next-project.png"
               }
-              text1={firstMission.missionTitle || "Available Mission"}
-              text2={firstMission.estimatedDuration || "Duration not specified"}
-              text3={firstMission.levels?.length || 0}
-              bg={firstMission.bg}
-              missionId={firstMission.missionId}
+              text1={firstAvailableMission.missionTitle || "Available Mission"}
+              text2={
+                firstAvailableMission.estimatedDuration ||
+                "Duration not specified"
+              }
+              text3={firstAvailableMission.levels?.length || 0}
+              bg={firstAvailableMission.bg}
+              missionId={firstAvailableMission.missionId}
               isAvailable={true}
-              instructor={firstMission.instructor}
-              levels={firstMission.levels}
-              shortDescription={firstMission.shortDescription}
-              price={firstMission.price}
-              isFree={firstMission.isFree}
-              category={firstMission.category}
-              averageRating={firstMission.averageRating}
-              totalQuizzes={firstMission.totalQuizzes}
+              instructor={firstAvailableMission.instructor}
+              levels={firstAvailableMission.levels}
+              shortDescription={firstAvailableMission.shortDescription}
+              price={firstAvailableMission.price}
+              isFree={firstAvailableMission.isFree}
+              category={firstAvailableMission.category}
+              averageRating={firstAvailableMission.averageRating}
+              totalQuizzes={firstAvailableMission.totalQuizzes}
               showLevelsInsteadOfPrice={true}
               isDashboardView={true}
             />

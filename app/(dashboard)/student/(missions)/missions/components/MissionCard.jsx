@@ -1,5 +1,4 @@
 "use client";
-import { imageConfigDefault } from "next/dist/shared/lib/image-config";
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -27,22 +26,9 @@ export default function MissionCard({
   enrolledAt,
   showLevelsInsteadOfPrice = false,
   isDashboardView = false,
+  showProgressOnDashboard = false,
 }) {
-  const [level, setLevel] = useState(null);
   const [isLoadingProgress, setIsLoadingProgress] = useState(true);
-
-  useEffect(() => {
-    const getLevel = (text3) => {
-      if (text3 < 35) return 1;
-      if (text3 < 45) return 2;
-      if (text3 < 55) return 3;
-      if (text3 < 65) return 4;
-      return 5;
-    };
-
-    const calculatedLevel = getLevel(text3);
-    setLevel(calculatedLevel);
-  }, [text3]);
 
   useEffect(() => {
     // Simulate loading state for progress data
@@ -53,21 +39,46 @@ export default function MissionCard({
     return () => clearTimeout(timer);
   }, [progress, progressPercentage]);
 
-  // Calculate actual progress percentage based on completed levels
-  const calculateProgress = () => {
-    const completedLevels = progress?.length || 0;
-    const total = totalLevels || levels?.length || 0;
-    if (total === 0) return 0;
-    const calculatedPercentage = (completedLevels / total) * 100;
-    return Math.min(
-      Math.max(calculatedPercentage, completedLevels > 0 ? 5 : 0),
-      100
-    );
-  };
+  const completedLevelsCount = progress?.length || 0;
+  const totalLevelsFromData =
+    typeof totalLevels === "number" && totalLevels > 0
+      ? totalLevels
+      : Array.isArray(levels)
+      ? levels.length
+      : 0;
+  const inferredTotalLevels =
+    totalLevelsFromData > 0
+      ? totalLevelsFromData
+      : completedLevelsCount > 0 && progressPercentage > 0
+      ? Math.round((completedLevelsCount * 100) / progressPercentage)
+      : completedLevelsCount;
+  const resolvedTotalLevels =
+    inferredTotalLevels > 0 ? inferredTotalLevels : completedLevelsCount;
+  const fallbackProgress =
+    resolvedTotalLevels > 0
+      ? (completedLevelsCount / resolvedTotalLevels) * 100
+      : 0;
+  let progressValue =
+    typeof progressPercentage === "number" && progressPercentage >= 0
+      ? progressPercentage
+      : fallbackProgress;
+  if (resolvedTotalLevels > 0 && completedLevelsCount >= resolvedTotalLevels) {
+    progressValue = 100;
+  }
+  progressValue = Math.min(Math.max(progressValue, 0), 100);
+  const visualProgress =
+    !isAvailable && progressValue < 100
+      ? Math.min(Math.max(progressValue, 15), 100)
+      : progressValue;
 
-  const actualProgress = calculateProgress();
-  const barProgress = isAvailable ? 100 : actualProgress;
-  const displayTotalLevels = totalLevels || levels?.length || 0;
+  const barProgress = isAvailable ? 100 : visualProgress;
+  const totalLevelsForLabel =
+    resolvedTotalLevels > 0
+      ? resolvedTotalLevels
+      : completedLevelsCount > 0
+      ? completedLevelsCount
+      : 0;
+  const shouldShowProgress = !isDashboardView || showProgressOnDashboard;
 
   return (
     <div
@@ -155,8 +166,8 @@ export default function MissionCard({
         </div>
 
         <div className={`flex flex-col ${isDashboardView ? "" : "gap-5"}`}>
-          {/* Progress Bar and Levels - Only show if not dashboard view */}
-          {!isDashboardView && (
+          {/* Progress Bar and Levels */}
+          {shouldShowProgress && (
             <>
               {isLoadingProgress ? (
                 <div className="w-full flex items-center gap-2 animate-pulse bg-black rounded-[8px] px-4 py-2">
@@ -192,9 +203,9 @@ export default function MissionCard({
                     className="font-[700] text-[10px] sm:text-[11px] leading-[18px] sm:leading-[20px] mx-4 sm:mx-5 whitespace-nowrap"
                     style={{ color: "var(--text)" }}
                   >
-                    {progress?.length || 0}/5
+                    {completedLevelsCount}/{totalLevelsForLabel}
                   </span>
-                  <div className="flex-shrink-0 border">
+                  <div className="flex-shrink-0">
                     <Image
                       src={"/images/students-images/Group (16).png"}
                       width={14}

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 
 const UpdateProfileModal = ({
@@ -10,40 +10,6 @@ const UpdateProfileModal = ({
   defaultAvatarUrl = "/default-avatar.png",
   isLoading = false,
 }) => {
-  // Add custom styles for select dropdown
-  React.useEffect(() => {
-    const style = document.createElement("style");
-    style.innerHTML = `
-      select option {
-        background-color: var(--accent);
-        color: white;
-        padding: 8px;
-      }
-      select option:hover,
-      select option:checked {
-        background-color: var(--mutant-color) !important;
-        color: white;
-      }
-      select::-webkit-scrollbar {
-        width: 8px;
-      }
-      select::-webkit-scrollbar-track {
-        background: var(--card);
-        border-radius: 10px;
-      }
-      select::-webkit-scrollbar-thumb {
-        background: var(--mutant-color);
-        border-radius: 10px;
-      }
-      select::-webkit-scrollbar-thumb:hover {
-        background: var(--primary);
-      }
-    `;
-    document.head.appendChild(style);
-    return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
   const countries = useMemo(
     () => [
       { code: "+93", flag: "🇦🇫", name: "Afghanistan" },
@@ -224,6 +190,8 @@ const UpdateProfileModal = ({
 
   const [activeTab, setActiveTab] = useState("personal");
   const [previewUrl, setPreviewUrl] = useState("");
+  const [isPhoneDropdownOpen, setPhoneDropdownOpen] = useState(false);
+  const phoneDropdownRef = useRef(null);
 
   const {
     register,
@@ -238,7 +206,12 @@ const UpdateProfileModal = ({
       lastName: "",
       username: "",
       email: "",
-      phoneCountry: countries[0]?.code || "+234",
+      phoneCountry: (
+        countries.find((c) => c.code === "+971") ||
+        countries[0] || {
+          code: "+971",
+        }
+      ).code,
       phoneNumber: "",
       nationality: "",
       gender: "",
@@ -289,10 +262,17 @@ const UpdateProfileModal = ({
       lastName: defaults.lastName || "",
       username: defaults.username || "",
       email: defaults.email || "",
-      phoneCountry: defaults.phoneCountry || "+234",
+      phoneCountry:
+        defaults.phoneCountry ||
+        (
+          countries.find((c) => c.code === "+971") ||
+          countries[0] || {
+            code: "+971",
+          }
+        ).code,
       phoneNumber: defaults.phoneNumber || "",
       nationality: defaults.nationality || "",
-      gender: normalizeGenderIn(defaults.gender),
+      gender: defaults.gender ? normalizeGenderIn(defaults.gender) : "",
       dob: formattedDob,
       profile: {
         bio: defaults?.profile?.bio || "",
@@ -316,6 +296,65 @@ const UpdateProfileModal = ({
     () => countries.find((c) => c.code === phoneCountry) || countries[0],
     [countries, phoneCountry]
   );
+
+  const flagToIso = (flagEmoji) => {
+    if (!flagEmoji) return null;
+    try {
+      const codePoints = Array.from(flagEmoji, (char) => char.codePointAt(0));
+      if (codePoints.length !== 2) {
+        return null;
+      }
+      const iso = codePoints
+        .map((cp) => String.fromCharCode(cp - 127397))
+        .join("");
+      return iso.toLowerCase();
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const getFlagImageUrl = (flagEmoji) => {
+    const iso = flagToIso(flagEmoji);
+    if (!iso) return null;
+    return `https://flagcdn.com/w20/${iso}.png`;
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        phoneDropdownRef.current &&
+        !phoneDropdownRef.current.contains(event.target)
+      ) {
+        setPhoneDropdownOpen(false);
+      }
+    };
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") {
+        setPhoneDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEscape);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!phoneCountry) {
+      const fallbackCountry =
+        countries.find((c) => c.code === "+971") ||
+        countries[0] || { code: "+971" };
+      setValue("phoneCountry", fallbackCountry.code, {
+        shouldDirty: false,
+        shouldTouch: false,
+      });
+    }
+  }, [phoneCountry, countries, setValue]);
 
   // Local preview for chosen file
   const chosenFile = watch("avatarFile");
@@ -510,42 +549,37 @@ const UpdateProfileModal = ({
                   id="phoneNumber"
                   name="phoneNumber"
                 >
-                  <div className="flex items-center gap-1">
-                    <div className="relative">
-                      <select
-                        value={`${
-                          (
-                            countries.find(
-                              (c) => c.code === watch("phoneCountry")
-                            ) || countries[0]
-                          ).flag
-                        } ${watch("phoneCountry")}`}
-                        onChange={(e) => {
-                          const sel = countries.find(
-                            (c) => `${c.flag} ${c.code}` === e.target.value
-                          );
-                          if (sel)
-                            setValue("phoneCountry", sel.code, {
-                              shouldDirty: true,
-                              shouldTouch: true,
-                            });
-                        }}
-                        className="bg-[var(--accent)] text-white text-xs rounded-[10px] focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)] appearance-none cursor-pointer"
-                        style={{
-                          padding: "10px",
-                          paddingRight: "24px",
-                          marginRight: "8px",
-                        }}
+                  <div className="flex items-center gap-0 h-[44px]">
+                    <div className="relative" ref={phoneDropdownRef}>
+                      <button
+                        type="button"
+                        onClick={() => setPhoneDropdownOpen((prev) => !prev)}
+                        className="flex items-center gap-2 bg-[var(--accent)] text-white text-xs rounded-l-[10px] focus:outline-none transition-colors"
+                        style={{ padding: "10px 12px" }}
+                        aria-haspopup="listbox"
+                        aria-expanded={isPhoneDropdownOpen}
                       >
-                        {countries.map((c) => (
-                          <option key={c.code} value={`${c.flag} ${c.code}`}>
-                            {c.flag} {c.code}
-                          </option>
-                        ))}
-                      </select>
-                      <div className="absolute right-1 top-1/2 -translate-y-1/2 pointer-events-none">
+                        <span className="flex items-center justify-center w-5 h-4 relative overflow-hidden rounded-[4px]">
+                          {getFlagImageUrl(selectedCountry.flag) ? (
+                            <img
+                              src={getFlagImageUrl(selectedCountry.flag)}
+                              alt={`${selectedCountry.name} flag`}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              loading="lazy"
+                            />
+                          ) : (
+                            <span className="text-lg leading-none">
+                              {selectedCountry.flag}
+                            </span>
+                          )}
+                        </span>
+                        <span className="font-semibold">
+                          {selectedCountry.code}
+                        </span>
                         <svg
-                          className="w-3 h-3 text-[var(--text)]"
+                          className={`w-3 h-3 text-[var(--text)] transition-transform ${
+                            isPhoneDropdownOpen ? "rotate-180" : ""
+                          }`}
                           fill="none"
                           stroke="currentColor"
                           viewBox="0 0 24 24"
@@ -557,13 +591,60 @@ const UpdateProfileModal = ({
                             d="M19 9l-7 7-7-7"
                           />
                         </svg>
-                      </div>
+                      </button>
+
+                      {isPhoneDropdownOpen && (
+                        <div className="absolute left-0 mt-2 w-fit min-w-[110px] rounded-[12px] bg-[var(--accent)] shadow-xl z-40">
+                          <div className="max-h-60 overflow-y-auto scrollbar-hidden">
+                            {countries.map((country) => {
+                              const isSelected =
+                                country.code === selectedCountry.code;
+                              return (
+                                <button
+                                  type="button"
+                                  key={country.code}
+                                  className={`flex w-full items-center gap-2 px-3 py-2 text-sm text-left transition-colors ${
+                                    isSelected
+                                      ? "bg-[var(--mutant-color)] text-white"
+                                      : "text-white hover:bg-[var(--foreground)]"
+                                  }`}
+                                  onClick={() => {
+                                    setValue("phoneCountry", country.code, {
+                                      shouldDirty: true,
+                                      shouldTouch: true,
+                                    });
+                                    setPhoneDropdownOpen(false);
+                                  }}
+                                >
+                                  <span className="flex items-center justify-center w-5 h-4 relative overflow-hidden rounded-[4px]">
+                                    {getFlagImageUrl(country.flag) ? (
+                                      <img
+                                        src={getFlagImageUrl(country.flag)}
+                                        alt={`${country.name} flag`}
+                                        className="absolute inset-0 w-full h-full object-cover"
+                                        loading="lazy"
+                                      />
+                                    ) : (
+                                      <span className="text-lg leading-none">
+                                        {country.flag}
+                                      </span>
+                                    )}
+                                  </span>
+                                  <span className="font-medium">
+                                    {country.code}
+                                  </span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      )}
                     </div>
                     <input
                       id="phoneNumber"
                       type="text"
                       placeholder="Phone number"
-                      className="bg-[var(--accent)] text-sm text-white rounded-[10px] w-full focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)]"
+                      className="bg-[var(--accent)] text-sm text-white rounded-r-[10px] w-full focus:outline-none"
                       {...register("phoneNumber")}
                       style={{ padding: "10px" }}
                     />

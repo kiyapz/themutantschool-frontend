@@ -78,7 +78,7 @@ export default function Page() {
         const missionsWithBg = await Promise.all(
           response.data.data.enrolledCourses.map(async (course, index) => {
             // Fetch full mission data to get accurate level count
-            let totalLevels = 0;
+            let totalLevelsFromMission = 0;
             try {
               const missionResponse = await axios.get(
                 `https://themutantschool-backend.onrender.com/api/mission/${course.mission._id}`,
@@ -89,9 +89,10 @@ export default function Page() {
                   },
                 }
               );
-              totalLevels = missionResponse.data.data.levels?.length || 0;
+              totalLevelsFromMission =
+                missionResponse.data.data.levels?.length || 0;
               console.log(
-                `✅ Mission "${course.mission.title}" has ${totalLevels} levels`
+                `✅ Mission "${course.mission.title}" has ${totalLevelsFromMission} levels`
               );
             } catch (error) {
               console.warn(
@@ -99,15 +100,74 @@ export default function Page() {
                 error.message
               );
               // Fallback to existing data if API call fails
-              totalLevels = course.mission.levels?.length || 0;
+              totalLevelsFromMission = course.mission.levels?.length || 0;
             }
+
+            const completedLevels = Array.isArray(
+              course.progress?.completedLevels
+            )
+              ? course.progress.completedLevels
+              : [];
+            const completedCount = completedLevels.length;
+
+            const missionLevels = Array.isArray(course.mission.levels)
+              ? course.mission.levels
+              : [];
+
+            const candidateTotals = [
+              totalLevelsFromMission,
+              missionLevels.length,
+              course.progress?.totalLevels,
+              course.progress?.total,
+              course.progress?.levelCount,
+              course.progress?.levels?.length,
+              course.progressToNextLevel?.totalLevels,
+              completedCount,
+            ]
+              .map((value) =>
+                typeof value === "number" && value > 0 ? value : 0
+              )
+              .filter((value) => value > 0);
+
+            const resolvedTotalLevels =
+              candidateTotals.length > 0 ? Math.max(...candidateTotals) : 0;
+
+            let derivedProgress =
+              resolvedTotalLevels > 0
+                ? (completedCount / resolvedTotalLevels) * 100
+                : course.progressToNextLevel?.percent ?? 0;
+
+            if (
+              typeof course.progressToNextLevel?.percent === "number" &&
+              course.progressToNextLevel.percent > derivedProgress
+            ) {
+              derivedProgress = course.progressToNextLevel.percent;
+            }
+
+            if (
+              resolvedTotalLevels > 0 &&
+              completedCount >= resolvedTotalLevels
+            ) {
+              derivedProgress = 100;
+            }
+
+            derivedProgress = Math.min(
+              100,
+              Math.max(
+                0,
+                Number.isFinite(derivedProgress) ? derivedProgress : 0
+              )
+            );
+
+            const isCompleted =
+              course.progress?.isCompleted === true || derivedProgress >= 99.9;
 
             return {
               missionId: course.mission._id,
               missionTitle: course.mission.title,
               thumbnail: course.mission.thumbnail,
-              progress: course.progress.completedLevels || [],
-              progressPercentage: course.progressToNextLevel?.percent || 0,
+              progress: completedLevels,
+              progressPercentage: derivedProgress,
               category: course.mission.category || "Course",
               price: course.mission.price || course.paymentInfo?.amount || 0,
               isFree: course.mission.isFree || course.paymentInfo?.amount === 0,
@@ -117,8 +177,8 @@ export default function Page() {
               instructor: course.mission.instructor || {
                 name: "Unknown Instructor",
               },
-              levels: course.mission.levels || [],
-              totalLevels: totalLevels,
+              levels: missionLevels,
+              totalLevels: resolvedTotalLevels,
               shortDescription:
                 course.mission.shortDescription ||
                 course.mission.description ||
@@ -131,14 +191,21 @@ export default function Page() {
               paymentStatus: course.paymentStatus,
               paymentInfo: course.paymentInfo,
               bg: missioncard[index % missioncard.length].bg,
+              isCompleted,
             };
           })
         );
 
-        // Sort missions by the most recent purchase date
-        missionsWithBg.sort(
-          (a, b) => new Date(b.enrolledAt) - new Date(a.enrolledAt)
-        );
+        // Sort missions by completion status then recency
+        missionsWithBg.sort((a, b) => {
+          if (a.isCompleted !== b.isCompleted) {
+            return a.isCompleted ? 1 : -1;
+          }
+          if (a.progressPercentage !== b.progressPercentage) {
+            return b.progressPercentage - a.progressPercentage;
+          }
+          return new Date(b.enrolledAt) - new Date(a.enrolledAt);
+        });
 
         setMissionPurchases(missionsWithBg);
         console.log("Mission Purchases:", missionsWithBg);

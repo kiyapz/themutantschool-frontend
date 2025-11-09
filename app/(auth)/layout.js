@@ -1,29 +1,13 @@
 
-import { GloblaxcontexProvider } from "@/context/Globlaxcontex";
 import "../globals.css";
-
-
-
+import { GloblaxcontexProvider } from "@/context/Globlaxcontex";
 
 export const metadata = {
-  title: 'Mutant School | Registration Portal',
-  description: 'Registration to the Mutant School portal to access your dashboard, assignments, and messages.'
-
-}
+  title: "Mutant School | Registration Portal",
+  description:
+    "Registration to the Mutant School portal to access your dashboard, assignments, and messages.",
+};
 
 export default function RootLayout({ children }) {
-  return (
-    <html lang="en">
-      <body>
-    
-        {/* <main> */}
-          
-           <GloblaxcontexProvider>
-           {children}
-           </GloblaxcontexProvider>
-        {/* </main> */}
-       
-      </body>
-    </html>
-  );
+  return <GloblaxcontexProvider>{children}</GloblaxcontexProvider>;
 }

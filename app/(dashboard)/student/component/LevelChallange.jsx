@@ -5,6 +5,7 @@ import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Link from "next/link";
 
 export default function LevelChallange() {
   const [studentData, setStudentData] = useState({
@@ -170,15 +171,19 @@ export default function LevelChallange() {
   return (
     <>
       {showLevelCkallenge && (
-        <div
-          style={{ padding: "0 0 20px 0" }}
-          className="w-full max-w-full hidden xl:grid lg:w-full h-full grid grid-cols-1 gap-4 justify-items-center items-start px-4"
-        >
-          <div className="grid grid-cols-1 gap-4 w-full max-w-full items-center justify-items-center">
-            {/* Top Icons with staggered knockout animation */}
-            <div className="flex items-center h-[10vh] justify-between w-full">
+        <div className="w-full max-w-full hidden xl:flex lg:w-full h-full flex-col overflow-hidden px-4">
+          {/* Sticky header */}
+          <div
+            className="pt-4 pb-4 sticky top-0 z-30"
+            style={{
+              background:
+                "linear-gradient(180deg, rgba(15,15,15,0.95) 0%, rgba(15,15,15,0.85) 60%, rgba(15,15,15,0) 100%)",
+            }}
+          >
+            <div className="flex items-center justify-between w-full">
               {/* First Icon - Total Progress */}
-              <div
+              <Link
+                href="/"
                 className={`Xirod flex items-center gap-1 font-[400] xl:text-[18px] leading-[20px] transition-all duration-700 ease-out ${
                   showElements.topIcons
                     ? "opacity-100 translate-y-0 scale-100"
@@ -206,7 +211,7 @@ export default function LevelChallange() {
                 >
                   {totalProgress}
                 </span>
-              </div>
+              </Link>
 
               {/* Second Icon */}
               <div
@@ -274,8 +279,10 @@ export default function LevelChallange() {
                 </span>
               </div>
             </div>
+          </div>
 
-            <div className="flex flex-col gap-10 items-center justify-center w-full">
+          <div className="flex-1 overflow-y-auto scrollbar-hidden">
+            <div className="grid grid-cols-1 gap-10 w-full max-w-full items-center justify-items-center pb-16">
               {/* Character Image with dramatic entrance */}
               <div className="flex flex-col items-center justify-center">
                 <div
@@ -367,34 +374,34 @@ export default function LevelChallange() {
                 <Changebtn
                   sm="sm:text-[7px] xl:text-[10px]"
                   text={"VIEW ACHIEVEMENTS"}
-                  onclick={() => router.push("/student/dashboard/achievements")}
+                  onclick={() => router.push("/student/achievements")}
                   className="w-full"
                 />
               </div>
-            </div>
-          </div>
 
-          <div
-            className={`w-full max-w-full lg:max-w-[296.89px] mx-auto mt-20 sm:mt-24 transition-all duration-900 ease-out ${
-              showElements.bottomText
-                ? "opacity-100 translate-y-0"
-                : "opacity-0 translate-y-[30px]"
-            }`}
-          >
-            <p
-              className={`font-[800] xl:text-[24px] text-center leading-[60px] text-[#EBB607] transition-all duration-500 delay-200 ${
-                showElements.bottomText ? "text-shadow-lg" : ""
-              }`}
-            >
-              Unlock Hall of Mutants
-            </p>
-            <p
-              className={`font-[300] xl:text-[23px] leading-[30px] text-center transition-all duration-500 delay-400 ${
-                showElements.bottomText ? "opacity-100" : "opacity-70"
-              }`}
-            >
-              Complete 2 missions to join the leaderboard
-            </p>
+              <div
+                className={`w-full max-w-full lg:max-w-[296.89px] mx-auto mt-10 sm:mt-14 transition-all duration-900 ease-out ${
+                  showElements.bottomText
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-[30px]"
+                }`}
+              >
+                <p
+                  className={`font-[800] xl:text-[24px] text-center leading-[60px] text-[#EBB607] transition-all duration-500 delay-200 ${
+                    showElements.bottomText ? "text-shadow-lg" : ""
+                  }`}
+                >
+                  Unlock Hall of Mutants
+                </p>
+                <p
+                  className={`font-[300] xl:text-[23px] leading-[30px] text-center transition-all duration-500 delay-400 ${
+                    showElements.bottomText ? "opacity-100" : "opacity-70"
+                  }`}
+                >
+                  Complete 2 missions to join the leaderboard
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}

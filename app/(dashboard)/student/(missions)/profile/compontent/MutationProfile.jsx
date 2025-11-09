@@ -15,11 +15,12 @@ const LoadingSkeleton = ({ className }) => (
 
 // Helper function to parse phone number into country code and number
 const parsePhoneNumber = (fullPhone) => {
-  if (!fullPhone) return { countryCode: "+234", phoneNumber: "" };
+  if (!fullPhone) return { countryCode: "+971", phoneNumber: "" };
 
   const phone = fullPhone.toString();
   // Common country codes (sorted by length, longest first to match correctly)
   const countryCodes = [
+    "+971",
     "+234",
     "+1",
     "+44",
@@ -44,7 +45,8 @@ const parsePhoneNumber = (fullPhone) => {
   }
 
   // If no country code found, assume it's just the number
-  return { countryCode: "+234", phoneNumber: phone };
+  const stripped = phone.replace(/^\+?971/, "");
+  return { countryCode: "+971", phoneNumber: stripped };
 };
 
 function MutationProfile() {
@@ -56,6 +58,11 @@ function MutationProfile() {
   const [previewUrl, setPreviewUrl] = useState(null);
   const [imageLoading, setImageLoading] = useState(true);
   const avatarInputRef = useRef(null);
+  const [feedbackModal, setFeedbackModal] = useState({
+    open: false,
+    type: "success",
+    message: "",
+  });
 
   useEffect(() => {
     // Clean up the preview URL to avoid memory leaks
@@ -109,13 +116,16 @@ function MutationProfile() {
       setUserProfile(freshProfileResponse.data?.data);
       setPreviewUrl(null); // Clear the preview to use the server URL
 
-      alert("Profile picture updated successfully!");
+      const successMsg = "Profile picture updated successfully!";
+      console.log("✅", successMsg);
+      setFeedbackModal({ open: true, type: "success", message: successMsg });
     } catch (err) {
       console.error(
         "Failed to update profile picture:",
         err.response?.data || err.message
       );
-      alert("Failed to update profile picture. Please try again.");
+      const errorMsg = "Failed to update profile picture. Please try again.";
+      setFeedbackModal({ open: true, type: "error", message: errorMsg });
       setPreviewUrl(null); // Clear preview on failure to revert to old image
     } finally {
       setIsUpdating(false);
@@ -290,18 +300,20 @@ function MutationProfile() {
 
       setUserProfile(profileData);
       setModel(false);
-      alert("Profile updated successfully!");
+      const successMsg = "Profile updated successfully!";
+      console.log("✅", successMsg);
+      setFeedbackModal({ open: true, type: "success", message: successMsg });
     } catch (err) {
       console.error(
         "❌ Failed to update profile:",
         err.response?.data || err.message
       );
       console.error("Full error:", err);
-      alert(
-        `Failed to update profile: ${
-          err.response?.data?.message || err.message || "Unknown error"
-        }`
-      );
+      const errorMsg = `Failed to update profile: ${
+        err.response?.data?.message || err.message || "Unknown error"
+      }`;
+      console.error("❌", errorMsg);
+      setFeedbackModal({ open: true, type: "error", message: errorMsg });
     } finally {
       setIsUpdating(false);
     }
@@ -393,7 +405,7 @@ function MutationProfile() {
       { label: "Email Address", value: userProfile?.email || "" },
       { label: "Phone Number", value: userProfile?.phoneNumber || "" },
       { label: "Gender", value: userProfile?.gender || "" },
-      { label: "Nationality", value: userProfile?.nationality || "" },
+      { label: "Country", value: userProfile?.nationality || "" },
       {
         label: "Date of Birth",
         value: formatDateForDisplay(userProfile?.dob) || "",
@@ -486,166 +498,195 @@ function MutationProfile() {
   }
 
   return (
-    <div className="flex flex-col" style={{ gap: "20px" }}>
-      {/* Header */}
-      <div
-        className="flex flex-col lg:flex-row items-center"
-        style={{ gap: "32px", padding: "16px" }}
-      >
+    <>
+      <div className="flex flex-col" style={{ gap: "20px" }}>
+        {/* Header */}
         <div
-          className="w-[100px] aspect-square lg:w-[189px] border-[4px] border-[#840B94] rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden cursor-pointer relative"
-          style={{ borderRadius: "50%" }}
-          onClick={() =>
-            !isUpdating && !imageLoading && avatarInputRef.current?.click()
-          }
-          title="Click to change profile picture"
+          className="flex flex-col lg:flex-row items-center"
+          style={{ gap: "32px", padding: "16px" }}
         >
-          <input
-            type="file"
-            ref={avatarInputRef}
-            onChange={handleAvatarUpdate}
-            accept="image/png, image/jpeg, image/gif"
-            style={{ display: "none" }}
-          />
-
-          {/* Show loading spinner while image is loading or updating */}
-          {(imageLoading || isUpdating) && (
-            <div className="absolute inset-0 flex items-center justify-center z-10">
-              <div className="w-12 h-12 border-4 border-[#840B94] border-t-transparent rounded-full animate-spin"></div>
-            </div>
-          )}
-
-          {/* Only show the uploaded image (no default avatar unless URL is empty) */}
-          <Image
-            width={189}
-            height={189}
-            src={displayAvatarUrl}
-            alt="Profile avatar"
-            className={`w-full h-full object-cover rounded-full aspect-square ${
-              imageLoading || isUpdating ? "opacity-0" : "opacity-100"
-            } transition-opacity duration-300`}
+          <div
+            className="w-[100px] aspect-square lg:w-[189px] border-[4px] border-[#840B94] rounded-full bg-[#1a1a1a] flex items-center justify-center overflow-hidden cursor-pointer relative"
             style={{ borderRadius: "50%" }}
-            onLoadStart={() => setImageLoading(true)}
-            onLoad={() => {
-              console.log("✅ Avatar loaded");
-              setImageLoading(false);
-            }}
-            onError={(e) => {
-              console.error("❌ Failed to load avatar");
-              setImageLoading(false);
-              // Only use default if there's no avatar URL from backend
-              if (shouldShowDefaultAvatar) {
-                e.target.onerror = null;
-                e.target.src = DEFAULT_AVATAR;
-              }
-            }}
-          />
-        </div>
-
-        <div className="w-full flex flex-col lg:flex-row items-center justify-between">
-          <div className="flex flex-col gap-1">
-            <h2 className="text-[24px] sm:text-[28px] md:text-[20px] xl:text-[37px] leading-[28px] sm:leading-[32px] md:leading-[34px] lg:leading-[37px] font-[500] text-white">
-              {displayName}
-            </h2>
-            {userProfile?.username && (
-              <p className="text-[#A9A9A9] font-[400] text-[16px] leading-[20px]">
-                @{userProfile.username}
-              </p>
-            )}
-            <p className="text-[#FDDD3F] font-[500] xl:text-[22px] leading-[28px]">
-              {levelLabel}
-            </p>
-          </div>
-          <button
-            onClick={() => setModel(true)}
-            disabled={isUpdating}
-            className={`flex items-center text-[14px] font-[700] bg-[#161616] text-[#A9A9A9] rounded-[10px] cursor-pointer ${
-              isUpdating
-                ? "opacity-50 cursor-not-allowed"
-                : "hover:bg-[#2a2a2a]"
-            }`}
-            style={{ marginTop: "8px", padding: "8px 16px", gap: "4px" }}
+            onClick={() =>
+              !isUpdating && !imageLoading && avatarInputRef.current?.click()
+            }
+            title="Click to change profile picture"
           >
-            {isUpdating ? (
-              <>
-                <div className="w-4 h-4 border-2 border-[#A9A9A9] border-t-transparent rounded-full animate-spin"></div>
-                Updating...
-              </>
-            ) : (
-              "Edit Profile"
+            <input
+              type="file"
+              ref={avatarInputRef}
+              onChange={handleAvatarUpdate}
+              accept="image/png, image/jpeg, image/gif"
+              style={{ display: "none" }}
+            />
+
+            {/* Show loading spinner while image is loading or updating */}
+            {(imageLoading || isUpdating) && (
+              <div className="absolute inset-0 flex items-center justify-center z-10">
+                <div className="w-12 h-12 border-4 border-[#840B94] border-t-transparent rounded-full animate-spin"></div>
+              </div>
             )}
-          </button>
-        </div>
-      </div>
 
-      {/* Bio */}
-      <InfoBox title="Bio" content={bio || "No bio yet."} />
+            {/* Only show the uploaded image (no default avatar unless URL is empty) */}
+            <Image
+              width={189}
+              height={189}
+              src={displayAvatarUrl}
+              alt="Profile avatar"
+              className={`w-full h-full object-cover rounded-full aspect-square ${
+                imageLoading || isUpdating ? "opacity-0" : "opacity-100"
+              } transition-opacity duration-300`}
+              style={{ borderRadius: "50%" }}
+              onLoadStart={() => setImageLoading(true)}
+              onLoad={() => {
+                console.log("✅ Avatar loaded");
+                setImageLoading(false);
+              }}
+              onError={(e) => {
+                console.error("❌ Failed to load avatar");
+                setImageLoading(false);
+                // Only use default if there's no avatar URL from backend
+                if (shouldShowDefaultAvatar) {
+                  e.target.onerror = null;
+                  e.target.src = DEFAULT_AVATAR;
+                }
+              }}
+            />
+          </div>
 
-      {/* Personal info */}
-      <InfoBox title="Personal Information">
-        <div
-          className="grid grid-cols-2"
-          style={{ gap: "0 16px", rowGap: "16px" }}
-        >
-          {personalInfo.map(({ label, value }) => (
-            <React.Fragment key={label}>
-              <p>
-                <strong className="lg:text-[19px] text-[#ADA5A5] font-[700] lg:leading-[40px]">
-                  {label}:
-                </strong>
+          <div className="w-full flex flex-col lg:flex-row items-center justify-between">
+            <div className="flex flex-col gap-1">
+              <h2 className="text-[24px] sm:text-[28px] md:text-[20px] xl:text-[37px] leading-[28px] sm:leading-[32px] md:leading-[34px] lg:leading-[37px] font-[500] text-white">
+                {displayName}
+              </h2>
+              {userProfile?.username && (
+                <p className="text-[#A9A9A9] font-[400] text-[16px] leading-[20px]">
+                  @{userProfile.username}
+                </p>
+              )}
+              <p className="text-[#FDDD3F] font-[500] xl:text-[22px] leading-[28px]">
+                {levelLabel}
               </p>
-              <p className="lg:text-[18px] text-[#818181] font-[400] lg:leading-[20px] max-w-full">
-                {value || "--"}
-              </p>
-            </React.Fragment>
-          ))}
-        </div>
-      </InfoBox>
-
-      {model &&
-        userProfile &&
-        (() => {
-          const { countryCode, phoneNumber } = parsePhoneNumber(
-            userProfile?.phoneNumber
-          );
-          return (
-            <div className="absolute top-0 left-0 h-screen w-screen z-50 bg-[rgba(0,0,0,0.6)]">
-              <UpdateProfileModal
-                onClose={() => setModel(false)}
-                onUpdate={handleUpdate}
-                isLoading={isUpdating}
-                defaults={{
-                  firstName: userProfile?.firstName || "",
-                  lastName: userProfile?.lastName || "",
-                  username: userProfile?.username || "",
-                  email: userProfile?.email || "",
-                  phoneCountry: countryCode,
-                  phoneNumber: phoneNumber,
-                  nationality: userProfile?.nationality || "",
-                  gender: userProfile?.gender || "",
-                  dob: userProfile?.dob || "",
-                  profile: {
-                    bio: userProfile?.profile?.bio || "",
-                    avatar: userProfile?.profile?.avatar || { url: "" },
-                    socialLinks: {
-                      facebook:
-                        userProfile?.profile?.socialLinks?.facebook || "",
-                      instagram:
-                        userProfile?.profile?.socialLinks?.instagram || "",
-                      linkedin:
-                        userProfile?.profile?.socialLinks?.linkedin || "",
-                      twitter: userProfile?.profile?.socialLinks?.twitter || "",
-                      website: userProfile?.profile?.socialLinks?.website || "",
-                      youtube: userProfile?.profile?.socialLinks?.youtube || "",
-                    },
-                  },
-                }}
-                defaultAvatarUrl={DEFAULT_AVATAR}
-              />
             </div>
-          );
-        })()}
-    </div>
+            <button
+              onClick={() => setModel(true)}
+              disabled={isUpdating}
+              className={`flex items-center text-[14px] font-[700] bg-[#161616] text-[#A9A9A9] rounded-[10px] cursor-pointer ${
+                isUpdating
+                  ? "opacity-50 cursor-not-allowed"
+                  : "hover:bg-[#2a2a2a]"
+              }`}
+              style={{ marginTop: "8px", padding: "8px 16px", gap: "4px" }}
+            >
+              {isUpdating ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-[#A9A9A9] border-t-transparent rounded-full animate-spin"></div>
+                  Updating...
+                </>
+              ) : (
+                "Edit Profile"
+              )}
+            </button>
+          </div>
+        </div>
+
+        {/* Bio */}
+        <InfoBox title="Bio" content={bio || "No bio yet."} />
+
+        {/* Personal info */}
+        <InfoBox title="Personal Information">
+          <div
+            className="grid grid-cols-2"
+            style={{ gap: "0 16px", rowGap: "16px" }}
+          >
+            {personalInfo.map(({ label, value }) => (
+              <React.Fragment key={label}>
+                <p>
+                  <strong className="lg:text-[19px] text-[#ADA5A5] font-[700] lg:leading-[40px]">
+                    {label}:
+                  </strong>
+                </p>
+                <p className="lg:text-[18px] text-[#818181] font-[400] lg:leading-[20px] max-w-full">
+                  {value || "--"}
+                </p>
+              </React.Fragment>
+            ))}
+          </div>
+        </InfoBox>
+
+        {model &&
+          userProfile &&
+          (() => {
+            const { countryCode, phoneNumber } = parsePhoneNumber(
+              userProfile?.phoneNumber
+            );
+            return (
+              <div className="absolute top-0 left-0 h-screen w-screen z-50 bg-[rgba(0,0,0,0.6)]">
+                <UpdateProfileModal
+                  onClose={() => setModel(false)}
+                  onUpdate={handleUpdate}
+                  isLoading={isUpdating}
+                  defaults={{
+                    firstName: userProfile?.firstName || "",
+                    lastName: userProfile?.lastName || "",
+                    username: userProfile?.username || "",
+                    email: userProfile?.email || "",
+                    phoneCountry: countryCode,
+                    phoneNumber: phoneNumber,
+                    nationality: userProfile?.nationality || "",
+                    gender: userProfile?.gender || "",
+                    dob: userProfile?.dob || "",
+                    profile: {
+                      bio: userProfile?.profile?.bio || "",
+                      avatar: userProfile?.profile?.avatar || { url: "" },
+                      socialLinks: {
+                        facebook:
+                          userProfile?.profile?.socialLinks?.facebook || "",
+                        instagram:
+                          userProfile?.profile?.socialLinks?.instagram || "",
+                        linkedin:
+                          userProfile?.profile?.socialLinks?.linkedin || "",
+                        twitter:
+                          userProfile?.profile?.socialLinks?.twitter || "",
+                        website:
+                          userProfile?.profile?.socialLinks?.website || "",
+                        youtube:
+                          userProfile?.profile?.socialLinks?.youtube || "",
+                      },
+                    },
+                  }}
+                  defaultAvatarUrl={displayAvatarUrl}
+                />
+              </div>
+            );
+          })()}
+      </div>
+      {feedbackModal.open && (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 px-4">
+          <div className="bg-[#121212] border border-[var(--mutant-color)] rounded-xl p-6 max-w-sm w-full text-white text-center space-y-4">
+            <div
+              className={`text-sm font-semibold ${
+                feedbackModal.type === "success"
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {feedbackModal.type === "success" ? "Success" : "Error"}
+            </div>
+            <p className="text-sm leading-relaxed">{feedbackModal.message}</p>
+            <button
+              onClick={() =>
+                setFeedbackModal((prev) => ({ ...prev, open: false }))
+              }
+              className="bg-[var(--mutant-color)] hover:bg-[var(--primary)] transition-colors text-white px-4 py-2 rounded-lg text-sm font-semibold"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
