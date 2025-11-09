@@ -48,7 +48,8 @@ export default function Home() {
         setLastRefresh(Date.now());
       } catch (err) {
         console.error("Failed to fetch missions:", err);
-        setError("Failed to load missions. Please try again.");
+        console.error("Failed to fetch missions:", err);
+        setError(null);
       } finally {
         setLoading(false);
       }
@@ -91,7 +92,10 @@ export default function Home() {
       } catch (err) {
         // Suppress cart-loading notifications on the home page.
         // Keep mission errors intact elsewhere.
-        console.warn("[Home] Cart fetch skipped or failed:", err?.message || err);
+        console.warn(
+          "[Home] Cart fetch skipped or failed:",
+          err?.message || err
+        );
         return;
       }
     };
@@ -127,13 +131,10 @@ export default function Home() {
     };
   }, [setCartItems]);
 
-  
   useEffect(() => {
     const handlePageLoad = () => {
-     
       setMissions([]);
 
-      
       const fetchMissionsOnLoad = async () => {
         try {
           setLoading(true);
@@ -153,7 +154,8 @@ export default function Home() {
           setLastRefresh(Date.now());
         } catch (err) {
           console.error("Failed to fetch missions on page load:", err);
-          setError("Failed to load missions. Please try again.");
+          console.error("Failed to fetch missions on page load:", err);
+          setError(null);
         } finally {
           setLoading(false);
         }
@@ -211,11 +213,6 @@ export default function Home() {
 
   return (
     <div className="flex flex-col items-center">
-      {error && (
-        <div className="fixed top-20 right-5 bg-red-500 text-white px-4 py-2 rounded-md shadow-lg z-50">
-          {error}
-        </div>
-      )}
       {/* Herosection */}
       <div
         style={{
