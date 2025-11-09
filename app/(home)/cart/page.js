@@ -40,9 +40,10 @@ export default function Page() {
 
         if (cartRes.data?.success && cartRes.data?.cart) {
           const cartItemsData = cartRes.data.cart.missions || [];
+          const filteredItems = cartItemsData.filter((entry) => entry?.mission);
           console.log("[Cart Page] Backend guest cart data:", cartItemsData);
 
-          const mappedItems = cartItemsData.map((entry) => {
+          const mappedItems = filteredItems.map((entry) => {
             const mission = entry?.mission || {};
             return {
               id: mission._id || entry?._id,
@@ -121,9 +122,10 @@ export default function Page() {
       console.log("[Cart Page] Auth cart response:", response);
       if (response.status === 200 && response.data.cart) {
         const cartItemsData = response.data.cart.missions || [];
+        const filteredItems = cartItemsData.filter((entry) => entry?.mission);
         console.log("[Cart Page] Backend cart data:", cartItemsData);
 
-        const mappedItems = cartItemsData.map((entry) => {
+        const mappedItems = filteredItems.map((entry) => {
           const mission = entry?.mission || {};
           return {
             id: mission._id || entry?._id,

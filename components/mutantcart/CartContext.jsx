@@ -75,7 +75,10 @@ export function CartProvider({ children }) {
             setGuestCartId(response.data.cart._id || storedGuestCartId);
 
             const cartItemsData = response.data.cart.missions || [];
-            const mappedItems = cartItemsData.map((entry) => {
+            const filteredItems = cartItemsData.filter(
+              (entry) => entry?.mission
+            );
+            const mappedItems = filteredItems.map((entry) => {
               const mission = entry?.mission || {};
               return {
                 id: mission._id || entry?._id,
@@ -131,7 +134,8 @@ export function CartProvider({ children }) {
 
       if (response.status === 200 && response.data.cart) {
         const cartItemsData = response.data.cart.missions || [];
-        const mappedItems = cartItemsData.map((entry) => {
+        const filteredItems = cartItemsData.filter((entry) => entry?.mission);
+        const mappedItems = filteredItems.map((entry) => {
           const mission = entry?.mission || {};
           return {
             id: mission._id || entry?._id,
