@@ -1,6 +1,7 @@
 import "./globals.css";
 import { NotificationProvider } from "@/context/NotificationContext";
 import { CartProvider } from "@/components/mutantcart/CartContext";
+import SessionTimeoutProvider from "@/components/SessionTimeoutProvider";
 
 export const metadata = {
   title: "Mutant School",
@@ -13,7 +14,9 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <body suppressHydrationWarning={true}>
         <CartProvider>
-          <NotificationProvider>{children}</NotificationProvider>
+          <NotificationProvider>
+            <SessionTimeoutProvider>{children}</SessionTimeoutProvider>
+          </NotificationProvider>
         </CartProvider>
       </body>
     </html>
