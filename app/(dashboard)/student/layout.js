@@ -23,20 +23,27 @@ function LayoutContent({ children }) {
   const { showLevelCkallenge } = useContext(StudentContext);
   const pathname = usePathname();
 
+  const isRootStudentRoute = pathname === "/student";
+
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      document.body.classList.add("dashboard-scroll-hidden");
+    if (typeof document === "undefined") return undefined;
+
+    if (isRootStudentRoute) {
+      document.body.classList.remove("dashboard-scroll-hidden");
       return () => {
         document.body.classList.remove("dashboard-scroll-hidden");
       };
     }
-  }, []);
+
+    document.body.classList.add("dashboard-scroll-hidden");
+    return () => {
+      document.body.classList.remove("dashboard-scroll-hidden");
+    };
+  }, [isRootStudentRoute]);
 
   const isCourseGuideRoute = pathname?.includes(
     "/dashboard/student-course-guilde"
   );
-
-  const isRootStudentRoute = pathname === "/student";
 
   const isDashboardRoute =
     pathname === "/student/dashboard" || pathname === "/student/dashboard/";

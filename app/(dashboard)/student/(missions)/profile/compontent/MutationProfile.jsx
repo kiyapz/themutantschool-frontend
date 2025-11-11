@@ -146,14 +146,28 @@ function MutationProfile() {
       }
 
       // Build a safe payload (keep existing values if not changed)
+      const resolvedDateOfBirth =
+        updatedData?.dateOfBirth ??
+        updatedData?.dob ??
+        userProfile?.dateOfBirth ??
+        userProfile?.dob ??
+        "";
+
+      const resolvedCountry =
+        updatedData?.country ??
+        updatedData?.nationality ??
+        userProfile?.country ??
+        userProfile?.nationality ??
+        "";
+
       const payload = {
         firstName: updatedData.firstName ?? "",
         lastName: updatedData.lastName ?? "",
         email: updatedData.email ?? "",
         phoneNumber: updatedData.phoneE164 ?? updatedData.phoneNumber ?? "",
-        nationality: updatedData.nationality ?? "",
+        country: resolvedCountry,
         gender: updatedData.gender ?? "",
-        dob: updatedData.dob ?? "",
+        dateOfBirth: resolvedDateOfBirth,
         username: updatedData.username ?? "",
         profile: {
           ...(userProfile?.profile || {}),
@@ -175,16 +189,6 @@ function MutationProfile() {
 
       const url = `https://themutantschool-backend.onrender.com/api/user-profile/${userProfile?._id}`;
 
-      console.log("🚀 Submitting profile update with payload:", {
-        dob: payload.dob,
-        dobValue: `"${payload.dob}"`,
-        dobLength: payload.dob?.length,
-        dobType: typeof payload.dob,
-        phoneNumber: payload.phoneNumber,
-        phoneE164: updatedData.phoneE164,
-      });
-      console.log("🚀 FULL PAYLOAD:", payload);
-
       let res;
       if (updatedData?.avatarFile) {
         // ⛑️ Multipart: send file + NON-avatar fields (flat). Do NOT send avatar.url or profile JSON.
@@ -196,14 +200,13 @@ function MutationProfile() {
         form.append("lastName", payload.lastName);
         form.append("email", payload.email);
         form.append("phoneNumber", payload.phoneNumber);
-        form.append("nationality", payload.nationality);
+        if (payload.country && payload.country.trim() !== "") {
+          form.append("country", payload.country);
+        }
         form.append("gender", payload.gender);
         // Only send dob if it has a value (not empty string)
-        if (payload.dob && payload.dob.trim() !== "") {
-          console.log("✅ Appending dob to FormData:", payload.dob);
-          form.append("dob", payload.dob);
-        } else {
-          console.log("❌ NOT appending dob - value is:", payload.dob);
+        if (payload.dateOfBirth && payload.dateOfBirth.trim() !== "") {
+          form.append("dateOfBirth", payload.dateOfBirth);
         }
         form.append("username", payload.username);
 
@@ -221,27 +224,18 @@ function MutationProfile() {
         // form.append("profile.avatar.url", ...)
         // form.append("profile", JSON.stringify(payload.profile))
 
-        // Log what's in FormData
-        console.log("📤 Sending FormData (with avatar file):");
-        for (let [key, value] of form.entries()) {
-          console.log(`  ${key}: ${value}`);
-        }
-
         res = await axios.put(url, form, {
           headers: { Authorization: `Bearer ${accessToken}` },
         });
       } else {
-        // JSON-only update (no file). Allow updating `profile.avatar.url` if the user typed one.
-        // Remove dob from payload if it's empty to avoid backend validation errors
         const jsonPayload = { ...payload };
-        if (!jsonPayload.dob || jsonPayload.dob.trim() === "") {
-          console.log("❌ Removing empty dob from JSON payload");
-          delete jsonPayload.dob;
-        } else {
-          console.log("✅ Keeping dob in JSON payload:", jsonPayload.dob);
+        if (!jsonPayload.dateOfBirth || jsonPayload.dateOfBirth.trim() === "") {
+          delete jsonPayload.dateOfBirth;
         }
 
-        console.log("📤 Sending JSON payload (no avatar file):", jsonPayload);
+        if (!jsonPayload.country || jsonPayload.country.trim() === "") {
+          delete jsonPayload.country;
+        }
 
         res = await axios.put(url, jsonPayload, {
           headers: { Authorization: `Bearer ${accessToken}` },
@@ -249,7 +243,7 @@ function MutationProfile() {
       }
 
       // Prefer server response (it should include the uploaded avatar URL)
-      console.log("✅ Profile update successful. Server response:", res?.data);
+      const serverResponse = res?.data;
 
       // Refetch the complete profile data to ensure we have the latest values
       const storedUser = localStorage.getItem("USER");
@@ -303,6 +297,7 @@ function MutationProfile() {
       const successMsg = "Profile updated successfully!";
       console.log("✅", successMsg);
       setFeedbackModal({ open: true, type: "success", message: successMsg });
+      return serverResponse;
     } catch (err) {
       console.error(
         "❌ Failed to update profile:",
@@ -314,6 +309,7 @@ function MutationProfile() {
       }`;
       console.error("❌", errorMsg);
       setFeedbackModal({ open: true, type: "error", message: errorMsg });
+      throw err;
     } finally {
       setIsUpdating(false);
     }
@@ -405,10 +401,16 @@ function MutationProfile() {
       { label: "Email Address", value: userProfile?.email || "" },
       { label: "Phone Number", value: userProfile?.phoneNumber || "" },
       { label: "Gender", value: userProfile?.gender || "" },
-      { label: "Country", value: userProfile?.nationality || "" },
+      {
+        label: "Country",
+        value: userProfile?.country || userProfile?.nationality || "",
+      },
       {
         label: "Date of Birth",
-        value: formatDateForDisplay(userProfile?.dob) || "",
+        value:
+          formatDateForDisplay(
+            userProfile?.dateOfBirth || userProfile?.dob || ""
+          ) || "",
       },
       {
         label: "Preferred Language",
@@ -634,9 +636,12 @@ function MutationProfile() {
                     email: userProfile?.email || "",
                     phoneCountry: countryCode,
                     phoneNumber: phoneNumber,
-                    nationality: userProfile?.nationality || "",
+                    country:
+                      userProfile?.country || userProfile?.nationality || "",
                     gender: userProfile?.gender || "",
-                    dob: userProfile?.dob || "",
+                    dob: userProfile?.dateOfBirth || userProfile?.dob || "",
+                    dateOfBirth:
+                      userProfile?.dateOfBirth || userProfile?.dob || "",
                     profile: {
                       bio: userProfile?.profile?.bio || "",
                       avatar: userProfile?.profile?.avatar || { url: "" },

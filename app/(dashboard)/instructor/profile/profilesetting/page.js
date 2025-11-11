@@ -67,10 +67,10 @@ export default function Profilesetting() {
               }}
               className="bg-[var(--black-background)] flex flex-col space-y-[20px] hidden xl:block"
             >
-              <Link href="/instructor/profile">
+              <Link href="/instructor/profile" prefetch={false}>
                 <div
                   onClick={() => setprofiledisplay("Personal Information")}
-                  className={`${
+                  className={`$
                     profiledisplay === "Personal Information"
                       ? "text-[#8D5FCA]"
                       : "text-[var(--coco-color)]"
@@ -81,11 +81,11 @@ export default function Profilesetting() {
                 </div>
               </Link>
 
-              <Link href="/instructor/profile/notification">
+              <Link href="/instructor/profile/notification" prefetch={false}>
                 <div
                   onClick={() => setprofiledisplay("Notifications")}
                   style={{ marginTop: "20px", marginBottom: "20px" }}
-                  className={`${
+                  className={`$
                     profiledisplay === "Notifications"
                       ? "text-[#8D5FCA]"
                       : "text-[var(--coco-color)]"
@@ -96,10 +96,10 @@ export default function Profilesetting() {
                 </div>
               </Link>
 
-              <Link href="/instructor/profile/profilesetting">
+              <Link href="/instructor/profile/profilesetting" prefetch={false}>
                 <div
                   onClick={() => setprofiledisplay("Security Settings")}
-                  className={`${
+                  className={`$
                     profiledisplay === "Security Settings"
                       ? "text-[#8D5FCA]"
                       : "text-[var(--coco-color)]"

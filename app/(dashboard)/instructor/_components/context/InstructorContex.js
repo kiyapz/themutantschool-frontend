@@ -45,6 +45,7 @@ export default function InstructorContextProvider({ children }) {
     phoneNumber: "",
     role: "",
     nationality: "",
+    country: "",
     preferredLanguage: "",
     dateOfBirth: "",
     publicId: "",
@@ -198,6 +199,21 @@ export default function InstructorContextProvider({ children }) {
   // Update userUpdatedValue when userProfile changes
   useEffect(() => {
     if (userProfile) {
+      const avatarUrl =
+        userProfile.profile?.avatar?.url ||
+        userProfile.profile?.avatar?.secure_url ||
+        userProfile.profile?.avatarUrl ||
+        userProfile.avatar?.url ||
+        userProfile.avatar?.secure_url ||
+        userProfile.avatarUrl ||
+        "";
+      const avatarKey =
+        userProfile.profile?.avatar?.key ||
+        userProfile.profile?.avatar?.public_id ||
+        userProfile.avatar?.key ||
+        userProfile.avatar?.public_id ||
+        "";
+
       setUserUpdatedValue({
         firstName: userProfile.firstName || "",
         lastName: userProfile.lastName || "",
@@ -210,15 +226,16 @@ export default function InstructorContextProvider({ children }) {
         twitter: userProfile.profile?.socialLinks?.twitter || "",
         instagram: userProfile.profile?.socialLinks?.instagram || "",
         youtube: userProfile.profile?.socialLinks?.youtube || "",
-        url: userProfile.profile?.avatar?.url || "",
-        publicId: userProfile.profile?.avatar?.key || "",
+        url: avatarUrl,
+        publicId: avatarKey,
         headline: userProfile.profile?.headline || "",
         introVideo: userProfile.profile?.introVideo || "",
         expertiseTags: userProfile.profile?.expertiseTags || [],
         gender: userProfile.gender || "",
         phoneNumber: userProfile.phoneNumber || "",
         role: userProfile.role || "Instructor",
-        nationality: userProfile.nationality || "",
+        nationality: userProfile.nationality || userProfile.country || "",
+        country: userProfile.country || userProfile.nationality || "",
         preferredLanguage: userProfile.preferredLanguage || "",
         displayFullName: userProfile.displayFullName !== false, // true by default unless explicitly set to false
         dateOfBirth: userProfile.dateOfBirth

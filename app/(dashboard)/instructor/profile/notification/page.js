@@ -66,7 +66,7 @@ export default function Notification() {
               }}
               className=" bg-[var(--black-background)] flex flex-col space-y-[20px] hidden xl:block"
             >
-              <Link href="/instructor/profile">
+              <Link href="/instructor/profile" prefetch={false}>
                 <div
                   onClick={() => setprofiledisplay("Personal Information")}
                   className={`${
@@ -79,7 +79,7 @@ export default function Notification() {
                   <p>{` >`} </p>
                 </div>
               </Link>
-              <Link href="/instructor/profile/notification">
+              <Link href="/instructor/profile/notification" prefetch={false}>
                 <div
                   onClick={() => setprofiledisplay("Notifications")}
                   style={{ marginTop: "20px", marginBottom: "20px" }}
@@ -93,7 +93,7 @@ export default function Notification() {
                   <p>{` >`} </p>
                 </div>
               </Link>
-              <Link href="/instructor/profile/profilesetting">
+              <Link href="/instructor/profile/profilesetting" prefetch={false}>
                 <div
                   onClick={() => setprofiledisplay("Security Settings")}
                   className={`${

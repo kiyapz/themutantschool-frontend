@@ -191,7 +191,9 @@ const UpdateProfileModal = ({
   const [activeTab, setActiveTab] = useState("personal");
   const [previewUrl, setPreviewUrl] = useState("");
   const [isPhoneDropdownOpen, setPhoneDropdownOpen] = useState(false);
+  const [isCountryDropdownOpen, setCountryDropdownOpen] = useState(false);
   const phoneDropdownRef = useRef(null);
+  const countryDropdownRef = useRef(null);
 
   const {
     register,
@@ -213,7 +215,7 @@ const UpdateProfileModal = ({
         }
       ).code,
       phoneNumber: "",
-      nationality: "",
+      country: "",
       gender: "",
       dob: "",
       profile: {
@@ -249,9 +251,11 @@ const UpdateProfileModal = ({
   };
 
   useEffect(() => {
-    const formattedDob = formatDateIn(defaults.dob);
+    const formattedDob = formatDateIn(
+      defaults.dateOfBirth ?? defaults.dob ?? ""
+    );
     console.log("🔄 Modal reset with defaults:", {
-      originalDob: defaults.dob,
+      originalDob: defaults.dateOfBirth ?? defaults.dob,
       formattedDob: formattedDob,
       phoneCountry: defaults.phoneCountry,
       phoneNumber: defaults.phoneNumber,
@@ -271,7 +275,7 @@ const UpdateProfileModal = ({
           }
         ).code,
       phoneNumber: defaults.phoneNumber || "",
-      nationality: defaults.nationality || "",
+      country: defaults.country || defaults.nationality || "",
       gender: defaults.gender ? normalizeGenderIn(defaults.gender) : "",
       dob: formattedDob,
       profile: {
@@ -292,9 +296,14 @@ const UpdateProfileModal = ({
   }, [defaults, countries, reset]);
 
   const phoneCountry = watch("phoneCountry");
-  const selectedCountry = useMemo(
+  const countryValue = watch("country");
+  const selectedPhoneCountry = useMemo(
     () => countries.find((c) => c.code === phoneCountry) || countries[0],
     [countries, phoneCountry]
+  );
+  const selectedCountry = useMemo(
+    () => countries.find((c) => c.name === countryValue) || null,
+    [countries, countryValue]
   );
 
   const flagToIso = (flagEmoji) => {
@@ -327,11 +336,18 @@ const UpdateProfileModal = ({
       ) {
         setPhoneDropdownOpen(false);
       }
+      if (
+        countryDropdownRef.current &&
+        !countryDropdownRef.current.contains(event.target)
+      ) {
+        setCountryDropdownOpen(false);
+      }
     };
 
     const handleEscape = (event) => {
       if (event.key === "Escape") {
         setPhoneDropdownOpen(false);
+        setCountryDropdownOpen(false);
       }
     };
 
@@ -346,8 +362,7 @@ const UpdateProfileModal = ({
 
   useEffect(() => {
     if (!phoneCountry) {
-      const fallbackCountry =
-        countries.find((c) => c.code === "+971") ||
+      const fallbackCountry = countries.find((c) => c.code === "+971") ||
         countries[0] || { code: "+971" };
       setValue("phoneCountry", fallbackCountry.code, {
         shouldDirty: false,
@@ -367,27 +382,19 @@ const UpdateProfileModal = ({
     }
   }, [chosenFile]);
 
-  const onSubmit = (data) => {
-    console.log("📝 RAW Form data received:", data);
-    console.log(
-      "📝 Date of Birth value from form:",
-      data.dob,
-      "Type:",
-      typeof data.dob
-    );
-
+  const onSubmit = async (data) => {
     const payload = {
       firstName: data.firstName,
       lastName: data.lastName,
       username: data.username,
       email: data.email,
       phoneNumber: data.phoneNumber,
-      nationality: data.nationality,
+      country: data.country,
       gender: normalizeGenderOut(data.gender),
-      dob: data.dob,
+      dateOfBirth: data.dob,
       profile: {
         bio: data.profile?.bio || "",
-        avatar: { url: data.profile?.avatar?.url || "" }, // text URL (used only when no file)
+        avatar: { url: data.profile?.avatar?.url || "" },
         socialLinks: { ...data.profile?.socialLinks },
       },
       avatarFile:
@@ -401,18 +408,11 @@ const UpdateProfileModal = ({
       ""
     )}`;
 
-    console.log("📝 Form data being submitted:", {
-      dob: data.dob,
-      dobInPayload: payload.dob,
-      phoneNumber: data.phoneNumber,
-      phoneCountry: data.phoneCountry,
-      phoneE164: payload.phoneE164,
-      gender: payload.gender,
-    });
-
-    console.log("📦 FULL PAYLOAD:", payload);
-
-    onUpdate?.(payload);
+    try {
+      const response = await onUpdate?.(payload);
+    } catch (error) {
+      console.error("⚠️ Profile update request failed:", error);
+    }
   };
 
   const InputField = ({
@@ -560,21 +560,21 @@ const UpdateProfileModal = ({
                         aria-expanded={isPhoneDropdownOpen}
                       >
                         <span className="flex items-center justify-center w-5 h-4 relative overflow-hidden rounded-[4px]">
-                          {getFlagImageUrl(selectedCountry.flag) ? (
+                          {getFlagImageUrl(selectedPhoneCountry.flag) ? (
                             <img
-                              src={getFlagImageUrl(selectedCountry.flag)}
-                              alt={`${selectedCountry.name} flag`}
+                              src={getFlagImageUrl(selectedPhoneCountry.flag)}
+                              alt={`${selectedPhoneCountry.name} flag`}
                               className="absolute inset-0 w-full h-full object-cover"
                               loading="lazy"
                             />
                           ) : (
                             <span className="text-lg leading-none">
-                              {selectedCountry.flag}
+                              {selectedPhoneCountry.flag}
                             </span>
                           )}
                         </span>
                         <span className="font-semibold">
-                          {selectedCountry.code}
+                          {selectedPhoneCountry.code}
                         </span>
                         <svg
                           className={`w-3 h-3 text-[var(--text)] transition-transform ${
@@ -598,7 +598,7 @@ const UpdateProfileModal = ({
                           <div className="max-h-60 overflow-y-auto scrollbar-hidden">
                             {countries.map((country) => {
                               const isSelected =
-                                country.code === selectedCountry.code;
+                                country.code === selectedPhoneCountry.code;
                               return (
                                 <button
                                   type="button"
@@ -700,20 +700,113 @@ const UpdateProfileModal = ({
                 className="grid grid-cols-2 gap-4"
                 style={{ marginBottom: "16px" }}
               >
-                <InputField label="Country" id="nationality" name="nationality">
-                  <select
-                    id="nationality"
-                    {...register("nationality")}
-                    className="bg-[var(--accent)] text-white text-sm rounded-[10px] px-3 py-2 w-full focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)] cursor-pointer"
-                    style={{ padding: "10px" }}
+                <InputField label="Country" id="country" name="country">
+                  <div
+                    className="relative"
+                    ref={countryDropdownRef}
+                    style={{ minHeight: "44px" }}
                   >
-                    <option value="">Select your country</option>
-                    {countries.map((c) => (
-                      <option key={c.name} value={c.name}>
-                        {c.flag} {c.name}
-                      </option>
-                    ))}
-                  </select>
+                    <button
+                      type="button"
+                      onClick={() => setCountryDropdownOpen((prev) => !prev)}
+                      className={`flex w-full items-center justify-between gap-3 bg-[var(--accent)] text-white text-sm rounded-[10px] px-3 py-2 focus:outline-none focus:ring-2 focus:ring-[var(--mutant-color)] transition-colors ${
+                        selectedCountry
+                          ? "border border-transparent hover:border-[var(--mutant-color)]"
+                          : "border border-dashed border-[#3c3c3c]"
+                      }`}
+                    >
+                      {selectedCountry ? (
+                        <span className="flex items-center gap-3">
+                          <span className="flex items-center justify-center w-5 h-4 relative overflow-hidden rounded-[4px]">
+                            {getFlagImageUrl(selectedCountry.flag) ? (
+                              <img
+                                src={getFlagImageUrl(selectedCountry.flag)}
+                                alt={`${selectedCountry.name} flag`}
+                                className="absolute inset-0 w-full h-full object-cover"
+                                loading="lazy"
+                              />
+                            ) : (
+                              <span className="text-lg leading-none">
+                                {selectedCountry.flag}
+                              </span>
+                            )}
+                          </span>
+                          <span className="font-medium">
+                            {selectedCountry.name}
+                          </span>
+                        </span>
+                      ) : (
+                        <span className="text-[#9a9a9a]">
+                          Select your country
+                        </span>
+                      )}
+                      <svg
+                        className={`w-4 h-4 text-[var(--text)] transition-transform ${
+                          isCountryDropdownOpen ? "rotate-180" : ""
+                        }`}
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 9l-7 7-7-7"
+                        />
+                      </svg>
+                    </button>
+                    {isCountryDropdownOpen && (
+                      <div className="absolute left-0 right-0 mt-2 max-h-60 overflow-y-auto rounded-[12px] bg-[var(--accent)] shadow-xl z-40 scrollbar-hidden">
+                        {countries.map((country) => {
+                          const isSelected =
+                            country.name === selectedCountry?.name;
+                          return (
+                            <button
+                              type="button"
+                              key={country.name}
+                              className={`flex w-full items-center gap-3 px-3 py-2 text-sm text-left transition-colors ${
+                                isSelected
+                                  ? "bg-[var(--mutant-color)] text-white"
+                                  : "text-white hover:bg-[var(--foreground)]"
+                              }`}
+                              onClick={() => {
+                                setValue("country", country.name, {
+                                  shouldDirty: true,
+                                  shouldTouch: true,
+                                });
+                                setCountryDropdownOpen(false);
+                              }}
+                            >
+                              <span className="flex items-center justify-center w-5 h-4 relative overflow-hidden rounded-[4px]">
+                                {getFlagImageUrl(country.flag) ? (
+                                  <img
+                                    src={getFlagImageUrl(country.flag)}
+                                    alt={`${country.name} flag`}
+                                    className="absolute inset-0 w-full h-full object-cover"
+                                    loading="lazy"
+                                  />
+                                ) : (
+                                  <span className="text-lg leading-none">
+                                    {country.flag}
+                                  </span>
+                                )}
+                              </span>
+                              <span className="flex flex-col">
+                                <span className="font-medium">
+                                  {country.name}
+                                </span>
+                                <span className="text-xs text-[#bcbcbc]">
+                                  {country.code}
+                                </span>
+                              </span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                    <input type="hidden" {...register("country")} />
+                  </div>
                 </InputField>
                 <InputField
                   label="Date Of Birth"

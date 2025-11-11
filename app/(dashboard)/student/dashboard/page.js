@@ -256,14 +256,45 @@ export default function Page() {
 
         // Check if profile is complete
         const studentProfileData = studentResponse.data.data;
-        const profileComplete = !!(
+        const avatarUrl =
+          studentProfileData?.profile?.avatar?.url ||
+          studentProfileData?.profile?.avatar?.secure_url ||
+          studentProfileData?.profile?.avatarUrl ||
+          studentProfileData?.avatar?.url ||
+          studentProfileData?.avatar?.secure_url ||
+          studentProfileData?.avatarUrl ||
+          studentProfileData?.avatar ||
+          "";
+        const basicFieldsComplete = Boolean(
           studentProfileData?.firstName &&
-          studentProfileData?.lastName &&
-          studentProfileData?.email &&
-          studentProfileData?.avatar
+            studentProfileData?.lastName &&
+            studentProfileData?.email
         );
+
+        let profileComplete = basicFieldsComplete && Boolean(avatarUrl);
+
+        if (typeof studentProfileData?.profileCompleted === "boolean") {
+          profileComplete = studentProfileData.profileCompleted;
+        } else if (
+          typeof studentProfileData?.profileCompletion?.isComplete === "boolean"
+        ) {
+          profileComplete = studentProfileData.profileCompletion.isComplete;
+        } else if (
+          typeof studentProfileData?.profileCompletionPercentage === "number"
+        ) {
+          profileComplete = studentProfileData.profileCompletionPercentage >= 100;
+        } else if (
+          typeof studentProfileData?.profileCompletion?.percentage === "number"
+        ) {
+          profileComplete =
+            studentProfileData.profileCompletion.percentage >= 100;
+        } else if (
+          typeof studentProfileData?.profileCompletion === "number"
+        ) {
+          profileComplete = studentProfileData.profileCompletion >= 100;
+        }
+
         setIsProfileComplete(profileComplete);
-        console.log("Profile complete:", profileComplete);
       } catch (error) {
         console.error(
           "Error fetching available missions:",
