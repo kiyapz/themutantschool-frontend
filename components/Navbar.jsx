@@ -152,7 +152,7 @@ export default function Navbar() {
           {/* Desktop Auth / Profile */}
           <div className="hidden md:flex items-center justify-center gap-1 lg:gap-4">
             {/* Show cart icon for all users, not just students */}
-            <div className="flex items-center justify-center">
+            <div className="flex items-center mb-3 justify-center">
               <Link href={"/cart"}>
                 <div
                   ref={cartIconRef}
