@@ -235,6 +235,7 @@ body {
 }
 
 .cut-box3 {
+  position: relative;
   background: #ffffff;
   padding: 2px;
   clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
@@ -242,11 +243,14 @@ body {
 
 .cut-box-inner3 {
   /* background: var(--foreground); */
-  height: 24px;
-  width: 118.05px;
-  padding: 0.5rem 1rem;
+  height: 100%;
+  width: 100%;
+  padding: 0.5rem 2rem;
+  padding-left: 10px;
+  box-sizing: border-box;
   /* color: white; */
-  clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  /* Make the diagonal cut show the outer 2px border by insetting the cut by 2px */
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 22px 100%, 0 calc(100% - 22px));
 }
 
 /* Second Box - Top Left Cut */
@@ -262,7 +266,8 @@ body {
   /* background: var(--foreground); */
   padding: 0.5rem 1rem;
   /* color: white; */
-  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 0 100%);
+  /* Inset the inner cut to reveal a visible diagonal border (2px) */
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
 }
 
 .mt-mutantlogin {

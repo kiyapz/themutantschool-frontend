@@ -425,7 +425,7 @@ export default function Page() {
                 completed={hasCompletedMission}
                 text2={"Pick a beginner-friendly course to start for 20XP"}
                 text3={"Start now"}
-                link={"/student/dashboard/missions"}
+                link={"/student/missions"}
                 style={
                   "text-[#AF2BC6] font-[700] text-[12px] sm:text-[15px] xl:text-[17px] leading-[24px] sm:leading-[30px] bg-[#1F0D1F] "
                 }
@@ -439,7 +439,7 @@ export default function Page() {
                 text3={"Start now"}
                 index={3}
                 completed={isProfileComplete}
-                link={"/student/dashboard/profile"}
+                link={"/student/profile"}
                 style={
                   "text-[#2B61C6] font-[700] text-[12px] sm:text-[15px] xl:text-[17px] leading-[24px] sm:leading-[30px] bg-[#0D141F] "
                 }

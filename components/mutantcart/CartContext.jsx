@@ -66,11 +66,18 @@ export function CartProvider({ children }) {
         try {
           console.log("[CartContext] Fetching guest cart:", storedGuestCartId);
           const response = await axios.get(
-            `https://themutantschool-backend.onrender.com/api/guest/cart?cartId=${storedGuestCartId}`
+            `https://themutantschool-backend.onrender.com/api/guest/cart?cartId=${storedGuestCartId}`,
+            {
+              validateStatus: function (status) {
+                // Only accept 200, reject all others including 304, 300, 303, etc.
+                return status === 200;
+              }
+            }
           );
           console.log("[CartContext] Guest cart response:", response);
 
-          if (response.data?.success && response.data?.cart) {
+          // Strictly check for status 200 only - reject 300, 304, 303, etc.
+          if (response.status === 200 && response.data?.success && response.data?.cart) {
             setIsGuest(true);
             setGuestCartId(response.data.cart._id || storedGuestCartId);
 
@@ -80,11 +87,14 @@ export function CartProvider({ children }) {
             );
             const mappedItems = filteredItems.map((entry) => {
               const mission = entry?.mission || {};
+              const instructorName = mission.instructor
+                ? `${mission.instructor.firstName || ""} ${mission.instructor.lastName || ""}`.trim()
+                : "The Mutant School";
               return {
                 id: mission._id || entry?._id,
                 image: mission.thumbnail?.url || "/images/placeholder.png",
                 title: mission.title || "",
-                by: "The Mutant School",
+                by: instructorName || "The Mutant School",
                 price:
                   typeof mission.price === "number"
                     ? mission.price
@@ -95,13 +105,20 @@ export function CartProvider({ children }) {
             setCartItems(mappedItems);
             setCartCount(mappedItems.length);
             return;
+          } else {
+            // Non-200 status - don't set cart items
+            console.log("[CartContext] Non-200 status for guest cart:", response.status);
+            setCartItems([]);
+            setCartCount(0);
+            return;
           }
         } catch (guestError) {
           console.log(
-            "[CartContext] Guest cart fetch failed:",
+            "[CartContext] Guest cart fetch failed (including 304, 300, 303, etc.):",
+            guestError.response?.status,
             guestError.message
           );
-          // If guest cart fetch fails, we'll reset it
+          // If guest cart fetch fails (including 304), we'll reset it
           localStorage.removeItem("guest-cart-id");
           setIsGuest(false);
           setGuestCartId(null);
@@ -128,20 +145,30 @@ export function CartProvider({ children }) {
 
       const response = await axios.get(
         "https://themutantschool-backend.onrender.com/api/mission-cart",
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          validateStatus: function (status) {
+            // Only accept 200, reject all others including 304, 300, 303, etc.
+            return status === 200;
+          }
+        }
       );
       console.log("[CartContext] Auth cart response:", response);
 
-      if (response.status === 200 && response.data.cart) {
+      // Strictly check for status 200 only - reject 300, 304, 303, etc.
+      if (response.status === 200 && response.data && response.data.cart) {
         const cartItemsData = response.data.cart.missions || [];
         const filteredItems = cartItemsData.filter((entry) => entry?.mission);
         const mappedItems = filteredItems.map((entry) => {
           const mission = entry?.mission || {};
+          const instructorName = mission.instructor
+            ? `${mission.instructor.firstName || ""} ${mission.instructor.lastName || ""}`.trim()
+            : "The Mutant School";
           return {
             id: mission._id || entry?._id,
             image: mission.thumbnail?.url || "/images/placeholder.png",
             title: mission.title || "",
-            by: "The Mutant School",
+            by: instructorName || "The Mutant School",
             price:
               typeof mission.price === "number"
                 ? mission.price
@@ -151,11 +178,18 @@ export function CartProvider({ children }) {
 
         setCartItems(mappedItems);
         setCartCount(mappedItems.length);
+      } else {
+        // Non-200 status - don't set cart items
+        console.log("[CartContext] Non-200 status for auth cart:", response.status);
+        setCartItems([]);
+        setCartCount(0);
       }
     } catch (error) {
       // Silently handle errors to prevent "mission not found" on non-mission pages
+      // This includes 304, 300, 303, etc. - all should be rejected
       console.log(
-        "[CartContext] Cart fetch failed (this is normal on non-mission pages):",
+        "[CartContext] Cart fetch failed (including 304, 300, 303, etc.):",
+        error.response?.status,
         error.message
       );
 
@@ -166,7 +200,7 @@ export function CartProvider({ children }) {
         localStorage.removeItem("USER");
       }
 
-      // Don't throw error, just set empty cart silently
+      // Don't throw error, just set empty cart silently for all non-200 statuses
       setCartItems([]);
       setCartCount(0);
     }
@@ -176,6 +210,11 @@ export function CartProvider({ children }) {
   useEffect(() => {
     fetchCartFromBackend();
   }, []);
+
+  // Automatically sync cartCount with cartItems length
+  useEffect(() => {
+    setCartCount(cartItems.length);
+  }, [cartItems]);
 
   // Listen for cart changes from other components
   useEffect(() => {

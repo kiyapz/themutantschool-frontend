@@ -16,6 +16,7 @@ export default function ShoppingCart({
   emailInputValue = "",
   emailError = null,
   isProcessing = false,
+  deletingItemId = null,
 }) {
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => {
@@ -77,13 +78,21 @@ export default function ShoppingCart({
                       return price.toFixed(2);
                     })()}
                   </div>
-                  <div
-                    className="text-red-500 absolute top-5 right-5 cursor-pointer    "
-                    onClick={() => onRemove?.(item.id)}
-                    aria-label="Remove from cart"
-                    role="button"
-                  >
-                    <FaTrash />
+                  <div className="absolute top-5 right-5 flex items-center gap-2">
+                    {deletingItemId === item.id ? (
+                      <span className="text-white/70 text-xs sm:text-sm">
+                        Deleting...
+                      </span>
+                    ) : (
+                      <div
+                        className="text-red-500 cursor-pointer hover:text-red-400 transition-colors"
+                        onClick={() => onRemove?.(item.id)}
+                        aria-label="Remove from cart"
+                        role="button"
+                      >
+                        <FaTrash />
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>

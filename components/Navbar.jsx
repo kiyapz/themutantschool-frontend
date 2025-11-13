@@ -15,11 +15,12 @@ export default function Navbar() {
   const [profileHref, setProfileHref] = useState("/");
   const [isMissionPage, setIsMissionPage] = useState(false);
 
-  // Only use cart functionality on mission-related pages
-  const [cartCount, setCartCount] = useState(0);
+  // Use cart context for real-time cart count updates
+  const { cartCount } = useCart();
   const [bump, setBump] = useState(false);
   const [sparkles, setSparkles] = useState([]);
   const cartIconRef = useRef(null);
+  const prevCartCountRef = useRef(0);
 
   const handleClick = (btn) => {
     setActive(btn);
@@ -68,23 +69,6 @@ export default function Navbar() {
             user?.profile?.photo?.url ||
             "/images/default-avatar.jpg";
           setAvatarUrl(possibleAvatar);
-
-          // Fetch cart data for all authenticated students
-          if (role === "student") {
-            try {
-              const response = await fetch(
-                "https://themutantschool-backend.onrender.com/api/mission-cart",
-                {
-                  headers: { Authorization: `Bearer ${token}` },
-                }
-              );
-              const data = await response.json();
-              const cartItemsData = data.cart.missions || [];
-              setCartCount(cartItemsData.length);
-            } catch (error) {
-              console.log("Cart fetch failed:", error.message);
-            }
-          }
         } else {
           setIsAuthenticated(false);
           setAvatarUrl("/images/default-avatar.jpg");
@@ -99,6 +83,25 @@ export default function Navbar() {
 
     initializeUser();
   }, []);
+
+  // Listen for cart changes and trigger animation
+  useEffect(() => {
+    // Trigger bump animation when cart count increases
+    if (cartCount > prevCartCountRef.current && prevCartCountRef.current > 0) {
+      setBump(true);
+      setTimeout(() => setBump(false), 300);
+
+      // Add sparkle effects
+      const newSparkles = Array.from({ length: 5 }, (_, i) => ({
+        id: Date.now() + i,
+        left: Math.random() * 20 - 10,
+        top: Math.random() * 20 - 10,
+      }));
+      setSparkles(newSparkles);
+      setTimeout(() => setSparkles([]), 600);
+    }
+    prevCartCountRef.current = cartCount;
+  }, [cartCount]);
 
   return (
     <div className="w-full flexcenter  h-[70px] relative">
@@ -199,7 +202,7 @@ export default function Navbar() {
               />
             ) : (
               <>
-                <div className="cut-box3">
+                <div className="cut-box3 w-[100%] p-[2px]">
                   <Link href={"/auth/login"}>
                     <div
                       onClick={() => handleClick("signup")}

@@ -20,6 +20,8 @@ export default function Page() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailInput, setEmailInput] = useState("");
+  const [deletingItemId, setDeletingItemId] = useState(null);
+  const [successMessage, setSuccessMessage] = useState(null);
   const router = useRouter();
 
   // Fetch cart items from backend only
@@ -34,22 +36,32 @@ export default function Page() {
         setIsLoading(true);
         console.log("[Cart Page] Fetching guest cart:", storedGuestCartId);
         const cartRes = await axios.get(
-          `https://themutantschool-backend.onrender.com/api/guest/cart?cartId=${storedGuestCartId}`
+          `https://themutantschool-backend.onrender.com/api/guest/cart?cartId=${storedGuestCartId}`,
+          {
+            validateStatus: function (status) {
+              // Only accept 200, reject all others including 304, 300, 303, etc.
+              return status === 200;
+            }
+          }
         );
         console.log("[Cart Page] Guest cart response:", cartRes);
 
-        if (cartRes.data?.success && cartRes.data?.cart) {
+        // Strictly check for status 200 only
+        if (cartRes.status === 200 && cartRes.data?.success && cartRes.data?.cart) {
           const cartItemsData = cartRes.data.cart.missions || [];
           const filteredItems = cartItemsData.filter((entry) => entry?.mission);
           console.log("[Cart Page] Backend guest cart data:", cartItemsData);
 
           const mappedItems = filteredItems.map((entry) => {
             const mission = entry?.mission || {};
+            const instructorName = mission.instructor
+              ? `${mission.instructor.firstName || ""} ${mission.instructor.lastName || ""}`.trim()
+              : "The Mutant School";
             return {
               id: mission._id || entry?._id,
               image: mission.thumbnail?.url || "/images/placeholder.png",
               title: mission.title || "",
-              by: "The Mutant School",
+              by: instructorName || "The Mutant School",
               price:
                 typeof mission.price === "number"
                   ? mission.price
@@ -63,13 +75,23 @@ export default function Page() {
           setError(null);
         } else {
           console.error(
-            "[Cart Page] Invalid guest cart response:",
+            "[Cart Page] Invalid guest cart response or non-200 status:",
+            cartRes.status,
             cartRes.data
           );
+          // Don't set items if status is not 200
+          setItems([]);
+          setCartItems([]);
+          setCartCount(0);
           setError("Failed to load cart items.");
         }
       } catch (error) {
-        console.error("[Cart Page] Error fetching guest cart:", error);
+        console.error("[Cart Page] Error fetching guest cart (including 304, 300, 303, etc.):", error.response?.status, error.message);
+
+        // Clear items on any error including 304, 300, 303, etc.
+        setItems([]);
+        setCartItems([]);
+        setCartCount(0);
 
         // Clear invalid guest cart and show empty cart (not an error)
         if (error.response?.status === 404) {
@@ -77,9 +99,6 @@ export default function Page() {
             "[Cart Page] Guest cart not found. Clearing cart ID and showing empty cart."
           );
           localStorage.removeItem("guest-cart-id");
-          setItems([]);
-          setCartItems([]);
-          setCartCount(0);
           setError(null); // Don't show error for empty cart
         } else {
           setError("Failed to load cart items.");
@@ -117,21 +136,32 @@ export default function Page() {
       setIsLoading(true);
       const response = await axios.get(
         "https://themutantschool-backend.onrender.com/api/mission-cart",
-        { headers: { Authorization: `Bearer ${token}` } }
+        { 
+          headers: { Authorization: `Bearer ${token}` },
+          validateStatus: function (status) {
+            // Only accept 200, reject all others including 304, 300, 303, etc.
+            return status === 200;
+          }
+        }
       );
       console.log("[Cart Page] Auth cart response:", response);
-      if (response.status === 200 && response.data.cart) {
+      
+      // Strictly check for status 200 only - reject 300, 304, 303, etc.
+      if (response.status === 200 && response.data && response.data.cart) {
         const cartItemsData = response.data.cart.missions || [];
         const filteredItems = cartItemsData.filter((entry) => entry?.mission);
         console.log("[Cart Page] Backend cart data:", cartItemsData);
 
         const mappedItems = filteredItems.map((entry) => {
           const mission = entry?.mission || {};
+          const instructorName = mission.instructor
+            ? `${mission.instructor.firstName || ""} ${mission.instructor.lastName || ""}`.trim()
+            : "The Mutant School";
           return {
             id: mission._id || entry?._id,
             image: mission.thumbnail?.url || "/images/placeholder.png",
             title: mission.title || "",
-            by: "The Mutant School",
+            by: instructorName || "The Mutant School",
             price:
               typeof mission.price === "number"
                 ? mission.price
@@ -144,11 +174,19 @@ export default function Page() {
         setCartCount(mappedItems.length);
         setError(null);
       } else {
-        console.log("[Cart Page] Error fetching authenticated cart:", response);
+        console.log("[Cart Page] Non-200 status or invalid response:", response.status, response.data);
+        // Don't set items if status is not 200
+        setItems([]);
+        setCartItems([]);
+        setCartCount(0);
         setError("Failed to load cart items.");
       }
     } catch (error) {
-      console.log("[Cart Page] Error fetching cart:", error);
+      console.log("[Cart Page] Error fetching cart (including 304, 300, 303, etc.):", error.response?.status, error.message);
+      // Clear items on any error including 304
+      setItems([]);
+      setCartItems([]);
+      setCartCount(0);
       setError("Failed to load cart items.");
       // Don't redirect to login on unauthorized errors
       // Just show the error message
@@ -200,6 +238,10 @@ export default function Page() {
 
   const handleRemove = async (missionId) => {
     console.log(`[Remove from Cart] Removing missionId: ${missionId}`);
+    setDeletingItemId(missionId);
+    setError(null);
+    setSuccessMessage(null);
+    
     const token = localStorage.getItem("login-accessToken");
     const storedGuestCartId = localStorage.getItem("guest-cart-id");
 
@@ -222,12 +264,22 @@ export default function Page() {
 
           // Fire cart changed event for other components
           window.dispatchEvent(new CustomEvent("cart:changed"));
+          
+          // Show success message
+          setSuccessMessage("Item removed successfully!");
+          setDeletingItemId(null);
+          
+          // Clear success message after 3 seconds
+          setTimeout(() => {
+            setSuccessMessage(null);
+          }, 3000);
         } else {
           console.error(
             "[Remove from Cart] Guest API Error response:",
             response.data
           );
           setError("Failed to remove item. Please try again.");
+          setDeletingItemId(null);
         }
       } catch (err) {
         console.log(
@@ -235,6 +287,7 @@ export default function Page() {
           err.response?.data || err.message
         );
         setError("Failed to remove item. Please try again.");
+        setDeletingItemId(null);
       }
       return;
     }
@@ -242,6 +295,7 @@ export default function Page() {
     // AUTHENTICATED USER FLOW
     if (!token) {
       console.log("[Remove from Cart] No token found.");
+      setDeletingItemId(null);
       return;
     }
 
@@ -261,9 +315,19 @@ export default function Page() {
 
         // Fire cart changed event for other components
         window.dispatchEvent(new CustomEvent("cart:changed"));
+        
+        // Show success message
+        setSuccessMessage("Item removed successfully!");
+        setDeletingItemId(null);
+        
+        // Clear success message after 3 seconds
+        setTimeout(() => {
+          setSuccessMessage(null);
+        }, 3000);
       } else {
         console.log("[Remove from Cart] API Error response:", response.data);
         setError("Failed to remove item. Please try again.");
+        setDeletingItemId(null);
       }
     } catch (err) {
       console.error(
@@ -271,6 +335,7 @@ export default function Page() {
         err.response?.data || err.message
       );
       setError("Failed to remove item. Please try again.");
+      setDeletingItemId(null);
     }
   };
 
@@ -615,6 +680,11 @@ export default function Page() {
           {error}
         </div>
       )}
+      {successMessage && (
+        <div className="fixed top-20 right-5 bg-green-500 text-white px-6 py-3 rounded-md shadow-lg z-50 max-w-md">
+          {successMessage}
+        </div>
+      )}
       <ShoppingCart
         items={items}
         onRemove={handleRemove}
@@ -629,6 +699,7 @@ export default function Page() {
         emailInputValue={emailInput}
         emailError={error}
         isProcessing={isProcessing}
+        deletingItemId={deletingItemId}
       />
     </main>
   );

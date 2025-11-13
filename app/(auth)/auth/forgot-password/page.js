@@ -141,7 +141,7 @@ export default function Forgotpassword() {
       const message = error?.response?.data?.message || "Something went wrong";
 
       if (status === 404) {
-        setErrormessage(message); // "User not found..."
+        setErrormessage(message); 
       } else {
         setErrormessage(message);
       }
@@ -295,7 +295,7 @@ export default function Forgotpassword() {
               subheading="reset your PORTAL ACCESS"
               text="You’re back online. Your mission continues."
             />
-            <Link href="/Login">
+            <Link href="/auth/login">
               <button className="w-full btn h-[57px] max-w-[330px] sm:max-w-[561px] rounded-[10px] text-[18px] font-[700] leading-[57px]">
                 Go Back to Login
               </button>
