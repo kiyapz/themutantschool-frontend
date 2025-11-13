@@ -105,6 +105,24 @@ export default function VerifyEmail() {
       console.log("===================================");
 
       if (response.status === 200 || response.status === 201) {
+        // Update user object in localStorage if it exists
+        const storedUser = localStorage.getItem("USER");
+        if (storedUser) {
+          try {
+            const parsedUser = JSON.parse(storedUser);
+            // Update email verification status
+            parsedUser.emailVerified = true;
+            parsedUser.isEmailVerified = true;
+            parsedUser.verified = true;
+            parsedUser.isVerified = true;
+            parsedUser.email_verified = true;
+            // Save updated user object
+            localStorage.setItem("USER", JSON.stringify(parsedUser));
+          } catch (error) {
+            console.error("Failed to update user verification status:", error);
+          }
+        }
+
         setSuccessMessage(
           "Email verified successfully! Redirecting to login..."
         );
