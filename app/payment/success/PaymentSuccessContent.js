@@ -2,35 +2,38 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import LoggedInSuccess from "./LoggedInSuccess";
 
 export default function PaymentSuccessContent() {
   const [username, setUsername] = useState(null);
   const [password, setPassword] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
 
   useEffect(() => {
-    // Retrieve guest credentials from localStorage
-    const guestUser = localStorage.getItem("guest-username");
-    const guestPass = localStorage.getItem("guest-password");
+    const loggedInUser = localStorage.getItem("USER");
+    if (loggedInUser) {
+      setIsLoggedIn(true);
+    } else {
+      const guestUser = localStorage.getItem("guest-username");
+      const guestPass = localStorage.getItem("guest-password");
 
-    if (guestUser && guestPass) {
-      setUsername(guestUser);
-      setPassword(guestPass);
+      if (guestUser && guestPass) {
+        setUsername(guestUser);
+        setPassword(guestPass);
+      }
     }
 
     if (sessionId) {
-      // You can optionally verify the session with your backend here
       console.log("Payment successful with session ID:", sessionId);
 
-      // Clear guest cart and session data from localStorage
       localStorage.removeItem("guest-cart-id");
       localStorage.removeItem("guest-email");
       localStorage.removeItem("guest-session-id");
 
-      // Dispatch a cart change event to update the navbar icon
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("cart:changed"));
       }
@@ -76,6 +79,10 @@ export default function PaymentSuccessContent() {
         </div>
       </div>
     );
+  }
+
+  if (isLoggedIn) {
+    return <LoggedInSuccess />;
   }
 
   return (
