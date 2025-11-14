@@ -209,7 +209,7 @@ export default function StudentProfileDropdown({
             </li>
             <li>
               <Link
-                href="/student/dashboard/profile"
+                href="/student/profile"
                 onClick={() => {
                   setIsDropdownOpen(false);
                   if (onItemClick) onItemClick();
@@ -241,7 +241,7 @@ export default function StudentProfileDropdown({
             </li>
             <li>
               <Link
-                href="/student/dashboard/setting"
+                href="/student/settings"
                 onClick={() => {
                   setIsDropdownOpen(false);
                   if (onItemClick) onItemClick();

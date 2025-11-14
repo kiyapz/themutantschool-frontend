@@ -499,7 +499,7 @@ export default function LevelsPath({
               <div>
                 <div
                   style={{ padding: "30px" }}
-                  className=" bg-gradient-to-r from-[#231926] to-[#5D1D49] rounded-[20px] h-[233.0986328125px] w-full grid gap-5 sm:grid-cols-2"
+                  className=" bg-gradient-to-r from-[#231926] to-[#5D1D49] rounded-[20px] h-fit sm:h-[233.0986328125px] w-full grid gap-5 sm:grid-cols-2"
                 >
                   <div className="flex flex-col gap-5 sm:gap-0 justify-between order-2 sm:order-1">
                     <div className="flex flex-col gap-10">
