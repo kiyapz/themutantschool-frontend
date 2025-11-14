@@ -111,10 +111,10 @@ export default function Navbar() {
       >
         <div className="flex items-center justify-between w-full">
           {/* Mobile Menu Button - Left of logo */}
-          <div className="sm:hidden flex items-center mr-[2px]">
+          <div className="lg:hidden flex items-center mr-[2px]">
             <button
               onClick={toggleMobileMenu}
-              className="md:hidden flex items-center justify-center w-9 h-9 focus:outline-none text-white bg-[var(--foreground)] rounded-md"
+              className="flex items-center justify-center w-9 h-9 focus:outline-none text-white bg-[var(--foreground)] rounded-md"
               aria-label="Toggle mobile menu"
             >
               <HiMenu className="text-[18px]" />
@@ -131,7 +131,7 @@ export default function Navbar() {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:block">
+          <nav className="hidden lg:block">
             <ul className="flex gap-4 xl:gap-6">
               <Link href={"/missions"}>
                 <li className="Xirod cursor-pointer text-[11px] xl:text-[12px] leading-[24px] text-[var(--link-color)] hover:text-[var(--button-hover-color)] transition-colors duration-200">
@@ -153,7 +153,7 @@ export default function Navbar() {
           </nav>
 
           {/* Desktop Auth / Profile */}
-          <div className="hidden md:flex items-center justify-center gap-1 lg:gap-4">
+          <div className="hidden lg:flex items-center justify-center gap-1 lg:gap-4">
             {/* Show cart icon for all users, not just students */}
             <div className="flex items-center mb-3 justify-center">
               <Link href={"/cart"}>
@@ -202,41 +202,41 @@ export default function Navbar() {
               />
             ) : (
               <>
-                <div className="cut-box3 w-[100%] p-[2px]">
-                  <Link href={"/auth/login"}>
-                    <div
+                <Link href={"/auth/login"}>
+                  <div className=" w-[100px] text-black cut-box33 flexcenter  border-2 border-white h-[40px]">
+                    <button
                       onClick={() => handleClick("signup")}
-                      className={`cut-box-inner3 cursor-pointer  flex items-center justify-center text-[12px] lg:text-[13px] font-[700] px-3 py-2 ${
+                      className={`w-[100%] h-full cursor-pointer cut-box34  ${
                         active === "signup"
                           ? "bg-white text-black"
                           : "text-white bg-[var(--foreground)] "
                       }`}
                     >
-                      <button>Login</button>
-                    </div>
-                  </Link>
-                </div>
+                      Login
+                    </button>
+                  </div>
+                </Link>
 
-                <div className="cut-box4">
-                  <Link href={"/auth/register"}>
-                    <div
+                <Link href={"/auth/register"}>
+                  <div className=" w-[100px] text-black cut-box35 flexcenter  border-2 border-white h-[40px]">
+                    <button
                       onClick={() => handleClick("register")}
-                      className={`cut-box-inner4 flex items-center justify-center text-[12px] lg:text-[13px] font-[700] cursor-pointer px-3 py-2 ${
+                      className={`w-[100%] h-full cursor-pointer cut-box36  ${
                         active === "register"
                           ? "bg-white text-black"
-                          : "text-white bg-[var(--foreground)]"
+                          : "text-white bg-[var(--foreground)] "
                       }`}
                     >
-                      <button>Register</button>
-                    </div>
-                  </Link>
-                </div>
+                      Register
+                    </button>
+                  </div>
+                </Link>
               </>
             )}
           </div>
 
           {/* Mobile: Cart + Profile (menu moved to left) */}
-          <div className="sm:hidden flex items-center justify-end gap-2">
+          <div className="lg:hidden flex items-center justify-end gap-2">
             {/* Show cart icon for all users, not just students */}
             <div>
               <Link href={"/cart"}>
@@ -280,7 +280,7 @@ export default function Navbar() {
       {/* Mobile Menu Overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed  inset-0 bg-black bg-opacity-50 z-40 md:hidden"
+          className="fixed  inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={closeMobileMenu}
         />
       )}
@@ -289,7 +289,7 @@ export default function Navbar() {
       <div
         style={{ padding: "20px" }}
         className={`
-                fixed top-0 right-0 h-full w-[320px] sm:w-[360px] bg-black shadow-xl transform transition-transform duration-300 ease-in-out z-50 md:hidden overflow-y-auto
+                fixed top-0 right-0 h-full w-[320px] sm:w-[360px] bg-black shadow-xl transform transition-transform duration-300 ease-in-out z-50 lg:hidden overflow-y-auto
                 ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full"}
             `}
       >
@@ -348,41 +348,40 @@ export default function Navbar() {
           {/* Mobile Auth (only for guests; profile lives in navbar now) */}
           {!isAuthenticated && (
             <div className="grid grid-cols-2 gap-3 px-4 pb-4 justify-items-center">
-              <div className="cut-box3">
-                <Link href={"/auth/login"}>
-                  <div
+              <Link href={"/auth/login"}>
+                <div className=" w-[100px] text-black cut-box33 flexcenter  border-2 border-white h-[40px]">
+                  <button
                     onClick={() => {
                       handleClick("signup");
                       closeMobileMenu();
                     }}
-                    className={`cut-box-inner3 cursor-pointer flex items-center justify-center text-[12px] font-[700] px-3 py-2 ${
+                    className={`w-[100%] h-full cursor-pointer cut-box34  ${
                       active === "signup"
                         ? "bg-white text-black"
                         : "text-white bg-[var(--foreground)] "
                     }`}
                   >
-                    <button>Login</button>
-                  </div>
-                </Link>
-              </div>
-
-              <div className="cut-box4">
-                <Link href={"/auth/register"}>
-                  <div
+                    Login
+                  </button>
+                </div>
+              </Link>
+              <Link href={"/auth/register"}>
+                <div className=" w-[100px] text-black cut-box35 flexcenter  border-2 border-white h-[40px]">
+                  <button
                     onClick={() => {
                       handleClick("register");
                       closeMobileMenu();
                     }}
-                    className={`cut-box-inner4 flex items-center justify-center text-[12px] font-[700] cursor-pointer px-3 py-2 ${
+                    className={`w-[100%] h-full cursor-pointer cut-box36  ${
                       active === "register"
                         ? "bg-white text-black"
-                        : "text-white bg-[var(--foreground)]"
+                        : "text-white bg-[var(--foreground)] "
                     }`}
                   >
-                    <button>Register</button>
-                  </div>
-                </Link>
-              </div>
+                    Register
+                  </button>
+                </div>
+              </Link>
             </div>
           )}
         </div>

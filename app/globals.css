@@ -204,7 +204,14 @@ body {
 }
 
 .cut-box-inner {
-  clip-path: polygon(20px 0%, 100% 0%, 100% 100%, 0% 100%, 0% 20px);
+  clip-path: polygon(
+    20px 0%,
+    100% 0%,
+    100% calc(100% - 20px),
+    calc(100% - 20px) 100%,
+    0% 100%,
+    0% 20px
+  );
   padding: 1.25rem;
   color: white;
 }
@@ -234,20 +241,50 @@ body {
   padding: 1.25rem;
 }
 
-.cut-box3 {
-  position: relative;
-  background: #ffffff;
+.cut-box33 {
+  background: white;
+  width: 150px;
+  height: 40px;
   padding: 2px;
+
   clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
 }
 
+.cut-box34 {
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  /* background-color: #000000;
+  color: white; */
+}
+
+.cut-box35 {
+  background: white;
+  width: 150px;
+  height: 40px;
+  padding: 2px;
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+}
+
+.cut-box36 {
+  clip-path: polygon(0 0, calc(100% - 22px) 0, 100% 22px, 100% 100%, 0 100%);
+  /* background-color: #000000;
+  color: white; */
+}
+
+@media (min-width: 768px) and (max-width: 1024px) {
+  .cut-box33,
+  .cut-box35 {
+    width: 120px;
+    height: 38px;
+  }
+}
+
 .cut-box-inner3 {
-  /* background: var(--foreground); */
+  /* background: white; */
   height: 100%;
-  width: 100%;
-  padding: 0.5rem 2rem;
+  width: 80%;
+  /* padding: 0.5rem 2rem; */
   padding-left: 10px;
-  box-sizing: border-box;
+  /* box-sizing: border-box; */
   /* color: white; */
   /* Make the diagonal cut show the outer 2px border by insetting the cut by 2px */
   clip-path: polygon(0 0, 100% 0, 100% 100%, 22px 100%, 0 calc(100% - 22px));
