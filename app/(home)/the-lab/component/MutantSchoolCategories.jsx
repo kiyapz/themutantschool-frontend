@@ -147,7 +147,7 @@ const Categories = () => {
   };
 
   return (
-    <div className="w-full bg-white" style={{ padding: "40px 60px" }}>
+    <div className="w-full bg-white" style={{ padding: "40px 20px" }}>
       {/* Header */}
       <div
         className="flex justify-between items-center flex-col sm:flex-row gap-4"
@@ -162,7 +162,7 @@ const Categories = () => {
               placeholder="Scan for power categories…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="px-4 py-2 border border-[#C0C0C0] outline-none rounded-[38px] bg-[#F9F9F9] text-black placeholder-[#B6B6B6] font-[700] text-[10px] leading-[30px] w-[351.9072265625px]"
+              className="px-4 py-2 border border-[#C0C0C0] outline-none rounded-[38px] bg-[#F9F9F9] text-black placeholder-[#B6B6B6] font-[700] text-[10px] leading-[30px] w-full sm:w-[351.9072265625px]"
             />
             <svg
               className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-[#B6B6B6]"
@@ -202,13 +202,13 @@ const Categories = () => {
             <div
               key={index}
               onClick={() => router.push(`/missions?category=${encodeURIComponent(category.title)}`)}
-              className={`${category.bgColor} flex rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 hover:shadow-lg h-[529px] w-full`}
+              className={`${category.bgColor} flex rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 hover:shadow-lg h-[400px] sm:h-[529px] w-full`}
               style={{ padding: "24px" }}
             >
               {/* Category Title */}
               <div className="flex justify-between items-center self-end w-full">
                 <h3
-                  className={`text-[50px] font-[700] leading-[50px] ${category.textColor} max-w-[250px] line-clamp-2`}
+                  className={`text-[32px] sm:text-[50px] font-[700] leading-[36px] sm:leading-[50px] ${category.textColor} max-w-[250px] line-clamp-2`}
                 >
                   {category.title}
                 </h3>

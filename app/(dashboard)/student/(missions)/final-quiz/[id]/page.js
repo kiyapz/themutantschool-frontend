@@ -4,6 +4,7 @@ import { useParams, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import FinalQuizComponent from "../components/FinalQuizComponent";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 export default function FinalQuizPage() {
   const { id: slug } = useParams();
@@ -155,21 +156,7 @@ export default function FinalQuizPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#0A0A0A]">
-        <div className="text-center">
-          <div className="relative w-16 h-16 mx-auto mb-6">
-            <div className="absolute inset-0 animate-spin rounded-full border-4 border-purple-500/30 border-t-purple-500"></div>
-            <div
-              className="absolute inset-2 animate-spin rounded-full border-4 border-pink-500/30 border-t-pink-500 animate-reverse"
-              style={{ animationDuration: "1.5s" }}
-            ></div>
-          </div>
-          <p className="text-gray-300 text-lg font-semibold mb-2">
-            Loading Final Quiz...
-          </p>
-          <p className="text-gray-500 text-sm">
-            Please wait while we prepare your quiz
-          </p>
-        </div>
+        <LoadingSpinner size="xlarge" color="mutant" />
       </div>
     );
   }

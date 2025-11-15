@@ -79,19 +79,21 @@ export default function FinalQuizComponent({
         setTimeLeft(20);
       } else {
         // Quiz completed
-        handleQuizSubmit();
+        handleQuizSubmit(newUserAnswers);
       }
     }, 500); // 500ms delay to show the selection
   };
 
-  const handleQuizSubmit = async () => {
+  const handleQuizSubmit = async (answersToSubmit) => {
+    const finalAnswers = answersToSubmit || userAnswers;
+
     setQuizCompleted(true);
     setIsSubmitting(true);
 
     // Calculate score
     let correctAnswers = 0;
     initialQuizData.questions.forEach((question, index) => {
-      if (userAnswers[index] === question.correctAnswer) {
+      if (finalAnswers[index] === question.correctAnswer) {
         correctAnswers++;
       }
     });
@@ -125,15 +127,23 @@ export default function FinalQuizComponent({
 
       // Format answers with selectedOption (the actual text) instead of index
       const answers = initialQuizData.questions.reduce((acc, question, index) => {
-        const selectedIndex = userAnswers[index];
+        const selectedIndex = finalAnswers[index];
 
         // Only include questions that were actually answered
         if (selectedIndex !== null && selectedIndex !== undefined) {
           // Guard against invalid index and empty option text
-          const optionWithinRange = Array.isArray(question.options) && selectedIndex >= 0 && selectedIndex < question.options.length;
-          const selectedOptionText = optionWithinRange ? question.options[selectedIndex] : undefined;
+          const optionWithinRange =
+            Array.isArray(question.options) &&
+            selectedIndex >= 0 &&
+            selectedIndex < question.options.length;
+          const selectedOptionText = optionWithinRange
+            ? question.options[selectedIndex]
+            : undefined;
 
-          if (typeof selectedOptionText === "string" && selectedOptionText.trim() !== "") {
+          if (
+            typeof selectedOptionText === "string" &&
+            selectedOptionText.trim() !== ""
+          ) {
             if (!question._id) {
               console.warn(`⚠️ Question at index ${index} is missing _id`);
             }
@@ -143,7 +153,9 @@ export default function FinalQuizComponent({
             });
           } else {
             console.warn(
-              `⚠️ Skipping question ${index + 1}: invalid or empty selected option (selectedIndex=${selectedIndex}, optionWithinRange=${optionWithinRange})`
+              `⚠️ Skipping question ${
+                index + 1
+              }: invalid or empty selected option (selectedIndex=${selectedIndex}, optionWithinRange=${optionWithinRange})`
             );
           }
         }
@@ -169,14 +181,28 @@ export default function FinalQuizComponent({
 
       console.log("✅ Final quiz submitted successfully:", response.data);
 
+      // Use the result from the backend as the source of truth
+      const serverData = response.data.data;
+      const percentage = serverData.score; // Backend 'score' is percentage
+      const total = serverData.total;
+      const score = Math.round((percentage / 100) * total);
+
+      const backendResult = {
+        score: score,
+        total: total,
+        percentage: percentage,
+        passed: serverData.passed,
+        duration: formatDuration(quizDuration), // Keep client-side duration
+      };
+
       // Only set result after backend confirms success
-      setQuizResult(result);
+      setQuizResult(backendResult);
       setIsSubmitting(false);
 
       // Call parent callback ONLY if submission was successful
       if (onQuizComplete) {
         console.log("✅ Calling parent callback - submission was successful");
-        onQuizComplete(result);
+        onQuizComplete(backendResult);
       }
     } catch (error) {
       console.error("❌ Error submitting final quiz:", error);
