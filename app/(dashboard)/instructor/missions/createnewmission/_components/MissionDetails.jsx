@@ -1,10 +1,11 @@
 import { Editprofilebtn } from "../../../profile/profilesetting/_components/Editprofilebtn";
 import { FaVideo, FaCamera, FaImage } from "react-icons/fa";
 import Createnewmission from "../page";
-import { useState } from "react";
-import Sidebuttons from "../../_components/Sidebuttons";
+import { useState, useEffect } from "react";
+import CustomDropdown from "./CustomDropdown";
+import Notification from "./Notification";
 
-const MockEditprofilebtn = ({ value, onChange, label }) => (
+const MockEditprofilebtn = ({ value, onChange, label, disabled }) => (
   <div style={{ marginBottom: "20px" }}>
     <label
       style={{ display: "block", marginBottom: "8px" }}
@@ -15,34 +16,13 @@ const MockEditprofilebtn = ({ value, onChange, label }) => (
     <input
       value={value}
       onChange={onChange}
+      disabled={disabled}
       style={{ padding: "10px", width: "100%" }}
-      className="rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white"
+      className={`rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white ${
+        disabled ? "opacity-50 cursor-not-allowed" : ""
+      }`}
       placeholder={label}
     />
-  </div>
-);
-
-const MockSidebuttons = ({ text, width, items, value, onChange }) => (
-  <div className={width}>
-    <label
-      style={{ display: "block", marginBottom: "8px" }}
-      className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
-    >
-      {text}
-    </label>
-    <select
-      value={value}
-      onChange={onChange}
-      style={{ padding: "10px", width: "100%" }}
-      className="rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white"
-    >
-      <option value="">Select {text}</option>
-      {items.map((item, index) => (
-        <option key={index} value={item.label}>
-          {item.label}
-        </option>
-      ))}
-    </select>
   </div>
 );
 
@@ -56,12 +36,32 @@ export default function MissionDetails() {
   const [estimatedDuration, setEstimatedDuration] = useState("");
   const [certificateAvailable, setCertificateAvailable] = useState(true);
   const [price, setPrice] = useState("");
+  const [isFree, setIsFree] = useState(false);
   const [image, setImage] = useState(null);
-  const [video, setVideo] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [youtubeLink, setYoutubeLink] = useState("");
   const [coursePurposes, setCoursePurposes] = useState(["", "", "", ""]);
+  const [notification, setNotification] = useState(null);
+
+  useEffect(() => {
+    const draft = localStorage.getItem("missionDraft");
+    if (draft) {
+      const draftData = JSON.parse(draft);
+      setTitle(draftData.title || "");
+      setDescription(draftData.description || "");
+      setDetailedDescription(draftData.detailedDescription || "");
+      setCategory(draftData.category || "");
+      setDifficulty(draftData.difficulty || "");
+      setLanguage(draftData.language || "English (uk)");
+      setEstimatedDuration(draftData.estimatedDuration || "");
+      setCertificateAvailable(draftData.certificateAvailable !== false);
+      setPrice(draftData.price || "");
+      setIsFree(draftData.isFree || false);
+      setYoutubeLink(draftData.youtubeLink || "");
+      setCoursePurposes(draftData.coursePurposes || ["", "", "", ""]);
+    }
+  }, []);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -77,6 +77,14 @@ export default function MissionDetails() {
     setCoursePurposes(newPurposes);
   };
 
+  const handleIsFreeChange = (e) => {
+    const checked = e.target.checked;
+    setIsFree(checked);
+    if (checked) {
+      setPrice("0");
+    }
+  };
+
   const validateYouTubeLink = (url) => {
     const youtubeRegex =
       /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
@@ -89,52 +97,38 @@ export default function MissionDetails() {
     try {
       const accessToken = localStorage.getItem("login-accessToken");
 
-      console.log("Access token:", accessToken ? "Found" : "Not found");
-
       if (!accessToken) {
         alert("Please login first to create a mission");
         setLoading(false);
         return;
       }
 
+      // --- Validation Checks (remain the same) ---
       if (!title.trim()) {
         alert("Mission title is required");
         setLoading(false);
         return;
       }
-
       if (!description.trim()) {
         alert("Mission description is required");
         setLoading(false);
         return;
       }
-
       if (!category) {
         alert("Mission category is required");
         setLoading(false);
         return;
       }
-
       if (!difficulty) {
         alert("Mission difficulty is required");
         setLoading(false);
         return;
       }
-
-      // Validate YouTube link (required)
-      if (!youtubeLink.trim()) {
-        alert("Course intro video (YouTube link) is required");
+      if (!youtubeLink.trim() || !validateYouTubeLink(youtubeLink)) {
+        alert("A valid YouTube intro video link is required");
         setLoading(false);
         return;
       }
-
-      if (!validateYouTubeLink(youtubeLink)) {
-        alert("Please enter a valid YouTube URL");
-        setLoading(false);
-        return;
-      }
-
-      // Validate course purposes (at least one should be filled)
       const validPurposes = coursePurposes.filter(
         (purpose) => purpose.trim() !== ""
       );
@@ -143,17 +137,11 @@ export default function MissionDetails() {
         setLoading(false);
         return;
       }
-
-      const formData = new FormData();
-
-      // Validate price
-      if (!price || isNaN(price) || price <= 0) {
+      if (!isFree && (!price || isNaN(price) || price <= 0)) {
         alert("Please enter a valid price");
         setLoading(false);
         return;
       }
-
-      // Validate estimated duration
       if (
         !estimatedDuration ||
         isNaN(estimatedDuration) ||
@@ -164,108 +152,53 @@ export default function MissionDetails() {
         return;
       }
 
-      formData.append("title", title.trim());
-      formData.append("description", description.trim());
-      formData.append("shortDescription", description.trim());
-      formData.append("estimatedDuration", `${estimatedDuration} hours`);
-      formData.append("certificateAvailable", certificateAvailable.toString());
-      formData.append("price", price);
+      // --- Create a plain JavaScript object instead of FormData ---
+      const missionData = {
+        title: title.trim(),
+        description: description.trim(),
+        shortDescription: description.trim(),
+        estimatedDuration: `${estimatedDuration} hours`,
+        certificateAvailable: certificateAvailable,
+        price: Number(price),
+        isFree: isFree,
+        isPublished: false,
+        category: category,
+        skillLevel: difficulty,
+        language: language,
+        tags: [category.toLowerCase(), "mission", "course"],
+        video: youtubeLink.trim(),
+        learningOutcomes: coursePurposes.filter((p) => p.trim() !== ""),
+      };
 
       if (detailedDescription.trim()) {
-        formData.append("bio", detailedDescription.trim());
+        missionData.bio = detailedDescription.trim();
       }
 
-      formData.append("category", category);
-      formData.append("skillLevel", difficulty);
-      formData.append("Language", language);
-
-      const tags = [category.toLowerCase(), "mission", "course"];
-      tags.forEach((tag, index) => {
-        formData.append(`tags[${index}]`, tag);
-      });
-
-      if (image) {
-        formData.append("thumbnail", image);
-      }
-
-      if (video) {
-        formData.append("video", video);
-      }
-
-      // Add YouTube intro video
-      if (youtubeLink.trim()) {
-        formData.append("video", youtubeLink);
-      }
-
-      // Add learning outcomes
-      const coursePurposesToSubmit = coursePurposes.filter(
-        (purpose) => purpose.trim() !== ""
-      );
-      if (coursePurposesToSubmit.length > 0) {
-        coursePurposesToSubmit.forEach((outcome, index) => {
-          formData.append(`learningOutcomes[${index}]`, outcome);
-        });
-      }
-
-      console.log("FormData contents being sent:");
-      for (let [key, value] of formData.entries()) {
-        console.log(`${key}:`, value);
-      }
-
-      console.log("Sending request to create mission...");
-      console.log(
-        "Request URL:",
-        "https://themutantschool-backend.onrender.com/api/mission/create"
-      );
-      console.log("Request method: POST");
-      console.log(
-        "Authorization header:",
-        `Bearer ${accessToken ? "Present" : "Missing"}`
-      );
+      console.log("Sending JSON data:", missionData);
 
       const response = await fetch(
         "https://themutantschool-backend.onrender.com/api/mission/create",
         {
           method: "POST",
           headers: {
+            // --- Set Content-Type to application/json ---
+            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
           },
-          body: formData,
+          // --- Stringify the object for the body ---
+          body: JSON.stringify(missionData),
         }
       );
 
-      console.log(response, "Response received from server");
-
-      console.log("Response status:", response.status);
-      console.log("Response headers:", response.headers);
-
       const responseText = await response.text();
-      console.log("Raw response:", responseText);
-
-      if (response.status === 401) {
-        alert("Authentication failed. Please login again.");
-
-        return;
-      }
-
-      if (response.status === 403) {
-        alert("You do not have permission to create missions.");
-        return;
-      }
 
       if (!response.ok) {
-        console.log("Error response:", responseText);
-        console.log("Response status:", response.status);
-        console.log("Response status text:", response.statusText);
-
         try {
           const errorData = JSON.parse(responseText);
-          console.log("Parsed error data:", errorData);
           throw new Error(
             errorData.message || `HTTP ${response.status}: ${responseText}`
           );
         } catch (parseError) {
-          console.log("Failed to parse error response as JSON");
           throw new Error(`HTTP ${response.status}: ${responseText}`);
         }
       }
@@ -274,64 +207,26 @@ export default function MissionDetails() {
       try {
         result = JSON.parse(responseText);
       } catch (parseError) {
-        console.error("Failed to parse response as JSON:", responseText);
         throw new Error("Invalid response format from server");
       }
 
       console.log("Mission created successfully:", result);
 
-      localStorage.removeItem("missionId");
-
       if (result.data && result.data._id) {
         localStorage.setItem("missionId", result.data._id);
       }
 
-      // Reset all form fields
-      setTitle("");
-      setDescription("");
-      setDetailedDescription("");
-      setCategory("");
-      setDifficulty("");
-      setLanguage("English (uk)");
-      setEstimatedDuration("");
-      setCertificateAvailable(true);
-      setPrice("");
-      setImage(null);
-      setVideo(null);
-      setPreviewUrl(null);
-      setYoutubeLink("");
-      setCoursePurposes(["", "", "", ""]);
-
-      // Clear any file inputs
-      const imageInput = document.getElementById("imageInput");
-      if (imageInput) {
-        imageInput.value = "";
-      }
-
-      const videoInput = document.getElementById("videoInput");
-      if (videoInput) {
-        videoInput.value = "";
-      }
-
-      console.log("Form reset completed");
-
-      alert("Mission created successfully!");
+      setNotification({
+        message: "Mission created successfully!",
+        type: "success",
+      });
+      resetForm();
     } catch (error) {
-      console.log("Error creating mission:", error);
-
-      if (error.message.includes("402")) {
-        alert(
-          "Network error. Please check your internet connection and try again."
-        );
-      } else if (error.message.includes("401")) {
-        alert("Authentication failed. Please login again.");
-      } else if (error.message.includes("403")) {
-        alert("You do not have permission to create missions.");
-      } else if (error.message.includes("500")) {
-        alert("Server error. Please try again later or contact support.");
-      } else {
-        alert(`Error creating mission: ${error.message}`);
-      }
+      console.error("Error creating mission:", error);
+      setNotification({
+        message: `Error creating mission: ${error.message}`,
+        type: "error",
+      });
     } finally {
       setLoading(false);
     }
@@ -345,10 +240,19 @@ export default function MissionDetails() {
       category,
       difficulty,
       language,
+      estimatedDuration,
+      certificateAvailable,
+      price,
+      isFree,
+      youtubeLink,
+      coursePurposes,
     };
 
     localStorage.setItem("missionDraft", JSON.stringify(draftData));
-    alert("Draft saved successfully!");
+    setNotification({
+      message: "Draft saved successfully!",
+      type: "success",
+    });
   };
 
   const resetForm = () => {
@@ -361,8 +265,8 @@ export default function MissionDetails() {
     setEstimatedDuration("");
     setCertificateAvailable(true);
     setPrice("");
+    setIsFree(false);
     setImage(null);
-    setVideo(null);
     setPreviewUrl(null);
     setYoutubeLink("");
     setCoursePurposes(["", "", "", ""]);
@@ -373,12 +277,8 @@ export default function MissionDetails() {
       imageInput.value = "";
     }
 
-    const videoInput = document.getElementById("videoInput");
-    if (videoInput) {
-      videoInput.value = "";
-    }
-
-    console.log("Form manually reset");
+    localStorage.removeItem("missionDraft");
+    console.log("Form manually reset and draft cleared");
   };
 
   return (
@@ -386,6 +286,13 @@ export default function MissionDetails() {
       style={{ padding: "30px" }}
       className="w-full bg-[#0F0F0F] h-fit text-white"
     >
+      {notification && (
+        <Notification
+          message={notification.message}
+          type={notification.type}
+          onClose={() => setNotification(null)}
+        />
+      )}
       <div className="w-full xl:flex items-center justify-between ">
         <p
           style={{ marginBottom: "30px" }}
@@ -522,7 +429,7 @@ export default function MissionDetails() {
         style={{ marginTop: "20px", marginBottom: "20px" }}
         className="w-full grid xl:grid-cols-3 sm:gap-5 "
       >
-        <MockSidebuttons
+        <CustomDropdown
           text="Mission Category"
           width="w-full"
           value={category}
@@ -533,24 +440,23 @@ export default function MissionDetails() {
             { label: "Health" },
             { label: "Environment" },
             { label: "Social" },
+            { label: "Programming" },
           ]}
         />
 
-        <MockSidebuttons
+        <CustomDropdown
           text="Difficulty"
           width="w-full"
           value={difficulty}
           onChange={(e) => setDifficulty(e.target.value)}
           items={[
             { label: "Beginner" },
-            { label: "Easy" },
-            { label: "Medium" },
-            { label: "Hard" },
-            { label: "Expert" },
+            { label: "Intermediate" },
+            { label: "Advanced" },
           ]}
         />
 
-        <MockSidebuttons
+        <CustomDropdown
           text="Language"
           width="w-full"
           value={language}
@@ -566,11 +472,11 @@ export default function MissionDetails() {
       </div>
 
       <div className="w-full grid xl:grid-cols-3 sm:gap-5 mt-5">
-        <div className="w-full">
+        <div className="w-full" style={{ marginBottom: "20px" }}>
           <label className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]">
             Estimated Duration (hours)
           </label>
-          <div className="flex items-center">
+          <div className="flex items-center h-[50px]">
             <input
               type="number"
               min="1"
@@ -591,11 +497,51 @@ export default function MissionDetails() {
           </div>
         </div>
 
-        <div className="w-full">
+        <div className="w-full" style={{ marginBottom: "20px" }}>
+          <label
+            style={{ display: "block", marginBottom: "8px" }}
+            className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
+          >
+            Price (USD)
+          </label>
+          <div className="relative flex items-center rounded-[6px] bg-[#1F1F1F] h-[50px]">
+            <input
+              value={price}
+              onChange={(e) => {
+                const value = e.target.value;
+                if (value === "" || /^\d+$/.test(value)) {
+                  setPrice(value);
+                }
+              }}
+              disabled={isFree}
+              className={`bg-transparent outline-none px-4 py-3 text-white w-full ${
+                isFree ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              placeholder="Price (USD)"
+            />
+            <div className="pr-3 flex items-center">
+              <input
+                type="checkbox"
+                id="isFreeCheckbox"
+                checked={isFree}
+                onChange={handleIsFreeChange}
+                className="w-5 h-5 rounded bg-transparent border-gray-600"
+              />
+              <label
+                htmlFor="isFreeCheckbox"
+                className="ml-2 text-white text-sm select-none"
+              >
+                Free
+              </label>
+            </div>
+          </div>
+        </div>
+
+        <div className="w-full" style={{ marginBottom: "20px" }}>
           <label className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]">
             Certificate Available
           </label>
-          <div className="flex items-center mt-2">
+          <div className="flex items-center h-[50px]">
             <input
               type="checkbox"
               checked={certificateAvailable}
@@ -605,17 +551,6 @@ export default function MissionDetails() {
             <span className="ml-2 text-white">Certificate upon completion</span>
           </div>
         </div>
-
-        <MockEditprofilebtn
-          value={price}
-          onChange={(e) => {
-            const value = e.target.value;
-            if (value === "" || /^\d+$/.test(value)) {
-              setPrice(value);
-            }
-          }}
-          label="Price (USD)"
-        />
       </div>
 
       <div className="w-full grid gap-5  ">
