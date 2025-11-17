@@ -28,3 +28,4 @@ const Notification = ({ message, type = "info", onClose }) => {
 };
 
 export default Notification;
+
