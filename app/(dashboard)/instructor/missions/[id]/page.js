@@ -25,7 +25,7 @@ export default function Page() {
     }
   }, [encodedId]);
 
-  // Fetch all missions
+  // Fetch all missions with student stats
   useEffect(() => {
     const storedUser = localStorage.getItem("USER");
     if (!storedUser) return;
@@ -42,8 +42,33 @@ export default function Page() {
           },
         });
 
-        console.log("fetched mission response", response.data.missions);
-        setMission(response.data.missions);
+        const baseMissions = response.data.missions || [];
+        const missionsWithStats = response.data.studentProgress?.missions || [];
+
+        // Map missionId -> { totalStudents, students, engagementRate, avgScore }
+        const statsMap = new Map();
+        missionsWithStats.forEach((stat) => {
+          statsMap.set(stat.missionId, {
+            totalStudents: stat.totalStudents || 0,
+            students: stat.students || [],
+            engagementRate: stat.engagementRate || "0.0",
+            avgScore: stat.avgScore || "0.0",
+          });
+        });
+
+        // Merge stats into missions by _id
+        const mergedMissions = baseMissions.map((mission) => {
+          const stats = statsMap.get(mission._id) || {};
+          return {
+            ...mission,
+            totalStudents: stats.totalStudents || 0,
+            students: stats.students || [],
+            engagementRate: stats.engagementRate,
+            avgScore: stats.avgScore,
+          };
+        });
+
+        setMission(mergedMissions);
       } catch (error) {
         console.log("Error fetching missions:", error);
       }
@@ -55,6 +80,7 @@ export default function Page() {
   useEffect(() => {
     if (courses.length && decodedId) {
       const found = courses.find((c) => c._id === decodedId);
+      console.log("Found course:", JSON.stringify(found, null, 2));
       setCourse(found);
     }
   }, [courses, decodedId]);

@@ -39,6 +39,8 @@ export default function MissionDetails() {
   const [isFree, setIsFree] = useState(false);
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
+  const [video, setVideo] = useState(null);
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
   const [youtubeLink, setYoutubeLink] = useState("");
   const [coursePurposes, setCoursePurposes] = useState(["", "", "", ""]);
@@ -68,6 +70,31 @@ export default function MissionDetails() {
     if (file) {
       setImage(file);
       setPreviewUrl(URL.createObjectURL(file));
+    }
+  };
+
+  const handleVideoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setVideo(file);
+      setVideoPreviewUrl(URL.createObjectURL(file));
+      // Clear YouTube link when video file is uploaded
+      setYoutubeLink("");
+    }
+  };
+
+  const handleYouTubeLinkChange = (e) => {
+    const link = e.target.value;
+    setYoutubeLink(link);
+    // Clear video file when YouTube link is entered
+    if (link.trim()) {
+      setVideo(null);
+      setVideoPreviewUrl(null);
+      // Clear the file input
+      const videoInput = document.getElementById("videoInput");
+      if (videoInput) {
+        videoInput.value = "";
+      }
     }
   };
 
@@ -124,8 +151,19 @@ export default function MissionDetails() {
         setLoading(false);
         return;
       }
-      if (!youtubeLink.trim() || !validateYouTubeLink(youtubeLink)) {
-        alert("A valid YouTube intro video link is required");
+      // Validate: must have either video file OR valid YouTube link (not both)
+      if (
+        !video &&
+        (!youtubeLink.trim() || !validateYouTubeLink(youtubeLink))
+      ) {
+        alert(
+          "Please upload a video file OR provide a valid YouTube intro video link"
+        );
+        setLoading(false);
+        return;
+      }
+      if (!image) {
+        alert("Mission thumbnail is required");
         setLoading(false);
         return;
       }
@@ -152,41 +190,51 @@ export default function MissionDetails() {
         return;
       }
 
-      // --- Create a plain JavaScript object instead of FormData ---
-      const missionData = {
-        title: title.trim(),
-        description: description.trim(),
-        shortDescription: description.trim(),
-        estimatedDuration: `${estimatedDuration} hours`,
-        certificateAvailable: certificateAvailable,
-        price: Number(price),
-        isFree: isFree,
-        isPublished: false,
-        category: category,
-        skillLevel: difficulty,
-        language: language,
-        tags: [category.toLowerCase(), "mission", "course"],
-        video: youtubeLink.trim(),
-        learningOutcomes: coursePurposes.filter((p) => p.trim() !== ""),
-      };
+      // --- Create FormData for file uploads ---
+      const formData = new FormData();
 
-      if (detailedDescription.trim()) {
-        missionData.bio = detailedDescription.trim();
+      // Add text fields
+      formData.append("title", title.trim());
+      formData.append(
+        "description",
+        detailedDescription.trim() || description.trim()
+      );
+      formData.append("shortDescription", description.trim());
+      formData.append("category", category);
+      formData.append("skillLevel", difficulty);
+      formData.append("language", language);
+      formData.append("price", price || "0");
+      formData.append("isFree", isFree.toString());
+
+      // Add learning outcomes as array
+      const validOutcomes = coursePurposes.filter((p) => p.trim() !== "");
+      validOutcomes.forEach((outcome, index) => {
+        formData.append(`learningOutcomes[${index}]`, outcome.trim());
+      });
+
+      // Add video file or YouTube link
+      if (video) {
+        formData.append("video", video);
+      } else if (youtubeLink.trim()) {
+        formData.append("video", youtubeLink.trim());
       }
 
-      console.log("Sending JSON data:", missionData);
+      // Add thumbnail image
+      if (image) {
+        formData.append("thumbnail", image);
+      }
+
+      console.log("Sending FormData with files");
 
       const response = await fetch(
         "https://themutantschool-backend.onrender.com/api/mission/create",
         {
           method: "POST",
           headers: {
-            // --- Set Content-Type to application/json ---
-            "Content-Type": "application/json",
             Authorization: `Bearer ${accessToken}`,
+            // Don't set Content-Type header - browser will set it with boundary for FormData
           },
-          // --- Stringify the object for the body ---
-          body: JSON.stringify(missionData),
+          body: formData,
         }
       );
 
@@ -246,6 +294,8 @@ export default function MissionDetails() {
       isFree,
       youtubeLink,
       coursePurposes,
+      // Note: Files (video, image) cannot be saved to localStorage
+      // They will need to be re-selected when loading the draft
     };
 
     localStorage.setItem("missionDraft", JSON.stringify(draftData));
@@ -268,6 +318,8 @@ export default function MissionDetails() {
     setIsFree(false);
     setImage(null);
     setPreviewUrl(null);
+    setVideo(null);
+    setVideoPreviewUrl(null);
     setYoutubeLink("");
     setCoursePurposes(["", "", "", ""]);
 
@@ -275,6 +327,10 @@ export default function MissionDetails() {
     const imageInput = document.getElementById("imageInput");
     if (imageInput) {
       imageInput.value = "";
+    }
+    const videoInput = document.getElementById("videoInput");
+    if (videoInput) {
+      videoInput.value = "";
     }
 
     localStorage.removeItem("missionDraft");
@@ -359,18 +415,6 @@ export default function MissionDetails() {
             className="w-full rounded-[6px] bg-[#1F1F1F] outline-none px-4 py-3 text-white resize-none"
           ></textarea>
         </div>
-      </div>
-
-      {/* YouTube Link Section */}
-      <div style={{ marginTop: "20px", marginBottom: "20px" }}>
-        <MockEditprofilebtn
-          value={youtubeLink}
-          onChange={(e) => setYoutubeLink(e.target.value)}
-          label="Course Intro Video (YouTube Link) *"
-        />
-        <p style={{ color: "#787878", fontSize: "13px", marginTop: "4px" }}>
-          Enter a YouTube URL for your course introduction video
-        </p>
       </div>
 
       {/* Course Purposes Section */}
@@ -553,17 +597,108 @@ export default function MissionDetails() {
         </div>
       </div>
 
-      <div className="w-full grid gap-5  ">
-        <div className="flex flex-col gap-3">
+      {/* Video and Thumbnail Upload Section - Side by Side */}
+      <div
+        className="w-full grid xl:grid-cols-2 gap-5"
+        style={{ marginTop: "20px", marginBottom: "20px" }}
+      >
+        {/* Video Upload Section */}
+        <div>
           <label
-            htmlFor="image"
+            htmlFor="videoInput"
             className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
           >
-            Mission Thumbnail
+            Course Intro Video *
           </label>
-
           <div
-            className="w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] cursor-pointer border-2 border-dashed border-gray-600 hover:border-gray-400"
+            className={`w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] border-2 border-dashed mt-2 ${
+              youtubeLink.trim() && !video
+                ? "border-gray-800 opacity-50 cursor-not-allowed"
+                : "border-gray-600 hover:border-gray-400 cursor-pointer"
+            }`}
+            onClick={() => {
+              if (!youtubeLink.trim() || video) {
+                document.getElementById("videoInput").click();
+              }
+            }}
+          >
+            {videoPreviewUrl ? (
+              <div className="w-full h-full relative">
+                <video
+                  src={videoPreviewUrl}
+                  controls
+                  className="absolute inset-0 w-full h-full object-contain rounded-[22px]"
+                />
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setVideoPreviewUrl(null);
+                    setVideo(null);
+                  }}
+                  className="absolute top-2 right-2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all"
+                >
+                  ×
+                </button>
+              </div>
+            ) : (
+              <>
+                <p className="text-center">
+                  <FaVideo size={60} title="Video Icon" />
+                </p>
+                <p className="font-[400] text-[17px] leading-[40px]">
+                  Upload Video File
+                </p>
+                <p className="text-[#787878] text-[12px] mt-1">
+                  (or use YouTube link below)
+                </p>
+                <p className="text-[#787878] text-[13px]">
+                  MP4, MOV, AVI (Maximum 500MB)
+                </p>
+              </>
+            )}
+          </div>
+          <input
+            id="videoInput"
+            type="file"
+            accept="video/*"
+            onChange={handleVideoChange}
+            style={{ display: "none" }}
+          />
+          <div style={{ marginTop: "12px" }}>
+            <p
+              style={{
+                color: "#8C8C8C",
+                fontSize: "13px",
+                marginBottom: "8px",
+                fontWeight: "600",
+              }}
+            >
+              OR
+            </p>
+            <MockEditprofilebtn
+              value={youtubeLink}
+              onChange={handleYouTubeLinkChange}
+              label="Enter YouTube Link"
+              disabled={!!video}
+            />
+            <p style={{ color: "#787878", fontSize: "13px", marginTop: "4px" }}>
+              {video
+                ? "Upload a video file OR enter a YouTube link (not both)"
+                : "Enter a YouTube URL instead of uploading a file"}
+            </p>
+          </div>
+        </div>
+
+        {/* Thumbnail Upload Section */}
+        <div>
+          <label
+            htmlFor="imageInput"
+            className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]"
+          >
+            Mission Thumbnail *
+          </label>
+          <div
+            className="w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] cursor-pointer border-2 border-dashed border-gray-600 hover:border-gray-400 mt-2"
             onClick={() => document.getElementById("imageInput").click()}
           >
             {previewUrl ? (
@@ -600,7 +735,6 @@ export default function MissionDetails() {
               </>
             )}
           </div>
-
           <input
             id="imageInput"
             type="file"

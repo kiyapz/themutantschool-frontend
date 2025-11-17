@@ -166,38 +166,76 @@ const CurriculumContent = ({ course, handleAddLevelId }) => (
   </>
 );
 
-const StudentsContent = ({ course }) => (
-  <div className="flex flex-col gap-6" style={{ padding: "0 32px 24px" }}>
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <h2 className="text-[24px] font-[600]">Students</h2>
-      <button
-        className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
-        style={{ padding: "8px 16px" }}
-      >
-        + Add Student
-      </button>
-    </div>
+const StudentsContent = ({ course }) => {
+  const students = course.students || [];
+  const total = course.totalStudents || students.length || 0;
 
-    <div className="bg-[#0F0F0F] rounded-[12px] p-6">
-      <div className="text-center text-[#838383]">
-        <div className="text-4xl mb-4">👥</div>
-        <p className="text-lg">Students management coming soon</p>
-        <p className="text-sm mt-2">View and manage enrolled students</p>
+  return (
+    <div className="flex flex-col gap-6" style={{ padding: "0 32px 24px" }}>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <h2 className="text-[24px] font-[600]">Students</h2>
+        <div className="bg-[#0F0F0F] px-4 py-2 rounded-[10px] flex items-center gap-2">
+          <span className="text-white font-[600] text-[18px]">{total}</span>
+          <span className="text-[#ABABAB] text-[13px]">Total Students</span>
+        </div>
       </div>
-    </div>
-  </div>
-);
 
-const ResourcesContent = ({ course }) => (
+      {students.length === 0 ? (
+        <div className="bg-[#0F0F0F] rounded-[12px] p-6 text-center text-[#838383]">
+          No students enrolled in this mission yet
+        </div>
+      ) : (
+        <div className="bg-[#0F0F0F] rounded-[12px] p-4">
+          <div className="grid gap-3">
+            {students.map((student) => (
+              <div
+                key={student.id || student._id}
+                className="flex items-center gap-3 p-3 bg-[#1A1A1A] rounded-[8px]"
+              >
+                <div className="h-[40px] w-[40px] rounded-full bg-gradient-to-br from-purple-400 to-pink-500 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                  {student.profilePic ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={student.profilePic}
+                      alt={student.fullName || "Student avatar"}
+                      className="h-full w-full rounded-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-white font-bold text-sm">
+                      {(student.fullName || "?").charAt(0).toUpperCase()}
+                    </span>
+                  )}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="font-[500] text-[14px] text-white truncate">
+                    {student.fullName || "Unknown Student"}
+                  </p>
+                  <p className="text-[12px] text-[#ABABAB]">
+                    {student.nationality || "Unknown"}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const ResourcesContent = ({ course, onGoPreview }) => (
   <div className="flex flex-col gap-6" style={{ padding: "0 32px 24px" }}>
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <h2 className="text-[24px] font-[600]">Resources</h2>
-      <button
-        className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
-        style={{ padding: "8px 16px" }}
-      >
-        + Add Resource
-      </button>
+      <Link href={`/instructor/missions/createnewmission`}>
+        <button
+          onClick={() => onGoPreview(course._id)}
+          className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
+          style={{ padding: "8px 16px" }}
+        >
+          + Add Resource
+        </button>
+      </Link>
     </div>
 
     <div className="bg-[#0F0F0F] rounded-[12px] p-6">
@@ -232,16 +270,19 @@ const InteractionsContent = ({ course }) => (
   </div>
 );
 
-const SettingsContent = ({ course }) => (
+const SettingsContent = ({ course, onGoPreview }) => (
   <div className="flex flex-col gap-6" style={{ padding: "0 32px 24px" }}>
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <h2 className="text-[24px] font-[600]">Settings</h2>
-      <button
-        className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
-        style={{ padding: "8px 16px" }}
-      >
-        Save Changes
-      </button>
+      <Link href={`/instructor/missions/createnewmission`}>
+        <button
+          onClick={() => onGoPreview(course._id)}
+          className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
+          style={{ padding: "8px 16px" }}
+        >
+          Save Changes
+        </button>
+      </Link>
     </div>
 
     <div className="bg-[#0F0F0F] rounded-[12px] p-6">
@@ -254,7 +295,7 @@ const SettingsContent = ({ course }) => (
   </div>
 );
 
-const renderTabContent = (activeTab, course, handleAddLevelId) => {
+const renderTabContent = (activeTab, course, handleAddLevelId, handleGoPreview) => {
   switch (activeTab) {
     case "Curriculum":
       return (
@@ -266,11 +307,11 @@ const renderTabContent = (activeTab, course, handleAddLevelId) => {
     case "Students":
       return <StudentsContent course={course} />;
     case "Resources":
-      return <ResourcesContent course={course} />;
+      return <ResourcesContent course={course} onGoPreview={handleGoPreview} />;
     case "Interactions":
       return <InteractionsContent course={course} />;
     case "Settings":
-      return <SettingsContent course={course} />;
+      return <SettingsContent course={course} onGoPreview={handleGoPreview} />;
     default:
       return (
         <CurriculumContent
@@ -293,6 +334,12 @@ export default function MissionCourseOverview({ course }) {
     localStorage.setItem("missionId", courseId);
   };
 
+  const handleGoPreview = (courseId) => {
+    // Store mission and jump to Preview & Launch step in the create flow
+    localStorage.setItem("missionId", courseId);
+    setContextActiveTab("Preview and Launch");
+  };
+
   const handleEditMission = () => {
     setShowEditModal(true);
   };
@@ -301,6 +348,24 @@ export default function MissionCourseOverview({ course }) {
     // Refresh the page or update the course data
     window.location.reload();
   };
+
+  // Prefer concrete list length when available to avoid mismatch with totals
+  const totalEnrollment = Array.isArray(course.students)
+    ? course.students.length
+    : course.totalStudents || 0;
+
+  const formatPercent = (val) => {
+    if (val === undefined || val === null) return "0%";
+    const str = String(val).trim();
+    if (str.endsWith("%")) return str;
+    const num = Number(str);
+    if (Number.isFinite(num)) return `${num}%`;
+    return str;
+  };
+
+  const completionRate = formatPercent(
+    course.engagementRate ?? course.analytics?.completionRate ?? 0
+  );
 
   return (
     <div className="flex flex-col w-full max-w-full gap-10">
@@ -339,11 +404,11 @@ export default function MissionCourseOverview({ course }) {
                 {course.status}
               </button>
               <p className="text-[#728C51] font-[600] text-[12px]">
-                Created:{" "}
+                Created: {" "}
                 {course.createdAt
                   ? new Date(course.createdAt).toLocaleDateString()
                   : "N/A"}{" "}
-                / Last updated:{" "}
+                / Last updated: {" "}
                 {course.updatedAt
                   ? new Date(course.updatedAt).toLocaleDateString()
                   : "N/A"}
@@ -360,14 +425,14 @@ export default function MissionCourseOverview({ course }) {
       <div className="grid grid-cols-2 gap-2 sm:gap-6 xl:grid-cols-3">
         <Analitiesbtn
           text1="Total Enrollment"
-          text2={course.analytics?.enrollments || "0"}
+          text2={totalEnrollment}
           text3="+2 from last month"
           text4={"Recruits"}
         />
         <div className="hidden xl:block">
           <Analitiesbtn
             text1="Completion Rate"
-            text2={course.analytics?.completionRate || "0%"}
+            text2={completionRate}
             text3="+5% from last month"
           />
         </div>
@@ -382,7 +447,7 @@ export default function MissionCourseOverview({ course }) {
       <div className=" hidden sm:flex flex-col gap-6 rounded-[20px] border border-[#535353] bg-[#111111]">
         <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        {renderTabContent(activeTab, course, handleAddLevelId)}
+        {renderTabContent(activeTab, course, handleAddLevelId, handleGoPreview)}
       </div>
 
       <div className="hidden sm:block">
