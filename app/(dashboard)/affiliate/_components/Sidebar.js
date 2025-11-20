@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   ChartBarIcon,
   UserIcon,
+  UserGroupIcon,
   ClockIcon,
   TrophyIcon,
   CreditCardIcon,
@@ -26,6 +27,7 @@ export default function Sidebar({ sidebarOpen, setSidebarOpen }) {
     },
     { name: "Leaderboard", icon: TrophyIcon, href: "/affiliate/leaderboard" },
     { name: "Payments", icon: CreditCardIcon, href: "/affiliate/payments" },
+    { name: "Users", icon: UserGroupIcon, href: "/affiliate/users" },
     { name: "Settings", icon: CogIcon, href: "/affiliate/settings" },
     { name: "Support", icon: LifebuoyIcon, href: "/affiliate/support" },
   ];

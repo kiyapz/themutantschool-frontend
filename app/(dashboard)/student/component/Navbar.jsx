@@ -28,27 +28,59 @@ export default function Navbar() {
     }
   };
 
-  useEffect(() => {
-    const updateName = () => {
+  // Fetch user profile to get real name
+  const fetchUserProfile = async () => {
+    try {
+      const userStr = localStorage.getItem("USER");
+      if (!userStr) {
+        router.push("/");
+        return;
+      }
+
+      const user = JSON.parse(userStr);
+      const userId = user._id || user.id;
+
+      if (!userId) {
+        // Fallback to localStorage name
+        const { firstName, lastName } = user;
+        setName(firstName && lastName ? `${firstName} ${lastName}` : user.email || "User");
+        return;
+      }
+
+      // Fetch from API
+      const response = await api.get(`/user-profile/${userId}`);
+      const userData = response.data?.data || response.data;
+
+      if (userData) {
+        const firstName = userData.firstName || "";
+        const lastName = userData.lastName || "";
+        const fullName = firstName && lastName
+          ? `${firstName} ${lastName}`
+          : userData.name || userData.email || "User";
+        setName(fullName);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+      // Fallback to localStorage name
       const user = localStorage.getItem("USER");
       if (user) {
-        const { firstName, lastName } = JSON.parse(user);
-        setName(`${firstName} ${lastName}`);
-      } else {
-        console.log("No user found in localStorage");
-        router.push("/");
+        const userData = JSON.parse(user);
+        const { firstName, lastName } = userData;
+        setName(firstName && lastName ? `${firstName} ${lastName}` : userData.email || "User");
       }
-    };
+    }
+  };
 
-    // Update name on mount
-    updateName();
+  useEffect(() => {
+    // Fetch user profile on mount
+    fetchUserProfile();
 
     // Fetch notification count on mount
     fetchUnreadCount();
 
     // Listen for profile updates
     const handleProfileUpdate = (event) => {
-      updateName();
+      fetchUserProfile();
     };
 
     window.addEventListener("profileUpdated", handleProfileUpdate);

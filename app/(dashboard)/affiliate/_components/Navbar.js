@@ -24,6 +24,9 @@ export default function Navbar({ setSidebarOpen }) {
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] =
     useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [userName, setUserName] = useState("User");
+  const [userInitial, setUserInitial] = useState("U");
+  const [userAvatar, setUserAvatar] = useState("");
   const profileDropdownRef = useRef(null);
   const notificationDropdownRef = useRef(null);
 
@@ -39,15 +42,71 @@ export default function Navbar({ setSidebarOpen }) {
     }
   };
 
+  // Fetch user profile
+  const fetchUserProfile = async () => {
+    try {
+      const userStr = localStorage.getItem("USER");
+      if (!userStr) return;
+
+      const user = JSON.parse(userStr);
+      const userId = user._id || user.id;
+
+      if (!userId) return;
+
+      const response = await api.get(`/user-profile/${userId}`);
+      const userData = response.data?.data || response.data;
+
+      if (userData) {
+        const firstName = userData.firstName || "";
+        const lastName = userData.lastName || "";
+        const fullName = firstName && lastName
+          ? `${firstName} ${lastName}`
+          : userData.name || userData.email || "User";
+        
+        setUserName(fullName);
+        
+        // Set initial
+        const initial = firstName && lastName
+          ? `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase()
+          : fullName.charAt(0).toUpperCase();
+        setUserInitial(initial);
+
+        // Set avatar
+        const avatarUrl = 
+          userData.profile?.avatar?.url ||
+          userData.profile?.avatar?.secure_url ||
+          userData.profile?.avatarUrl ||
+          userData.avatar?.url ||
+          userData.avatar?.secure_url ||
+          userData.avatarUrl ||
+          userData.avatar ||
+          "";
+        setUserAvatar(avatarUrl);
+      }
+    } catch (error) {
+      console.error("Error fetching user profile:", error);
+    }
+  };
+
   useEffect(() => {
     // Fetch notification count on mount
     fetchUnreadCount();
 
+    // Fetch user profile
+    fetchUserProfile();
+
     // Poll for new notifications every 30 seconds
     const notificationInterval = setInterval(fetchUnreadCount, 30000);
 
+    // Listen for profile update events
+    const handleProfileUpdate = () => {
+      fetchUserProfile();
+    };
+    window.addEventListener("profileUpdated", handleProfileUpdate);
+
     return () => {
       clearInterval(notificationInterval);
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
     };
   }, []);
 
@@ -184,13 +243,24 @@ export default function Navbar({ setSidebarOpen }) {
               e.target.style.backgroundColor = "transparent";
             }}
           >
-            <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center">
-              <span className="text-sm font-medium">E</span>
+            <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+              {userAvatar ? (
+                <img
+                  src={userAvatar}
+                  alt={userName}
+                  className="w-full h-full rounded-full object-cover"
+                  onError={() => {
+                    setUserAvatar("");
+                  }}
+                />
+              ) : (
+                <span className="text-sm font-medium text-white">{userInitial}</span>
+              )}
             </div>
             <div className="flex flex-col text-left">
               <span className="text-xs text-gray-400">Affiliate</span>
               <span className="text-sm font-medium text-white">
-                Etieno Ekanem
+                {userName}
               </span>
             </div>
             <ChevronDownIcon className="h-4 w-4 text-gray-400" />
@@ -204,14 +274,25 @@ export default function Navbar({ setSidebarOpen }) {
               <div className="p-4 border-b" style={{ borderColor: "#1A1A1A" }}>
                 <div className="flex items-center space-x-3">
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
+                    className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
                     style={{ backgroundColor: "#7343B3" }}
                   >
-                    <span className="text-sm font-medium">E</span>
+                    {userAvatar ? (
+                      <img
+                        src={userAvatar}
+                        alt={userName}
+                        className="w-full h-full object-cover"
+                        onError={() => {
+                          setUserAvatar("");
+                        }}
+                      />
+                    ) : (
+                      <span className="text-sm font-medium text-white">{userInitial}</span>
+                    )}
                   </div>
                   <div>
                     <p className="text-sm font-medium text-white">
-                      Etieno Ekanem
+                      {userName}
                     </p>
                     <p className="text-xs text-gray-400">Affiliate</p>
                   </div>
