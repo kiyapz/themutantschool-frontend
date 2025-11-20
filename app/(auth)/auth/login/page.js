@@ -130,7 +130,15 @@ export default function Login() {
               </div>
 
               <div className="flex w-full flex-col gap-4 px-2 sm:px-6">
-                <div className="flex flex-col gap-4">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (!isLoading) {
+                      handlelogin();
+                    }
+                  }}
+                  className="flex flex-col gap-4"
+                >
                   <input
                     type="email"
                     value={email}
@@ -145,8 +153,9 @@ export default function Login() {
                     placeholder="Password"
                   />
                   <div className="grid grid-cols-1 sm:grid-cols-[1.5fr_1fr] xl:grid-cols-3 gap-3 xl:gap-4 w-full">
-                    <div
-                      onClick={!isLoading ? handlelogin : undefined}
+                    <button
+                      type="submit"
+                      disabled={isLoading}
                       className={`h-[50px] sm:h-[60px] w-full xl:col-span-2 flex items-center justify-between px-3 sm:px-4 rounded-[8px] btn ${
                         isLoading
                           ? "opacity-50 cursor-not-allowed"
@@ -162,7 +171,7 @@ export default function Login() {
                         width={18}
                         height={15}
                       />
-                    </div>
+                    </button>
                     <div className="h-[50px] sm:h-[60px] w-full border-[1px] rounded-[8px] flex items-center justify-between px-3 sm:px-4 border-[var(--primary)] cursor-pointer">
                       <Image
                         src={"/images/google.png"}
@@ -185,7 +194,7 @@ export default function Login() {
                       {Successmessage}
                     </div>
                   )}
-                </div>
+                </form>
 
                 <div className="flex flex-col gap-1">
                   <Link href="/auth/forgot-password">

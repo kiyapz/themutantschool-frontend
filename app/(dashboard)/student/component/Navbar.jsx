@@ -3,14 +3,30 @@ import { useContext, useEffect, useState } from "react";
 import { StudentContext } from "./Context/StudentContext";
 import { FaArrowLeft } from "react-icons/fa";
 import { FiMenu } from "react-icons/fi"; // hamburger icon
-import { IoClose } from "react-icons/io5"; // close icon
+import { IoClose, IoNotificationsOutline } from "react-icons/io5"; // close icon and notification icon
 import Sidebar from "./Sidebar";
 import { useRouter } from "next/navigation";
+import NotificationDropdown from "./NotificationDropdown";
+import api from "@/lib/api";
 
 export default function Navbar() {
   const router = useRouter();
   const { viewStudentName, menuOpen, setMenuOpen } = useContext(StudentContext);
   const [name, setName] = useState("");
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await api.get("/notification");
+      const notifications = response.data?.data || response.data || [];
+      const unread = notifications.filter((notif) => !notif.isRead).length;
+      setUnreadCount(unread);
+    } catch (error) {
+      console.error("Error fetching notification count:", error);
+    }
+  };
 
   useEffect(() => {
     const updateName = () => {
@@ -27,6 +43,9 @@ export default function Navbar() {
     // Update name on mount
     updateName();
 
+    // Fetch notification count on mount
+    fetchUnreadCount();
+
     // Listen for profile updates
     const handleProfileUpdate = (event) => {
       updateName();
@@ -34,9 +53,13 @@ export default function Navbar() {
 
     window.addEventListener("profileUpdated", handleProfileUpdate);
 
+    // Poll for new notifications every 30 seconds
+    const notificationInterval = setInterval(fetchUnreadCount, 30000);
+
     // Cleanup listener on unmount
     return () => {
       window.removeEventListener("profileUpdated", handleProfileUpdate);
+      clearInterval(notificationInterval);
     };
   }, [router]);
 
@@ -48,16 +71,41 @@ export default function Navbar() {
         </p>
       </div>
 
-      {/* Menu Icon */}
-      <div
-        onClick={() => setMenuOpen(!menuOpen)}
-        className="sm:hidden relative z-30 cursor-pointer transition-transform duration-300 flex-shrink-0 ml-2"
-      >
-        {menuOpen ? (
-          <IoClose size={24} className="text-white" />
-        ) : (
-          <FiMenu size={20} className="text-white" />
-        )}
+      {/* Right side icons */}
+      <div className="flex items-center gap-4 relative">
+        {/* Notification Icon */}
+        <div
+          onClick={() => {
+            setNotificationOpen(!notificationOpen);
+          }}
+          className="relative cursor-pointer transition-transform duration-300 hover:scale-110 flex-shrink-0"
+        >
+          <IoNotificationsOutline size={24} className="text-white" />
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+              {unreadCount > 9 ? "9+" : unreadCount}
+            </span>
+          )}
+        </div>
+
+        {/* Notification Dropdown */}
+        <NotificationDropdown
+          isOpen={notificationOpen}
+          onClose={() => setNotificationOpen(false)}
+          onNotificationUpdate={(count) => setUnreadCount(count)}
+        />
+
+        {/* Menu Icon */}
+        <div
+          onClick={() => setMenuOpen(!menuOpen)}
+          className="sm:hidden relative z-30 cursor-pointer transition-transform duration-300 flex-shrink-0"
+        >
+          {menuOpen ? (
+            <IoClose size={24} className="text-white" />
+          ) : (
+            <FiMenu size={20} className="text-white" />
+          )}
+        </div>
       </div>
 
       {/* Sidebar Overlay */}

@@ -1,13 +1,16 @@
 "use client";
 
 import Image from "next/image";
-import { useContext, useState } from "react";
+import { useContext, useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import Link from "next/link";
 import InstructorDropdown from "./InstructorDropdown";
 import ProfiledropDown from "../profile/_components/ProfiledropDown";
 import { InstructorContext } from "./context/InstructorContex";
 import InstructorProfileImage from "./InstructorProfileImage";
+import NotificationDropdown from "../../student/component/NotificationDropdown";
+import { IoNotificationsOutline } from "react-icons/io5";
+import api from "@/lib/api";
 
 export default function NavBar({ onMenuClick }) {
   const {
@@ -16,6 +19,33 @@ export default function NavBar({ onMenuClick }) {
     isMobileMenuOpen,
     setIsMobileMenuOpen,
   } = useContext(InstructorContext);
+
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
+
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await api.get("/notification");
+      const notifications = response.data?.data || response.data || [];
+      const unread = notifications.filter((notif) => !notif.isRead).length;
+      setUnreadCount(unread);
+    } catch (error) {
+      console.error("Error fetching notification count:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch notification count on mount
+    fetchUnreadCount();
+
+    // Poll for new notifications every 30 seconds
+    const notificationInterval = setInterval(fetchUnreadCount, 30000);
+
+    return () => {
+      clearInterval(notificationInterval);
+    };
+  }, []);
 
   const handleMenuClick = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
@@ -32,19 +62,33 @@ export default function NavBar({ onMenuClick }) {
           Mission Control
         </p>
 
-        <div className="flex items-center gap-4 xl:gap-8">
+        <div className="flex items-center  relative">
           <div className="flex items-center gap-2 xl:gap-5">
-            <Image
-              src="/images/sidebaricons/Vector (12).png"
-              alt="notification"
-              width={15.7}
-              height={17}
-            />
-            <Image
-              src="/images/sidebaricons/Group 273.png"
-              alt="settings"
-              width={15.7}
-              height={17}
+            {/* Notification Icon - Desktop Only */}
+            <div
+              onClick={() => setNotificationOpen(!notificationOpen)}
+              className="relative cursor-pointer pr-4 transition-transform duration-300 hover:scale-110 flex-shrink-0"
+            >
+              <IoNotificationsOutline
+                size={20}
+                className="text-[var(--sidebar-linkcolor)]"
+              />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                  {unreadCount > 9 ? "9+" : unreadCount}
+                </span>
+              )}
+            </div>
+
+           
+          </div>
+
+          {/* Notification Dropdown for Desktop Only */}
+          <div className="hidden sm:block">
+            <NotificationDropdown
+              isOpen={notificationOpen}
+              onClose={() => setNotificationOpen(false)}
+              onNotificationUpdate={(count) => setUnreadCount(count)}
             />
           </div>
 
@@ -85,7 +129,32 @@ export default function NavBar({ onMenuClick }) {
           </p>
         </div>
 
-        <div className="flex items-center">
+        <div className="flex items-center gap-3 relative">
+          {/* Notification Icon for Mobile */}
+          <div
+            onClick={() => setNotificationOpen(!notificationOpen)}
+            className="relative cursor-pointer transition-transform duration-300 hover:scale-110 flex-shrink-0"
+          >
+            <IoNotificationsOutline
+              size={22}
+              className="text-[var(--sidebar-linkcolor)]"
+            />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
+          </div>
+
+          {/* Notification Dropdown for Mobile - only render on mobile */}
+          <div className="sm:hidden absolute top-full right-0 mt-2 z-50">
+            <NotificationDropdown
+              isOpen={notificationOpen}
+              onClose={() => setNotificationOpen(false)}
+              onNotificationUpdate={(count) => setUnreadCount(count)}
+            />
+          </div>
+
           <div className="relative h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
             <div
               onClick={() =>

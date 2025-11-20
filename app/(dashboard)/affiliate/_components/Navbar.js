@@ -4,7 +4,6 @@ import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
-  BellIcon,
   ChatBubbleLeftRightIcon,
   ChevronDownIcon,
   Bars3Icon,
@@ -12,7 +11,11 @@ import {
   CreditCardIcon,
   CogIcon,
   ShieldCheckIcon,
+  BellIcon,
 } from "@heroicons/react/24/outline";
+import NotificationDropdown from "../../student/component/NotificationDropdown";
+import { IoNotificationsOutline } from "react-icons/io5";
+import api from "@/lib/api";
 
 export default function Navbar({ setSidebarOpen }) {
   const pathname = usePathname();
@@ -20,10 +23,35 @@ export default function Navbar({ setSidebarOpen }) {
   const [isProfileDropdownOpen, setIsProfileDropdownOpen] = useState(false);
   const [isNotificationDropdownOpen, setIsNotificationDropdownOpen] =
     useState(false);
+  const [unreadCount, setUnreadCount] = useState(0);
   const profileDropdownRef = useRef(null);
   const notificationDropdownRef = useRef(null);
 
-  // Close dropdowns when clicking outside
+  // Fetch unread notification count
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await api.get("/notification");
+      const notifications = response.data?.data || response.data || [];
+      const unread = notifications.filter((notif) => !notif.isRead).length;
+      setUnreadCount(unread);
+    } catch (error) {
+      console.error("Error fetching notification count:", error);
+    }
+  };
+
+  useEffect(() => {
+    // Fetch notification count on mount
+    fetchUnreadCount();
+
+    // Poll for new notifications every 30 seconds
+    const notificationInterval = setInterval(fetchUnreadCount, 30000);
+
+    return () => {
+      clearInterval(notificationInterval);
+    };
+  }, []);
+
+  // Close profile dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event) {
       if (
@@ -31,12 +59,6 @@ export default function Navbar({ setSidebarOpen }) {
         !profileDropdownRef.current.contains(event.target)
       ) {
         setIsProfileDropdownOpen(false);
-      }
-      if (
-        notificationDropdownRef.current &&
-        !notificationDropdownRef.current.contains(event.target)
-      ) {
-        setIsNotificationDropdownOpen(false);
       }
     }
 
@@ -84,26 +106,6 @@ export default function Navbar({ setSidebarOpen }) {
     },
   ];
 
-  const notifications = [
-    {
-      id: 1,
-      message: "New referral earned $50",
-      time: "2 hours ago",
-      unread: true,
-    },
-    {
-      id: 2,
-      message: "Payment processed successfully",
-      time: "1 day ago",
-      unread: true,
-    },
-    {
-      id: 3,
-      message: "Weekly report available",
-      time: "3 days ago",
-      unread: false,
-    },
-  ];
 
   return (
     <div
@@ -121,14 +123,14 @@ export default function Navbar({ setSidebarOpen }) {
           {getPageTitle()}
         </h1>
       </div>
-      <div className="flex items-center space-x-2 sm:space-x-4">
+      <div className="flex items-center space-x-2 sm:space-x-4 relative">
         {/* Notifications Dropdown */}
         <div className="relative" ref={notificationDropdownRef}>
           <button
             onClick={() =>
               setIsNotificationDropdownOpen(!isNotificationDropdownOpen)
             }
-            className="relative p-1 rounded-lg transition-all duration-200"
+            className="relative p-1 rounded-lg transition-all duration-200 group"
             style={{ color: "#9B9B9B" }}
             onMouseEnter={(e) => {
               e.target.style.color = "#FFFFFF";
@@ -139,79 +141,20 @@ export default function Navbar({ setSidebarOpen }) {
               e.target.style.backgroundColor = "transparent";
             }}
           >
-            <BellIcon className="h-5 w-5 sm:h-6 sm:w-6" />
-            {notifications.filter((n) => n.unread).length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 rounded-full text-xs text-white flex items-center justify-center">
-                {notifications.filter((n) => n.unread).length}
+            <IoNotificationsOutline size={22} className="text-[#9B9B9B] group-hover:text-white transition-colors" />
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 rounded-full text-[10px] text-white flex items-center justify-center font-bold">
+                {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
           </button>
 
-          {isNotificationDropdownOpen && (
-            <div
-              className="absolute right-0 mt-2 w-80 rounded-lg shadow-lg border z-50"
-              style={{ backgroundColor: "#0F0F0F", borderColor: "#1A1A1A" }}
-            >
-              <div className="p-4 border-b" style={{ borderColor: "#1A1A1A" }}>
-                <h3 className="text-sm font-medium text-white">
-                  Notifications
-                </h3>
-              </div>
-              <div className="max-h-64 overflow-y-auto">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`p-4 border-b cursor-pointer transition-all duration-200 ${
-                      notification.unread ? "opacity-100" : "opacity-70"
-                    }`}
-                    style={{
-                      borderColor: "#1A1A1A",
-                      backgroundColor: notification.unread
-                        ? "#0C0C0C"
-                        : "transparent",
-                    }}
-                    onMouseEnter={(e) => {
-                      e.target.style.backgroundColor = "#1A1A1A";
-                      e.target.style.transform = "translateX(4px)";
-                      e.target.style.borderLeft = "3px solid #7343B3";
-                    }}
-                    onMouseLeave={(e) => {
-                      e.target.style.backgroundColor = notification.unread
-                        ? "#0C0C0C"
-                        : "transparent";
-                      e.target.style.transform = "translateX(0px)";
-                      e.target.style.borderLeft = "3px solid transparent";
-                    }}
-                  >
-                    <p className="text-sm text-white">{notification.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      {notification.time}
-                    </p>
-                  </div>
-                ))}
-              </div>
-              <div className="p-2">
-                <Link
-                  href="/affiliate/profile/notifications"
-                  className="block text-center text-sm py-2 transition-all duration-200 rounded-lg mx-2"
-                  style={{ color: "#7343B3" }}
-                  onMouseEnter={(e) => {
-                    e.target.style.color = "#FFFFFF";
-                    e.target.style.backgroundColor = "#7343B3";
-                    e.target.style.transform = "scale(1.02)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.target.style.color = "#7343B3";
-                    e.target.style.backgroundColor = "transparent";
-                    e.target.style.transform = "scale(1)";
-                  }}
-                  onClick={() => setIsNotificationDropdownOpen(false)}
-                >
-                  View All Notifications
-                </Link>
-              </div>
-            </div>
-          )}
+          {/* Notification Dropdown */}
+          <NotificationDropdown
+            isOpen={isNotificationDropdownOpen}
+            onClose={() => setIsNotificationDropdownOpen(false)}
+            onNotificationUpdate={(count) => setUnreadCount(count)}
+          />
         </div>
 
         <button
