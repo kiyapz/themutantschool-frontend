@@ -227,7 +227,6 @@ export default function IdentifyRole() {
     setButtonDisabled("Loading...");
 
     try {
-      // Build the URL with referral code as query parameter if present
       let registerUrl = "register";
       if (referralCode) {
         registerUrl += `?ref=${encodeURIComponent(referralCode)}`;
@@ -255,7 +254,7 @@ export default function IdentifyRole() {
         const { accessToken, refreshToken, user } = res.data;
 
         localStorage.setItem("accessToken", accessToken);
-        localStorage.setItem("login-accessToken", accessToken); // For dashboard access
+        localStorage.setItem("login-accessToken", accessToken);
         localStorage.setItem("refreshToken", refreshToken);
         localStorage.setItem("USER", JSON.stringify(user));
 
