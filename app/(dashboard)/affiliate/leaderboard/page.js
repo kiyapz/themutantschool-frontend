@@ -1,7 +1,34 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import api from "@/lib/api";
+
+// Avatar component with fallback to initials
+const Avatar = ({ src, alt, initials, className = "" }) => {
+  const [imageError, setImageError] = useState(false);
+
+  if (!src || imageError) {
+    return (
+      <div className={`w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center ${className}`}>
+        <span className="text-xs font-medium text-white">{initials}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden relative ${className}`}>
+      <Image
+        src={src}
+        alt={alt}
+        fill
+        className="object-cover rounded-full"
+        onError={() => setImageError(true)}
+        unoptimized
+      />
+    </div>
+  );
+};
 
 export default function LeaderboardPage() {
   const [loading, setLoading] = useState(true);
@@ -163,25 +190,11 @@ export default function LeaderboardPage() {
                     {affiliate.rank}.
                   </div>
                   <div className="col-span-8 flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden">
-                      {affiliate.avatar ? (
-                        <img
-                          src={affiliate.avatar}
-                          alt={affiliate.name}
-                          className="w-full h-full object-cover"
-                          onError={(e) => {
-                            e.target.style.display = "none";
-                            e.target.nextSibling.style.display = "flex";
-                          }}
-                        />
-                      ) : null}
-                      <span
-                        className="text-xs font-medium text-white"
-                        style={{ display: affiliate.avatar ? "none" : "flex" }}
-                      >
-                        {getUserInitials(user)}
-                      </span>
-                    </div>
+                    <Avatar
+                      src={affiliate.avatar}
+                      alt={affiliate.name}
+                      initials={getUserInitials(user)}
+                    />
                     <div>
                       <div className="text-white font-medium">{affiliate.name}</div>
                       {affiliate.username && (

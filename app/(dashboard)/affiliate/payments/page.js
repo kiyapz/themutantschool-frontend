@@ -282,7 +282,7 @@ export default function PaymentsPage() {
               <div className="flex-1 min-w-0">
                 <h3 className="text-white font-medium mb-1 text-sm sm:text-base">KYC Verification Pending</h3>
                 <p className="text-gray-400 text-xs sm:text-sm break-words">
-                  Your KYC verification is under review. You'll be able to request payouts once approved.
+                  Your KYC verification is under review. You&apos;ll be able to request payouts once approved.
                 </p>
               </div>
             </div>

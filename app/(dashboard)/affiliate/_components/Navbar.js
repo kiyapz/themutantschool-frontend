@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import {
   ChatBubbleLeftRightIcon,
   ChevronDownIcon,
@@ -323,18 +324,20 @@ export default function Navbar({ setSidebarOpen }) {
               e.target.style.backgroundColor = "transparent";
             }}
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden relative">
               {userAvatar ? (
-                <img
+                <Image
                   src={userAvatar}
                   alt={userName}
-                  className="w-full h-full rounded-full object-cover"
+                  fill
+                  className="object-cover rounded-full"
                   onError={() => {
                     setUserAvatar("");
                   }}
+                  unoptimized
                 />
               ) : (
-                <span className="text-xs sm:text-sm font-medium text-white">{userInitial}</span>
+                <span className="text-xs sm:text-sm font-medium text-white absolute inset-0 flex items-center justify-center">{userInitial}</span>
               )}
             </div>
             <div className="flex flex-col text-left">
@@ -357,18 +360,20 @@ export default function Navbar({ setSidebarOpen }) {
               e.target.style.backgroundColor = "transparent";
             }}
           >
-            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden">
+            <div className="w-7 h-7 sm:w-8 sm:h-8 bg-purple-600 rounded-full flex items-center justify-center overflow-hidden relative">
               {userAvatar ? (
-                <img
+                <Image
                   src={userAvatar}
                   alt={userName}
-                  className="w-full h-full rounded-full object-cover"
+                  fill
+                  className="object-cover rounded-full"
                   onError={() => {
                     setUserAvatar("");
                   }}
+                  unoptimized
                 />
               ) : (
-                <span className="text-xs sm:text-sm font-medium text-white">{userInitial}</span>
+                <span className="text-xs sm:text-sm font-medium text-white absolute inset-0 flex items-center justify-center">{userInitial}</span>
               )}
             </div>
           </button>
@@ -381,20 +386,22 @@ export default function Navbar({ setSidebarOpen }) {
               <div className="p-4 border-b" style={{ borderColor: "#1A1A1A" }}>
                 <div className="flex items-center space-x-3">
                   <div
-                    className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden"
+                    className="w-10 h-10 rounded-full flex items-center justify-center overflow-hidden relative"
                     style={{ backgroundColor: "#7343B3" }}
                   >
                     {userAvatar ? (
-                      <img
+                      <Image
                         src={userAvatar}
                         alt={userName}
-                        className="w-full h-full object-cover"
+                        fill
+                        className="object-cover rounded-full"
                         onError={() => {
                           setUserAvatar("");
                         }}
+                        unoptimized
                       />
                     ) : (
-                      <span className="text-sm font-medium text-white">{userInitial}</span>
+                      <span className="text-sm font-medium text-white absolute inset-0 flex items-center justify-center">{userInitial}</span>
                     )}
                   </div>
                   <div>

@@ -1,7 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { useContext, useEffect, useMemo, useRef, useState, useCallback } from "react";
 import { FiChevronDown, FiEdit } from "react-icons/fi";
 import { InstructorContext } from "../_components/context/InstructorContex";
 import { Editprofilebtn } from "./profilesetting/_components/Editprofilebtn";
@@ -228,7 +228,7 @@ export default function Profile() {
     []
   );
 
-  const parsePhoneNumber = (fullPhone) => {
+  const parsePhoneNumber = useCallback((fullPhone) => {
     if (!fullPhone) {
       return { countryCode: "+971", phoneNumber: "" };
     }
@@ -246,7 +246,7 @@ export default function Profile() {
     }
 
     return { countryCode: "+971", phoneNumber: digitsOnly.replace(/^\+?971/, "") };
-  };
+  }, [countries]);
 
   const flagToIso = (flagEmoji) => {
     if (!flagEmoji) return null;
@@ -302,7 +302,7 @@ export default function Profile() {
     );
     setPhoneCountryCode(countryCode);
     setPhoneLocalNumber(phoneNumber);
-  }, [userUpdatedValue?.phoneNumber]);
+  }, [userUpdatedValue?.phoneNumber, parsePhoneNumber]);
 
   useEffect(() => {
     const handleClickOutside = (event) => {
