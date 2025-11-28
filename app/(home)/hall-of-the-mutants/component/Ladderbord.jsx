@@ -72,133 +72,18 @@ const Leaderboard = () => {
 
             setLeaderboardData(transformedData);
           } else {
-            // Fallback to default data if API structure is different
-            setLeaderboardData([
-              {
-                id: 1,
-                name: "Etieno Ekanem",
-                username: "@Etienoekanem",
-                xp: 700,
-                rank: 1,
-              },
-              {
-                id: 2,
-                name: "Sophia Turner",
-                username: "@Sophiaturn220",
-                xp: 700,
-                rank: 2,
-              },
-            ]);
+            // No data available
+            setLeaderboardData([]);
           }
         } else {
-          // Use default data if API fails or not authenticated
-          setLeaderboardData([
-            {
-              id: 1,
-              name: "Etieno Ekanem",
-              username: "@Etienoekanem",
-              xp: 700,
-              rank: 1,
-            },
-            {
-              id: 2,
-              name: "Sophia Turner",
-              username: "@Sophiaturn220",
-              xp: 700,
-              rank: 2,
-            },
-            {
-              id: 3,
-              name: "Sophia Turner",
-              username: "@Sophiaturn220",
-              xp: 700,
-              rank: 3,
-            },
-            {
-              id: 4,
-              name: "Sophia Turner",
-              username: "@Sophiaturn220",
-              xp: 700,
-              rank: 4,
-            },
-            {
-              id: 5,
-              name: "Sophia Turner",
-              username: "@Sophiaturn220",
-              xp: 700,
-              rank: 5,
-            },
-            {
-              id: 6,
-              name: "Sophia Turner",
-              username: "@Sophiaturn220",
-              xp: 700,
-              rank: 6,
-            },
-            {
-              id: 7,
-              name: "Sophia Turner",
-              username: "@Sophiaturn220",
-              xp: 700,
-              rank: 7,
-            },
-          ]);
+          // API failed or not authenticated - no mock data
+          setLeaderboardData([]);
         }
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
         setError(err.message);
-        // Use default data on error
-        setLeaderboardData([
-          {
-            id: 1,
-            name: "Etieno Ekanem",
-            username: "@Etienoekanem",
-            xp: 700,
-            rank: 1,
-          },
-          {
-            id: 2,
-            name: "Sophia Turner",
-            username: "@Sophiaturn220",
-            xp: 700,
-            rank: 2,
-          },
-          {
-            id: 3,
-            name: "Sophia Turner",
-            username: "@Sophiaturn220",
-            xp: 700,
-            rank: 3,
-          },
-          {
-            id: 4,
-            name: "Sophia Turner",
-            username: "@Sophiaturn220",
-            xp: 700,
-            rank: 4,
-          },
-          {
-            id: 5,
-            name: "Sophia Turner",
-            username: "@Sophiaturn220",
-            xp: 700,
-            rank: 5,
-          },
-          {
-            id: 6,
-            name: "Sophia Turner",
-            username: "@Sophiaturn220",
-            xp: 700,
-            rank: 6,
-          },
-          {
-            id: 7,
-            name: "Sophia Turner",
-            username: "@Sophiaturn220",
-            xp: 700,
-            rank: 7,
-          },
-        ]);
+        // No mock data on error
+        setLeaderboardData([]);
       } finally {
         setLoading(false);
       }
@@ -266,12 +151,25 @@ const Leaderboard = () => {
 
         {error && (
           <div className="text-red-500 text-sm mb-4">
-            Error: {error} (Using default data)
+            Error: {error}
           </div>
         )}
 
-        <div className="flex flex-col gap-4 max-w-[1564.35546875px] w-full px-2 sm:px-4">
-          {leaderboardData.map((student) => (
+        {leaderboardData.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 px-4">
+            <div className="text-center">
+              <div className="text-gray-400 text-4xl mb-4">🏆</div>
+              <h2 className="text-[#4E1D9C] text-xl sm:text-2xl font-[600] mb-2">
+                Leaderboard is Empty
+              </h2>
+              <p className="text-gray-500 text-sm sm:text-base">
+                No students have earned XP yet. Be the first to appear on the leaderboard!
+              </p>
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col gap-4 max-w-[1564.35546875px] w-full px-2 sm:px-4">
+            {leaderboardData.map((student) => (
             <div
               key={student.id}
               className={`${getRankColor(
@@ -316,7 +214,8 @@ const Leaderboard = () => {
               </div>
             </div>
           ))}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
