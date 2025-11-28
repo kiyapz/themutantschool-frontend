@@ -36,6 +36,8 @@ export default function PersonalInformationPage() {
   const pathname = usePathname();
 
   const [profileData, setProfileData] = useState({
+    firstName: "",
+    lastName: "",
     name: "",
     email: "",
     gender: "",
@@ -94,10 +96,16 @@ export default function PersonalInformationPage() {
             userData.avatar ||
             "/images/default-avatar.jpg";
 
+          const firstName = userData.firstName || "";
+          const lastName = userData.lastName || "";
+          const fullName = firstName && lastName
+            ? `${firstName} ${lastName}`
+            : firstName || lastName || userData.name || "";
+
           setProfileData({
-            name: userData.firstName && userData.lastName
-              ? `${userData.firstName} ${userData.lastName}`
-              : userData.name || "",
+            firstName: firstName,
+            lastName: lastName,
+            name: fullName,
             email: userData.email || "",
             gender: userData.gender || userData.profile?.gender || "",
             country: userData.country || userData.nationality || userData.profile?.country || userData.profile?.nationality || "",
@@ -200,10 +208,23 @@ export default function PersonalInformationPage() {
         },
       }));
     } else {
-      setProfileData((prev) => ({
-        ...prev,
-        [field]: value,
-      }));
+      // If name field is being updated, also parse and update firstName and lastName
+      if (field === "name") {
+        const nameParts = value.trim().split(" ");
+        const firstName = nameParts[0] || "";
+        const lastName = nameParts.slice(1).join(" ") || "";
+        setProfileData((prev) => ({
+          ...prev,
+          name: value,
+          firstName: firstName,
+          lastName: lastName,
+        }));
+      } else {
+        setProfileData((prev) => ({
+          ...prev,
+          [field]: value,
+        }));
+      }
     }
   };
 
@@ -255,10 +276,9 @@ export default function PersonalInformationPage() {
         return;
       }
 
-      // Parse name into firstName and lastName
-      const nameParts = profileData.name.trim().split(" ");
-      const firstName = nameParts[0] || "";
-      const lastName = nameParts.slice(1).join(" ") || "";
+      // Use firstName and lastName from state, or parse from name field if needed
+      const firstName = profileData.firstName || (profileData.name ? profileData.name.trim().split(" ")[0] : "") || "";
+      const lastName = profileData.lastName || (profileData.name ? profileData.name.trim().split(" ").slice(1).join(" ") : "") || "";
 
       // If avatar file is present, use FormData
       if (avatarFile) {
@@ -341,10 +361,16 @@ export default function PersonalInformationPage() {
           userData.avatar ||
           "/images/default-avatar.jpg";
 
+        const updatedFirstName = userData.firstName || "";
+        const updatedLastName = userData.lastName || "";
+        const updatedFullName = updatedFirstName && updatedLastName
+          ? `${updatedFirstName} ${updatedLastName}`
+          : updatedFirstName || updatedLastName || userData.name || "";
+
         setProfileData({
-          name: userData.firstName && userData.lastName
-            ? `${userData.firstName} ${userData.lastName}`
-            : userData.name || "",
+          firstName: updatedFirstName,
+          lastName: updatedLastName,
+          name: updatedFullName,
           email: userData.email || "",
           gender: userData.gender || userData.profile?.gender || "",
           country: userData.country || userData.nationality || userData.profile?.country || userData.profile?.nationality || "",
@@ -419,10 +445,7 @@ export default function PersonalInformationPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="text-center">
-          <div className="inline-block w-8 h-8 border-2 border-t-transparent border-[#7343B3] rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-400">Loading profile...</p>
-        </div>
+        <div className="w-8 h-8 border-2 border-t-transparent border-[#7343B3] rounded-full animate-spin"></div>
       </div>
     );
   }

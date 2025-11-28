@@ -202,20 +202,20 @@ export default function Login() {
                       Forgot Password?
                     </p>
                   </Link>
-                  <Link href="/auth/verify-email">
+                  {/* <Link href="/auth/verify-email">
                     <p className="text-center text-[var(--text-light)] text-[12px] font-[500] leading-[20px] hover:text-[var(--secondary)] cursor-pointer">
                       Haven&apos;t verified your email?{" "}
                       <span className="text-[var(--secondary)] underline">
                         Click here to verify
                       </span>
                     </p>
-                  </Link>
+                  </Link> */}
                 </div>
-                <Link href="/academy/auth/register">
+                {/* <Link href="/academy/auth/register">
                   <p className="text-[14px] sm:text-[16px] text-center cursor-pointer hover:text-[var(--text)] leading-[20px] sm:leading-[40px] text-white">
                     Register as Institution
                   </p>
-                </Link>
+                </Link> */}
 
                 <div>
                   <div className="h-[50px] sm:h-[60px] w-full flex-col flex items-center justify-center font-[600] text-[12px] sm:text-[14px] leading-[20px] sm:leading-[40px] text-[var(--background)] border-[1px] px-3 sm:px-4 rounded-[8px] border-[var(--primary)]">

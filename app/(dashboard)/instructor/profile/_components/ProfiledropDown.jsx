@@ -33,6 +33,23 @@ export default function ProfiledropDown() {
       <div className="w-full h-[1px] bg-[#404040]" />
 
       <ul className="text-sm flex flex-col gap-1 text-white">
+        {/* Dashboard */}
+        <li
+          onClick={() => {
+            setOpen(false);
+            setopenSmallScreenProfileDropDown(false);
+            setopenlargeProfileDropdown(false);
+          }}
+        >
+          <Link
+            style={{ padding: "3px" }}
+            href="/instructor"
+            className="block px-4 py-2 text-[#9F9F9F] hover:bg-[#3A3A3A]"
+          >
+            Dashboard
+          </Link>
+        </li>
+        
         {/* My Profile */}
         <li
           onClick={() => {

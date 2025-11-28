@@ -15,6 +15,7 @@ import { useRouter } from "next/navigation";
 
 export default function IdentifyRole() {
   const router = useRouter();
+  const [referralCode, setReferralCode] = useState(null);
   const [buttonDisabledtext, setButtonDisabled] = useState("Continue");
   const [isValidEmail, setIsValidEmail] = useState(true);
   const [timeLeft, setTimeLeft] = useState(60);
@@ -57,7 +58,19 @@ export default function IdentifyRole() {
     setEmail,
     setdisablebtn,
     handleContinue,
+    isVerifyingOtp,
   } = useContext(Globlaxcontex);
+
+  // Extract referral code from URL on mount
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const urlParams = new URLSearchParams(window.location.search);
+      const ref = urlParams.get("ref");
+      if (ref) {
+        setReferralCode(ref);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     setSuccessmessage(
@@ -214,7 +227,13 @@ export default function IdentifyRole() {
     setButtonDisabled("Loading...");
 
     try {
-      const res = await authApiUrl.post("register", {
+      // Build the URL with referral code as query parameter if present
+      let registerUrl = "register";
+      if (referralCode) {
+        registerUrl += `?ref=${encodeURIComponent(referralCode)}`;
+      }
+
+      const res = await authApiUrl.post(registerUrl, {
         email,
         password,
         firstName,
@@ -250,7 +269,13 @@ export default function IdentifyRole() {
         }, 1000);
 
         setButtonDisabled("Done");
-        setRegisterStep((prev) => prev + 1);
+        // Always go to step 5 (OTP verification) after successful registration
+        // Ensure we're at step 4 before incrementing
+        if (registerStep === 4) {
+          setRegisterStep(5);
+        } else {
+          setRegisterStep((prev) => prev + 1);
+        }
       }
     } catch (error) {
       setButtonDisabled("Continue");
@@ -285,6 +310,20 @@ export default function IdentifyRole() {
 
     if (getUserData) {
       const user = JSON.parse(getUserData);
+      // Check if email is verified
+      const isVerified =
+        user.emailVerified ||
+        user.isEmailVerified ||
+        user.verified ||
+        user.isVerified ||
+        user.email_verified;
+
+      if (!isVerified) {
+        // Redirect to verify email page if not verified
+        router.push("/auth/verify-email");
+        return;
+      }
+
       if (user.role === "student") {
         router.push("/student");
       } else {
@@ -606,13 +645,21 @@ export default function IdentifyRole() {
               <div className="flex flex-col gap-1">
                 <button
                   onClick={verifyOtpWithBackend}
-                  className={`h-[60px] w-full rounded-[10px] btn cursor-pointer  ${
-                    otpCode.length === 6
-                      ? "btn"
-                      : "bg-[var(--disabled-button-bg)] cursor-not-allowed disabled "
+                  disabled={otpCode.length !== 6 || isVerifyingOtp}
+                  className={`h-[60px] w-full rounded-[10px] flex items-center justify-center gap-2 ${
+                    otpCode.length === 6 && !isVerifyingOtp
+                      ? "btn cursor-pointer"
+                      : "bg-[var(--disabled-button-bg)] cursor-not-allowed disabled"
                   }`}
                 >
-                  {otpbtn}{" "}
+                  {isVerifyingOtp ? (
+                    <>
+                      <span className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin inline-block" />
+                      <span>Checking...</span>
+                    </>
+                  ) : (
+                    otpbtn
+                  )}
                 </button>
                 {errormessage && (
                   <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">

@@ -22,6 +22,7 @@ const [otpCode, setOtpCode] = useState("");
 const [Successmessage, setSuccessmessage] = useState("");
 const [successValue,setsuccessvalue] = useState(false)
 const [otpbtn,setOtpBtn]=useState("Verify")
+const [isVerifyingOtp, setIsVerifyingOtp] = useState(false)
 
 
 
@@ -79,16 +80,19 @@ console.log(selectedRole, "selectedRole");
   
   const verifyOtpWithBackend = async () => {
     console.log("Verifying OTP with backend...");
+    setIsVerifyingOtp(true);
     setOtpBtn('Checking...')
   
-  
+
     const storedUser = JSON.parse(localStorage.getItem("USER"));
     const email = storedUser?.email;
-  
+
     console.log("Stored user email:", email);
-  
+
     if (!email || !otpCode) {
       console.log("Missing email or otpCode");
+      setIsVerifyingOtp(false);
+      setOtpBtn("Verify");
       return;
     }
   
@@ -106,9 +110,50 @@ console.log(selectedRole, "selectedRole");
   
       if (response.status === 200 || response.data.success === true) {
         console.log("OTP verification successful:", response.data.message);
+        console.log("Full response data:", response.data);
         setSuccessmessage(response.data.message);
         setIsCompleteOtp(true);
+        
+        // Update user object in localStorage with verification status
+        // First, check if backend returned an updated user object
+        let updatedUser = null;
+        if (response.data.user) {
+          updatedUser = response.data.user;
+        } else if (response.data.data && response.data.data.user) {
+          updatedUser = response.data.data.user;
+        }
+        
+        const storedUser = localStorage.getItem("USER");
+        if (storedUser) {
+          try {
+            let parsedUser = JSON.parse(storedUser);
+            
+            // If backend returned updated user, use that; otherwise update manually
+            if (updatedUser) {
+              // Merge the updated user data with existing user data
+              parsedUser = { ...parsedUser, ...updatedUser };
+            } else {
+              // Manually update email verification status
+              parsedUser.emailVerified = true;
+              parsedUser.isEmailVerified = true;
+              parsedUser.verified = true;
+              parsedUser.isVerified = true;
+              parsedUser.email_verified = true;
+            }
+            
+            // Ensure isVerified is set to true (this is the key field)
+            parsedUser.isVerified = true;
+            
+            // Save updated user object
+            localStorage.setItem("USER", JSON.stringify(parsedUser));
+            console.log("Updated user in localStorage:", parsedUser);
+          } catch (error) {
+            console.error("Failed to update user verification status:", error);
+          }
+        }
+        
         setRegisterStep((prev) => prev + 1);
+        setIsVerifyingOtp(false);
         return true;
       } else {
         console.log("OTP verification failed:", response.data.message);
@@ -117,6 +162,7 @@ console.log(selectedRole, "selectedRole");
         setIsCompleteOtp(false)
         setIsCompleteOtp(false);
         setOtpBtn("Verify")
+        setIsVerifyingOtp(false);
         return false;
       }
     } catch (error) {
@@ -125,6 +171,7 @@ console.log(selectedRole, "selectedRole");
       setTimeout(() => setErrormessage(""), 1000);
       setIsCompleteOtp(false)
       setOtpBtn("Verify")
+      setIsVerifyingOtp(false);
       return false;
     }
   };
@@ -139,7 +186,7 @@ console.log(selectedRole, "selectedRole");
 
   return (
     <Globlaxcontex.Provider value={{otpbtn,setOtpBtn,Successmessage, setSuccessmessage,registerStep, setRegisterStep,handleContinue,selectedRole, setSelectedRole,setCodeName,username,firstName, setFirstName,lastName, setLastName,email, setEmail,password, setPassword,handlesubmitform,disablebtn,setdisablebtn,confirmpassword, 
-    setconfirmpassword,isCompleteOtp, setIsCompleteOtp,successValue,setsuccessvalue,stack,setStack,errormessage,setErrormessage,password, setPassword,confirmpassword, setconfirmpassword,otpCode, setOtpCode,verifyOtpWithBackend}}>
+    setconfirmpassword,isCompleteOtp, setIsCompleteOtp,successValue,setsuccessvalue,stack,setStack,errormessage,setErrormessage,password, setPassword,confirmpassword, setconfirmpassword,otpCode, setOtpCode,verifyOtpWithBackend,isVerifyingOtp}}>
       {children}
     </Globlaxcontex.Provider>
   );

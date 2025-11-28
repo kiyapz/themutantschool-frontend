@@ -1,5 +1,5 @@
 "use client";
-import axios from "axios";
+import api, { BASE_URL } from "@/lib/api";
 import MissionCard from "./components/MissionCard";
 import MissionCardSkeleton from "./components/MissionCardSkeleton";
 import LoadingSpinner from "./components/LoadingSpinner";
@@ -28,29 +28,28 @@ export default function Page() {
   useEffect(() => {
     const fetchStudentBreakdown = async () => {
       try {
+        console.log("🚀 useEffect triggered - starting fetchStudentBreakdown");
         const token = localStorage.getItem("login-accessToken");
 
         if (!token) {
-          console.error("No authentication token found");
+          console.error("❌ No authentication token found");
           window.location.href = "/auth/login";
           return;
         }
 
         console.log(
-          "Fetching student dashboard data with token:",
+          "✅ Token found:",
           token.substring(0, 10) + "..."
         );
 
-        const response = await axios.get(
-          "https://themutantschool-backend.onrender.com/api/student/dashboard",
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            timeout: 30000, // 30 second timeout
-          }
-        );
+        const fullUrl = `${BASE_URL}/student/dashboard`;
+        console.log("🌐 Making API call to:", fullUrl);
+        console.log("📡 This should appear in Network tab as:", fullUrl);
+
+        const response = await api.get("/student/dashboard");
+        
+        console.log("✅ API Response received, status:", response.status);
+        console.log("📦 Response data:", response.data);
 
         console.log("API Response:pppppppppp", response.data);
 
@@ -80,15 +79,10 @@ export default function Page() {
             // Fetch full mission data to get accurate level count
             let totalLevelsFromMission = 0;
             try {
-              const missionResponse = await axios.get(
-                `https://themutantschool-backend.onrender.com/api/mission/${course.mission._id}`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
+              const missionUrl = `${BASE_URL}/mission/${course.mission._id}`;
+              console.log(`🌐 Fetching mission details from: ${missionUrl}`);
+              
+              const missionResponse = await api.get(`/mission/${course.mission._id}`);
               totalLevelsFromMission =
                 missionResponse.data.data.levels?.length || 0;
               console.log(
@@ -210,37 +204,44 @@ export default function Page() {
         setMissionPurchases(missionsWithBg);
         console.log("Mission Purchases:", missionsWithBg);
       } catch (error) {
-        console.error(
-          "Error fetching student breakdown:",
-          error.response?.data || error.message
-        );
+        console.error("❌ Error fetching student breakdown:");
+        console.error("Error object:", error);
+        console.error("Error message:", error.message);
+        console.error("Error response:", error.response);
+        console.error("Error request:", error.request);
 
         // Check for specific error types
         if (error.response) {
           // The request was made and the server responded with a status code
           // that falls out of the range of 2xx
-          console.error("Error status:", error.response.status);
-          console.error("Error data:", error.response.data);
+          console.error("❌ Error status:", error.response.status);
+          console.error("❌ Error data:", error.response.data);
+          console.error("❌ Error URL:", error.config?.url || error.config?.baseURL);
 
           if (error.response.status === 401) {
-            console.error("Authentication error - redirecting to login");
+            console.error("🔒 Authentication error - redirecting to login");
             // Redirect to login page if token is invalid
             window.location.href = "/auth/login";
+            return;
           }
         } else if (error.request) {
           // The request was made but no response was received
-          console.error("No response received:", error.request);
+          console.error("❌ No response received. Request details:", error.request);
+          console.error("❌ Request URL:", error.config?.url);
+          console.error("❌ Full URL:", `${error.config?.baseURL}${error.config?.url}`);
         } else if (error.code === "ECONNABORTED") {
           // Timeout error
-          console.error("Request timeout - server took too long to respond");
+          console.error("⏱️ Request timeout - server took too long to respond");
         } else {
           // Something happened in setting up the request that triggered an Error
-          console.error("Error setting up request:", error.message);
+          console.error("❌ Error setting up request:", error.message);
+          console.error("❌ Error stack:", error.stack);
         }
 
         // Set empty array on error to show "no missions" message
         setMissionPurchases([]);
       } finally {
+        console.log("🏁 fetchStudentBreakdown completed, setting loading to false");
         setLoading(false);
       }
     };

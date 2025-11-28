@@ -1,75 +1,73 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import api from "@/lib/api";
 import { 
   UserIcon, 
   MagnifyingGlassIcon,
   ArrowLeftIcon,
   EnvelopeIcon,
-  PhoneIcon,
-  CalendarIcon,
 } from "@heroicons/react/24/outline";
+import api from "@/lib/api";
 
 export default function UsersPage() {
-  const router = useRouter();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState(null);
 
-  // Fetch all users
+  // Fetch all referrals (users who registered using affiliate's referral code)
   const fetchUsers = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await api.get("/user-profile");
-      const usersData = response.data?.data || response.data || [];
-      setUsers(usersData);
+
+      const response = await api.get("/affiliate/referrals");
+      
+      if (response.data?.success) {
+        const referralsData = response.data.data || [];
+        setUsers(referralsData);
+      } else {
+        setError(response.data?.message || "Failed to fetch referrals.");
+        setUsers([]);
+      }
     } catch (error) {
-      console.error("Error fetching users:", error);
-      setError("Failed to fetch users. Please try again.");
+      console.error("Error fetching referrals:", error);
+      if (error.response?.status === 429) {
+        const message = error.response?.data?.message || "Too many requests. Please wait a few minutes and try again.";
+        setError(message);
+      } else if (error.response?.status === 401 || error.response?.status === 403) {
+        setError("Authentication required. Please login.");
+      } else {
+        const message = error.response?.data?.message || "Failed to fetch referrals. Please try again.";
+        setError(message);
+      }
       setUsers([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Fetch single user
-  const fetchUser = async (userId) => {
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await api.get(`/user-profile/${userId}`);
-      const userData = response.data?.data || response.data;
-      setSelectedUser(userData);
-    } catch (error) {
-      console.error("Error fetching user:", error);
-      setError("Failed to fetch user details. Please try again.");
-      setSelectedUser(null);
-    } finally {
-      setLoading(false);
-    }
+  // Show referral details (no need to fetch, data is already available)
+  const showReferralDetails = (referral) => {
+    setSelectedUser(referral);
   };
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
-  // Filter users based on search query
-  const filteredUsers = users.filter((user) => {
+  // Filter referrals based on search query
+  const filteredUsers = users.filter((referral) => {
     const query = searchQuery.toLowerCase();
-    const firstName = user.firstName?.toLowerCase() || "";
-    const lastName = user.lastName?.toLowerCase() || "";
-    const email = user.email?.toLowerCase() || "";
-    const fullName = `${firstName} ${lastName}`.trim();
+    const userName = referral.user?.toLowerCase() || "";
+    const email = referral.email?.toLowerCase() || "";
+    const missionTitle = referral.missionTitle?.toLowerCase() || "";
     
     return (
-      fullName.includes(query) ||
+      userName.includes(query) ||
       email.includes(query) ||
-      user._id?.toLowerCase().includes(query)
+      missionTitle.includes(query)
     );
   });
 
@@ -86,13 +84,16 @@ export default function UsersPage() {
     }
   };
 
-  const getUserInitials = (user) => {
-    const firstName = user.firstName || "";
-    const lastName = user.lastName || "";
-    if (firstName || lastName) {
-      return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  const getUserInitials = (referral) => {
+    // For referral data, use the user name or email
+    if (referral.user) {
+      const nameParts = referral.user.trim().split(" ");
+      if (nameParts.length >= 2) {
+        return `${nameParts[0].charAt(0)}${nameParts[nameParts.length - 1].charAt(0)}`.toUpperCase();
+      }
+      return referral.user.charAt(0).toUpperCase();
     }
-    return user.email?.charAt(0).toUpperCase() || "U";
+    return referral.email?.charAt(0).toUpperCase() || "U";
   };
 
   if (selectedUser) {
@@ -104,7 +105,7 @@ export default function UsersPage() {
           className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors mb-6"
         >
           <ArrowLeftIcon className="h-5 w-5" />
-          <span>Back to Users</span>
+          <span>Back to Referrals</span>
         </button>
 
         {/* User Details Card */}
@@ -118,19 +119,17 @@ export default function UsersPage() {
             </div>
             <div className="flex-1">
               <h1 className="text-2xl font-bold text-white mb-2">
-                {selectedUser.firstName && selectedUser.lastName
-                  ? `${selectedUser.firstName} ${selectedUser.lastName}`
-                  : selectedUser.email || "User"}
+                {selectedUser.user || selectedUser.email || "Referral User"}
               </h1>
               <p className="text-gray-400 text-sm mb-4">
-                User ID: {selectedUser._id}
+                Referred User
               </p>
-              {selectedUser.role && (
+              {selectedUser.missionTitle && (
                 <span
                   className="inline-block px-3 py-1 rounded-full text-xs font-medium"
                   style={{ backgroundColor: "#1A1A1A", color: "#7343B3" }}
                 >
-                  {selectedUser.role}
+                  {selectedUser.missionTitle}
                 </span>
               )}
             </div>
@@ -146,64 +145,30 @@ export default function UsersPage() {
               </div>
             </div>
 
-            {/* Phone */}
-            {selectedUser.phone && (
+            {/* Mission Title */}
+            {selectedUser.missionTitle && (
               <div className="flex items-start gap-3">
-                <PhoneIcon className="h-5 w-5 text-gray-400 mt-1" />
+                <UserIcon className="h-5 w-5 text-gray-400 mt-1" />
                 <div>
-                  <p className="text-sm text-gray-400 mb-1">Phone</p>
-                  <p className="text-white">{selectedUser.phone}</p>
+                  <p className="text-sm text-gray-400 mb-1">Mission</p>
+                  <p className="text-white">{selectedUser.missionTitle}</p>
                 </div>
               </div>
             )}
 
-            {/* Created At */}
+            {/* Commission */}
             <div className="flex items-start gap-3">
-              <CalendarIcon className="h-5 w-5 text-gray-400 mt-1" />
+              <div className="h-5 w-5 text-gray-400 mt-1 flex items-center justify-center">
+                <span className="text-lg">$</span>
+              </div>
               <div>
-                <p className="text-sm text-gray-400 mb-1">Joined</p>
-                <p className="text-white">
-                  {formatDate(selectedUser.createdAt)}
+                <p className="text-sm text-gray-400 mb-1">Commission Earned</p>
+                <p className="text-white font-semibold text-lg">
+                  ${selectedUser.commission || 0}
                 </p>
               </div>
             </div>
-
-            {/* Updated At */}
-            {selectedUser.updatedAt && (
-              <div className="flex items-start gap-3">
-                <CalendarIcon className="h-5 w-5 text-gray-400 mt-1" />
-                <div>
-                  <p className="text-sm text-gray-400 mb-1">Last Updated</p>
-                  <p className="text-white">
-                    {formatDate(selectedUser.updatedAt)}
-                  </p>
-                </div>
-              </div>
-            )}
           </div>
-
-          {/* Additional Info */}
-          {selectedUser.profile && (
-            <div className="mt-6 pt-6 border-t" style={{ borderColor: "#1A1A1A" }}>
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Profile Information
-              </h3>
-              <div className="space-y-3">
-                {selectedUser.profile.bio && (
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Bio</p>
-                    <p className="text-white">{selectedUser.profile.bio}</p>
-                  </div>
-                )}
-                {selectedUser.profile.location && (
-                  <div>
-                    <p className="text-sm text-gray-400 mb-1">Location</p>
-                    <p className="text-white">{selectedUser.profile.location}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
       </div>
     );
@@ -213,9 +178,9 @@ export default function UsersPage() {
     <div className="w-full">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white mb-2">USER PROFILE</h1>
+        <h1 className="text-2xl font-bold text-white mb-2">REFERRALS</h1>
         <p className="text-gray-400 text-sm">
-          View and manage all users in the system
+          View users who registered using your referral code
         </p>
       </div>
 
@@ -225,7 +190,7 @@ export default function UsersPage() {
           <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
           <input
             type="text"
-            placeholder="Search users by name, email, or ID..."
+            placeholder="Search referrals by name, email, or mission..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="w-full pl-10 pr-4 py-3 rounded-lg text-white placeholder-gray-500"
@@ -244,11 +209,10 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* Users List */}
+      {/* Referrals List */}
       {loading ? (
-        <div className="text-center py-12">
-          <div className="inline-block w-8 h-8 border-2 border-t-transparent border-[#7343B3] rounded-full animate-spin"></div>
-          <p className="mt-4 text-gray-400">Loading users...</p>
+        <div className="flex items-center justify-center py-12">
+          <div className="w-8 h-8 border-2 border-t-transparent border-[#7343B3] rounded-full animate-spin"></div>
         </div>
       ) : filteredUsers.length === 0 ? (
         <div
@@ -257,20 +221,25 @@ export default function UsersPage() {
         >
           <UserIcon className="h-16 w-16 text-gray-600 mx-auto mb-4" />
           <p className="text-gray-400 text-lg mb-2">
-            {searchQuery ? "No users found" : "No users available"}
+            {searchQuery ? "No referrals found" : "No referrals yet"}
           </p>
           {searchQuery && (
             <p className="text-gray-500 text-sm">
               Try adjusting your search query
             </p>
           )}
+          {!searchQuery && (
+            <p className="text-gray-500 text-sm">
+              Start sharing your referral link to earn commissions
+            </p>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredUsers.map((user) => (
+          {filteredUsers.map((referral, index) => (
             <div
-              key={user._id}
-              onClick={() => fetchUser(user._id)}
+              key={referral.email || index}
+              onClick={() => showReferralDetails(referral)}
               className="rounded-lg p-6 cursor-pointer transition-all hover:scale-105"
               style={{ backgroundColor: "#0F0F0F" }}
               onMouseEnter={(e) => {
@@ -285,42 +254,43 @@ export default function UsersPage() {
                   className="w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold flex-shrink-0"
                   style={{ backgroundColor: "#7343B3" }}
                 >
-                  {getUserInitials(user)}
+                  {getUserInitials(referral)}
                 </div>
                 <div className="flex-1 min-w-0">
                   <h3 className="text-lg font-semibold text-white mb-1 truncate">
-                    {user.firstName && user.lastName
-                      ? `${user.firstName} ${user.lastName}`
-                      : user.email || "User"}
+                    {referral.user || referral.email || "Referral User"}
                   </h3>
                   <p className="text-gray-400 text-sm truncate mb-2">
-                    {user.email}
+                    {referral.email}
                   </p>
-                  {user.role && (
+                  {referral.missionTitle && (
                     <span
-                      className="inline-block px-2 py-1 rounded text-xs font-medium"
+                      className="inline-block px-2 py-1 rounded text-xs font-medium mb-2"
                       style={{ backgroundColor: "#1A1A1A", color: "#7343B3" }}
                     >
-                      {user.role}
+                      {referral.missionTitle}
                     </span>
                   )}
                 </div>
               </div>
               <div className="mt-4 pt-4 border-t" style={{ borderColor: "#1A1A1A" }}>
-                <p className="text-xs text-gray-500">
-                  Joined: {formatDate(user.createdAt)}
-                </p>
+                <div className="flex justify-between items-center">
+                  <p className="text-xs text-gray-500">Commission</p>
+                  <p className="text-sm font-semibold text-green-400">
+                    ${referral.commission || 0}
+                  </p>
+                </div>
               </div>
             </div>
           ))}
         </div>
       )}
 
-      {/* Users Count */}
+      {/* Referrals Count */}
       {!loading && users.length > 0 && (
         <div className="mt-6 text-center">
           <p className="text-gray-400 text-sm">
-            Showing {filteredUsers.length} of {users.length} users
+            Showing {filteredUsers.length} of {users.length} referral{users.length !== 1 ? 's' : ''}
           </p>
         </div>
       )}

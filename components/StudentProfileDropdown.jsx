@@ -10,17 +10,29 @@ export default function StudentProfileDropdown({
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [studentName, setStudentName] = useState("");
   const [studentLevel, setStudentLevel] = useState("Novice");
+  const [dashboardUrl, setDashboardUrl] = useState("/student/dashboard");
   const dropdownRef = useRef(null);
 
   // Get student name and fetch avatar stage from API
   useEffect(() => {
     const fetchStudentData = async () => {
-      // Get student name from localStorage
+      // Get student name and role from localStorage
       const user = localStorage.getItem("USER");
       if (user) {
         const userData = JSON.parse(user);
-        const { firstName } = userData;
+        const { firstName, role } = userData;
         setStudentName(firstName || "Student");
+        
+        // Determine dashboard URL based on role
+        if (role === "student") {
+          setDashboardUrl("/student/dashboard");
+        } else if (role === "instructor") {
+          setDashboardUrl("/instructor");
+        } else if (role === "affiliate") {
+          setDashboardUrl("/affiliate");
+        } else {
+          setDashboardUrl(profileHref || "/student/dashboard");
+        }
       }
 
       // Fetch avatar stage from API
@@ -177,7 +189,7 @@ export default function StudentProfileDropdown({
           <ul style={{ padding: "8px 0", margin: "0" }}>
             <li>
               <Link
-                href={profileHref}
+                href={dashboardUrl}
                 onClick={() => {
                   setIsDropdownOpen(false);
                   if (onItemClick) onItemClick();

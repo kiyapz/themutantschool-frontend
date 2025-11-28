@@ -15,6 +15,9 @@ export default function PaymentsPage() {
   const [withdrawalsError, setWithdrawalsError] = useState(null);
   const [revenueBalance, setRevenueBalance] = useState(0);
   const [revenueLoading, setRevenueLoading] = useState(true);
+  const [payoutInfo, setPayoutInfo] = useState(null);
+  const [refundPolicy, setRefundPolicy] = useState(null);
+  const [dashboardData, setDashboardData] = useState(null);
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -46,6 +49,50 @@ export default function PaymentsPage() {
         return status || "Pending";
     }
   };
+
+  // Fetch affiliate dashboard data for payout info and refund rules
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        setRevenueLoading(true);
+        const response = await api.get("/affiliate/dashboard");
+        const responsePayload = response.data.data;
+        const dashboardPayload = responsePayload?.data;
+
+        if (responsePayload?.success && dashboardPayload) {
+          setDashboardData(dashboardPayload);
+          
+          // Extract payout information
+          if (dashboardPayload.overview?.payoutInfo) {
+            setPayoutInfo(dashboardPayload.overview.payoutInfo);
+            
+            // Set revenue balance from payout info balance (main balance from backend)
+            const balance = Number(dashboardPayload.overview.payoutInfo.balance ?? 0);
+            setRevenueBalance(balance);
+            setRevenueLoading(false);
+          } else {
+            // Fallback to available earnings if payoutInfo doesn't exist
+            const balance = Number(dashboardPayload.overview?.earnings?.available ?? 0);
+            setRevenueBalance(balance);
+            setRevenueLoading(false);
+          }
+          
+          // Extract refund policy
+          if (dashboardPayload.overview?.refundPolicyNotice) {
+            setRefundPolicy(dashboardPayload.overview.refundPolicyNotice);
+          }
+        } else {
+          setRevenueLoading(false);
+        }
+      } catch (error) {
+        console.error("Error fetching dashboard data:", error);
+        setRevenueLoading(false);
+        setRevenueBalance(0);
+      }
+    };
+
+    fetchDashboardData();
+  }, []);
 
   // Fetch KYC data on mount
   useEffect(() => {
@@ -89,84 +136,6 @@ export default function PaymentsPage() {
     fetchKycData();
   }, []);
 
-  // Fetch revenue balance
-  useEffect(() => {
-    const fetchRevenueBalance = async () => {
-      try {
-        setRevenueLoading(true);
-        
-        // Try multiple possible endpoints for affiliate earnings
-        const possibleEndpoints = [
-          "/affiliate/dashboard",
-          "/affiliate/earnings",
-          "/affiliate/balance",
-          "/affiliate/revenue",
-        ];
-        
-        let balance = 0;
-        let found = false;
-        
-        for (const endpoint of possibleEndpoints) {
-          try {
-            const response = await api.get(endpoint);
-            const data = response.data?.data || response.data;
-            
-            // Check for various possible field names
-            if (data?.totalEarnings !== undefined) {
-              balance = parseFloat(data.totalEarnings) || 0;
-              found = true;
-              break;
-            } else if (data?.balance !== undefined) {
-              balance = parseFloat(data.balance) || 0;
-              found = true;
-              break;
-            } else if (data?.revenue !== undefined) {
-              balance = parseFloat(data.revenue) || 0;
-              found = true;
-              break;
-            } else if (data?.availableBalance !== undefined) {
-              balance = parseFloat(data.availableBalance) || 0;
-              found = true;
-              break;
-            } else if (typeof data === "number") {
-              balance = parseFloat(data) || 0;
-              found = true;
-              break;
-            }
-          } catch (error) {
-            // Continue to next endpoint
-            continue;
-          }
-        }
-        
-        if (!found) {
-          // If no endpoint found, calculate from withdrawals as fallback
-          // This calculates: total paid withdrawals (as a reference)
-          // Note: This should be replaced with actual earnings API
-          try {
-            const withdrawalsResponse = await api.get("/withdrawal/my");
-            const withdrawalsData = withdrawalsResponse.data?.data || withdrawalsResponse.data || [];
-            const totalPaid = withdrawalsData
-              .filter((w) => w.status?.toLowerCase() === "paid")
-              .reduce((sum, w) => sum + (parseFloat(w.amount) || 0), 0);
-            // For now, show 0 if no earnings API - this should be updated when earnings API is available
-            balance = 0;
-          } catch (error) {
-            balance = 0;
-          }
-        }
-        
-        setRevenueBalance(balance);
-      } catch (error) {
-        console.error("Error fetching revenue balance:", error);
-        setRevenueBalance(0);
-      } finally {
-        setRevenueLoading(false);
-      }
-    };
-
-    fetchRevenueBalance();
-  }, []);
 
   // Fetch withdrawals on mount
   useEffect(() => {
@@ -254,13 +223,13 @@ export default function PaymentsPage() {
   const getKycStatusIcon = (status) => {
     switch (status?.toLowerCase()) {
       case "approved":
-        return <CheckCircleIcon className="h-5 w-5 text-[#38FF63]" />;
+        return <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#38FF63]" />;
       case "pending":
-        return <ClockIcon className="h-5 w-5 text-[#757575]" />;
+        return <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#757575]" />;
       case "rejected":
-        return <ExclamationTriangleIcon className="h-5 w-5 text-[#FF6338]" />;
+        return <ExclamationTriangleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF6338]" />;
       default:
-        return <ExclamationTriangleIcon className="h-5 w-5 text-[#757575]" />;
+        return <ExclamationTriangleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#757575]" />;
     }
   };
 
@@ -278,24 +247,24 @@ export default function PaymentsPage() {
   };
 
   return (
-    <div>
+    <div className="w-full max-w-full overflow-x-hidden">
       {/* KYC Status Alert */}
       {!kycLoading && (
-        <div className="mb-6">
+        <div className="mb-4 sm:mb-6">
           {!kycData ? (
             <div
-              className="rounded-lg p-4 flex items-start gap-3"
+              className="rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3"
               style={{ backgroundColor: "#2B2B2B" }}
             >
-              <ExclamationTriangleIcon className="h-5 w-5 text-[#FF6338] flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-white font-medium mb-1">KYC Verification Required</h3>
-                <p className="text-gray-400 text-sm mb-3">
+              <ExclamationTriangleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF6338] flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-medium mb-1 text-sm sm:text-base">KYC Verification Required</h3>
+                <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 break-words">
                   You need to complete KYC verification to request payouts. Please submit your payment information.
                 </p>
                 <Link
                   href="/affiliate/profile/payment-information"
-                  className="inline-block px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                   style={{ backgroundColor: "#7343B3", color: "#FFFFFF" }}
                   onMouseEnter={(e) => (e.target.style.backgroundColor = "#9159d1")}
                   onMouseLeave={(e) => (e.target.style.backgroundColor = "#7343B3")}
@@ -306,31 +275,31 @@ export default function PaymentsPage() {
             </div>
           ) : kycData.status?.toLowerCase() === "pending" ? (
             <div
-              className="rounded-lg p-4 flex items-start gap-3"
+              className="rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3"
               style={{ backgroundColor: "#2B2B2B" }}
             >
-              <ClockIcon className="h-5 w-5 text-[#757575] flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-white font-medium mb-1">KYC Verification Pending</h3>
-                <p className="text-gray-400 text-sm">
+              <ClockIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#757575] flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-medium mb-1 text-sm sm:text-base">KYC Verification Pending</h3>
+                <p className="text-gray-400 text-xs sm:text-sm break-words">
                   Your KYC verification is under review. You'll be able to request payouts once approved.
                 </p>
               </div>
             </div>
           ) : kycData.status?.toLowerCase() === "rejected" ? (
             <div
-              className="rounded-lg p-4 flex items-start gap-3"
+              className="rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3"
               style={{ backgroundColor: "#301B19" }}
             >
-              <ExclamationTriangleIcon className="h-5 w-5 text-[#FF6338] flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-white font-medium mb-1">KYC Verification Rejected</h3>
-                <p className="text-gray-400 text-sm mb-3">
+              <ExclamationTriangleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#FF6338] flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-medium mb-1 text-sm sm:text-base">KYC Verification Rejected</h3>
+                <p className="text-gray-400 text-xs sm:text-sm mb-2 sm:mb-3 break-words">
                   Your KYC verification was rejected. Please update your payment information and resubmit.
                 </p>
                 <Link
                   href="/affiliate/profile/payment-information"
-                  className="inline-block px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                  className="inline-block px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                   style={{ backgroundColor: "#7343B3", color: "#FFFFFF" }}
                   onMouseEnter={(e) => (e.target.style.backgroundColor = "#9159d1")}
                   onMouseLeave={(e) => (e.target.style.backgroundColor = "#7343B3")}
@@ -341,13 +310,13 @@ export default function PaymentsPage() {
             </div>
           ) : kycData.status?.toLowerCase() === "approved" ? (
             <div
-              className="rounded-lg p-4 flex items-start gap-3"
+              className="rounded-lg p-3 sm:p-4 flex items-start gap-2 sm:gap-3"
               style={{ backgroundColor: "#193024" }}
             >
-              <CheckCircleIcon className="h-5 w-5 text-[#38FF63] flex-shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <h3 className="text-white font-medium mb-1">KYC Verified</h3>
-                <p className="text-gray-400 text-sm">
+              <CheckCircleIcon className="h-4 w-4 sm:h-5 sm:w-5 text-[#38FF63] flex-shrink-0 mt-0.5" />
+              <div className="flex-1 min-w-0">
+                <h3 className="text-white font-medium mb-1 text-sm sm:text-base">KYC Verified</h3>
+                <p className="text-gray-400 text-xs sm:text-sm break-words">
                   Your KYC verification is approved. You can request payouts.
                 </p>
               </div>
@@ -358,15 +327,15 @@ export default function PaymentsPage() {
 
       {/* KYC Information Card */}
       {!kycLoading && kycData && (
-        <div className="rounded-lg p-6 mb-8" style={{ backgroundColor: "#0F0F0F" }}>
-          <h2 className="text-xl font-semibold mb-4 text-white">KYC Information</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="rounded-lg p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8 w-full min-w-0" style={{ backgroundColor: "#0F0F0F" }}>
+          <h2 className="text-base sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-3 lg:mb-4 text-white">KYC Information</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
             <div>
-              <p className="text-sm text-gray-400 mb-1">Status</p>
+              <p className="text-xs sm:text-sm text-gray-400 mb-1 break-words">Status</p>
               <div className="flex items-center gap-2">
                 {getKycStatusIcon(kycData.status)}
                 <span
-                  className={`px-3 py-1 rounded-full text-xs font-medium ${getKycStatusColor(
+                  className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getKycStatusColor(
                     kycData.status
                   )}`}
                 >
@@ -375,38 +344,128 @@ export default function PaymentsPage() {
               </div>
             </div>
             <div>
-              <p className="text-sm text-gray-400 mb-1">Full Name</p>
-              <p className="text-white">{kycData.fullName || "N/A"}</p>
+              <p className="text-xs sm:text-sm text-gray-400 mb-1 break-words">Full Name</p>
+              <p className="text-white text-sm sm:text-base break-words">{kycData.fullName || "N/A"}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-400 mb-1">Bank Name</p>
-              <p className="text-white">{kycData.bankName || "N/A"}</p>
+              <p className="text-xs sm:text-sm text-gray-400 mb-1 break-words">Bank Name</p>
+              <p className="text-white text-sm sm:text-base break-words">{kycData.bankName || "N/A"}</p>
             </div>
             <div>
-              <p className="text-sm text-gray-400 mb-1">Document Type</p>
-              <p className="text-white">{getDocumentTypeLabel(kycData.documentType)}</p>
+              <p className="text-xs sm:text-sm text-gray-400 mb-1 break-words">Document Type</p>
+              <p className="text-white text-sm sm:text-base break-words">{getDocumentTypeLabel(kycData.documentType)}</p>
             </div>
           </div>
         </div>
       )}
 
-      {/* Revenue Balance Card */}
-      <div className="rounded-lg p-6 mb-8 flex items-center justify-between bg-gradient-to-r from-[#77448C] to-[#F94BFF]">
-        <div className="flex items-center space-x-4">
-          <div className="w-12 h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
-            <WalletIcon className="h-6 w-6 text-white" />
+      {/* Payout Information and Refund Rules */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4 lg:gap-8 mb-4 sm:mb-6 lg:mb-8">
+        {/* Payout Information */}
+        {payoutInfo && (
+          <div
+            className="rounded-lg p-4 sm:p-6 w-full min-w-0"
+            style={{ backgroundColor: "#060606" }}
+          >
+            <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-white">
+              Payout Information
+            </h2>
+            <div className="space-y-3">
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <span className="text-gray-400 text-sm sm:text-base">
+                  Balance
+                </span>
+                <span className="font-medium text-sm sm:text-base break-words text-right sm:text-left text-white">
+                  $
+                  {Number(payoutInfo.balance ?? 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 sm:gap-2">
+                <span className="text-gray-400 text-sm sm:text-base">
+                  Minimum Withdrawal
+                </span>
+                <span className="font-medium text-sm sm:text-base break-words text-right sm:text-left text-white">
+                  $
+                  {Number(payoutInfo.minimumWithdrawal ?? 0).toFixed(2)}
+                </span>
+              </div>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-1 sm:gap-2">
+                <span className="text-gray-400 text-sm sm:text-base">
+                  Next Payout Date
+                </span>
+                <span className="font-medium text-sm sm:text-base break-words text-right sm:text-left min-w-0 text-white">
+                  {payoutInfo.nextPayoutDate
+                    ? new Date(payoutInfo.nextPayoutDate).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "long",
+                        day: "numeric",
+                      })
+                    : "N/A"}
+                </span>
+              </div>
+              {payoutInfo.paymentMethodNote && (
+                <div className="text-xs sm:text-sm text-gray-500 pt-2 break-words leading-relaxed">
+                  {payoutInfo.paymentMethodNote}
+                </div>
+              )}
+            </div>
           </div>
-          <div>
-            <h2 className="text-sm text-white opacity-90 mb-1">
+        )}
+
+        {/* Refund & Payout Rules */}
+        {refundPolicy && (
+          <div
+            className="rounded-lg p-3 sm:p-4 lg:p-6 w-full min-w-0"
+            style={{ backgroundColor: "#060606" }}
+          >
+            <h2 className="text-base sm:text-lg lg:text-xl font-semibold mb-2 sm:mb-3 lg:mb-4 text-white">
+              Refund & Payout Rules
+            </h2>
+            <div className="space-y-3 mb-4">
+              {refundPolicy.progressThreshold && (
+                <div className="text-sm text-gray-400">
+                  <span className="font-medium text-gray-300">
+                    Progress Threshold:
+                  </span>{" "}
+                  {refundPolicy.progressThreshold}%
+                </div>
+              )}
+              {refundPolicy.refundWindowDays && (
+                <div className="text-sm text-gray-400">
+                  <span className="font-medium text-gray-300">
+                    Refund Window:
+                  </span>{" "}
+                  {refundPolicy.refundWindowDays} days
+                </div>
+              )}
+            </div>
+            <ul className="space-y-2 text-xs sm:text-sm text-gray-400 list-disc list-outside pl-4 sm:pl-5">
+              {refundPolicy.rules?.map((rule, index) => (
+                <li key={index} className="break-words leading-relaxed pr-2">
+                  {rule}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+      </div>
+
+      {/* Revenue Balance Card */}
+      <div className="rounded-lg p-3 sm:p-4 lg:p-6 mb-4 sm:mb-6 lg:mb-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-4 bg-gradient-to-r from-[#77448C] to-[#F94BFF]">
+        <div className="flex items-center space-x-2 sm:space-x-4 flex-1 min-w-0">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 bg-white bg-opacity-20 rounded-lg flex items-center justify-center flex-shrink-0">
+            <WalletIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <h2 className="text-xs sm:text-sm text-white opacity-90 mb-1 break-words">
               Your Revenue Balance
             </h2>
             {revenueLoading ? (
-              <div className="flex items-center gap-2">
-                <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <p className="text-3xl font-bold text-white">Loading...</p>
+              <div className="flex items-center justify-center">
+                <div className="w-5 h-5 sm:w-6 sm:h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
               </div>
             ) : (
-              <p className="text-3xl font-bold text-white">
+              <p className="text-xl sm:text-2xl lg:text-3xl font-bold text-white break-words">
                 ${revenueBalance.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             )}
@@ -414,7 +473,7 @@ export default function PaymentsPage() {
         </div>
         <Link
           href="/affiliate/request-payout"
-          className={`px-6 py-3 bg-[#F5F5F5] bg-opacity-20 rounded-[20px] text-[#711C94] font-[700] hover:bg-opacity-30 transition-colors inline-block ${
+          className={`px-4 sm:px-6 py-2 sm:py-3 bg-[#F5F5F5] bg-opacity-20 rounded-[20px] text-[#711C94] font-[700] hover:bg-opacity-30 transition-colors inline-block text-xs sm:text-sm whitespace-nowrap flex-shrink-0 ${
             !kycLoading && kycData && kycData?.status?.toLowerCase() !== "approved" 
               ? "opacity-50 cursor-not-allowed pointer-events-none" 
               : ""
@@ -431,35 +490,35 @@ export default function PaymentsPage() {
       </div>
 
       {/* Payouts History Section */}
-      <div className="rounded-lg p-6">
+      <div className="rounded-lg p-3 sm:p-4 lg:p-6 w-full min-w-0 overflow-x-auto -mx-3 sm:-mx-4 lg:mx-0 px-3 sm:px-4 lg:px-0">
         {/* Section Header */}
-        <div className="mb-6">
-          <h2 className="text-xl font-[700] text-[#A333CF]  border-b border-[#A333CF] pb-3 inline-block">
+        <div className="mb-3 sm:mb-4 lg:mb-6">
+          <h2 className="text-base sm:text-lg lg:text-xl font-[700] text-[#A333CF] border-b border-[#A333CF] pb-2 sm:pb-3 inline-block">
             Payouts history
           </h2>
-          <div className="border-b border-gray-400 w-full "></div>
+          <div className="border-b border-gray-400 w-full"></div>
         </div>
 
         {/* History Table Header */}
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-lg font-medium text-white">History</h3>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-500">Sort By:</span>
+        <div className="flex flex-row justify-between items-center gap-2 sm:gap-4 mb-3 sm:mb-4 lg:mb-6">
+          <h3 className="text-base sm:text-lg font-medium text-white flex-shrink-0 min-w-0">History</h3>
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0">
+            <span className="text-xs sm:text-sm text-gray-500 whitespace-nowrap">Sort By:</span>
             <button
               onClick={() => setSortBy(sortBy === "oldest" ? "newest" : "oldest")}
-              className="flex items-center space-x-1 px-3 py-2 rounded-lg text-sm font-medium transition-colors hover:opacity-80"
+              className="flex items-center space-x-1 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors hover:opacity-80 whitespace-nowrap"
               style={{ backgroundColor: "#2A2A2A" }}
             >
-              <span>{sortBy === "oldest" ? "Oldest to Newest" : "Newest to Oldest"}</span>
+              <span className="hidden sm:inline">{sortBy === "oldest" ? "Oldest to Newest" : "Newest to Oldest"}</span>
+              <span className="sm:hidden">{sortBy === "oldest" ? "Oldest" : "Newest"}</span>
             </button>
           </div>
         </div>
 
         {/* Loading State */}
         {withdrawalsLoading && (
-          <div className="text-center py-12">
-            <div className="inline-block w-8 h-8 border-2 border-t-transparent border-[#7343B3] rounded-full animate-spin"></div>
-            <p className="mt-4 text-gray-400">Loading withdrawal history...</p>
+          <div className="flex items-center justify-center py-12">
+            <div className="w-8 h-8 border-2 border-t-transparent border-[#7343B3] rounded-full animate-spin"></div>
           </div>
         )}
 
@@ -485,65 +544,67 @@ export default function PaymentsPage() {
         {/* Table */}
         {!withdrawalsLoading && withdrawals.length > 0 && (
           <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr className="bg-[#0C0C0C]">
-                  <th className="text-left py-3 px-4 text-sm font-medium text-[#9B9B9B]">
-                    #
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-[#9B9B9B]">
-                    Transaction ID
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-[#9B9B9B]">
-                    Date/Time
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-[#9B9B9B]">
-                    Amount
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-[#9B9B9B]">
-                    Status
-                  </th>
-                  <th className="text-left py-3 px-4 text-sm font-medium text-[#9B9B9B]">
-                    Action
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="mb-2">
-                {withdrawals.map((withdrawal, index) => {
-                  const displayStatus = mapStatus(withdrawal.status);
-                  const transactionId = withdrawal._id ? withdrawal._id.substring(0, 8).toUpperCase() : `ID${index + 1}`;
-                  
-                  return (
-                    <tr key={withdrawal._id || index} className="bg-[#0C0C0C] rounded-[10px]">
-                      <td className="py-4 px-4 text-sm text-white">{index + 1}.</td>
-                      <td className="py-4 px-4 text-sm text-[#9B9B9B]">
-                        {transactionId}
-                      </td>
-                      <td className="py-4 px-4 text-sm text-[#9B9B9B]">
-                        {formatDate(withdrawal.createdAt)}
-                      </td>
-                      <td className="py-4 px-4 text-sm text-white font-medium">
-                        ${parseFloat(withdrawal.amount || 0).toFixed(2)}
-                      </td>
-                      <td className="py-4 px-4">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            displayStatus
-                          )}`}
-                        >
-                          {displayStatus}
-                        </span>
-                      </td>
-                      <td className="py-4 px-4">
-                        <button className="bg-[#6B6B6B] text-[#A5A5A5] rounded-[10px] hover:text-white transition-colors">
-                          <EllipsisVerticalIcon className="h-5 w-5" />
-                        </button>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+            <div className="min-w-full inline-block align-middle">
+              <table className="w-full min-w-[600px] sm:min-w-full">
+                <thead>
+                  <tr className="bg-[#0C0C0C]">
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-[#9B9B9B]">
+                      #
+                    </th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-[#9B9B9B] hidden sm:table-cell">
+                      Transaction ID
+                    </th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-[#9B9B9B] hidden sm:table-cell">
+                      Date/Time
+                    </th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-[#9B9B9B]">
+                      Amount
+                    </th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-[#9B9B9B]">
+                      Status
+                    </th>
+                    <th className="text-left py-2 sm:py-3 px-2 sm:px-4 text-xs sm:text-sm font-medium text-[#9B9B9B]">
+                      Action
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="mb-2">
+                  {withdrawals.map((withdrawal, index) => {
+                    const displayStatus = mapStatus(withdrawal.status);
+                    const transactionId = withdrawal._id ? withdrawal._id.substring(0, 8).toUpperCase() : `ID${index + 1}`;
+                    
+                    return (
+                      <tr key={withdrawal._id || index} className="bg-[#0C0C0C] rounded-[10px]">
+                        <td className="py-3 sm:py-4 px-2 sm:px-4 text-xs sm:text-sm text-white">{index + 1}.</td>
+                        <td className="py-3 sm:py-4 px-2 sm:px-4 text-xs sm:text-sm text-[#9B9B9B] break-all max-w-[120px] sm:max-w-none hidden sm:table-cell">
+                          {transactionId}
+                        </td>
+                        <td className="py-3 sm:py-4 px-2 sm:px-4 text-xs sm:text-sm text-[#9B9B9B] hidden sm:table-cell">
+                          {formatDate(withdrawal.createdAt)}
+                        </td>
+                        <td className="py-3 sm:py-4 px-2 sm:px-4 text-xs sm:text-sm text-white font-medium">
+                          ${parseFloat(withdrawal.amount || 0).toFixed(2)}
+                        </td>
+                        <td className="py-3 sm:py-4 px-2 sm:px-4">
+                          <span
+                            className={`px-2 sm:px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                              displayStatus
+                            )}`}
+                          >
+                            {displayStatus}
+                          </span>
+                        </td>
+                        <td className="py-3 sm:py-4 px-2 sm:px-4">
+                          <button className="bg-[#6B6B6B] text-[#A5A5A5] rounded-[10px] hover:text-white transition-colors p-1 sm:p-1.5">
+                            <EllipsisVerticalIcon className="h-4 w-4 sm:h-5 sm:w-5" />
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
       </div>

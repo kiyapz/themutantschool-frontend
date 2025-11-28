@@ -22,7 +22,7 @@ export default function AffiliateLayout({ children }) {
           <Sidebar sidebarOpen={sidebarOpen} setSidebarOpen={setSidebarOpen} />
 
           {/* Main Content */}
-          <div className="flex-1 p-4 sm:p-6 ml-0 lg:ml-64 pt-24 bg-black lg:pt-20">
+          <div className="flex-1 p-3 sm:p-4 lg:p-6 ml-0 lg:ml-64 pt-14 sm:pt-20 lg:pt-20 bg-black w-full max-w-full overflow-x-hidden">
             {children}
           </div>
         </div>
