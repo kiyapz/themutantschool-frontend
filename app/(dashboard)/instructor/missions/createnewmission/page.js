@@ -323,9 +323,42 @@ export default function Createnewmission() {
         };
       }
 
+      // Fetch capsules for each level before validating
+      const levelsWithCapsules = await Promise.all(
+        levels.map(async (level) => {
+          try {
+            // Fetch capsules for this level
+            const capsulesResponse = await axios.get(
+              `https://themutantschool-backend.onrender.com/api/mission-capsule/level/${level._id}?page=1&limit=100`,
+              {
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+            
+            // Extract capsules from response
+            const capsules = capsulesResponse.data?.data?.capsules || capsulesResponse.data?.data || [];
+            
+            return {
+              ...level,
+              capsules: capsules,
+            };
+          } catch (capsuleError) {
+            console.error(`Failed to fetch capsules for level ${level._id}:`, capsuleError);
+            // Return level without capsules if fetch fails
+            return {
+              ...level,
+              capsules: level.capsules || [],
+            };
+          }
+        })
+      );
+
       // Check if each level has at least 1 capsule
-      for (let i = 0; i < levels.length; i++) {
-        const level = levels[i];
+      for (let i = 0; i < levelsWithCapsules.length; i++) {
+        const level = levelsWithCapsules[i];
         const capsuleCount = Array.isArray(level.capsules)
           ? level.capsules.length
           : 0;
@@ -610,7 +643,7 @@ export default function Createnewmission() {
         )}
         {activeTab === "Preview and Launch" && (
           <div>
-            <PreviewandLaunch />
+            <PreviewandLaunch onValidationChange={setValidationStatus} />
           </div>
         )}
       </div>

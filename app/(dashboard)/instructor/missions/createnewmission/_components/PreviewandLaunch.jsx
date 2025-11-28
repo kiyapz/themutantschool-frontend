@@ -7,7 +7,7 @@ import { InstructorContext } from "../../../_components/context/InstructorContex
 import UserProfileImage from "../../../profile/_components/UserProfileImage";
 import { generateInstructorMissionLevelLink } from "@/lib/instructorIdUtils";
 
-export default function PreviewandLaunch() {
+export default function PreviewandLaunch({ onValidationChange }) {
   const { userUpdatedValue, setActiveTab } = useContext(InstructorContext);
   const [activeTab, setActiveTabs] = useState("Mission Overview");
   const [levels, setLevels] = useState([]);
@@ -174,7 +174,43 @@ export default function PreviewandLaunch() {
           levelsRes.data.data
         );
         const fetchedLevels = levelsRes.data.data || [];
-        setLevels(fetchedLevels);
+        
+        // Fetch capsules for each level
+        const levelsWithCapsules = await Promise.all(
+          fetchedLevels.map(async (level) => {
+            try {
+              // Fetch capsules for this level
+              const capsulesResponse = await axios.get(
+                `https://themutantschool-backend.onrender.com/api/mission-capsule/level/${level._id}?page=1&limit=100`,
+                {
+                  headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${accessToken}`,
+                  },
+                }
+              );
+              
+              // Extract capsules from response
+              const capsules = capsulesResponse.data?.data?.capsules || capsulesResponse.data?.data || [];
+              
+              console.log(`Fetched ${capsules.length} capsules for level ${level._id}:`, capsules);
+              
+              return {
+                ...level,
+                capsules: capsules,
+              };
+            } catch (capsuleError) {
+              console.error(`Failed to fetch capsules for level ${level._id}:`, capsuleError);
+              // Return level without capsules if fetch fails
+              return {
+                ...level,
+                capsules: level.capsules || [],
+              };
+            }
+          })
+        );
+        
+        setLevels(levelsWithCapsules);
 
         // Fetch mission quizzes
         const quizzesRes = await axios.get(
@@ -193,8 +229,8 @@ export default function PreviewandLaunch() {
         const fetchedQuizzes = quizzesRes.data?.data || [];
         setQuizzes(fetchedQuizzes);
 
-        // Validate the mission with both levels and quizzes
-        const validation = validateMission(fetchedLevels, fetchedQuizzes);
+        // Validate the mission with both levels (with capsules) and quizzes
+        const validation = validateMission(levelsWithCapsules, fetchedQuizzes);
         console.log("Validation result:", validation);
         console.log(
           "Has final quiz:",
@@ -202,6 +238,10 @@ export default function PreviewandLaunch() {
         );
         console.log("All quizzes:", fetchedQuizzes);
         setValidationStatus(validation);
+        // Notify parent component of validation status change
+        if (onValidationChange) {
+          onValidationChange(validation);
+        }
       } catch (error) {
         console.log("Error retrieving mission data:", error);
       }

@@ -400,12 +400,10 @@ const CapsuleEditModal = ({ isOpen, onClose, capsule, onSave }) => {
 
   return (
     <div
-      style={{ padding: "10px" }}
-      className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)]"
+      className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)] overflow-y-auto py-4 hide-scrollbar"
     >
       <div
-        style={{ padding: "10px" }}
-        className="max-w-[600px] w-full mx-4 bg-[#101010] flex flex-col gap-2 rounded-lg p-6"
+        className="max-w-[600px] w-full mx-4 bg-[#101010] flex flex-col gap-2 rounded-lg p-6 max-h-[90vh] overflow-y-auto hide-scrollbar"
       >
         <div className="flex justify-between items-center mb-6">
           <h3 className="text-[20px] font-[600]">Edit Capsule</h3>
@@ -832,14 +830,28 @@ export default function AddLevels() {
           }
         );
 
-        if (response.status === 200) {
-          showToast("Capsule deleted successfully!", "success");
+        // API returns { success: true, message: "Capsule deleted successfully." }
+        if (response.status === 200 && (response.data?.success === true || response.data?.status === "success")) {
+          showToast(response.data?.message || "Capsule deleted successfully!", "success");
           getAllLevel();
+        } else {
+          throw new Error(response.data?.message || "Delete failed");
         }
       }
     } catch (error) {
       console.error("Delete failed:", error);
-      showToast("Failed to delete. Please try again.", "error");
+      
+      if (error.response) {
+        const errorMsg =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          `Server error: ${error.response.status}`;
+        showToast(errorMsg, "error");
+      } else if (error.request) {
+        showToast("Network error. Please check your connection.", "error");
+      } else {
+        showToast(error.message || "Failed to delete. Please try again.", "error");
+      }
     } finally {
       setIsDeleting(false);
       setConfirmModal({
@@ -887,7 +899,7 @@ export default function AddLevels() {
     setVideoPreviewModal({ isOpen: true, capsule });
   };
 
-  // Fixed handleUpdateCapsule function with simplified state management
+  // Fixed handleUpdateCapsule function to always use multipart/form-data per API spec
   const handleUpdateCapsule = async (capsuleId, updatedData) => {
     const accessToken = localStorage.getItem("login-accessToken");
     if (!accessToken) {
@@ -902,60 +914,75 @@ export default function AddLevels() {
     console.log("Has imageFile:", !!updatedData.imageFile);
 
     try {
-      let response;
-
-      // Check if there are any files to upload (video or image)
-      if (updatedData.videoFile || updatedData.imageFile) {
-        // Use FormData for file upload
-        const formData = new FormData();
+      // Always use FormData per API specification (multipart/form-data is required)
+      const formData = new FormData();
+      
+      // Add title if provided
+      if (updatedData.title) {
         formData.append("title", updatedData.title);
-        formData.append("description", updatedData.description);
-
-        if (updatedData.videoFile) {
-          formData.append("video", updatedData.videoFile);
-        }
-
-        if (updatedData.imageFile) {
-          formData.append("attachments", updatedData.imageFile);
-        }
-
-        response = await axios.put(
-          `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}/update`,
-          formData,
-          {
-            headers: {
-              "Content-Type": "multipart/form-data",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
-      } else {
-        // Use JSON for text-only updates
-        response = await axios.put(
-          `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}/update`,
-          {
-            title: updatedData.title,
-            description: updatedData.description,
-          },
-          {
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${accessToken}`,
-            },
-          }
-        );
       }
+
+      // Add description if provided
+      if (updatedData.description !== undefined) {
+        formData.append("description", updatedData.description);
+      }
+
+      // Add order if provided
+      if (updatedData.order !== undefined) {
+        formData.append("order", updatedData.order.toString());
+      }
+
+      // Add duration if provided
+      if (updatedData.duration !== undefined) {
+        formData.append("duration", updatedData.duration.toString());
+      }
+
+      // Add isPreview if provided (must be string "true" or "false" per API spec)
+      if (updatedData.isPreview !== undefined) {
+        formData.append("isPreview", updatedData.isPreview ? "true" : "false");
+      }
+
+      // Add video file if provided (replaces old video)
+      if (updatedData.videoFile) {
+        formData.append("video", updatedData.videoFile);
+      }
+
+      // Add attachments if provided (replaces ALL old attachments)
+      if (updatedData.imageFile) {
+        formData.append("attachments", updatedData.imageFile);
+      }
+
+      // If multiple attachments are provided as an array
+      if (updatedData.attachments && Array.isArray(updatedData.attachments)) {
+        updatedData.attachments.forEach((file) => {
+          formData.append("attachments", file);
+        });
+      }
+
+      const response = await axios.put(
+        `https://themutantschool-backend.onrender.com/api/mission-capsule/${capsuleId}/update`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
 
       console.log("Server response:", response.status, response.data);
 
+      // Check for success response (API returns { success: true, ... })
       if (response.status === 200 || response.status === 201) {
-        console.log("✅ Capsule update successful!");
-        showToast("Capsule updated successfully!", "success");
-
-        // Simply refresh from server to ensure data consistency
-        // This avoids complex local state management issues
-        await getAllLevel();
-        return true;
+        const isSuccess = response.data?.success === true || response.data?.status === "success";
+        if (isSuccess) {
+          console.log("✅ Capsule update successful!");
+          showToast("Capsule updated successfully!", "success");
+          await getAllLevel();
+          return true;
+        } else {
+          throw new Error(response.data?.message || "Update failed");
+        }
       } else {
         console.log("❌ Unexpected response status:", response.status);
         throw new Error(`Unexpected response status: ${response.status}`);
@@ -967,12 +994,13 @@ export default function AddLevels() {
         console.error("Error response:", error.response.data);
         const errorMsg =
           error.response.data?.message ||
+          error.response.data?.error ||
           `Server error: ${error.response.status}`;
         showToast(errorMsg, "error");
       } else if (error.request) {
         showToast("Network error. Please check your connection.", "error");
       } else {
-        showToast("Failed to update capsule. Please try again.", "error");
+        showToast(error.message || "Failed to update capsule. Please try again.", "error");
       }
 
       throw error;
@@ -1249,23 +1277,55 @@ Try these solutions:
         `https://themutantschool-backend.onrender.com/api/mission-level/mission/${missionId}`,
         { headers: { Authorization: `Bearer ${accessToken}` } }
       );
-      setLevels(response.data.data || []);
-      console.log("Fetched levels after update:", response.data.data);
+      const levelsData = response.data.data || [];
+      console.log("Fetched levels after update:", levelsData);
+
+      // Fetch capsules for each level
+      const levelsWithCapsules = await Promise.all(
+        levelsData.map(async (level) => {
+          try {
+            // Fetch capsules for this level
+            const capsulesResponse = await axios.get(
+              `https://themutantschool-backend.onrender.com/api/mission-capsule/level/${level._id}?page=1&limit=100`,
+              { headers: { Authorization: `Bearer ${accessToken}` } }
+            );
+            
+            // Extract capsules from response
+            const capsules = capsulesResponse.data?.data?.capsules || capsulesResponse.data?.data || [];
+            
+            console.log(`Fetched ${capsules.length} capsules for level ${level._id}:`, capsules);
+            
+            return {
+              ...level,
+              capsules: capsules,
+            };
+          } catch (capsuleError) {
+            console.error(`Failed to fetch capsules for level ${level._id}:`, capsuleError);
+            // Return level without capsules if fetch fails
+            return {
+              ...level,
+              capsules: level.capsules || [],
+            };
+          }
+        })
+      );
+
+      setLevels(levelsWithCapsules);
 
       // Debug order values
-      if (response.data.data && response.data.data.length > 0) {
-        response.data.data.forEach((level, index) => {
+      if (levelsWithCapsules && levelsWithCapsules.length > 0) {
+        levelsWithCapsules.forEach((level, index) => {
           console.log(
             `Level ${index + 1}: order = ${level.order}, title = "${
               level.title
-            }"`
+            }", capsules = ${level.capsules?.length || 0}`
           );
         });
       }
 
       // Log specific capsule data for debugging
-      if (response.data.data && response.data.data.length > 0) {
-        response.data.data.forEach((level, levelIndex) => {
+      if (levelsWithCapsules && levelsWithCapsules.length > 0) {
+        levelsWithCapsules.forEach((level, levelIndex) => {
           if (level.capsules && level.capsules.length > 0) {
             level.capsules.forEach((capsule, capsuleIndex) => {
               console.log(`Level ${levelIndex}, Capsule ${capsuleIndex}:`, {
@@ -1274,6 +1334,8 @@ Try these solutions:
                 description: capsule.description,
               });
             });
+          } else {
+            console.log(`Level ${levelIndex} has no capsules`);
           }
         });
       }
@@ -1487,7 +1549,7 @@ Try these solutions:
           ) : (
             levels.map((level, index) => (
               <div
-                key={level._id}
+                key={level._id || level.id || index}
                 className="w-full bg-[#0F0F0F] px-[30px] py-[20px] rounded-lg flex flex-col gap-3"
               >
                 <div className="flex justify-between w-full items-center">
@@ -1951,6 +2013,16 @@ Try these solutions:
 
         .animate-slide-in {
           animation: slide-in 0.3s ease-out;
+        }
+
+        /* Hide scrollbar but keep scrolling functionality */
+        .hide-scrollbar::-webkit-scrollbar {
+          display: none;
+        }
+
+        .hide-scrollbar {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
         }
       `}</style>
     </>
