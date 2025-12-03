@@ -581,7 +581,7 @@ export default function Page() {
                     </h2>
                   </div>
                   <p className="text-[var(--text)] text-xs xs:text-sm sm:text-sm md:text-base lg:text-lg break-words">
-                    Request a refund for a purchased course if you're not
+                    Request a refund for a purchased course if you&apos;re not
                     satisfied with your purchase.
                   </p>
                 </div>
@@ -837,7 +837,7 @@ export default function Page() {
                     onClick={() => setShowManualInput(true)}
                     className="mt-2 text-xs xs:text-sm sm:text-sm text-[var(--mutant-color)] hover:underline break-words"
                   >
-                    Can't find payment session? Enter it manually
+                    Can&apos;t find payment session? Enter it manually
                   </button>
                 )}
               </div>
