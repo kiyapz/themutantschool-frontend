@@ -30,7 +30,7 @@ export default function AffiliatePage() {
       const response = await api.get("/affiliate/dashboard");
       const responsePayload = response.data.data;
 
-      // The actual dashboard data is nested inside the 'data' property.
+   
       const dashboardPayload = responsePayload?.data;
 
       if (responsePayload?.success && dashboardPayload) {
