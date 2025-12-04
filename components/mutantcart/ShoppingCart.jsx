@@ -6,7 +6,6 @@ import { FaTrash } from "react-icons/fa";
 
 export default function ShoppingCart({
   items = [],
-  onApplyCoupon,
   onCheckout,
   onRemove,
   isGuest = false,
@@ -17,6 +16,8 @@ export default function ShoppingCart({
   emailError = null,
   isProcessing = false,
   deletingItemId = null,
+  couponCode = "",
+  onCouponCodeChange,
 }) {
   const totals = useMemo(() => {
     const subtotal = items.reduce((sum, item) => {
@@ -139,22 +140,20 @@ export default function ShoppingCart({
 
             <div className="mt-5 flex flex-col gap-2">
               <div className="text-white/70 text-[12px] sm:text-[22px] mb-2 leading-[18px] sm:leading-[32px] font-[800] ">
-                Apply Coupon
+                Coupon Code
               </div>
-              <div className="flex ">
-                <input
-                  style={{ padding: "10px" }}
-                  placeholder="Enter coupon code"
-                  className="flex-1 bg-transparent border border-white/15 rounded-l-md px-3 py-2 text-white text-[12px] outline-none"
-                />
-                <button
-                  style={{ padding: "10px" }}
-                  onClick={() => onApplyCoupon?.()}
-                  className="px-4 py-2 cursor-pointer rounded-r-md bg-[var(--primary-light)] text-white text-[12px]"
-                >
-                  Apply
-                </button>
-              </div>
+              <input
+                style={{ padding: "10px" }}
+                placeholder="Enter coupon code (optional)"
+                value={couponCode}
+                onChange={(e) => onCouponCodeChange?.(e.target.value)}
+                className="w-full bg-transparent border border-white/15 rounded-md px-3 py-2 text-white text-[12px] outline-none focus:border-[#844CDC]"
+              />
+              {couponCode && (
+                <div className="text-xs text-white/60 mt-1">
+                  Coupon will be applied at checkout
+                </div>
+              )}
             </div>
 
             {/* Guest checkout notice and form */}

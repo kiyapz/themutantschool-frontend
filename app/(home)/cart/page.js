@@ -20,6 +20,7 @@ export default function Page() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showEmailForm, setShowEmailForm] = useState(false);
   const [emailInput, setEmailInput] = useState("");
+  const [couponCode, setCouponCode] = useState("");
   const [deletingItemId, setDeletingItemId] = useState(null);
   const [successMessage, setSuccessMessage] = useState(null);
   const router = useRouter();
@@ -382,6 +383,11 @@ export default function Page() {
         cartId: guestCartId,
       };
 
+      // Add coupon code if provided
+      if (couponCode && couponCode.trim()) {
+        requestPayload.couponCode = couponCode.trim();
+      }
+
       console.log(
         "%c[Guest Checkout] Sending request to backend:",
         "color: blue; font-weight: bold"
@@ -605,6 +611,38 @@ export default function Page() {
       if (!orderId)
         throw new Error("Failed to create order - no order ID returned.");
 
+      // Apply coupon to order if provided
+      if (couponCode && couponCode.trim()) {
+        try {
+          console.log("[Checkout] Applying coupon to order:", {
+            couponCode: couponCode.trim(),
+            orderId: orderId,
+          });
+
+          const couponResponse = await axios.post(
+            "https://themutantschool-backend.onrender.com/api/coupon/apply-to-order",
+            {
+              couponCode: couponCode.trim(),
+              orderId: orderId,
+            },
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            }
+          );
+
+          console.log("[Checkout] Coupon applied successfully:", couponResponse.data);
+        } catch (couponError) {
+          console.error("[Checkout] Error applying coupon:", couponError.response?.data || couponError.message);
+          // Continue with checkout even if coupon fails - backend will handle validation
+          // But show a warning to the user
+          if (couponError.response?.data?.message) {
+            setError(`Coupon error: ${couponError.response.data.message}. Proceeding without coupon.`);
+          }
+        }
+      }
+
       console.log("[Checkout] Creating payment session for order:", orderId);
       const paymentResponse = await axios.post(
         `https://themutantschool-backend.onrender.com/api/payment/create-session/order/${orderId}`,
@@ -700,6 +738,8 @@ export default function Page() {
         emailError={error}
         isProcessing={isProcessing}
         deletingItemId={deletingItemId}
+        couponCode={couponCode}
+        onCouponCodeChange={setCouponCode}
       />
     </main>
   );
