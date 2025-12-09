@@ -3,18 +3,18 @@
 import { useParams, useRouter } from "next/navigation";
 import MutationProcess from "../_components/MutationProcess";
 import { FiDownload, FiSave, FiEdit, FiTrash2 } from "react-icons/fi";
-import { FaLessThan } from "react-icons/fa";
+import { FaLessThan, FaTimes } from "react-icons/fa";
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState, useCallback } from "react";
 import axios from "axios";
 import { decodeInstructorId } from "@/lib/instructorIdUtils";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import Addlevelbtn from "../../_components/Addlevelbtn";
 
 const actions = [
   { text: "Delete", icon: <FiTrash2 /> },
   { text: "Edit", icon: <FiEdit /> },
-  { text: "Publish", icon: null },
 ];
 
 export default function Page() {
@@ -25,9 +25,21 @@ export default function Page() {
   const [levelData, setLevelData] = useState(null);
   const [levelProgress, setLevelProgress] = useState(null);
   const [missionData, setMissionData] = useState(null);
-  const [buttonAction, setbuttonAction] = useState("Publish");
+  const [buttonAction, setbuttonAction] = useState("Edit");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  
+  // Modal states
+  const [levelEditModal, setLevelEditModal] = useState({
+    isOpen: false,
+    level: null,
+  });
+  const [confirmModal, setConfirmModal] = useState({
+    isOpen: false,
+    type: null,
+    item: null,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Support both [id] and legacy [1d] dynamic route folders
   const { id: idParam, ["1d"]: oneDeeParam } = params || {};
@@ -354,6 +366,125 @@ export default function Page() {
 
   const responseLevel = levelData || levels.find((el) => el._id === id);
 
+  // Level CRUD operations
+  const handleEditLevel = () => {
+    if (responseLevel) {
+      setLevelEditModal({ isOpen: true, level: responseLevel });
+    }
+  };
+
+  const handleDeleteLevel = () => {
+    if (responseLevel) {
+      setConfirmModal({
+        isOpen: true,
+        type: "level",
+        item: responseLevel,
+      });
+    }
+  };
+
+  const handleUpdateLevel = async (levelId, updatedData) => {
+    const accessToken = localStorage.getItem("login-accessToken");
+    if (!accessToken) {
+      alert("Please login first");
+      return false;
+    }
+
+    try {
+      const response = await axios.put(
+        `https://themutantschool-backend.onrender.com/api/mission-level/${levelId}`,
+        updatedData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        alert("Level updated successfully!");
+        // Refresh the page to show updated data
+        window.location.reload();
+        return true;
+      } else {
+        throw new Error(`Unexpected response status: ${response.status}`);
+      }
+    } catch (error) {
+      console.error("Failed to update level:", error);
+      if (error.response) {
+        const errorMsg =
+          error.response.data?.message ||
+          `Server error: ${error.response.status}`;
+        alert(errorMsg);
+      } else if (error.request) {
+        alert("Network error. Please check your connection.");
+      } else {
+        alert("Failed to update level. Please try again.");
+      }
+      return false;
+    }
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!confirmModal.item) return;
+
+    setIsDeleting(true);
+    const accessToken = localStorage.getItem("login-accessToken");
+
+    try {
+      if (confirmModal.type === "level") {
+        const response = await axios.delete(
+          `https://themutantschool-backend.onrender.com/api/mission-level/${confirmModal.item._id}`,
+          {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          }
+        );
+
+        if (response.status === 200) {
+          alert("Level deleted successfully!");
+          // Redirect back to createnewmission page
+          router.push("/instructor/missions/createnewmission");
+        }
+      }
+    } catch (error) {
+      console.error("Delete failed:", error);
+      if (error.response) {
+        const errorMsg =
+          error.response.data?.message ||
+          error.response.data?.error ||
+          `Server error: ${error.response.status}`;
+        alert(errorMsg);
+      } else if (error.request) {
+        alert("Network error. Please check your connection.");
+      } else {
+        alert(error.message || "Failed to delete. Please try again.");
+      }
+    } finally {
+      setIsDeleting(false);
+      setConfirmModal({
+        isOpen: false,
+        type: null,
+        item: null,
+      });
+    }
+  };
+
+
+  const handleActionClick = (actionText) => {
+    setbuttonAction(actionText);
+    switch (actionText) {
+      case "Edit":
+        handleEditLevel();
+        break;
+      case "Delete":
+        handleDeleteLevel();
+        break;
+      default:
+        break;
+    }
+  };
+
   // Debug: Log the level data
   console.log("=== LEVEL DATA DEBUG ===");
   console.log("Level ID from URL:", id);
@@ -409,10 +540,19 @@ export default function Page() {
           {actions.map((el, idx) => (
             <button
               style={{ padding: "15px" }}
-              onClick={() => setbuttonAction(el.text)}
+              onClick={() => handleActionClick(el.text)}
               key={idx}
+              disabled={
+                (el.text === "Edit" && !responseLevel) ||
+                (el.text === "Delete" && !responseLevel) ||
+                (el.text === "Delete" && isDeleting)
+              }
               className={`flex items-center gap-2 px-4 py-2 rounded-[10px] text-white font-medium ${
                 buttonAction === el.text ? "bg-[#604196]" : "bg-[#292929]"
+              } ${
+                (el.text === "Delete" && isDeleting)
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
               }`}
             >
               {el.icon}
@@ -576,8 +716,91 @@ export default function Page() {
                               `Attachment ${attIndex + 1}`}
                           </p>
                         </div>
-                        <div>
-                          <FiDownload className="text-[#818181]" />
+                        <div
+                          onClick={async () => {
+                            try {
+                              const attachmentUrl =
+                                attachment.url ||
+                                attachment.fileUrl ||
+                                attachment.downloadUrl;
+                              
+                              if (!attachmentUrl) {
+                                alert("Attachment URL not available");
+                                return;
+                              }
+
+                              const accessToken = localStorage.getItem("login-accessToken");
+                              
+                              // Try to download with authentication
+                              const response = await fetch(attachmentUrl, {
+                                headers: accessToken
+                                  ? {
+                                      Authorization: `Bearer ${accessToken}`,
+                                    }
+                                  : {},
+                              });
+
+                              if (!response.ok) {
+                                // If fetch fails, try direct download
+                                throw new Error("Fetch failed, trying direct download");
+                              }
+
+                              const blob = await response.blob();
+                              const url = window.URL.createObjectURL(blob);
+                              const link = document.createElement("a");
+                              link.href = url;
+                              link.download =
+                                attachment.filename ||
+                                attachment.name ||
+                                `attachment-${attIndex + 1}`;
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              window.URL.revokeObjectURL(url);
+                            } catch (error) {
+                              console.error("Download error:", error);
+                              
+                              // Fallback: Try direct download
+                              try {
+                                const attachmentUrl =
+                                  attachment.url ||
+                                  attachment.fileUrl ||
+                                  attachment.downloadUrl;
+                                
+                                if (!attachmentUrl) {
+                                  alert("Unable to download attachment. URL not available.");
+                                  return;
+                                }
+
+                                const link = document.createElement("a");
+                                link.href = attachmentUrl;
+                                link.download =
+                                  attachment.filename ||
+                                  attachment.name ||
+                                  `attachment-${attIndex + 1}`;
+                                link.target = "_blank";
+                                document.body.appendChild(link);
+                                link.click();
+                                document.body.removeChild(link);
+                                
+                                // Show warning if direct download is used
+                                setTimeout(() => {
+                                  alert(
+                                    "If download didn't start, the attachment link may have expired or require authentication."
+                                  );
+                                }, 500);
+                              } catch (fallbackError) {
+                                console.error("Fallback download error:", fallbackError);
+                                alert(
+                                  "Unable to download attachment. The link may have expired or require authentication."
+                                );
+                              }
+                            }
+                          }}
+                          className="cursor-pointer hover:opacity-70 transition-opacity"
+                          title="Download Attachment"
+                        >
+                          <FiDownload className="text-[#818181] cursor-pointer" />
                         </div>
                       </div>
                     ))
@@ -734,6 +957,186 @@ export default function Page() {
           )}
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)]">
+          <div
+            style={{ padding: "20px" }}
+            className="max-w-[500px] w-full mx-4 bg-[#101010] rounded-lg p-6"
+          >
+            <h3 className="text-[20px] font-[600] mb-4">
+              Delete {confirmModal.type === "level" ? "Level" : "Item"}
+            </h3>
+            <p className="text-[#9C9C9C] mb-6">
+              Are you sure you want to delete this {confirmModal.type}? This
+              action cannot be undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                style={{ padding: "10px" }}
+                onClick={() =>
+                  setConfirmModal({
+                    isOpen: false,
+                    type: null,
+                    item: null,
+                  })
+                }
+                disabled={isDeleting}
+                className="px-4 py-2 text-[#9C9C9C] hover:text-white transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+              <button
+                style={{ padding: "10px" }}
+                onClick={handleConfirmDelete}
+                disabled={isDeleting}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50 flex items-center gap-2"
+              >
+                {isDeleting ? (
+                  <>
+                    <LoadingSpinner />
+                    <span>Deleting...</span>
+                  </>
+                ) : (
+                  "Delete"
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Level Edit Modal */}
+      {levelEditModal.isOpen && levelEditModal.level && (
+        <LevelEditModal
+          isOpen={levelEditModal.isOpen}
+          onClose={() => setLevelEditModal({ isOpen: false, level: null })}
+          level={levelEditModal.level}
+          onSave={(updatedData) =>
+            handleUpdateLevel(levelEditModal.level._id, updatedData)
+          }
+        />
+      )}
     </div>
   );
 }
+
+// Level Edit Modal Component
+const LevelEditModal = ({ isOpen, onClose, level, onSave }) => {
+  const [editTitle, setEditTitle] = useState("");
+  const [editEstimatedTime, setEditEstimatedTime] = useState("");
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (level) {
+      setEditTitle(level.title || "");
+      setEditEstimatedTime(level.estimatedTime || "");
+      setError("");
+    }
+  }, [level]);
+
+  const handleSave = async () => {
+    setError("");
+
+    if (!editTitle.trim()) {
+      setError("Please enter a title for the level");
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      const success = await onSave({
+        title: editTitle.trim(),
+        estimatedTime: editEstimatedTime.trim(),
+      });
+
+      if (success !== false) {
+        onClose();
+      }
+    } catch (error) {
+      console.error("Failed to update level:", error);
+      setError("Failed to update level. Please try again.");
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleClose = () => {
+    setError("");
+    setEditTitle("");
+    setEditEstimatedTime("");
+    onClose();
+  };
+
+  if (!isOpen || !level) return null;
+
+  return (
+    <div className="fixed top-0 left-0 w-screen h-screen flex justify-center items-center z-50 bg-[rgba(0,0,0,0.9)]">
+      <div
+        style={{ padding: "10px" }}
+        className="max-w-[600px] w-full mx-4 bg-[#101010] rounded-lg p-6 flex flex-col gap-2"
+      >
+        <div className="flex justify-between items-center mb-6">
+          <h3 className="text-[20px] font-[600]">Edit Level</h3>
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleClose}
+            className="text-[#9C9C9C] hover:text-white transition-colors"
+            disabled={isUpdating}
+          >
+            <FaTimes size={20} />
+          </button>
+        </div>
+
+        {error && (
+          <div className="mb-4 p-3 bg-red-600/20 border border-red-600/50 rounded-lg">
+            <p className="text-red-400 text-sm">{error}</p>
+          </div>
+        )}
+
+        <div className="flex flex-col gap-4">
+          <Addlevelbtn
+            value={editTitle}
+            onchange={(e) => setEditTitle(e.target.value)}
+            placeholder="Level Title"
+            disabled={isUpdating}
+          />
+          <Addlevelbtn
+            value={editEstimatedTime}
+            onchange={(e) => setEditEstimatedTime(e.target.value)}
+            placeholder="Estimated Time"
+            disabled={isUpdating}
+          />
+        </div>
+
+        <div className="flex gap-3 justify-end mt-6">
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleClose}
+            disabled={isUpdating}
+            className="px-4 py-2 text-[#9C9C9C] hover:text-white transition-colors disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            style={{ padding: "10px" }}
+            onClick={handleSave}
+            disabled={isUpdating || !editTitle.trim()}
+            className="px-4 py-2 bg-[#604196] hover:bg-[#704da6] rounded-lg disabled:opacity-50 flex items-center gap-2"
+          >
+            {isUpdating ? (
+              <>
+                <LoadingSpinner />
+                <span>Saving...</span>
+              </>
+            ) : (
+              "Save Changes"
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import axios from "axios";
 import FinalQuizComponent from "../components/FinalQuizComponent";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import { FiArrowLeft } from "react-icons/fi";
 
 export default function FinalQuizPage() {
   const { id: slug } = useParams();
@@ -140,23 +141,40 @@ export default function FinalQuizPage() {
   };
 
   const handleBackToMission = () => {
-    const missionTitle = quizData?.mission?.title || slug;
-    const cleanSlug =
-      typeof missionTitle === "string"
-        ? missionTitle
-            .toLowerCase()
-            .replace(/[^\w\s-]/g, "")
-            .replace(/\s+/g, "-")
-            .substring(0, 50)
-        : slug;
+    // Use slug directly if quizData is not available
+    const cleanSlug = slug
+      ? slug
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .substring(0, 50)
+      : quizData?.mission?.title
+      ? quizData.mission.title
+          .toLowerCase()
+          .replace(/[^\w\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .substring(0, 50)
+      : "mission";
 
     router.push(`/student/student-mission-study-levels/${cleanSlug}`);
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-[#0A0A0A]">
-        <LoadingSpinner size="xlarge" color="mutant" />
+      <div className="min-h-screen bg-[#0A0A0A] p-4 relative">
+        {/* Back Arrow Button - Fixed at top */}
+        <button
+          onClick={handleBackToMission}
+          className="absolute top-4 left-4 z-50 flex items-center gap-2 text-white hover:text-[#840B94] transition-colors cursor-pointer bg-[#131313] hover:bg-[#1a1a1a] px-4 py-2 rounded-lg border border-[#333] hover:border-[#840B94] shadow-lg"
+        >
+          <FiArrowLeft className="text-xl" />
+          <span className="font-medium">Back to Levels</span>
+        </button>
+        <div className="max-w-4xl mx-auto pt-16">
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <LoadingSpinner size="xlarge" color="mutant" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -226,8 +244,17 @@ export default function FinalQuizPage() {
   }
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[#0A0A0A] p-4 relative">
+      {/* Back Arrow Button - Fixed at top */}
+      <button
+        onClick={handleBackToMission}
+        className="absolute top-4 left-4 z-50 flex items-center gap-2 text-white hover:text-[#840B94] transition-colors cursor-pointer bg-[#131313] hover:bg-[#1a1a1a] px-4 py-2 rounded-lg border border-[#333] hover:border-[#840B94] shadow-lg"
+      >
+        <FiArrowLeft className="text-xl" />
+        <span className="font-medium">Back to Levels</span>
+      </button>
+      
+      <div className="max-w-4xl mx-auto pt-16">
         {/* Quiz Component */}
         {quizData && (
           <FinalQuizComponent

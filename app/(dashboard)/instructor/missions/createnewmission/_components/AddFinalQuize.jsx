@@ -1,5 +1,5 @@
 'use client'
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useContext } from "react";
 import {
   AlertCircle,
   CheckCircle,
@@ -8,8 +8,11 @@ import {
   Send,
   Loader,
 } from "lucide-react";
+import { FiArrowLeft } from "react-icons/fi";
+import { InstructorContext } from "../../../_components/context/InstructorContex";
 
 const FinalQuizGenerator = () => {
+  const { setLevel } = useContext(InstructorContext);
   const [formData, setFormData] = useState({
     title: "",
     passingScore: 70,
@@ -23,6 +26,10 @@ const FinalQuizGenerator = () => {
 
  
   const missionId = localStorage.getItem("missionId");
+
+  const handleBack = () => {
+    setLevel("AddLevel"); // Go back to Add Level view
+  };
 
 
   console.log(missionId,'missionid sent');
@@ -80,8 +87,17 @@ const FinalQuizGenerator = () => {
   };
 
   return (
-    <div className="h-full  p-4">
-      <div className="w-full mx-auto">
+    <div className="h-full  p-4 relative">
+      {/* Back Arrow Button */}
+      <button
+        onClick={handleBack}
+        className="absolute top-4 left-4 z-50 flex items-center gap-2 text-white hover:text-[#BDE75D] transition-colors cursor-pointer bg-[#131313] hover:bg-[#1a1a1a] px-4 py-2 rounded-lg border border-[#333] hover:border-[#BDE75D] shadow-lg"
+      >
+        <FiArrowLeft className="text-xl" />
+        <span className="font-medium">Back to Levels</span>
+      </button>
+
+      <div className="w-full mx-auto pt-16">
         <div className="  rounded-xl shadow-lg overflow-hidden">
           {/* Header */}
           <div

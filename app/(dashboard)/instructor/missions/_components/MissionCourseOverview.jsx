@@ -113,8 +113,6 @@ const TabNavigation = ({ activeTab, setActiveTab }) => {
   const tabs = [
     "Curriculum",
     "Students",
-    "Resources",
-    "Interactions",
     "Settings",
   ];
 
@@ -223,66 +221,17 @@ const StudentsContent = ({ course }) => {
   );
 };
 
-const ResourcesContent = ({ course, onGoPreview }) => (
-  <div className="flex flex-col gap-6" style={{ padding: "0 32px 24px" }}>
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <h2 className="text-[24px] font-[600]">Resources</h2>
-      <Link href={`/instructor/missions/createnewmission`}>
-        <button
-          onClick={() => onGoPreview(course._id)}
-          className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
-          style={{ padding: "8px 16px" }}
-        >
-          + Add Resource
-        </button>
-      </Link>
-    </div>
-
-    <div className="bg-[#0F0F0F] rounded-[12px] p-6">
-      <div className="text-center text-[#838383]">
-        <div className="text-4xl mb-4">📁</div>
-        <p className="text-lg">Course Resources</p>
-        <p className="text-sm mt-2">Upload and manage course materials</p>
-      </div>
-    </div>
-  </div>
-);
-
-const InteractionsContent = ({ course }) => (
-  <div className="flex flex-col gap-6" style={{ padding: "0 32px 24px" }}>
-    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-      <h2 className="text-[24px] font-[600]">Interactions</h2>
-      <button
-        className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
-        style={{ padding: "8px 16px" }}
-      >
-        View All
-      </button>
-    </div>
-
-    <div className="bg-[#0F0F0F] rounded-[12px] p-6">
-      <div className="text-center text-[#838383]">
-        <div className="text-4xl mb-4">💬</div>
-        <p className="text-lg">Student Interactions</p>
-        <p className="text-sm mt-2">Monitor discussions and feedback</p>
-      </div>
-    </div>
-  </div>
-);
-
-const SettingsContent = ({ course, onGoPreview }) => (
+const SettingsContent = ({ course, onEditMission }) => (
   <div className="flex flex-col gap-6" style={{ padding: "0 32px 24px" }}>
     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
       <h2 className="text-[24px] font-[600]">Settings</h2>
-      <Link href={`/instructor/missions/createnewmission`}>
-        <button
-          onClick={() => onGoPreview(course._id)}
-          className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
-          style={{ padding: "8px 16px" }}
-        >
-          Save Changes
-        </button>
-      </Link>
+      <button
+        onClick={onEditMission}
+        className="bg-[#5E36A5] hover:bg-[#4A2D85] transition-colors rounded-[8px] text-white font-medium"
+        style={{ padding: "8px 16px" }}
+      >
+        Edit Mission
+      </button>
     </div>
 
     <div className="bg-[#0F0F0F] rounded-[12px] p-6">
@@ -295,7 +244,7 @@ const SettingsContent = ({ course, onGoPreview }) => (
   </div>
 );
 
-const renderTabContent = (activeTab, course, handleAddLevelId, handleGoPreview) => {
+const renderTabContent = (activeTab, course, handleAddLevelId, handleGoPreview, handleEditMission) => {
   switch (activeTab) {
     case "Curriculum":
       return (
@@ -306,12 +255,8 @@ const renderTabContent = (activeTab, course, handleAddLevelId, handleGoPreview) 
       );
     case "Students":
       return <StudentsContent course={course} />;
-    case "Resources":
-      return <ResourcesContent course={course} onGoPreview={handleGoPreview} />;
-    case "Interactions":
-      return <InteractionsContent course={course} />;
     case "Settings":
-      return <SettingsContent course={course} onGoPreview={handleGoPreview} />;
+      return <SettingsContent course={course} onEditMission={handleEditMission} />;
     default:
       return (
         <CurriculumContent
@@ -447,7 +392,7 @@ export default function MissionCourseOverview({ course }) {
       <div className=" hidden sm:flex flex-col gap-6 rounded-[20px] border border-[#535353] bg-[#111111]">
         <TabNavigation activeTab={activeTab} setActiveTab={setActiveTab} />
 
-        {renderTabContent(activeTab, course, handleAddLevelId, handleGoPreview)}
+        {renderTabContent(activeTab, course, handleAddLevelId, handleGoPreview, handleEditMission)}
       </div>
 
       <div className="hidden sm:block">
