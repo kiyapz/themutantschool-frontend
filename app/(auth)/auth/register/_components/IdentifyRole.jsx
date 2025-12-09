@@ -537,7 +537,7 @@ export default function IdentifyRole() {
                 handledelete={() => setFirstName("")}
                 hidden="hidden"
                 onchange={(e) => {
-                  // Remove spaces and capitalize first letter
+                 
                   const value = e.target.value.replace(/\s/g, "");
                   const capitalized =
                     value.charAt(0).toUpperCase() +
@@ -711,7 +711,7 @@ export default function IdentifyRole() {
               heading="CONGRATULATIONS"
               subheading="you've been Admitted"
             />
-            {/* <Link href={handleRedirectLogin}> */}
+            
             <button
               onClick={handleRedirectLogin}
               style={{ padding: " 6px 30px" }}
