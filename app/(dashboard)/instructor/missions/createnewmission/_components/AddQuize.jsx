@@ -31,6 +31,7 @@ const QuizCreator = () => {
   const [apiResponse, setApiResponse] = useState(null);
   const [QuizData, setQuizData] = useState("AddLevel");
   const [durationMinutes, setDurationMinutes] = useState(15);
+  const [allowedAttempts, setAllowedAttempts] = useState(3);
   const [editQuize, setEditQuize] = useState(false);
   const [quizId, setQuizeId] = useState("");
   const [getquizID, setGetQuizID] = useState([]);
@@ -141,6 +142,7 @@ const QuizCreator = () => {
         questions: transformedQuestions,
         passingScore: passingScore,
         durationMinutes: durationMinutes,
+        allowedAttempts: allowedAttempts,
       };
 
       console.log("Transformed Quiz Data:", transformedQuiz);
@@ -179,6 +181,7 @@ const QuizCreator = () => {
             },
           ],
         });
+        setAllowedAttempts(3);
       } else {
         setApiResponse({
           error: `Server Error (${response.status})`,
@@ -453,10 +456,11 @@ const QuizCreator = () => {
                 Allowed Attempts
               </p>
               <input
-              disabled
                 style={{ padding: "10px" }}
-                defaultValue={1}
-                type="text"
+                value={allowedAttempts}
+                onChange={(e) => setAllowedAttempts(parseInt(e.target.value) || 3)}
+                type="number"
+                min="1"
                 className="w-full outline-none text-center h-[75.76px] rounded-[14px] bg-[#070707] "
               />
             </div>
