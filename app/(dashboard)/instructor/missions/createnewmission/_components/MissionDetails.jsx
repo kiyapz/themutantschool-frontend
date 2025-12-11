@@ -1,9 +1,30 @@
 import { Editprofilebtn } from "../../../profile/profilesetting/_components/Editprofilebtn";
 import { FaVideo, FaCamera, FaImage } from "react-icons/fa";
 import Createnewmission from "../page";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import CustomDropdown from "./CustomDropdown";
 import Notification from "./Notification";
+import { FiSave, FiCheck, FiTrash2 } from "react-icons/fi";
+
+// Helper function to format last saved time
+const formatLastSaved = (date) => {
+  if (!date) return "";
+  const now = new Date();
+  const saved = new Date(date);
+  const diffInSeconds = Math.floor((now - saved) / 1000);
+  
+  if (diffInSeconds < 60) {
+    return "Just now";
+  } else if (diffInSeconds < 3600) {
+    const minutes = Math.floor(diffInSeconds / 60);
+    return `${minutes}m ago`;
+  } else if (diffInSeconds < 86400) {
+    const hours = Math.floor(diffInSeconds / 3600);
+    return `${hours}h ago`;
+  } else {
+    return saved.toLocaleDateString();
+  }
+};
 
 const MockEditprofilebtn = ({ value, onChange, label, disabled }) => (
   <div style={{ marginBottom: "20px" }}>
@@ -42,28 +63,112 @@ export default function MissionDetails() {
   const [video, setVideo] = useState(null);
   const [videoPreviewUrl, setVideoPreviewUrl] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [youtubeLink, setYoutubeLink] = useState("");
   const [coursePurposes, setCoursePurposes] = useState(["", "", "", ""]);
   const [notification, setNotification] = useState(null);
+  const [draftStatus, setDraftStatus] = useState({ saved: false, saving: false, lastSaved: null });
+  const autoSaveTimeoutRef = useRef(null);
+  const DRAFT_KEY = "missionDraft";
+  const AUTO_SAVE_DELAY = 2000; // 2 seconds
 
+  // Load draft on component mount
   useEffect(() => {
-    const draft = localStorage.getItem("missionDraft");
-    if (draft) {
-      const draftData = JSON.parse(draft);
-      setTitle(draftData.title || "");
-      setDescription(draftData.description || "");
-      setDetailedDescription(draftData.detailedDescription || "");
-      setCategory(draftData.category || "");
-      setDifficulty(draftData.difficulty || "");
-      setLanguage(draftData.language || "English (uk)");
-      setEstimatedDuration(draftData.estimatedDuration || "");
-      setCertificateAvailable(draftData.certificateAvailable !== false);
-      setPrice(draftData.price || "");
-      setIsFree(draftData.isFree || false);
-      setYoutubeLink(draftData.youtubeLink || "");
-      setCoursePurposes(draftData.coursePurposes || ["", "", "", ""]);
-    }
+    const loadDraft = () => {
+      try {
+        const draft = localStorage.getItem(DRAFT_KEY);
+        if (draft) {
+          const draftData = JSON.parse(draft);
+          setTitle(draftData.title || "");
+          setDescription(draftData.description || "");
+          setDetailedDescription(draftData.detailedDescription || "");
+          setCategory(draftData.category || "");
+          setDifficulty(draftData.difficulty || "");
+          setLanguage(draftData.language || "English (uk)");
+          setEstimatedDuration(draftData.estimatedDuration || "");
+          setCertificateAvailable(draftData.certificateAvailable !== false);
+          setPrice(draftData.price || "");
+          setIsFree(draftData.isFree || false);
+          setCoursePurposes(draftData.coursePurposes || ["", "", "", ""]);
+          
+          if (draftData.lastSaved) {
+            setDraftStatus({ saved: true, saving: false, lastSaved: new Date(draftData.lastSaved) });
+          }
+          
+          // Notification removed - draft loading is silent
+        }
+      } catch (error) {
+        console.error("Error loading draft:", error);
+      }
+    };
+    
+    loadDraft();
   }, []);
+
+  // Auto-save function
+  const saveDraftToStorage = useCallback((showNotification = false) => {
+    const draftData = {
+      title,
+      description,
+      detailedDescription,
+      category,
+      difficulty,
+      language,
+      estimatedDuration,
+      certificateAvailable,
+      price,
+      isFree,
+      coursePurposes,
+      lastSaved: new Date().toISOString(),
+      // Note: Files (video, image) cannot be saved to localStorage
+      // They will need to be re-selected when loading the draft
+    };
+
+    try {
+      localStorage.setItem(DRAFT_KEY, JSON.stringify(draftData));
+      setDraftStatus({ saved: true, saving: false, lastSaved: new Date() });
+      
+      // Notification removed - status is shown via button state instead
+    } catch (error) {
+      console.error("Error saving draft:", error);
+      setDraftStatus({ saved: false, saving: false, lastSaved: null });
+      if (showNotification) {
+        setNotification({
+          message: "Failed to save draft. Please try again.",
+          type: "error",
+        });
+      }
+    }
+  }, [title, description, detailedDescription, category, difficulty, language, estimatedDuration, certificateAvailable, price, isFree, coursePurposes]);
+
+  // Auto-save with debouncing
+  useEffect(() => {
+    // Clear existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Don't auto-save if form is empty
+    const hasContent = title.trim() || description.trim() || detailedDescription.trim() || 
+                      category || difficulty || coursePurposes.some(p => p.trim());
+
+    if (!hasContent) {
+      return;
+    }
+
+    // Set saving status
+    setDraftStatus(prev => ({ ...prev, saving: true, saved: false }));
+
+    // Set new timeout for auto-save
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      saveDraftToStorage(false);
+    }, AUTO_SAVE_DELAY);
+
+    // Cleanup function
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [title, description, detailedDescription, category, difficulty, language, estimatedDuration, certificateAvailable, price, isFree, coursePurposes, saveDraftToStorage]);
 
   const handleImageChange = (e) => {
     const file = e.target.files[0];
@@ -78,23 +183,6 @@ export default function MissionDetails() {
     if (file) {
       setVideo(file);
       setVideoPreviewUrl(URL.createObjectURL(file));
-      // Clear YouTube link when video file is uploaded
-      setYoutubeLink("");
-    }
-  };
-
-  const handleYouTubeLinkChange = (e) => {
-    const link = e.target.value;
-    setYoutubeLink(link);
-    // Clear video file when YouTube link is entered
-    if (link.trim()) {
-      setVideo(null);
-      setVideoPreviewUrl(null);
-      // Clear the file input
-      const videoInput = document.getElementById("videoInput");
-      if (videoInput) {
-        videoInput.value = "";
-      }
     }
   };
 
@@ -110,12 +198,6 @@ export default function MissionDetails() {
     if (checked) {
       setPrice("0");
     }
-  };
-
-  const validateYouTubeLink = (url) => {
-    const youtubeRegex =
-      /^(https?:\/\/)?(www\.)?(youtube\.com\/watch\?v=|youtu\.be\/)[\w-]+/;
-    return youtubeRegex.test(url);
   };
 
   const CreateNewMission = async () => {
@@ -151,14 +233,9 @@ export default function MissionDetails() {
         setLoading(false);
         return;
       }
-      // Validate: must have either video file OR valid YouTube link (not both)
-      if (
-        !video &&
-        (!youtubeLink.trim() || !validateYouTubeLink(youtubeLink))
-      ) {
-        alert(
-          "Please upload a video file OR provide a valid YouTube intro video link"
-        );
+      // Validate: must have video file
+      if (!video) {
+        alert("Please upload a video file");
         setLoading(false);
         return;
       }
@@ -212,11 +289,9 @@ export default function MissionDetails() {
         formData.append(`learningOutcomes[${index}]`, outcome.trim());
       });
 
-      // Add video file or YouTube link
+      // Add video file
       if (video) {
         formData.append("video", video);
-      } else if (youtubeLink.trim()) {
-        formData.append("video", youtubeLink.trim());
       }
 
       // Add thumbnail image
@@ -268,6 +343,9 @@ export default function MissionDetails() {
         message: "Mission created successfully!",
         type: "success",
       });
+      // Clear draft after successful creation
+      localStorage.removeItem(DRAFT_KEY);
+      setDraftStatus({ saved: false, saving: false, lastSaved: null });
       resetForm();
     } catch (error) {
       console.error("Error creating mission:", error);
@@ -281,28 +359,19 @@ export default function MissionDetails() {
   };
 
   const saveDraft = () => {
-    const draftData = {
-      title,
-      description,
-      detailedDescription,
-      category,
-      difficulty,
-      language,
-      estimatedDuration,
-      certificateAvailable,
-      price,
-      isFree,
-      youtubeLink,
-      coursePurposes,
-      // Note: Files (video, image) cannot be saved to localStorage
-      // They will need to be re-selected when loading the draft
-    };
+    setDraftStatus(prev => ({ ...prev, saving: true }));
+    saveDraftToStorage(true);
+  };
 
-    localStorage.setItem("missionDraft", JSON.stringify(draftData));
-    setNotification({
-      message: "Draft saved successfully!",
-      type: "success",
-    });
+  const deleteDraft = () => {
+    if (window.confirm("Are you sure you want to delete the saved draft? This will not clear your current form.")) {
+      localStorage.removeItem(DRAFT_KEY);
+      setDraftStatus({ saved: false, saving: false, lastSaved: null });
+      setNotification({
+        message: "Draft deleted successfully!",
+        type: "success",
+      });
+    }
   };
 
   const resetForm = () => {
@@ -320,7 +389,6 @@ export default function MissionDetails() {
     setPreviewUrl(null);
     setVideo(null);
     setVideoPreviewUrl(null);
-    setYoutubeLink("");
     setCoursePurposes(["", "", "", ""]);
 
     // Clear file inputs
@@ -333,7 +401,8 @@ export default function MissionDetails() {
       videoInput.value = "";
     }
 
-    localStorage.removeItem("missionDraft");
+    localStorage.removeItem(DRAFT_KEY);
+    setDraftStatus({ saved: false, saving: false, lastSaved: null });
     console.log("Form manually reset and draft cleared");
   };
 
@@ -365,16 +434,50 @@ export default function MissionDetails() {
           >
             {loading ? "Creating..." : "Create Mission"}
           </button>
+          <div className="flex items-center gap-2">
+            <button
+              style={{ padding: "15px" }}
+              className="text-[#604196] font-[600] text-[18px] leading-[40px] flex items-center gap-2 hover:text-[#7051a8] transition-colors cursor-pointer"
+              onClick={saveDraft}
+              disabled={draftStatus.saving}
+              title={draftStatus.lastSaved ? `Last saved: ${new Date(draftStatus.lastSaved).toLocaleString()}` : "Save draft"}
+            >
+              {draftStatus.saving ? (
+                <>
+                  <FiSave className="animate-spin" />
+                  Saving...
+                </>
+              ) : draftStatus.saved ? (
+                <>
+                  <FiCheck />
+                  Saved
+                </>
+              ) : (
+                <>
+                  <FiSave />
+                  Save Draft
+                </>
+              )}
+            </button>
+            {draftStatus.lastSaved && (
+              <span className="text-[#787878] text-xs">
+                {formatLastSaved(draftStatus.lastSaved)}
+              </span>
+            )}
+            {draftStatus.lastSaved && (
+              <button
+                style={{ padding: "8px" }}
+                className="text-[#787878] hover:text-red-400 transition-colors cursor-pointer"
+                onClick={deleteDraft}
+                title="Delete saved draft"
+              >
+                <FiTrash2 size={16} />
+              </button>
+            )}
+          </div>
           <button
             style={{ padding: "15px" }}
-            className="text-[#604196] font-[600] text-[18px] leading-[40px] "
-            onClick={saveDraft}
-          >
-            Save Draft
-          </button>
-          <button
-            style={{ padding: "15px" }}
-            className="text-[#8C8C8C] font-[600] text-[18px] leading-[40px] "
+            className="text-[#8C8C8C] font-[600] text-[18px] leading-[40px] hover:text-[#A0A0A0] transition-colors cursor-pointer"
             onClick={resetForm}
           >
             Reset Form
@@ -611,15 +714,9 @@ export default function MissionDetails() {
             Course Intro Video *
           </label>
           <div
-            className={`w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] border-2 border-dashed mt-2 ${
-              youtubeLink.trim() && !video
-                ? "border-gray-800 opacity-50 cursor-not-allowed"
-                : "border-gray-600 hover:border-gray-400 cursor-pointer"
-            }`}
+            className="w-full h-[301.65px] flexcenter flex-col rounded-[22px] bg-[#131313] border-2 border-dashed border-gray-600 hover:border-gray-400 cursor-pointer mt-2"
             onClick={() => {
-              if (!youtubeLink.trim() || video) {
-                document.getElementById("videoInput").click();
-              }
+              document.getElementById("videoInput").click();
             }}
           >
             {videoPreviewUrl ? (
@@ -648,9 +745,6 @@ export default function MissionDetails() {
                 <p className="font-[400] text-[17px] leading-[40px]">
                   Upload Video File
                 </p>
-                <p className="text-[#787878] text-[12px] mt-1">
-                  (or use YouTube link below)
-                </p>
                 <p className="text-[#787878] text-[13px]">
                   MP4, MOV, AVI (Maximum 500MB)
                 </p>
@@ -664,29 +758,6 @@ export default function MissionDetails() {
             onChange={handleVideoChange}
             style={{ display: "none" }}
           />
-          <div style={{ marginTop: "12px" }}>
-            <p
-              style={{
-                color: "#8C8C8C",
-                fontSize: "13px",
-                marginBottom: "8px",
-                fontWeight: "600",
-              }}
-            >
-              OR
-            </p>
-            <MockEditprofilebtn
-              value={youtubeLink}
-              onChange={handleYouTubeLinkChange}
-              label="Enter YouTube Link"
-              disabled={!!video}
-            />
-            <p style={{ color: "#787878", fontSize: "13px", marginTop: "4px" }}>
-              {video
-                ? "Upload a video file OR enter a YouTube link (not both)"
-                : "Enter a YouTube URL instead of uploading a file"}
-            </p>
-          </div>
         </div>
 
         {/* Thumbnail Upload Section */}

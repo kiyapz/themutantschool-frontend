@@ -36,6 +36,10 @@ export default function Profile() {
   const countryDropdownRef = useRef(null);
   const [phoneCountryCode, setPhoneCountryCode] = useState("+971");
   const [phoneLocalNumber, setPhoneLocalNumber] = useState("");
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [profileImagePreview, setProfileImagePreview] = useState(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const profileImageInputRef = useRef(null);
 
   const countries = useMemo(
     () => [
@@ -645,6 +649,17 @@ export default function Profile() {
             : "",
       });
 
+      // Clear preview after successful update
+      if (profileImagePreview) {
+        URL.revokeObjectURL(profileImagePreview);
+      }
+      setProfileImagePreview(null);
+      setProfileImageFile(null);
+      setUserUpdatedValue((prev) => {
+        const { previewAvatarUrl, ...rest } = prev;
+        return rest;
+      });
+
       setEditProfile(false);
     } catch (error) {
       console.error(
@@ -785,7 +800,7 @@ export default function Profile() {
                     ) : null}
                   </p>
                   <p className="text-[17px] text-[var(--button-border-color)] sm:text-[24px] leading-[150%] sm:text-[var(--greencolor)]">
-                    {userUpdatedValue?.headline || "Product Designer || Tutor"}
+                    {userUpdatedValue?.headline || ""}
                   </p>
                 </div>
               </div>
@@ -964,6 +979,146 @@ export default function Profile() {
             {/* Personal Tab */}
             {activeTab === "Personal" && (
               <div className="h-fit flex flex-col gap-5">
+                {/* Profile Image Upload Section */}
+                <div className="flex flex-col gap-3">
+                  <label className="text-[#8C8C8C] font-[600] text-[13px] sm:text-[15px] leading-[40px]">
+                    Profile Image
+                  </label>
+                  <div className="flex items-center gap-4">
+                    <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-[#604196] bg-black">
+                      {profileImagePreview ? (
+                        <Image
+                          src={profileImagePreview}
+                          alt="Profile Preview"
+                          fill
+                          className="object-cover"
+                        />
+                      ) : (
+                        <UserProfileImage />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2">
+                      <button
+                        type="button"
+                        onClick={() => profileImageInputRef.current?.click()}
+                        disabled={isUploadingImage}
+                        className="bg-[#604196] hover:bg-[#7051a8] text-white px-4 py-2 rounded-[6px] text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                      >
+                        {isUploadingImage ? "Uploading..." : "Upload Image"}
+                      </button>
+                      <p className="text-[#787878] text-xs">
+                        JPEG, PNG (Max 5MB)
+                      </p>
+                    </div>
+                    <input
+                      ref={profileImageInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+
+                        if (!file.type.startsWith("image/")) {
+                          setError("Please select a valid image file.");
+                          return;
+                        }
+
+                        if (file.size > 5 * 1024 * 1024) {
+                          setError("Image size must be less than 5MB.");
+                          return;
+                        }
+
+                        setProfileImageFile(file);
+                        const previewUrl = URL.createObjectURL(file);
+                        setProfileImagePreview(previewUrl);
+                        setError(null);
+
+                        // Update context with preview URL for immediate display
+                        setUserUpdatedValue((prev) => ({
+                          ...prev,
+                          previewAvatarUrl: previewUrl,
+                        }));
+
+                        // Upload the image immediately
+                        setIsUploadingImage(true);
+                        try {
+                          const storedUser = localStorage.getItem("USER");
+                          const accessToken = localStorage.getItem("login-accessToken");
+
+                          if (!storedUser || !accessToken) {
+                            throw new Error("Authentication required");
+                          }
+
+                          const parsedUser = JSON.parse(storedUser);
+                          const userId = parsedUser._id;
+
+                          const formData = new FormData();
+                          formData.append("avatar", file);
+
+                          const response = await fetch(
+                            `https://themutantschool-backend.onrender.com/api/user-profile/${userId}`,
+                            {
+                              method: "PUT",
+                              headers: {
+                                Authorization: `Bearer ${accessToken}`,
+                              },
+                              body: formData,
+                            }
+                          );
+
+                          if (!response.ok) {
+                            const errorData = await response.json();
+                            throw new Error(errorData.message || "Upload failed");
+                          }
+
+                          const result = await response.json();
+
+                          if (result.data) {
+                            setUserProfile(result.data);
+                          }
+
+                          const newUrl =
+                            result.data?.profile?.avatar?.url ||
+                            result.data?.profile?.avatar?.secure_url ||
+                            result.data?.profile?.avatarUrl ||
+                            result.data?.avatar?.url ||
+                            result.data?.avatar?.secure_url ||
+                            result.data?.avatarUrl ||
+                            "";
+                          const newKey =
+                            result.data?.profile?.avatar?.key ||
+                            result.data?.profile?.avatar?.public_id ||
+                            result.data?.avatar?.key ||
+                            result.data?.avatar?.public_id ||
+                            "";
+
+                          if (newUrl) {
+                            setUserUpdatedValue((prev) => ({
+                              ...prev,
+                              url: newUrl,
+                              publicId: newKey,
+                              previewAvatarUrl: newUrl, // Update to server URL
+                            }));
+                            // Clear preview and use server URL
+                            if (profileImagePreview) {
+                              URL.revokeObjectURL(profileImagePreview);
+                            }
+                            setProfileImagePreview(null);
+                            setProfileImageFile(null);
+                          }
+                        } catch (err) {
+                          console.error("Error uploading image:", err);
+                          setError(err.message || "Failed to upload image. Please try again.");
+                          // Keep preview on error so user can try again
+                        } finally {
+                          setIsUploadingImage(false);
+                        }
+                      }}
+                      style={{ display: "none" }}
+                    />
+                  </div>
+                </div>
+
                 <div className="grid gap-5 md:grid-cols-2">
                   <Editprofilebtn
                     value={userUpdatedValue?.firstName || ""}
@@ -1243,7 +1398,7 @@ export default function Profile() {
                       })
                     }
                     label="Headline"
-                    placeholder="Product Designer || Tutor"
+                    placeholder="Enter your headline"
                   />
                   
                 </div>
@@ -1263,7 +1418,7 @@ export default function Profile() {
                       })
                     }
                     value={userUpdatedValue?.introVideo || ""}
-                    placeholder="e.g youtube.com/etienoekanem"
+                    placeholder="e.g youtube.com"
                   />
                 </div>
                 <div className="w-full grid sm:grid-cols-2 gap-5">
@@ -1277,7 +1432,7 @@ export default function Profile() {
                           facebook: e.target.value,
                         })
                       }
-                      placeholder="e.g facebook.com/etienoekanem"
+                      placeholder="e.g facebook.com"
                     />
                     <Editprofilebtn
                       label="Linkedin"
@@ -1288,7 +1443,7 @@ export default function Profile() {
                           linkedin: e.target.value,
                         })
                       }
-                      placeholder="e.g linkedin.com/in/etienoekanem"
+                      placeholder="e.g linkedin.com"
                     />
                     <Editprofilebtn
                       label="Instagram"
@@ -1299,7 +1454,7 @@ export default function Profile() {
                           instagram: e.target.value,
                         })
                       }
-                      placeholder="e.g instagram.com/etienoekanem"
+                      placeholder="e.g instagram.com"
                     />
                   </div>
                   <div className="flex flex-col gap-0 sm:block">
@@ -1312,7 +1467,7 @@ export default function Profile() {
                         })
                       }
                       label="X (formerly Twitter)"
-                      placeholder="e.g x.com/etienoekanem"
+                      placeholder="e.g x.com"
                     />
                     <div className="grid grid-cols-2 sm:grid-cols-1 gap-0">
                       <Editprofilebtn
@@ -1324,7 +1479,7 @@ export default function Profile() {
                             youtube: e.target.value,
                           })
                         }
-                        placeholder="e.g youtube.com/etien..."
+                        placeholder="e.g youtube.com"
                       />
                       <Editprofilebtn
                         label="Personal Website"
@@ -1335,7 +1490,7 @@ export default function Profile() {
                             website: e.target.value,
                           })
                         }
-                        placeholder="e.g themutantsschool.c..."
+                        placeholder="e.g website.com"
                       />
                     </div>
                   </div>
@@ -1356,6 +1511,16 @@ export default function Profile() {
               <button
                 style={{ padding: "10px" }}
                 onClick={() => {
+                  // Clear preview on cancel
+                  if (profileImagePreview) {
+                    URL.revokeObjectURL(profileImagePreview);
+                  }
+                  setProfileImagePreview(null);
+                  setProfileImageFile(null);
+                  setUserUpdatedValue((prev) => {
+                    const { previewAvatarUrl, ...rest } = prev;
+                    return rest;
+                  });
                   setEditProfile(false);
                   setError(null);
                 }}

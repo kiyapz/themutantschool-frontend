@@ -52,7 +52,7 @@ export default function Profilesetting() {
                   <span>{userUpdatedValue?.lastName || "Last"}</span>
                 </p>
                 <p className="text-[17px] text-[var(--button-border-color)] sm:text-[15px] leading-[150%]">
-                  {userUpdatedValue?.headline || "Product Designer || Tutor"}
+                  {userUpdatedValue?.headline || ""}
                 </p>
               </div>
             </div>
