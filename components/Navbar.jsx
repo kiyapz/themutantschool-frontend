@@ -110,24 +110,86 @@ export default function Navbar() {
         className="max-w-[350px] sm:max-w-[1440px] w-full h-full mx-auto flex items-center justify-center px-4 sm:px-6 lg:px-8"
       >
         <div className="flex items-center justify-between w-full">
-          {/* Mobile Menu Button - Left of logo */}
-          <div className="lg:hidden flex items-center mr-[2px]">
-            <button
-              onClick={toggleMobileMenu}
-              className="flex items-center justify-center w-9 h-9 focus:outline-none text-white bg-[var(--foreground)] rounded-md"
-              aria-label="Toggle mobile menu"
-            >
-              <HiMenu className="text-[18px]" />
-            </button>
-          </div>
-
           {/* Logo */}
           <div className="flex items-center">
             <Link href={"/"} className="flex items-center gap-[2px] sm:gap-2">
-              <span className="text-[20px] sm:text-[23px] Xirod text-[var(--primary-dark)] leading-[24px]">
-                Mutant
-              </span>
+              <Image
+                src={"/images/mutantlogo.png"}
+                alt="Mutant School Logo"
+                width={60} // Further reduced width for mobile
+                height={24} // Further reduced height for mobile
+                sizes="(max-width: 640px) 60px, 100px" // Updated responsive sizing
+                className="sm:w-[100px] sm:h-[40px]" // Larger size for small screens and above
+                priority={true} // Prioritize loading of the logo
+              />
             </Link>
+          </div>
+
+          {/* Right section for mobile: Mobile Menu Button + Cart + Profile */}
+          <div className="flex items-center lg:hidden gap-[2px]">
+            {/* Mobile: Cart + Profile */}
+            <div className="flex items-center justify-end gap-[2px]">
+              {/* Show cart icon for all users, not just students */}
+              <div>
+                <Link href={"/cart"}>
+                  <div
+                    ref={cartIconRef}
+                    className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
+                      bump ? "cart-bump" : ""
+                    }`}
+                    aria-label="Cart"
+                  >
+                    <Image
+                      src={"/images/cart.png"}
+                      alt="cart"
+                      width={18}
+                      height={18}
+                    />
+
+                    {/* Cart count badge */}
+                    {cartCount > 0 && (
+                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
+                        {cartCount}
+                      </span>
+                    )}
+
+                    {/* sparkles */}
+                    {sparkles.map((s) => (
+                      <span
+                        key={s.id}
+                        className="cart-sparkle"
+                        style={{
+                          transform: `translate(${s.left}px, ${s.top}px)`,
+                        }}
+                      >
+                        ✨
+                      </span>
+                    ))}
+                  </div>
+                </Link>
+              </div>
+
+              {/* Mobile Profile (show on navbar, not inside slide-out menu) */}
+              {isAuthenticated && (
+                <div className="flex items-center w-9 h-9">
+                  <StudentProfileDropdown
+                    avatarUrl={avatarUrl}
+                    profileHref={profileHref}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Mobile Menu Button */}
+            <div className="flex items-center">
+              <button
+                onClick={toggleMobileMenu}
+                className="flex items-center justify-center w-9 h-9 focus:outline-none text-white bg-[var(--foreground)] rounded-md"
+                aria-label="Toggle mobile menu"
+              >
+                <HiMenu className="text-[18px]" />
+              </button>
+            </div>
           </div>
 
           {/* Desktop Navigation */}
@@ -154,47 +216,6 @@ export default function Navbar() {
 
           {/* Desktop Auth / Profile */}
           <div className="hidden lg:flex items-center justify-center gap-1 lg:gap-4">
-            {/* Show cart icon for all users, not just students */}
-            <div className="flex items-center mb-3 justify-center">
-              <Link href={"/cart"}>
-                <div
-                  ref={cartIconRef}
-                  className={`flex items-center justify-center w-9 h-9 rounded-md text-white bg-[var(--foreground)] hover:bg-[var(--button-hover-color)] cursor-pointer relative ${
-                    bump ? "cart-bump" : ""
-                  }`}
-                  aria-label="Cart"
-                >
-                  {/* <HiShoppingCart className="text-[18px]" /> */}
-                  <Image
-                    src={"/images/cart.png"}
-                    alt="cart"
-                    width={18}
-                    height={18}
-                  />
-
-                  {/* Cart count badge */}
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                      {cartCount}
-                    </span>
-                  )}
-
-                  {/* sparkles */}
-                  {sparkles.map((s) => (
-                    <span
-                      key={s.id}
-                      className="cart-sparkle"
-                      style={{
-                        transform: `translate(${s.left}px, ${s.top}px)`,
-                      }}
-                    >
-                      ✨
-                    </span>
-                  ))}
-                </div>
-              </Link>
-            </div>
-
             {isAuthenticated ? (
               <StudentProfileDropdown
                 avatarUrl={avatarUrl}
@@ -232,46 +253,6 @@ export default function Navbar() {
                   </div>
                 </Link>
               </>
-            )}
-          </div>
-
-          {/* Mobile: Cart + Profile (menu moved to left) */}
-          <div className="lg:hidden flex items-center justify-end gap-2">
-            {/* Show cart icon for all users, not just students */}
-            <div>
-              <Link href={"/cart"}>
-                <div
-                  onClick={() => {
-                    closeMobileMenu();
-                  }}
-                  className="flex items-center justify-center w-9 h-9 text-white bg-[var(--foreground)] rounded-md relative"
-                  aria-label="Cart"
-                >
-                  <Image
-                    src={"/images/cart.png"}
-                    alt="cart"
-                    width={18}
-                    height={18}
-                  />
-
-                  {/* Cart count badge */}
-                  {cartCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center font-bold">
-                      {cartCount}
-                    </span>
-                  )}
-                </div>
-              </Link>
-            </div>
-
-            {/* Mobile Profile (show on navbar, not inside slide-out menu) */}
-            {isAuthenticated && (
-              <div className="flex items-center w-9 h-9">
-                <StudentProfileDropdown
-                  avatarUrl={avatarUrl}
-                  profileHref={profileHref}
-                />
-              </div>
             )}
           </div>
         </div>

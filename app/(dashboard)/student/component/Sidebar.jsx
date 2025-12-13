@@ -84,12 +84,14 @@ export default function Sidebar() {
       <div className="flexcenter flex-col">
         <div style={{ marginTop: "20px" }} className="h-[10vh]   ">
           <Link href="/">
-            <p
-              className="font-[400] Xirod text-[29px] leading-[40px] text-center cursor-pointer"
-              style={{ color: "var(--mutant-color)" }}
-            >
-              Mutant
-            </p>
+            <Image
+              src={"/images/mutantlogo.png"}
+              alt="Mutant School Logo"
+              width={100} // Adjust width as needed for sidebar
+              height={40} // Adjust height as needed for sidebar
+              priority={true}
+              className="cursor-pointer"
+            />
           </Link>
         </div>
 

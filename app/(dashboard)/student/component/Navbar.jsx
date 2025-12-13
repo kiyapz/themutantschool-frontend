@@ -8,6 +8,7 @@ import Sidebar from "./Sidebar";
 import { useRouter } from "next/navigation";
 import NotificationDropdown from "./NotificationDropdown";
 import api from "@/lib/api";
+import Image from "next/image";
 
 export default function Navbar() {
   const router = useRouter();
@@ -135,7 +136,14 @@ export default function Navbar() {
           {menuOpen ? (
             <IoClose size={24} className="text-white" />
           ) : (
-            <FiMenu size={20} className="text-white" />
+            <Image
+              src={"/images/mutantlogo.png"}
+              alt="Menu"
+              width={24} // Adjust size as needed
+              height={24} // Adjust size as needed
+              priority={true}
+              className="cursor-pointer"
+            />
           )}
         </div>
       </div>
