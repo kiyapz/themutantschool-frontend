@@ -121,53 +121,97 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
 
   // This effect handles the initial routing logic when the component loads or the level changes.
   useEffect(() => {
-    // Wait for capsules and watched video status to be loaded, and only run this logic once per level load.
     if (
+      watchedVideos &&
       currentCapsule.length > 0 &&
-      !watchedVideosLoading &&
+      !capsuleIdProcessedRef.current &&
       !initialRoutingDone
     ) {
-      // If startQuiz parameter is present, always go to stage 3 (course guide) first
+      let targetIndex = 0;
+      let lastCompletedCapsuleId = null;
+
+      if (watchedVideos.data?.viewedCapsules?.length > 0) {
+        // Find the last completed capsule in the watchedVideos data
+        const completedCapsules =
+          watchedVideos.data.viewedCapsules.filter((c) => c.completed);
+        if (completedCapsules.length > 0) {
+          lastCompletedCapsuleId =
+            completedCapsules[completedCapsules.length - 1].capsuleId;
+          const lastCompletedIndex = currentCapsule.findIndex(
+            (c) => c._id === lastCompletedCapsuleId
+          );
+          if (lastCompletedIndex !== -1) {
+            targetIndex = lastCompletedIndex;
+            console.log("Setting initial targetIndex to last completed video:", targetIndex, lastCompletedCapsuleId);
+          }
+        }
+      }
+
       if (startQuiz === "true") {
-        // Set to the first capsule or last watched
+        // If startQuiz parameter is present, go to course guide (stage 3) with either the last watched video or the first one.
         if (watchedVideos.length > 0) {
-          setCapselIndex(
-            Math.min(watchedVideos.length - 1, currentCapsule.length - 1)
+          targetIndex = Math.min(
+            watchedVideos.length - 1,
+            currentCapsule.length - 1
           );
         } else {
-          setCapselIndex(0);
+          targetIndex = 0;
         }
         setChangeStages(3);
       } else if (capsuleId) {
         // A specific capsule was requested in the URL.
-        const targetIndex = currentCapsule.findIndex(
+        const urlTargetIndex = currentCapsule.findIndex(
           (c) => c._id === capsuleId
         );
-        if (targetIndex !== -1) {
-          setCapselIndex(targetIndex);
-          // If the user has watched any video in this level, go to the video player.
-          if (watchedVideos.length > 0) {
-            setChangeStages(3);
-          } else {
-            // Otherwise, start from the beginning.
-            setChangeStages(1);
+        if (urlTargetIndex !== -1) {
+          // Only override if the URL capsuleId is different from the last completed one,
+          // or if there are no completed videos yet.
+          if (capsuleId !== lastCompletedCapsuleId || lastCompletedCapsuleId === null) {
+            targetIndex = urlTargetIndex;
+            console.log("Overriding targetIndex with URL capsuleId:", targetIndex, capsuleId);
           }
+          setChangeStages(3); // Directly go to video stage if a specific capsule is provided
         } else {
-          // If the requested capsuleId doesn't exist in this level, start from the beginning.
-          setChangeStages(1);
+          console.warn(
+            "Requested capsuleId not found in current level, falling back to last viewed or first capsule."
+          );
+          // Fallback to last viewed or first capsule if URL capsuleId is invalid
+          const lastViewed = localStorage.getItem(`lastViewedCapsuleId_${id}`);
+          if (lastViewed) {
+            const lastViewedIndex = currentCapsule.findIndex(
+              (c) => c._id === lastViewed
+            );
+            if (lastViewedIndex !== -1) {
+              targetIndex = lastViewedIndex;
+            }
+          }
+          setChangeStages(3); // Assume we want to view a video
         }
       } else {
-        // No specific capsule requested, so load progress from localStorage.
-        const savedStage = localStorage.getItem(`courseStage_${id}`);
+        // No specific capsule requested, so load progress from localStorage or last viewed capsule.
         const savedCapsuleIndex = localStorage.getItem(`capsuleIndex_${id}`);
+        const lastViewed = localStorage.getItem(`lastViewedCapsuleId_${id}`);
+
+        if (savedCapsuleIndex) {
+          targetIndex = parseInt(savedCapsuleIndex, 10);
+        } else if (lastViewed) {
+          const lastViewedIndex = currentCapsule.findIndex(
+            (c) => c._id === lastViewed
+          );
+          if (lastViewedIndex !== -1) {
+            targetIndex = lastViewedIndex;
+          }
+        }
+
+        const savedStage = localStorage.getItem(`courseStage_${id}`);
         if (savedStage) {
           setChangeStages(parseInt(savedStage, 10));
-        }
-        if (savedCapsuleIndex) {
-          setCapselIndex(parseInt(savedCapsuleIndex, 10));
+        } else {
+          // Default to stage 3 (video player) if no stage is saved but we have capsules
+          setChangeStages(3);
         }
       }
-      // Mark initial routing as complete to prevent it from running again on re-renders.
+      setCapselIndex(targetIndex); // Set the resolved capsule index
       setInitialRoutingDone(true);
     }
   }, [
@@ -179,6 +223,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
     startQuiz,
     id,
     setCapselIndex,
+    setChangeStages,
   ]);
 
   // Separate cleanup effect that only runs when level ID changes
@@ -186,9 +231,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
     // Cleanup function to reset state when the level ID changes
     return () => {
       setChangeStages(1);
-      if (setCapselIndex) {
-        setCapselIndex(0);
-      }
+      // Removed setCapselIndex(0) to prevent resetting the video index on level change
       setInitialRoutingDone(false); // Allow routing logic to run for the new level
     };
   }, [id, setCapselIndex]);
@@ -214,6 +257,19 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
   useEffect(() => {
     setCurrentCapsuleTitle(currentCapsule[capselIndex]?.title || "Unknown");
 
+    // Save the currently playing capsule ID to localStorage as the last viewed
+    const currentlyPlayingCapsuleId = currentCapsule[capselIndex]?._id;
+    if (currentlyPlayingCapsuleId) {
+      localStorage.setItem(
+        `lastViewedCapsuleId_${id}`,
+        currentlyPlayingCapsuleId
+      );
+      console.log(
+        "Saved last viewed capsule ID to localStorage:",
+        currentlyPlayingCapsuleId
+      );
+    }
+
     // Log video URL information for debugging
     const videoUrl = currentCapsule[capselIndex]?.videoUrl?.url;
     if (videoUrl) {
@@ -223,7 +279,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
         console.log("YouTube embed URL:", getYoutubeEmbedUrl(videoUrl));
       }
     }
-  }, [currentCapsule, capselIndex]);
+  }, [currentCapsule, capselIndex, id, setCurrentCapsuleTitle]);
 
   // Handle time update
   const handleTimeUpdate = () => {
@@ -333,7 +389,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
       try {
         // First attempt with current token
         response = await axios.put(
-          `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}`,
+          `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}/progress`,
           {
             watchedDuration,
             videoDuration,
@@ -361,7 +417,7 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
 
             // Retry with new token
             response = await axios.put(
-              `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}`,
+              `https://themutantschool-backend.onrender.com/api/mission-capsule/${currentCapsuleId}/progress`,
               {
                 watchedDuration,
                 videoDuration,
@@ -390,6 +446,9 @@ export default function Capsels({ id, capsuleId, startQuiz }) {
           "✅ Progress updated successfully for:",
           currentCapsule[capselIndex]?.title
         );
+        
+        // Trigger refetch of watched videos to update progress bar
+        setWatchedVideosRefetchTrigger((prev) => prev + 1);
       }
     } catch (err) {
       console.error("Error updating progress:", err);

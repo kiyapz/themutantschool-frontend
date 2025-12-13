@@ -307,9 +307,17 @@ export default function LevelsPath({
     const levelData = watchedData.levels.find(
       (level) => level.levelId === levelId
     );
-    return levelData
-      ? levelData.completedCapsules || levelData.viewedCapsules || []
-      : [];
+    return levelData ? levelData.completedCapsules || [] : [];
+  };
+
+  // Helper function to get viewed capsules for a specific level
+  const getViewedCapsulesForLevel = (levelId) => {
+    if (!watchedData || !watchedData.levels) return [];
+
+    const levelData = watchedData.levels.find(
+      (level) => level.levelId === levelId
+    );
+    return levelData ? levelData.viewedCapsules || [] : [];
   };
 
   // Helper function to check if a capsule is completed
@@ -320,8 +328,51 @@ export default function LevelsPath({
     );
   };
 
+  // Helper function to check if a capsule is viewed (has an entry in viewedCapsules)
+  const isCapsuleViewed = (capsuleId, levelId) => {
+    const viewedCapsules = getViewedCapsulesForLevel(levelId);
+    return viewedCapsules.some(
+      (viewed) => viewed.capsuleId === capsuleId
+    );
+  };
+
+  // Helper function to check if a capsule is completed based on its status in the viewedCapsules list
+  const isCapsuleCompletedInViewedList = (capsuleId, levelId) => {
+    const viewedCapsules = getViewedCapsulesForLevel(levelId);
+    const capsule = viewedCapsules.find((v) => v.capsuleId === capsuleId);
+    return capsule ? capsule.completed : false;
+  };
+
+  // Helper function to check if a level is fully completed (all capsules + quiz passed)
+  const isLevelFullyCompleted = (levelId) => {
+    if (!levelId || !watchedData || !watchedData.levels) return false;
+
+    // Find the level in the level array
+    const currentLevel = level.find((lvl) => lvl._id === levelId);
+    if (!currentLevel || !currentLevel.capsules) return false;
+
+    // Check if all capsules are completed
+    const completedCapsules = getCompletedCapsulesForLevel(levelId);
+    const totalCapsules = currentLevel.capsules.length;
+    const allCapsulesCompleted =
+      completedCapsules.length === totalCapsules && totalCapsules > 0;
+
+    if (!allCapsulesCompleted) return false;
+
+    // Check if quiz has been passed
+    const quizId = currentLevel.quiz?._id;
+    if (!quizId) return false;
+
+    const quizPassed = quizHistory.some(
+      (attempt) => attempt.quizId === quizId && attempt.passed === true
+    );
+
+    return quizPassed;
+  };
+
   // Function to check if capsule should be enabled
   const isCapsuleEnabled = (containerIndex, levelIndex, capsuleId) => {
+    // Always enable the very first capsule of the very first level
     if (containerIndex === 0 && levelIndex === 0) {
       return true;
     }
@@ -329,22 +380,8 @@ export default function LevelsPath({
     const currentLevel = level[containerIndex];
     if (!currentLevel) return false;
 
-    if (levelIndex > 0) {
-      const prevCapsule = currentLevel.capsules[levelIndex - 1];
-      return isCapsuleCompleted(prevCapsule._id, currentLevel._id);
-    }
-
-    if (containerIndex > 0) {
-      const prevLevel = level[containerIndex - 1];
-      if (!prevLevel || !prevLevel.capsules) return false;
-
-      const allPrevCapsulesDone = prevLevel.capsules.every((capsule) =>
-        isCapsuleCompleted(capsule._id, prevLevel._id)
-      );
-      return allPrevCapsulesDone;
-    }
-
-    return false;
+    // Enable if the current capsule is in the viewedCapsules list
+    return isCapsuleViewed(capsuleId, currentLevel._id);
   };
 
   // Updated function to check if quiz should be enabled
@@ -538,7 +575,7 @@ export default function LevelsPath({
                     levelIndex,
                     capsule._id
                   );
-                  const isCompleted = isCapsuleCompleted(
+                  const isCompletedInViewedList = isCapsuleCompletedInViewedList(
                     capsule._id,
                     currentlevel._id
                   );
@@ -558,11 +595,7 @@ export default function LevelsPath({
                       {/* shadow layer */}
                       <div
                         className={`${
-                          isSelected && isEnabled
-                            ? "bg-[#231926]"
-                            : isEnabled
-                            ? "bg-[#4f4f4e]"
-                            : "bg-[#2a2a2a]"
+                          isEnabled ? "bg-[#231926]" : "bg-[#2a2a2a]"
                         } absolute w-full h-[15px] bottom-[-10px] rounded-b-lg`}
                       ></div>
 
@@ -587,17 +620,13 @@ export default function LevelsPath({
                         }
                         style={{ padding: "0 20px" }}
                         className={`${
-                          isSelected && isEnabled
+                          isEnabled
                             ? "bg-[#840B94] text-white hover:shadow-[0_0_15px_rgba(132,11,148,0.7)] hover:scale-105"
-                            : isCompleted
-                            ? "bg-[#840B94] text-white hover:shadow-[0_0_15px_rgba(132,11,148,0.7)] hover:scale-105"
-                            : isEnabled
-                            ? "bg-[#9E9E9E] text-black cursor-pointer hover:bg-[#ABABAB] hover:scale-105"
                             : "bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
                         } relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 transition-all duration-300 group`}
                       >
                         {levelIndex + 1}
-                        {isCompleted && <span className="ml-2 text-xs">✓</span>}
+                        {isCompletedInViewedList && <span className="ml-2 text-xs">✓</span>}
                         {!isEnabled && <span className="ml-2 text-xs">🔒</span>}
 
                         {/* Hover Tooltip */}
