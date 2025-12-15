@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Footer(params) {
   return (
@@ -12,47 +13,86 @@ export default function Footer(params) {
       </p>
       <div>
         <ul className="text-[#EB8AF2] text-[17px] leading-[36px] flex items-center gap-5 cursor-pointer font-[300] ">
-          <li>Missions </li>
-          <li>Tribe</li>
-          <li> Contact HQ</li>
-          <li>FAQ</li>
+          <li>
+            <Link href="/terms-and-conditions" className="hover:text-[#C314FF] transition-colors">
+              Terms & Conditions
+            </Link>
+          </li>
+          <li>
+            <Link href="/privacy-policy" className="hover:text-[#C314FF] transition-colors">
+              Privacy Policy
+            </Link>
+          </li>
+          <li>
+            <Link href="/refund-policy" className="hover:text-[#C314FF] transition-colors">
+              Refund Policy
+            </Link>
+          </li>
+          <li>
+            <Link href="/faq" className="hover:text-[#C314FF] transition-colors">
+              FAQ
+            </Link>
+          </li>
         </ul>
       </div>
 
       <div className=" flex items-center gap-5">
-        <div className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] ">
+        <a
+          href="https://www.facebook.com/TheMutantSchool/"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] hover:border-[#C314FF] transition-colors cursor-pointer"
+        >
           <Image
             src={"/images/Vector (14).png"}
             width={33.39}
             height={23.48}
-            alt="social-icon"
+            alt="Facebook"
           />
-        </div>
-        <div className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] ">
+        </a>
+        <a
+          href="https://www.instagram.com/themutantschool"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] hover:border-[#C314FF] transition-colors cursor-pointer"
+        >
           <Image
             src={"/images/Vector (15).png"}
             width={33.39}
             height={23.48}
-            alt="social-icon"
+            alt="Instagram"
           />
-        </div>
-        <div className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] ">
+        </a>
+        <a
+          href="http://linkedin.com/company/themutantschool"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] hover:border-[#C314FF] transition-colors cursor-pointer"
+        >
           <Image
             src={"/images/Vector (16).png"}
             width={33.39}
             height={23.48}
-            alt="social-icon"
+            alt="LinkedIn"
           />
-        </div>
-        <div className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] ">
+        </a>
+        <a
+          href="https://www.youtube.com/@TheMutantSchool"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="h-[47.99px] flexcenter w-[54.47px] border border-[#B287FF] rounded-[10px] hover:border-[#C314FF] transition-colors cursor-pointer"
+        >
           <Image
             src={"/images/Vector (17).png"}
             width={33.39}
             height={23.48}
-            alt="social-icon"
+            alt="YouTube"
           />
-        </div>
+        </a>
       </div>
+      <p className="text-center text-white text-sm sm:text-base mt-6 mb-4">
+        © 2025 The Mutant School. All rights reserved.
+      </p>
     </div>
   );
 }

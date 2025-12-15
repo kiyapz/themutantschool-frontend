@@ -313,7 +313,7 @@ export default function Home() {
               missions.map((mission, index) => (
                 <div
                   key={mission._id}
-                  className="rounded-[20px] bg-[#0B1021] overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer flex flex-col"
+                  className="rounded-[20px] bg-[#0B1021] overflow-hidden hover:shadow-xl transition-all duration-300 hover:scale-105 cursor-pointer flex flex-col h-[529px]"
                 >
                   <div
                     className="h-[195px] rounded-t-[20px] bg-cover bg-center relative"
@@ -370,12 +370,12 @@ export default function Home() {
                             console.log("Navigating to mission:", slug);
                             router.push(`/mission/${slug}`);
                           }}
-                          className="text-[#E8EDF6] font-[600] text-2xl md:text-[32px] leading-tight md:leading-[35px]"
+                          className="text-[#E8EDF6] font-[600] text-lg md:text-xl leading-tight md:leading-[28px]"
                         >
                           {mission.title || "Mission Title"}
                         </h3>
-                        <h4 className="text-[#E8EDF6] font-semibold text-xl md:text-2xl leading-tight">
-                          {mission.shortDescription || ""}
+                        <h4 className="text-[#E8EDF6] font-semibold text-sm md:text-base leading-tight h-[60px] overflow-hidden text-ellipsis line-clamp-2">
+                          {mission.shortDescription || mission.description || ""}
                         </h4>
                         <div className="flex items-center gap-4 mt-3">
                           <div className="flex items-center gap-1 text-[#6B6B6B] font-[500] text-[15px] leading-[28px] ">
@@ -543,12 +543,14 @@ export default function Home() {
             Courses are just the beginning. The transformation is what you came
             for.
           </p>
-          <button
-            style={{ padding: "6px 25px" }}
-            className=" btn w-fit rounded-[20px] "
-          >
-            Choose Your First Power
-          </button>
+          <Link href="/missions">
+            <button
+              style={{ padding: "6px 25px" }}
+              className=" btn w-fit rounded-[20px] cursor-pointer"
+            >
+              Choose Your First Power
+            </button>
+          </Link>
         </div>
       </div>
     </div>

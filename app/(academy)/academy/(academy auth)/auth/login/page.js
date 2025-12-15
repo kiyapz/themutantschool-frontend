@@ -102,9 +102,15 @@ export default function Login() {
 
         <div className=" w-full flex   justify-center h-fit">
           <div className="    flex flex-col gap-2 w-full h-full  ">
-            <h2 className="hidden sm:block  text-center Xirod text-[26px] leading-[41px] text-[var(--secondary)]  ">
-              MUTANT
-            </h2>
+            <div className="block text-center mx-auto mb-4">
+              <Image
+                src="/images/mutantlogo.png"
+                alt="Mutant School Logo"
+                width={150}
+                height={150}
+                className="mx-auto"
+              />
+            </div>
 
             <div className="flex flex-col gap-7 h-full">
               <div>
@@ -201,7 +207,7 @@ export default function Login() {
 
       <div>
         <p className="text-center text-[var(--text-light)] text-[14px] font-[500] leading-[40px] ">
-          Copyright©Themutantschool2025
+          © 2025 The Mutant School. All rights reserved.
         </p>
       </div>
     </div>

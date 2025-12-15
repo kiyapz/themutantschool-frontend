@@ -11,7 +11,7 @@ const Categories = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState("");
-  const itemsPerPage = 3;
+  const itemsPerPage = 12;
   const router = useRouter();
 
   // Fetch missions once (client-side)
@@ -194,7 +194,7 @@ const Categories = () => {
 
       {/* Categories Grid */}
       <div
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+        className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4"
         style={{ marginBottom: "40px" }}
       >
         {currentCategories.length > 0 ? (
@@ -202,13 +202,13 @@ const Categories = () => {
             <div
               key={index}
               onClick={() => router.push(`/missions?category=${encodeURIComponent(category.title)}`)}
-              className={`${category.bgColor} flex rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 hover:shadow-lg h-[400px] sm:h-[529px] w-full`}
-              style={{ padding: "24px" }}
+              className={`${category.bgColor} flex rounded-2xl overflow-hidden cursor-pointer transition-transform hover:scale-105 hover:shadow-lg h-[200px] sm:h-[250px] w-full`}
+              style={{ padding: "16px" }}
             >
               {/* Category Title */}
               <div className="flex justify-between items-center self-end w-full">
                 <h3
-                  className={`text-[32px] sm:text-[50px] font-[700] leading-[36px] sm:leading-[50px] ${category.textColor} max-w-[250px] line-clamp-2`}
+                  className={`text-[20px] sm:text-[28px] font-[700] leading-[24px] sm:leading-[32px] ${category.textColor} max-w-[200px] line-clamp-2`}
                 >
                   {category.title}
                 </h3>
