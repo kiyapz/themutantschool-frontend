@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function GoogleCallback() {
+function GoogleCallbackContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState(null);
@@ -159,5 +159,20 @@ export default function GoogleCallback() {
   }
 
   return null;
+}
+
+export default function GoogleCallback() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex flex-col items-center justify-center min-h-screen bg-black text-white">
+          <div className="w-12 h-12 border-4 border-t-[var(--secondary)] border-gray-700 rounded-full animate-spin mb-4"></div>
+          <p className="text-lg">Loading...</p>
+        </div>
+      }
+    >
+      <GoogleCallbackContent />
+    </Suspense>
+  );
 }
 
