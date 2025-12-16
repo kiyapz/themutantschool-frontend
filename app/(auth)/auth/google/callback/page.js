@@ -12,9 +12,32 @@ function GoogleCallbackContent() {
   useEffect(() => {
     const handleCallback = async () => {
       try {
+        // Check if localStorage is available
+        if (typeof window === "undefined" || !window.localStorage) {
+          console.error("❌ localStorage is not available");
+          setError(
+            "Local storage is not available. Please enable cookies/local storage."
+          );
+          setLoading(false);
+          return;
+        }
+
+        // Log all URL params for debugging
+        console.log("=== Google Auth Callback Hit ===");
+        console.log("Full URL:", window.location.href);
+        console.log(
+          "All URL params:",
+          Object.fromEntries(searchParams.entries())
+        );
+        console.log(
+          "localStorage available:",
+          typeof window.localStorage !== "undefined"
+        );
+
         // Check for error from OAuth provider
         const errorParam = searchParams.get("error");
         if (errorParam) {
+          console.error("OAuth error param:", errorParam);
           setError("Google authentication failed. Please try again.");
           setLoading(false);
           setTimeout(() => {
@@ -23,59 +46,213 @@ function GoogleCallbackContent() {
           return;
         }
 
+        // Check if backend redirected with accessToken in URL params (backend redirects with params)
+        const accessToken = searchParams.get("accessToken");
+        console.log(
+          "AccessToken from URL:",
+          accessToken ? "Found" : "Not found"
+        );
+
+        if (accessToken) {
+          // Backend redirected with token and user details in URL params
+          console.log("=== Backend redirected with accessToken in URL ===");
+          console.log("AccessToken:", accessToken);
+
+          // Extract user details from URL params
+          const firstName = searchParams.get("firstName");
+          const lastName = searchParams.get("lastName");
+          const email = searchParams.get("email");
+          const role = searchParams.get("role");
+          const refreshToken = searchParams.get("refreshToken");
+
+          console.log("User role:", role);
+          console.log("User params:", {
+            firstName,
+            lastName,
+            email,
+            role,
+            refreshToken: refreshToken ? "Found" : "Not found",
+          });
+
+          // Store access token first
+          try {
+            localStorage.setItem("login-accessToken", accessToken);
+            console.log("✓ Access token stored in localStorage");
+
+            if (refreshToken) {
+              localStorage.setItem("refreshToken", refreshToken);
+              console.log("✓ Refresh token stored in localStorage");
+            }
+          } catch (storageError) {
+            console.error(
+              "Error storing tokens in localStorage:",
+              storageError
+            );
+          }
+
+          // Try to fetch full user profile from backend using the token
+          try {
+            // Decode token to get user ID
+            const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+            const userId = tokenPayload.id;
+
+            console.log("Fetching full user profile for ID:", userId);
+
+            // Fetch full user profile
+            const profileResponse = await fetch(
+              `https://themutantschool-backend.onrender.com/api/user-profile/${userId}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+
+            if (profileResponse.ok) {
+              const profileData = await profileResponse.json();
+              const fullUser = profileData.data || profileData;
+
+              console.log("Full user profile fetched:", fullUser);
+              console.log("User data:", JSON.stringify(fullUser, null, 2));
+
+              // Store complete user object (same as normal login)
+              try {
+                localStorage.setItem("USER", JSON.stringify(fullUser));
+                console.log(
+                  "✓ Full user data stored in localStorage with key 'USER'"
+                );
+                console.log("Stored user role:", fullUser.role);
+              } catch (storageError) {
+                console.error(
+                  "Error storing user in localStorage:",
+                  storageError
+                );
+              }
+
+              // Redirect based on user role (same logic as normal login)
+              const redirectPath =
+                fullUser.role === "instructor"
+                  ? "/instructor"
+                  : fullUser.role === "student"
+                  ? "/student/dashboard"
+                  : fullUser.role === "affiliate"
+                  ? "/affiliate"
+                  : "/";
+
+              console.log("Redirecting to:", redirectPath);
+              setLoading(false);
+
+              // Use window.location to ensure localStorage is written before navigation
+              setTimeout(() => {
+                window.location.href = redirectPath;
+              }, 100);
+              return;
+            } else {
+              const errorText = await profileResponse.text();
+              console.warn(
+                "Failed to fetch user profile, status:",
+                profileResponse.status
+              );
+              console.warn("Error response:", errorText);
+              console.warn("Falling back to URL params");
+            }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+            console.error("Error details:", error.message);
+          }
+
+          // Fallback: Build minimal user object from URL params if profile fetch fails
+          // This should have at least _id from the token payload
+          console.log("Building user object from URL params and token...");
+          const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+          console.log("Token payload:", tokenPayload);
+
+          const user = {
+            _id: tokenPayload.id,
+            firstName: firstName || "",
+            lastName: lastName || "",
+            email: email || tokenPayload.email || "",
+            role: role || tokenPayload.role || "",
+          };
+
+          console.log("User object created:", user);
+          console.log("User data:", JSON.stringify(user, null, 2));
+
+          try {
+            localStorage.setItem("USER", JSON.stringify(user));
+            console.log(
+              "✓ Minimal user data stored in localStorage with key 'USER'"
+            );
+            console.log("Stored user role:", user.role);
+
+            // Verify it was stored
+            const storedUser = localStorage.getItem("USER");
+            console.log(
+              "Verification - User in localStorage:",
+              storedUser ? "Found" : "NOT FOUND"
+            );
+          } catch (storageError) {
+            console.error("Error storing user in localStorage:", storageError);
+          }
+
+          // Redirect based on user role (same logic as normal login)
+          const userRole = role || tokenPayload.role || "";
+          const redirectPath =
+            userRole === "instructor"
+              ? "/instructor"
+              : userRole === "student"
+              ? "/student/dashboard"
+              : userRole === "affiliate"
+              ? "/affiliate"
+              : "/";
+
+          console.log(
+            "Redirecting to:",
+            redirectPath,
+            "based on role:",
+            userRole
+          );
+          setLoading(false);
+
+          // Use window.location to ensure localStorage is written before navigation
+          setTimeout(() => {
+            window.location.href = redirectPath;
+          }, 100);
+          return;
+        }
+
         // Get the code from URL params (OAuth authorization code)
+        console.log("No accessToken found, checking for OAuth code...");
         const code = searchParams.get("code");
         const scope = searchParams.get("scope");
         const authuser = searchParams.get("authuser");
         const prompt = searchParams.get("prompt");
-        
+
+        console.log("OAuth params:", {
+          code: code ? "Found" : "Not found",
+          scope,
+          authuser,
+          prompt,
+        });
+
         // Build the full query string for the backend callback
         const queryParams = new URLSearchParams();
         if (code) queryParams.append("code", code);
         if (scope) queryParams.append("scope", scope);
         if (authuser) queryParams.append("authuser", authuser);
         if (prompt) queryParams.append("prompt", prompt);
-        
+
         if (!code) {
-          // If backend redirects with token directly in URL params
-          const accessToken = searchParams.get("accessToken");
-          const token = searchParams.get("token");
-          
-          if (accessToken || token) {
-            const tokenToStore = accessToken || token;
-            const userParam = searchParams.get("user");
-            
-            // Store token
-            localStorage.setItem("login-accessToken", tokenToStore);
-            
-            // Parse and store user if provided
-            if (userParam) {
-              try {
-                const user = JSON.parse(decodeURIComponent(userParam));
-                localStorage.setItem("USER", JSON.stringify(user));
-                
-                // Redirect based on user role
-                if (user.role === "instructor") {
-                  router.push("/instructor");
-                } else if (user.role === "student") {
-                  router.push("/student/dashboard");
-                } else if (user.role === "affiliate") {
-                  router.push("/affiliate");
-                } else {
-                  router.push("/");
-                }
-                return;
-              } catch (e) {
-                console.error("Error parsing user data:", e);
-              }
-            }
-            
-            // If no user data, just redirect to home
-            router.push("/");
-            return;
-          }
-          
-          setError("No authentication code received.");
+          console.error(
+            "❌ No authentication code or token received in URL params"
+          );
+          console.error(
+            "Available params:",
+            Object.fromEntries(searchParams.entries())
+          );
+          setError("No authentication code or token received.");
           setLoading(false);
           setTimeout(() => {
             router.push("/auth/login");
@@ -87,10 +264,10 @@ function GoogleCallbackContent() {
         // Include all query parameters that Google might have passed
         const frontendCallbackUrl = `${window.location.origin}/auth/google/callback`;
         queryParams.append("redirect_uri", frontendCallbackUrl);
-        
+
         const backendCallbackUrl = `https://themutantschool-backend.onrender.com/api/auth/google/callback?${queryParams.toString()}`;
         console.log("Calling backend callback:", backendCallbackUrl);
-        
+
         const response = await fetch(backendCallbackUrl, {
           method: "GET",
           headers: {
@@ -99,6 +276,16 @@ function GoogleCallbackContent() {
           credentials: "include",
           redirect: "follow", // Follow redirects automatically
         });
+
+        // Log full response details
+        console.log("=== Backend Response Details ===");
+        console.log("Status:", response.status);
+        console.log("Status Text:", response.statusText);
+        console.log("URL:", response.url);
+        console.log("Redirected:", response.redirected);
+        console.log("OK:", response.ok);
+        console.log("Headers:", Object.fromEntries(response.headers.entries()));
+        console.log("================================");
 
         // Check if response is a redirect (3xx status)
         if (response.redirected) {
@@ -111,6 +298,8 @@ function GoogleCallbackContent() {
         // Check if response status indicates redirect
         if (response.status >= 300 && response.status < 400) {
           const redirectUrl = response.headers.get("Location");
+          console.log("Redirect status code detected:", response.status);
+          console.log("Location header:", redirectUrl);
           if (redirectUrl) {
             console.log("Backend redirect header:", redirectUrl);
             window.location.href = redirectUrl;
@@ -119,11 +308,22 @@ function GoogleCallbackContent() {
         }
 
         if (!response.ok) {
+          console.error(
+            "Response not OK:",
+            response.status,
+            response.statusText
+          );
           throw new Error(`HTTP error! status: ${response.status}`);
         }
 
         const data = await response.json();
-        console.log("Google OAuth callback response:", data);
+        console.log("=== Google OAuth callback response data ===");
+        console.log("Full response data:", JSON.stringify(data, null, 2));
+        console.log("Success:", data.success);
+        console.log("AccessToken present:", !!data.accessToken);
+        console.log("User:", data.user);
+        console.log("Redirect URL:", data.redirectUrl || data.redirect);
+        console.log("===========================================");
 
         if (data.success && data.accessToken) {
           // Store tokens and user data (same as normal login)
@@ -153,7 +353,7 @@ function GoogleCallbackContent() {
             window.location.href = data.redirectUrl || data.redirect;
             return;
           }
-          
+
           setError(data.message || "Authentication failed. Please try again.");
           setLoading(false);
           setTimeout(() => {
@@ -161,7 +361,10 @@ function GoogleCallbackContent() {
           }, 3000);
         }
       } catch (err) {
-        console.error("Google OAuth callback error:", err);
+        console.error("❌ Google OAuth callback error:", err);
+        console.error("Error name:", err.name);
+        console.error("Error message:", err.message);
+        console.error("Error stack:", err.stack);
         setError("An error occurred during authentication. Please try again.");
         setLoading(false);
         setTimeout(() => {
@@ -210,4 +413,3 @@ export default function GoogleCallback() {
     </Suspense>
   );
 }
-
