@@ -18,6 +18,16 @@ export default function Login() {
   const [buttonvalue, setButtonvalue] = useState("Enter the Lab");
   const [isLoading, setIsLoading] = useState(false);
 
+  const handleGoogleLogin = () => {
+    // Redirect to backend Google OAuth endpoint
+    // The backend will handle the OAuth flow and redirect back to our callback
+    const callbackUrl = encodeURIComponent(
+      `${window.location.origin}/auth/google/callback`
+    );
+    const backendUrl = `https://themutantschool-backend.onrender.com/api/auth/google?redirect_uri=${callbackUrl}`;
+    window.location.href = backendUrl;
+  };
+
   const handlelogin = async () => {
     console.log("Clicked login...");
     setIsLoading(true);
@@ -115,15 +125,9 @@ export default function Login() {
 
         <div className="w-full flex justify-center items-center h-full sm:min-h-screen p-4 sm:p-8">
           <div className="max-w-[500px] flex flex-col gap-4 sm:gap-8 w-full">
-            <div className="block text-center mx-auto mb-4">
-              <Image
-                src="/images/mutantlogo.png"
-                alt="Mutant School Logo"
-                width={150}
-                height={150}
-                className="mx-auto"
-              />
-            </div>
+            <h2 className="block text-center Xirod text-[26px] leading-[41px] text-[var(--secondary)]  ">
+              MUTANT
+            </h2>
 
             <div className="flex flex-col gap-4 sm:gap-7 h-full">
               <div>
@@ -178,17 +182,21 @@ export default function Login() {
                         height={15}
                       />
                     </button>
-                    <div className="h-[50px] sm:h-[60px] w-full border-[1px] rounded-[8px] flex items-center justify-between px-3 sm:px-4 border-[var(--primary)] cursor-pointer">
+                    <button
+                      type="button"
+                      onClick={handleGoogleLogin}
+                      className="h-[50px] sm:h-[60px] w-full border-[1px] rounded-[8px] flex items-center justify-between px-3 sm:px-4 border-[var(--primary)] cursor-pointer hover:bg-gray-800 transition-colors"
+                    >
                       <Image
                         src={"/images/google.png"}
-                        alt="arrow"
+                        alt="Google"
                         width={28.75}
                         height={28.36}
                       />
                       <p className="font-[600] text-[14px] sm:text-[15px] xl:text-[20px] leading-[20px] sm:leading-[57px] text-[var(--background)]">
                         Google
                       </p>
-                    </div>
+                    </button>
                   </div>
                   {errormessage && (
                     <div className="text-[var(--error-text-color)] text-center mt-2">
