@@ -85,7 +85,6 @@ function GoogleCallbackContent() {
 
         // Call backend callback endpoint to exchange code for token
         // Include all query parameters that Google might have passed
-        // Also include redirect_uri so backend knows where to redirect (though it should return JSON)
         const frontendCallbackUrl = `${window.location.origin}/auth/google/callback`;
         queryParams.append("redirect_uri", frontendCallbackUrl);
         
@@ -97,8 +96,27 @@ function GoogleCallbackContent() {
           headers: {
             "Content-Type": "application/json",
           },
-          credentials: "include", // Include cookies if needed
+          credentials: "include",
+          redirect: "follow", // Follow redirects automatically
         });
+
+        // Check if response is a redirect (3xx status)
+        if (response.redirected) {
+          // Backend did a redirect, let the browser follow it
+          console.log("Backend redirected to:", response.url);
+          window.location.href = response.url;
+          return;
+        }
+
+        // Check if response status indicates redirect
+        if (response.status >= 300 && response.status < 400) {
+          const redirectUrl = response.headers.get("Location");
+          if (redirectUrl) {
+            console.log("Backend redirect header:", redirectUrl);
+            window.location.href = redirectUrl;
+            return;
+          }
+        }
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -118,31 +136,16 @@ function GoogleCallbackContent() {
             console.log("User data stored:", data.user);
           }
 
-          // Redirect based on user role first (same logic as normal login)
-          const user = data.user;
-          if (user && user.role) {
-            if (user.role === "instructor") {
-              router.push("/instructor");
-            } else if (user.role === "student") {
-              router.push("/student/dashboard");
-            } else if (user.role === "affiliate") {
-              router.push("/affiliate");
-            } else {
-              // If no specific role, check for backend fallback redirect
-              if (data.redirectUrl || data.redirect) {
-                window.location.href = data.redirectUrl || data.redirect;
-              } else {
-                router.push("/");
-              }
-            }
-          } else {
-            // If no user/role, use backend fallback redirect if available
-            if (data.redirectUrl || data.redirect) {
-              window.location.href = data.redirectUrl || data.redirect;
-            } else {
-              router.push("/");
-            }
+          // Let backend handle redirect - check for redirect URL in response
+          if (data.redirectUrl || data.redirect) {
+            // Backend provides redirect URL, use it
+            window.location.href = data.redirectUrl || data.redirect;
+            return;
           }
+
+          // If backend doesn't provide redirect in JSON, it might have done a server-side redirect
+          // But if we got here, it didn't redirect, so fallback to home
+          router.push("/");
           setLoading(false);
         } else {
           // Check if backend provides a fallback redirect on error
