@@ -92,7 +92,7 @@ function GoogleCallbackContent() {
         console.log("Google OAuth callback response:", data);
 
         if (data.success && data.accessToken) {
-          // Store tokens and user data
+          // Store tokens and user data (same as normal login)
           localStorage.setItem("login-accessToken", data.accessToken);
           if (data.refreshToken) {
             localStorage.setItem("refreshToken", data.refreshToken);
@@ -102,18 +102,14 @@ function GoogleCallbackContent() {
             console.log("User data stored:", data.user);
           }
 
-          // Redirect based on user role
+          // Redirect based on user role (same logic as normal login)
           const user = data.user;
-          if (user && user.role) {
-            if (user.role === "instructor") {
-              router.push("/instructor");
-            } else if (user.role === "student") {
-              router.push("/student/dashboard");
-            } else if (user.role === "affiliate") {
-              router.push("/affiliate");
-            } else {
-              router.push("/");
-            }
+          if (user.role === "instructor") {
+            router.push("/instructor");
+          } else if (user.role === "student") {
+            router.push("/student/dashboard");
+          } else if (user.role === "affiliate") {
+            router.push("/affiliate");
           } else {
             router.push("/");
           }
