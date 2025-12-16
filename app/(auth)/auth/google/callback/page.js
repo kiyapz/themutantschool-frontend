@@ -25,6 +25,16 @@ function GoogleCallbackContent() {
 
         // Get the code from URL params (OAuth authorization code)
         const code = searchParams.get("code");
+        const scope = searchParams.get("scope");
+        const authuser = searchParams.get("authuser");
+        const prompt = searchParams.get("prompt");
+        
+        // Build the full query string for the backend callback
+        const queryParams = new URLSearchParams();
+        if (code) queryParams.append("code", code);
+        if (scope) queryParams.append("scope", scope);
+        if (authuser) queryParams.append("authuser", authuser);
+        if (prompt) queryParams.append("prompt", prompt);
         
         if (!code) {
           // If backend redirects with token directly in URL params
@@ -74,15 +84,21 @@ function GoogleCallbackContent() {
         }
 
         // Call backend callback endpoint to exchange code for token
-        const response = await fetch(
-          `https://themutantschool-backend.onrender.com/api/auth/google/callback?code=${code}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-          }
-        );
+        // Include all query parameters that Google might have passed
+        // Also include redirect_uri so backend knows where to redirect (though it should return JSON)
+        const frontendCallbackUrl = `${window.location.origin}/auth/google/callback`;
+        queryParams.append("redirect_uri", frontendCallbackUrl);
+        
+        const backendCallbackUrl = `https://themutantschool-backend.onrender.com/api/auth/google/callback?${queryParams.toString()}`;
+        console.log("Calling backend callback:", backendCallbackUrl);
+        
+        const response = await fetch(backendCallbackUrl, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include", // Include cookies if needed
+        });
 
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
@@ -102,19 +118,39 @@ function GoogleCallbackContent() {
             console.log("User data stored:", data.user);
           }
 
-          // Redirect based on user role (same logic as normal login)
+          // Redirect based on user role first (same logic as normal login)
           const user = data.user;
-          if (user.role === "instructor") {
-            router.push("/instructor");
-          } else if (user.role === "student") {
-            router.push("/student/dashboard");
-          } else if (user.role === "affiliate") {
-            router.push("/affiliate");
+          if (user && user.role) {
+            if (user.role === "instructor") {
+              router.push("/instructor");
+            } else if (user.role === "student") {
+              router.push("/student/dashboard");
+            } else if (user.role === "affiliate") {
+              router.push("/affiliate");
+            } else {
+              // If no specific role, check for backend fallback redirect
+              if (data.redirectUrl || data.redirect) {
+                window.location.href = data.redirectUrl || data.redirect;
+              } else {
+                router.push("/");
+              }
+            }
           } else {
-            router.push("/");
+            // If no user/role, use backend fallback redirect if available
+            if (data.redirectUrl || data.redirect) {
+              window.location.href = data.redirectUrl || data.redirect;
+            } else {
+              router.push("/");
+            }
           }
           setLoading(false);
         } else {
+          // Check if backend provides a fallback redirect on error
+          if (data.redirectUrl || data.redirect) {
+            window.location.href = data.redirectUrl || data.redirect;
+            return;
+          }
+          
           setError(data.message || "Authentication failed. Please try again.");
           setLoading(false);
           setTimeout(() => {
