@@ -20,6 +20,18 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
         const email = searchParams.get("email");
         const role = searchParams.get("role");
         const refreshToken = searchParams.get("refreshToken");
+        let userId = searchParams.get("id"); // Try to get from URL first
+
+        // If userId is not in URL, decode from accessToken
+        if (!userId && accessToken) {
+          try {
+            const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+            userId = tokenPayload.id;
+            console.log("ProtectedRoute: Extracted userId from accessToken payload:", userId);
+          } catch (jwtError) {
+            console.error("ProtectedRoute: Error decoding accessToken to get userId:", jwtError);
+          }
+        }
 
         console.log("ProtectedRoute: User params from URL:", { firstName, lastName, email, role });
 
@@ -34,7 +46,7 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
           // Build user object from URL params, ensuring isVerified is true
           const user = {
-            _id: searchParams.get("id"), // Assuming ID might also be in params if provided
+            _id: userId, // Use the extracted userId
             firstName: firstName || "",
             lastName: lastName || "",
             email: email || "",
@@ -46,7 +58,9 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
 
           localStorage.setItem("USER", JSON.stringify(user));
           console.log("ProtectedRoute: ✓ User data stored in localStorage");
-          console.log("ProtectedRoute: Stored user:", user);
+          console.log("ProtectedRoute: Access Token:", accessToken);
+          console.log("ProtectedRoute: Refresh Token:", refreshToken ? "Present" : "Not present");
+          console.log("ProtectedRoute: User Data (from URL params):", user);
 
           // Clean up URL params and reload to ensure all components pick up new localStorage
           window.history.replaceState({}, "", window.location.pathname); // Clears params
