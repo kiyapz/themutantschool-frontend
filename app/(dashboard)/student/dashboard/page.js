@@ -25,13 +25,20 @@ function StudentDashboardContent() {
   const [hasCompletedMission, setHasCompletedMission] = useState(false);
   const [isProfileComplete, setIsProfileComplete] = useState(false);
   const [showWelcomeModal, setShowWelcomeModal] = useState(false);
+  const [oauthProcessing, setOauthProcessing] = useState(false);
 
   // Handle Google OAuth callback params if backend redirects directly to this page
+  // This MUST run first before any other checks
   useEffect(() => {
     const handleOAuthParams = async () => {
       const accessToken = searchParams.get("accessToken");
       
-      if (accessToken) {
+      if (!accessToken) {
+        setOauthProcessing(false);
+        return;
+      }
+      
+      setOauthProcessing(true);
         console.log("=== Google OAuth params detected on student dashboard ===");
         console.log("AccessToken found in URL params");
         
@@ -78,12 +85,21 @@ function StudentDashboardContent() {
               const fullUser = profileData.data || profileData;
 
               console.log("Full user profile fetched:", fullUser);
+              
+              // Ensure isVerified is set for Google OAuth users
+              if (!fullUser.isVerified && !fullUser.emailVerified && !fullUser.verified) {
+                fullUser.isVerified = true;
+                fullUser.emailVerified = true;
+                fullUser.verified = true;
+              }
+              
               localStorage.setItem("USER", JSON.stringify(fullUser));
               console.log("✓ Full user data stored in localStorage with key 'USER'");
               console.log("User data:", JSON.stringify(fullUser, null, 2));
               
               // Clean up URL params by replacing current URL without params
               window.history.replaceState({}, "", "/student/dashboard");
+              setOauthProcessing(false);
               return;
             } else {
               console.warn("Failed to fetch user profile, using URL params");
@@ -100,6 +116,9 @@ function StudentDashboardContent() {
             lastName: lastName || "",
             email: email || tokenPayload.email || "",
             role: role || tokenPayload.role || "",
+            isVerified: true, // Google OAuth users are verified
+            emailVerified: true, // Also set emailVerified for compatibility
+            verified: true, // Also set verified for compatibility
           };
 
           localStorage.setItem("USER", JSON.stringify(user));
@@ -109,9 +128,13 @@ function StudentDashboardContent() {
           
           // Clean up URL params
           window.history.replaceState({}, "", "/student/dashboard");
+          setOauthProcessing(false);
         } catch (storageError) {
           console.error("Error storing auth data in localStorage:", storageError);
+          setOauthProcessing(false);
         }
+      } else {
+        setOauthProcessing(false);
       }
     };
 
@@ -134,7 +157,12 @@ function StudentDashboardContent() {
     setShowWelcomeModal(false);
   };
 
+  // Wait for OAuth processing to complete before fetching missions
   useEffect(() => {
+    if (oauthProcessing) {
+      return; // Don't fetch missions while OAuth is processing
+    }
+
     const fetchAvailableMissions = async () => {
       try {
         const token =
@@ -400,7 +428,7 @@ function StudentDashboardContent() {
     };
 
     fetchAvailableMissions();
-  }, []); // safe, missioncard is module-scoped
+  }, [oauthProcessing]); // Wait for OAuth processing to complete
 
   // Get the first available mission
   const firstAvailableMission = availableMissions[0];

@@ -221,6 +221,10 @@ function GoogleCallbackContent() {
             }
 
             // Otherwise, follow the redirect (could be redirect with tokens in URL)
+            // The destination page (dashboard) will handle extracting tokens from URL params
+            console.log("Following backend redirect to:", locationHeader);
+            setLoading(false);
+            // Use window.location.href to ensure full page navigation
             window.location.href = locationHeader;
             return;
           } else {
@@ -318,10 +322,22 @@ function GoogleCallbackContent() {
             // Note: Backend sets refreshToken in httpOnly cookie, not in response
             // It's automatically included in credentials: "include"
 
+            // Ensure isVerified is set for Google OAuth users (Google verifies emails)
+            if (
+              !data.user.isVerified &&
+              !data.user.emailVerified &&
+              !data.user.verified
+            ) {
+              data.user.isVerified = true;
+              data.user.emailVerified = true;
+              data.user.verified = true;
+            }
+
             // Store complete user object as returned by backend
             localStorage.setItem("USER", JSON.stringify(data.user));
             console.log("✓ Tokens and user data stored successfully");
             console.log("User role:", data.user.role);
+            console.log("User isVerified:", data.user.isVerified);
 
             // Use redirect URL from backend if provided, otherwise use role-based redirect
             const redirectPath =
