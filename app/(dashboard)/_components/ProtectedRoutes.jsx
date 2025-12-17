@@ -8,15 +8,59 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const oauthProcessed = localStorage.getItem("oauthProcessed");
+    const handleOAuthParamsAndAuth = async () => {
+      const searchParams = new URLSearchParams(window.location.search);
+      const accessToken = searchParams.get("accessToken");
 
-    if (oauthProcessed === "true") {
-      // Clear the flag after checking
-      localStorage.removeItem("oauthProcessed");
-    }
+      if (accessToken) {
+        console.log("=== ProtectedRoute: Google OAuth params detected ===");
+        // Extract user details from URL params
+        const firstName = searchParams.get("firstName");
+        const lastName = searchParams.get("lastName");
+        const email = searchParams.get("email");
+        const role = searchParams.get("role");
+        const refreshToken = searchParams.get("refreshToken");
 
-    // Only proceed with auth checks if OAuth has been processed or no OAuth params were present
-    if (oauthProcessed === "true" || !window.location.href.includes("accessToken")) {
+        console.log("ProtectedRoute: User params from URL:", { firstName, lastName, email, role });
+
+        // Store access token
+        try {
+          localStorage.setItem("login-accessToken", accessToken);
+          console.log("ProtectedRoute: ✓ Access token stored in localStorage");
+          if (refreshToken) {
+            localStorage.setItem("refreshToken", refreshToken);
+            console.log("ProtectedRoute: ✓ Refresh token stored in localStorage");
+          }
+
+          // Build user object from URL params, ensuring isVerified is true
+          const user = {
+            _id: searchParams.get("id"), // Assuming ID might also be in params if provided
+            firstName: firstName || "",
+            lastName: lastName || "",
+            email: email || "",
+            role: role || "",
+            isVerified: true, // Google OAuth users are verified
+            emailVerified: true, // Also set emailVerified for compatibility
+            verified: true, // Also set verified for compatibility
+          };
+
+          localStorage.setItem("USER", JSON.stringify(user));
+          console.log("ProtectedRoute: ✓ User data stored in localStorage");
+          console.log("ProtectedRoute: Stored user:", user);
+
+          // Clean up URL params and reload to ensure all components pick up new localStorage
+          window.history.replaceState({}, "", window.location.pathname); // Clears params
+          window.location.reload(); // Reloads the page
+          return; // Stop further execution
+
+        } catch (storageError) {
+          console.error("ProtectedRoute: Error storing auth data in localStorage:", storageError);
+          router.push("/auth/login");
+          return;
+        }
+      }
+
+      // Normal authentication checks if no OAuth params were found or after processing
       const storedUser = localStorage.getItem("USER");
 
       if (storedUser) {
@@ -24,13 +68,12 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
 
-          // Check if user role is allowed
           if (!allowedRoles.includes(parsedUser.role)) {
+            console.log("ProtectedRoute: User role not allowed, redirecting to login");
             router.push("/auth/login");
             return;
           }
 
-          // Check email verification status
           const isEmailVerified =
             parsedUser.emailVerified !== undefined
               ? parsedUser.emailVerified
@@ -44,24 +87,29 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
               ? parsedUser.email_verified
               : false;
 
-          // If email is not verified, redirect to verification page
           if (!isEmailVerified) {
+            console.log("ProtectedRoute: Email not verified, redirecting to verify-email");
             router.push("/auth/verify-email");
             return;
           }
         } catch (error) {
-          console.error("Failed to parse user:", error);
+          console.error("ProtectedRoute: Failed to parse user from localStorage:", error);
+          localStorage.removeItem("USER");
+          localStorage.removeItem("login-accessToken");
+          localStorage.removeItem("refreshToken");
           router.push("/auth/login");
+          return;
         }
       } else {
+        console.log("ProtectedRoute: No user data in localStorage, redirecting to login");
         router.push("/auth/login");
+        return;
       }
+
       setLoading(false);
-    } else {
-      // If OAuth is still processing, don't set loading to false yet
-      // This means the dashboard component is still handling the URL params
-      // We will re-evaluate once the oauthProcessed flag is set or the URL changes
-    }
+    };
+
+    handleOAuthParamsAndAuth();
   }, [router, allowedRoles]);
 
   if (loading || !user) return null;
