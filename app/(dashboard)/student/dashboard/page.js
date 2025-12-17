@@ -39,101 +39,98 @@ function StudentDashboardContent() {
       }
       
       setOauthProcessing(true);
-        console.log("=== Google OAuth params detected on student dashboard ===");
-        console.log("AccessToken found in URL params");
+      console.log("=== Google OAuth params detected on student dashboard ===");
+      console.log("AccessToken found in URL params");
+      
+      // Extract user details from URL params
+      const firstName = searchParams.get("firstName");
+      const lastName = searchParams.get("lastName");
+      const email = searchParams.get("email");
+      const role = searchParams.get("role");
+      const refreshToken = searchParams.get("refreshToken");
+
+      console.log("User params:", { firstName, lastName, email, role });
+
+      // Store access token first
+      try {
+        localStorage.setItem("login-accessToken", accessToken);
+        console.log("✓ Access token stored in localStorage");
         
-        // Extract user details from URL params
-        const firstName = searchParams.get("firstName");
-        const lastName = searchParams.get("lastName");
-        const email = searchParams.get("email");
-        const role = searchParams.get("role");
-        const refreshToken = searchParams.get("refreshToken");
-
-        console.log("User params:", { firstName, lastName, email, role });
-
-        // Store access token first
-        try {
-          localStorage.setItem("login-accessToken", accessToken);
-          console.log("✓ Access token stored in localStorage");
-          
-          if (refreshToken) {
-            localStorage.setItem("refreshToken", refreshToken);
-            console.log("✓ Refresh token stored in localStorage");
-          }
-
-          // Try to fetch full user profile from backend using the token
-          try {
-            const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
-            const userId = tokenPayload.id;
-
-            console.log("Fetching full user profile for ID:", userId);
-
-            const profileResponse = await fetch(
-              `https://themutantschool-backend.onrender.com/api/user-profile/${userId}`,
-              {
-                method: "GET",
-                headers: {
-                  "Content-Type": "application/json",
-                  Authorization: `Bearer ${accessToken}`,
-                },
-                credentials: "include",
-              }
-            );
-
-            if (profileResponse.ok) {
-              const profileData = await profileResponse.json();
-              const fullUser = profileData.data || profileData;
-
-              console.log("Full user profile fetched:", fullUser);
-              
-              // Ensure isVerified is set for Google OAuth users
-              if (!fullUser.isVerified && !fullUser.emailVerified && !fullUser.verified) {
-                fullUser.isVerified = true;
-                fullUser.emailVerified = true;
-                fullUser.verified = true;
-              }
-              
-              localStorage.setItem("USER", JSON.stringify(fullUser));
-              console.log("✓ Full user data stored in localStorage with key 'USER'");
-              console.log("User data:", JSON.stringify(fullUser, null, 2));
-              
-              // Clean up URL params by replacing current URL without params
-              window.history.replaceState({}, "", "/student/dashboard");
-              setOauthProcessing(false);
-              return;
-            } else {
-              console.warn("Failed to fetch user profile, using URL params");
-            }
-          } catch (error) {
-            console.error("Error fetching user profile:", error);
-          }
-
-          // Fallback: Build minimal user object from URL params
-          const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
-          const user = {
-            _id: tokenPayload.id,
-            firstName: firstName || "",
-            lastName: lastName || "",
-            email: email || tokenPayload.email || "",
-            role: role || tokenPayload.role || "",
-            isVerified: true, // Google OAuth users are verified
-            emailVerified: true, // Also set emailVerified for compatibility
-            verified: true, // Also set verified for compatibility
-          };
-
-          localStorage.setItem("USER", JSON.stringify(user));
-          console.log("✓ Minimal user data stored in localStorage with key 'USER'");
-          console.log("Stored user:", user);
-          console.log("User data:", JSON.stringify(user, null, 2));
-          
-          // Clean up URL params
-          window.history.replaceState({}, "", "/student/dashboard");
-          setOauthProcessing(false);
-        } catch (storageError) {
-          console.error("Error storing auth data in localStorage:", storageError);
-          setOauthProcessing(false);
+        if (refreshToken) {
+          localStorage.setItem("refreshToken", refreshToken);
+          console.log("✓ Refresh token stored in localStorage");
         }
-      } else {
+
+        // Try to fetch full user profile from backend using the token
+        try {
+          const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+          const userId = tokenPayload.id;
+
+          console.log("Fetching full user profile for ID:", userId);
+
+          const profileResponse = await fetch(
+            `https://themutantschool-backend.onrender.com/api/user-profile/${userId}`,
+            {
+              method: "GET",
+              headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${accessToken}`,
+              },
+              credentials: "include",
+            }
+          );
+
+          if (profileResponse.ok) {
+            const profileData = await profileResponse.json();
+            const fullUser = profileData.data || profileData;
+
+            console.log("Full user profile fetched:", fullUser);
+            
+            // Ensure isVerified is set for Google OAuth users
+            if (!fullUser.isVerified && !fullUser.emailVerified && !fullUser.verified) {
+              fullUser.isVerified = true;
+              fullUser.emailVerified = true;
+              fullUser.verified = true;
+            }
+            
+            localStorage.setItem("USER", JSON.stringify(fullUser));
+            console.log("✓ Full user data stored in localStorage with key 'USER'");
+            console.log("User data:", JSON.stringify(fullUser, null, 2));
+            
+            // Clean up URL params by replacing current URL without params
+            window.history.replaceState({}, "", "/student/dashboard");
+            setOauthProcessing(false);
+            return;
+          } else {
+            console.warn("Failed to fetch user profile, using URL params");
+          }
+        } catch (error) {
+          console.error("Error fetching user profile:", error);
+        }
+
+        // Fallback: Build minimal user object from URL params
+        const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+        const user = {
+          _id: tokenPayload.id,
+          firstName: firstName || "",
+          lastName: lastName || "",
+          email: email || tokenPayload.email || "",
+          role: role || tokenPayload.role || "",
+          isVerified: true, // Google OAuth users are verified
+          emailVerified: true, // Also set emailVerified for compatibility
+          verified: true, // Also set verified for compatibility
+        };
+
+        localStorage.setItem("USER", JSON.stringify(user));
+        console.log("✓ Minimal user data stored in localStorage with key 'USER'");
+        console.log("Stored user:", user);
+        console.log("User data:", JSON.stringify(user, null, 2));
+        
+        // Clean up URL params
+        window.history.replaceState({}, "", "/student/dashboard");
+        setOauthProcessing(false);
+      } catch (storageError) {
+        console.error("Error storing auth data in localStorage:", storageError);
         setOauthProcessing(false);
       }
     };
