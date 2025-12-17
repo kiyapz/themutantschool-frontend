@@ -2,7 +2,7 @@
 import Image from "next/image";
 import { FaArrowUp } from "react-icons/fa";
 import { FaStar } from "react-icons/fa";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 
 import SingleValueChart from "./_components/InstructorgraphSingleValueChart";
@@ -48,8 +48,10 @@ const Mission = [
 
 export default function InstructorDashboard() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(true);
   const [authChecked, setAuthChecked] = useState(false);
+  const [oauthParamsProcessed, setOauthParamsProcessed] = useState(false);
   const [studentProgress, setStudentProgress] = useState(null);
   const [recentActivities, setRecentActivities] = useState([]);
   const [showAllActivities, setShowAllActivities] = useState(false);
@@ -64,6 +66,103 @@ export default function InstructorDashboard() {
     setMission,
     courses,
   } = useContext(InstructorContext);
+
+  // Handle Google OAuth callback params if backend redirects directly to this page
+  useEffect(() => {
+    const handleOAuthParams = async () => {
+      const accessToken = searchParams.get("accessToken");
+      
+      if (accessToken) {
+        console.log("=== Google OAuth params detected on instructor page ===");
+        console.log("AccessToken found in URL params");
+        
+        // Extract user details from URL params
+        const firstName = searchParams.get("firstName");
+        const lastName = searchParams.get("lastName");
+        const email = searchParams.get("email");
+        const role = searchParams.get("role");
+        const refreshToken = searchParams.get("refreshToken");
+
+        console.log("User params:", { firstName, lastName, email, role });
+
+        // Store access token first
+        try {
+          localStorage.setItem("login-accessToken", accessToken);
+          console.log("✓ Access token stored in localStorage");
+          
+          if (refreshToken) {
+            localStorage.setItem("refreshToken", refreshToken);
+            console.log("✓ Refresh token stored in localStorage");
+          }
+
+          // Try to fetch full user profile from backend using the token
+          try {
+            const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+            const userId = tokenPayload.id;
+
+            console.log("Fetching full user profile for ID:", userId);
+
+            const profileResponse = await fetch(
+              `https://themutantschool-backend.onrender.com/api/user-profile/${userId}`,
+              {
+                method: "GET",
+                headers: {
+                  "Content-Type": "application/json",
+                  Authorization: `Bearer ${accessToken}`,
+                },
+              }
+            );
+
+            if (profileResponse.ok) {
+              const profileData = await profileResponse.json();
+              const fullUser = profileData.data || profileData;
+
+              console.log("Full user profile fetched:", fullUser);
+              localStorage.setItem("USER", JSON.stringify(fullUser));
+              console.log("✓ Full user data stored in localStorage with key 'USER'");
+              console.log("User data:", JSON.stringify(fullUser, null, 2));
+              
+              // Clean up URL params by replacing current URL without params
+              window.history.replaceState({}, "", "/instructor");
+              setOauthParamsProcessed(true);
+              return;
+            } else {
+              console.warn("Failed to fetch user profile, using URL params");
+            }
+          } catch (error) {
+            console.error("Error fetching user profile:", error);
+          }
+
+          // Fallback: Build minimal user object from URL params
+          const tokenPayload = JSON.parse(atob(accessToken.split(".")[1]));
+          const user = {
+            _id: tokenPayload.id,
+            firstName: firstName || "",
+            lastName: lastName || "",
+            email: email || tokenPayload.email || "",
+            role: role || tokenPayload.role || "",
+          };
+
+          localStorage.setItem("USER", JSON.stringify(user));
+          console.log("✓ Minimal user data stored in localStorage with key 'USER'");
+          console.log("Stored user:", user);
+          console.log("User data:", JSON.stringify(user, null, 2));
+          
+          // Clean up URL params
+          window.history.replaceState({}, "", "/instructor");
+          setOauthParamsProcessed(true);
+        } catch (storageError) {
+          console.error("Error storing auth data in localStorage:", storageError);
+          setOauthParamsProcessed(true);
+        }
+      } else {
+        // No OAuth params, proceed with normal auth check
+        setOauthParamsProcessed(true);
+      }
+    };
+
+    handleOAuthParams();
+  }, [searchParams]);
 
   // Helper function to format relative time
   const formatRelativeTime = (dateString) => {
@@ -324,10 +423,12 @@ export default function InstructorDashboard() {
 
   // Note: userUpdatedValue is now managed only in the profile page to avoid conflicts
 
-  // Check auth and fetch profile on component mount
+  // Check auth and fetch profile on component mount (after OAuth params are processed)
   useEffect(() => {
-    checkAuthAndFetchProfile();
-  }, [checkAuthAndFetchProfile]);
+    if (oauthParamsProcessed) {
+      checkAuthAndFetchProfile();
+    }
+  }, [checkAuthAndFetchProfile, oauthParamsProcessed]);
 
   // Fetch missions after authentication is confirmed
   useEffect(() => {
