@@ -87,6 +87,7 @@ function GoogleCallbackContent() {
                   "Content-Type": "application/json",
                   Authorization: `Bearer ${accessToken}`,
                 },
+                credentials: "include",
               }
             );
 
@@ -151,20 +152,24 @@ function GoogleCallbackContent() {
         if (prompt) queryParams.append("prompt", prompt);
 
         // Call backend callback endpoint
-        // API Documentation: Production URL: https://themutantschool-backend.onrender.com/api/auth/google/callback
-        // Note: Docs show /api/auth/google but callback endpoint should be /api/auth/google/callback
+        // Backend: GET /api/auth/google/callback
+        // Backend returns JSON if Accept: application/json, otherwise redirects with URL params
         const backendCallbackUrl = `${BACKEND_BASE_URL}/auth/google/callback?${queryParams.toString()}`;
         console.log("=== Calling Backend Callback ===");
         console.log("URL:", backendCallbackUrl);
         console.log("Method: GET");
         console.log(
-          "Expected Response: { success: true, accessToken: '<JWT_TOKEN>', user: {...} }"
+          "Expected Response (JSON): { user: {...}, accessToken: '<JWT_TOKEN>', redirect: '<URL>' }"
+        );
+        console.log(
+          "OR Redirect (302): Frontend URL with accessToken, firstName, lastName, email, role params"
         );
 
         const response = await fetch(backendCallbackUrl, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
+            Accept: "application/json", // Request JSON response from backend
           },
           credentials: "include",
           redirect: "manual", // Don't automatically follow redirects, handle them manually
@@ -277,12 +282,21 @@ function GoogleCallbackContent() {
           // Log complete response data
           console.log("=== Response Data (200 OK) ===");
           console.log("Full response:", JSON.stringify(data, null, 2));
-          console.log("Success:", data.success);
           console.log("AccessToken present:", !!data.accessToken);
           console.log("User present:", !!data.user);
+          console.log("Redirect present:", !!data.redirect);
           if (data.user) {
             console.log("User role:", data.user.role);
             console.log("User email:", data.user.email);
+            console.log("User structure:", {
+              firstName: data.user.firstName,
+              lastName: data.user.lastName,
+              username: data.user.username,
+              email: data.user.email,
+              role: data.user.role,
+              isVerified: data.user.isVerified,
+              hasProfile: !!data.user.profile,
+            });
           }
           console.log("==============================");
 
@@ -293,36 +307,25 @@ function GoogleCallbackContent() {
             data: data,
           });
 
-          // Handle response according to API documentation
-          // Expected format: { success: true, accessToken: "<JWT_TOKEN>", user: {...} }
-          if (data.success && data.accessToken && data.user) {
-            // Verify user object structure matches API documentation
-            // Expected: { firstName, lastName, username, email, role, isVerified, profile }
-            console.log("✓ Response matches API documentation format");
-            console.log("User structure:", {
-              firstName: data.user.firstName,
-              lastName: data.user.lastName,
-              username: data.user.username,
-              email: data.user.email,
-              role: data.user.role,
-              isVerified: data.user.isVerified,
-              hasProfile: !!data.user.profile,
-            });
+          // Handle response according to backend implementation
+          // Backend returns: { user: result.data, accessToken: result.accessToken, redirect: frontendRedirectUrl }
+          if (data.accessToken && data.user) {
+            console.log("✓ Response matches backend format");
 
             // Store tokens and user data (same as normal login)
             localStorage.setItem("login-accessToken", data.accessToken);
 
-            if (data.refreshToken) {
-              localStorage.setItem("refreshToken", data.refreshToken);
-            }
+            // Note: Backend sets refreshToken in httpOnly cookie, not in response
+            // It's automatically included in credentials: "include"
 
             // Store complete user object as returned by backend
             localStorage.setItem("USER", JSON.stringify(data.user));
             console.log("✓ Tokens and user data stored successfully");
             console.log("User role:", data.user.role);
 
-            // Redirect based on user role
-            const redirectPath = getRedirectPath(data.user.role);
+            // Use redirect URL from backend if provided, otherwise use role-based redirect
+            const redirectPath =
+              data.redirect || getRedirectPath(data.user.role);
             console.log("Redirecting to:", redirectPath);
             setLoading(false);
 
@@ -330,15 +333,13 @@ function GoogleCallbackContent() {
               window.location.href = redirectPath;
             }, 100);
           } else {
-            // Authentication failed - response was 200 but data indicates failure
-            // According to docs: "If authentication fails, redirects to /login"
-            // But we got 200, so check the response structure
+            // Authentication failed - response was 200 but missing required fields
             const errorMessage =
               data.message || "Authentication failed. Please try again.";
             console.error(
               "❌ Authentication failed - invalid response structure"
             );
-            console.error("Expected: { success: true, accessToken, user }");
+            console.error("Expected: { accessToken, user, redirect }");
             console.error("Received:", data);
             setError(errorMessage);
             setLoading(false);
