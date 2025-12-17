@@ -97,10 +97,11 @@ function StudentDashboardContent() {
             console.log("✓ Full user data stored in localStorage with key 'USER'");
             console.log("User data:", JSON.stringify(fullUser, null, 2));
             
-            // Clean up URL params by replacing current URL without params
-            window.history.replaceState({}, "", "/student/dashboard");
-            setOauthProcessing(false);
-            return;
+              // Clean up URL params by replacing current URL without params
+              window.history.replaceState({}, "", "/student/dashboard");
+              localStorage.setItem("oauthProcessed", "true"); // Set flag
+              setOauthProcessing(false);
+              return;
           } else {
             console.warn("Failed to fetch user profile, using URL params");
           }
@@ -126,13 +127,14 @@ function StudentDashboardContent() {
         console.log("Stored user:", user);
         console.log("User data:", JSON.stringify(user, null, 2));
         
-        // Clean up URL params
-        window.history.replaceState({}, "", "/student/dashboard");
-        setOauthProcessing(false);
-      } catch (storageError) {
-        console.error("Error storing auth data in localStorage:", storageError);
-        setOauthProcessing(false);
-      }
+          // Clean up URL params
+          window.history.replaceState({}, "", "/student/dashboard");
+          localStorage.setItem("oauthProcessed", "true"); // Set flag
+          setOauthProcessing(false);
+        } catch (storageError) {
+          console.error("Error storing auth data in localStorage:", storageError);
+          setOauthProcessing(false);
+        }
     };
 
     handleOAuthParams();
