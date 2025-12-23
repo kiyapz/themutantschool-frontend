@@ -25,7 +25,7 @@ export default function Login() {
       `${window.location.origin}/auth/google/callback`
     );
     // const backendUrl = `https://themutantschool-backend.onrender.com/api/auth/google?redirect_uri=${callbackUrl}`;
-    const backendUrl = `https://themutantschool-backend.onrender.com/api/auth/google?prompt=consent`;
+    const backendUrl = `https://themutantschool-backend.onrender.com/api/auth/google`;
     window.location.href = backendUrl;
   };
 

@@ -495,7 +495,7 @@ export default function Createnewmission() {
               )}
             </>
           ) : activeTab === "Preview and Launch" ? (
-            <p className=" font-[600] text-[20px] sm:text-[25px] xl:text-[42px] flex items-center gap-1 leading-[40px] text-white ">
+            <p className=" font-[600] text-[18px] sm:text-[22px] md:text-[26px] lg:text-[30px] flex items-center gap-1 leading-[150%] sm:leading-[28px] md:leading-[32px] text-white ">
               <Link href="/instructor/missions/createnewmission">
                 <span
                   className="cursor-pointer"
@@ -507,7 +507,7 @@ export default function Createnewmission() {
               {`Mission Preview`}
             </p>
           ) : (
-            <p className="font-[600]  text-[#BDE75D] text-[18px] sm:text-[42px] leading-[150%] sm:leading-[40px]">
+            <p className="font-[600]  text-[#BDE75D] text-[18px] sm:text-[24px] md:text-[28px] xl:text-[42px] leading-[150%] sm:leading-[40px]">
               Create New Mission
             </p>
           )}

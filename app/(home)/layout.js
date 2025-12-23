@@ -4,7 +4,7 @@ import GuestAccountInfo from "@/components/mutantcart/GuestAccountInfo";
 
 export default function HomeLayout({ children }) {
   return (
-    <>
+    <div className="min-h-screen flex flex-col">
       <header>
         <div className="fixed top-0 left-0 w-full h-fit flexcenter bg-black flex-col  z-50">
           <div
@@ -29,9 +29,9 @@ export default function HomeLayout({ children }) {
           </div>
         </div>
       </header>
-      <main className="">{children}</main>
+      <main className="flex-grow">{children}</main>
       <Footer />
       <GuestAccountInfo />
-    </>
+    </div>
   );
 }

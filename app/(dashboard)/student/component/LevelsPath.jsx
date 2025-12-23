@@ -519,7 +519,7 @@ export default function LevelsPath({
           </svg>
         </Link>
         <div>
-          <h1 className="text-2xl font-bold text-white">
+          <h1 className="text-lg sm:text-xl font-bold text-white">
             {missionTitle || "Mission"}
           </h1>
           <p className="text-gray-400 text-sm">{level?.length || 0} Levels</p>
@@ -541,15 +541,15 @@ export default function LevelsPath({
                   <div className="flex flex-col gap-5 sm:gap-0 justify-between order-2 sm:order-1">
                     <div className="flex flex-col gap-10">
                       <div>
-                        <p className="font-[800] text-[21px] leading-[39px] xl:text-[38px] leading-[39px]">
+                        <p className="font-[800] text-[16px] leading-[24px] xl:text-[24px] leading-[30px]">
                           {currentlevel.title}
                         </p>
-                        <p className="font-[400] text-[15px] leading-[18px] xl:text-[18px] leading-[18px]">
+                        <p className="font-[400] text-[12px] leading-[16px] xl:text-[14px] leading-[18px]">
                           {currentlevel.summary}
                         </p>
                       </div>
 
-                      <p className="font-[300] text-[15px] xl:text-[23px] leading-[20px]">
+                      <p className="font-[300] text-[12px] xl:text-[16px] leading-[18px]">
                         {currentlevel.capsules?.length} Capsules • 1 Quiz
                       </p>
                     </div>
@@ -644,19 +644,19 @@ export default function LevelsPath({
 
                             {/* Step indicator */}
                             <div className="flex items-center gap-2 p-2">
-                              <span className="text-gray-400 text-xs">
+                              <span className="text-gray-400 text-[10px]">
                                 Enter the lab
                               </span>
                             </div>
 
                             <div className="px-4 pb-4 flex flex-col gap-2">
-                              <h3 className="font-bold text-[#840B94] text-lg mb-1">
+                              <h3 className="font-bold text-[#840B94] text-sm mb-1">
                                 {capsule.title || "Untitled"}
                               </h3>
-                              <p className="text-gray-400 text-xs mb-2">
+                              <p className="text-gray-400 text-[10px] mb-2">
                                 {capsule.duration || "15 mins"}
                               </p>
-                              <p className="text-gray-300 text-xs mb-3 leading-relaxed">
+                              <p className="text-gray-300 text-[10px] mb-3 leading-relaxed">
                                 {capsule.description ||
                                   "No description available"}
                               </p>
@@ -664,11 +664,11 @@ export default function LevelsPath({
                               <div className="flex items-center justify-between">
                                 <button
                                   style={{ padding: "5px 10px" }}
-                                  className="bg-[#840B94] hover:bg-[#9A0DAF] text-white px-4 py-2 rounded-md font-semibold text-xs transition-colors duration-200"
+                                  className="bg-[#840B94] hover:bg-[#9A0DAF] text-white px-4 py-2 rounded-md font-semibold text-[10px] transition-colors duration-200"
                                 >
                                   Start Mission
                                 </button>
-                                <span className="text-[#840B94] text-xs font-bold">
+                                <span className="text-[#840B94] text-[10px] font-bold">
                                   5XP
                                 </span>
                               </div>

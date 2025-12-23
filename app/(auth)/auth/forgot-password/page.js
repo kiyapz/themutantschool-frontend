@@ -307,23 +307,22 @@ export default function Forgotpassword() {
 
   return (
     <div className="flexcenter relative w-full h-[90vh] px">
-      {/* Back to Login Arrow */}
-      <Link href="/auth/login" className="absolute top-[5%] left-[5%] xl:left-[10%] h-[44px] w-[44px] flex items-center justify-center cursor-pointer hover:opacity-70 z-10">
-        <FiArrowLeft className="text-xl text-[var(--background)]" />
-      </Link>
+      {/* Back to Login Arrow - only show on step 1 */}
+      {registerStep === 1 && (
+        <Link href="/auth/login" className="absolute top-[5%] left-[5%] xl:left-[10%] h-[44px] w-[44px] flex items-center justify-center cursor-pointer hover:opacity-70 z-10">
+          <FiArrowLeft className="text-xl text-[var(--background)]" />
+        </Link>
+      )}
 
-      {/* Back Arrow for steps */}
-      <div
-        onClick={() => setRegisterStep((prev) => prev - 1)}
-        className={`absolute top-[5%] left-[15%] xl:left-[20%] h-[44px] w-[44px] flex items-center justify-center cursor-pointer
-          ${
-            registerStep === 1 || registerStep === 4
-              ? "opacity-40 cursor-not-allowed hidden"
-              : "opacity-100 hover:opacity-70"
-          }`}
-      >
-        <FiArrowLeft className="text-xl" />
-      </div>
+      {/* Back Arrow for steps - show on steps 2 and 3 */}
+      {registerStep > 1 && registerStep < 4 && (
+        <div
+          onClick={() => setRegisterStep((prev) => prev - 1)}
+          className="absolute top-[5%] left-[5%] xl:left-[10%] h-[44px] w-[44px] flex items-center justify-center cursor-pointer hover:opacity-70 z-10"
+        >
+          <FiArrowLeft className="text-xl text-[var(--background)]" />
+        </div>
+      )}
 
       {/* Content based on step */}
       {renderStep()}

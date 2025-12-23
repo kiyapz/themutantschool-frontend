@@ -57,24 +57,24 @@ export default function NavBar({ onMenuClick }) {
   return (
     <div>
       {/* Desktop NavBar */}
-      <div className="hidden py sm:flex w-full h-[125.36px]  px items-center justify-between px-6">
-        <p className="text-[16px] sm:text-[18px] leading-[40px] Xirod text-[var(--sidebar-linkcolor)]">
+      <div className="hidden py sm:flex w-full h-[70px] sm:h-[80px] md:h-[90px] lg:h-[110px] xl:h-[125.36px] px items-center justify-between px-3 sm:px-4 md:px-5 lg:px-6">
+        <p className="text-[12px] sm:text-[13px] md:text-[14px] lg:text-[16px] leading-[18px] sm:leading-[20px] md:leading-[22px] lg:leading-[24px] Xirod text-[var(--sidebar-linkcolor)]">
           Mission Control
         </p>
 
-        <div className="flex items-center  relative">
-          <div className="flex items-center gap-2 xl:gap-5">
+        <div className="flex items-center relative">
+          <div className="flex items-center gap-2 md:gap-3 lg:gap-4 xl:gap-5">
             {/* Notification Icon - Desktop Only */}
             <div
               onClick={() => setNotificationOpen(!notificationOpen)}
-              className="relative cursor-pointer pr-4 transition-transform duration-300 hover:scale-110 flex-shrink-0"
+              className="relative cursor-pointer pr-2 sm:pr-3 md:pr-4 transition-transform duration-300 hover:scale-110 flex-shrink-0"
             >
-              <IoNotificationsOutline
-                size={20}
-                className="text-[var(--sidebar-linkcolor)]"
-              />
+            <IoNotificationsOutline
+              size={16}
+              className="text-[var(--sidebar-linkcolor)] sm:w-[18px] sm:h-[18px] md:w-5 md:h-5"
+            />
               {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+                <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold">
                   {unreadCount > 9 ? "9+" : unreadCount}
                 </span>
               )}
@@ -99,12 +99,12 @@ export default function NavBar({ onMenuClick }) {
       {/* Mobile NavBar */}
       <div
         style={{ paddingLeft: "5px", paddingRight: "5px" }}
-        className="sm:hidden z-50 fixed top-0 left-0 w-full h-[79.88px] bg-black border-b border-gray-800 backdrop-blur-sm flex items-center justify-between px-4"
+        className="sm:hidden z-50 fixed top-0 left-0 w-full h-[60px] bg-black border-b border-gray-800 backdrop-blur-sm flex items-center justify-between px-3 sm:px-4"
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           <button
             onClick={handleMenuClick}
-            className="flex relative z-50 flex-col gap-1 cursor-pointer p-2"
+            className="flex relative z-50 flex-col gap-1 cursor-pointer p-1.5 sm:p-2"
             aria-label="Toggle menu"
           >
             <span
@@ -124,23 +124,23 @@ export default function NavBar({ onMenuClick }) {
             ></span>
           </button>
 
-          <p className="text-[22px] text-[var(--mutant-color)] font-[600] leading-[150%]  ">
+          <p className="text-[16px] sm:text-[18px] text-[var(--mutant-color)] font-[600] leading-[150%]">
             Dashboard
           </p>
         </div>
 
-        <div className="flex items-center gap-3 relative">
+        <div className="flex items-center gap-2 sm:gap-3 relative">
           {/* Notification Icon for Mobile */}
           <div
             onClick={() => setNotificationOpen(!notificationOpen)}
             className="relative cursor-pointer transition-transform duration-300 hover:scale-110 flex-shrink-0"
           >
             <IoNotificationsOutline
-              size={22}
+              size={20}
               className="text-[var(--sidebar-linkcolor)]"
             />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[10px] font-bold">
+              <span className="absolute -top-1 -right-1 w-4 h-4 sm:w-5 sm:h-5 bg-red-500 rounded-full flex items-center justify-center text-white text-[9px] sm:text-[10px] font-bold">
                 {unreadCount > 9 ? "9+" : unreadCount}
               </span>
             )}
@@ -155,14 +155,14 @@ export default function NavBar({ onMenuClick }) {
             />
           </div>
 
-          <div className="relative h-[50px] flex items-center justify-center px-3 w-[60px] rounded-[12px] bg-[#1A1A1A]">
+          <div className="relative h-[40px] sm:h-[50px] flex items-center justify-center px-2 sm:px-3 w-[50px] sm:w-[60px] rounded-[12px] bg-[#1A1A1A]">
             <div
               onClick={() =>
                 setopenSmallScreenProfileDropDown(
                   !openSmallScreenProfileDropDown
                 )
               }
-              className="w-[35px] h-[35px] rounded-full cursor-pointer"
+              className="w-[30px] h-[30px] sm:w-[35px] sm:h-[35px] rounded-full cursor-pointer"
             >
               <InstructorProfileImage />
             </div>
@@ -175,7 +175,7 @@ export default function NavBar({ onMenuClick }) {
         </div>
       </div>
 
-      <div className="sm:hidden h-[79.88px]" />
+      <div className="sm:hidden h-[60px]" />
 
       {isMobileMenuOpen && (
         <div className="fixed top-0 left-0 z-40 w-full h-full bg-[rgba(0,0,0,0.8)]">

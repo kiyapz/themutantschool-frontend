@@ -531,3 +531,26 @@ body {
 .dark-scrollbar::-webkit-scrollbar-thumb:hover {
   background-color: #7a5adb;
 }
+
+/* Animated border for buttons */
+@keyframes border-rotate {
+  0% {
+    box-shadow: 0 0 0 2px #604196;
+  }
+  25% {
+    box-shadow: 0 0 0 2px #8660C7;
+  }
+  50% {
+    box-shadow: 0 0 0 2px #9d7ae0;
+  }
+  75% {
+    box-shadow: 0 0 0 2px #8660C7;
+  }
+  100% {
+    box-shadow: 0 0 0 2px #604196;
+  }
+}
+
+.animate-border {
+  animation: border-rotate 3s ease-in-out infinite;
+}

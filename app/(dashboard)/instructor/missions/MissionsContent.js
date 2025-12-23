@@ -171,7 +171,7 @@ export default function FilterableCoursesDashboard() {
           <div>
             <p
               style={{ marginTop: "10px " }}
-              className="text-purple-400 font-[600] sm:leading-[40px] leading-[150%] text-[17px] sm:text-[42px]"
+              className="text-purple-400 font-[600] leading-[150%] text-[18px] sm:text-[22px] md:text-[26px] lg:text-[30px] sm:leading-[28px] md:leading-[32px]"
             >
               My Missions
             </p>
@@ -185,7 +185,7 @@ export default function FilterableCoursesDashboard() {
               className="hidden sm:block"
               href="/instructor/missions/createnewmission"
             >
-              <button className="bg-[#604196] hidden sm:block flex items-center cursor-pointer justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px] w-[216.75px] hover:bg-[#7052a8] transition-colors">
+              <button className="bg-[#604196] hidden sm:block flex items-center cursor-pointer justify-center gap-1 font-[700] text-[13px] leading-[24px] h-[45px] rounded-[10px] w-[180px] hover:bg-[#7052a8] transition-colors">
                 Launch New Mission
               </button>
             </Link>

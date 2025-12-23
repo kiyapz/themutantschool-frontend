@@ -462,7 +462,7 @@ export default function InstructorDashboard() {
           </div>
           <div>
             <Link href="/instructor/missions/createnewmission">
-              <button className="bg-[#604196] flex items-center justify-center gap-1 font-[700] text-[15px] leading-[30px] h-[57.02px] rounded-[10px] w-[216.75px] ">
+              <button className="bg-[#604196] flex items-center justify-center gap-1 font-[700] text-[13px] leading-[30px] h-[57.02px] rounded-[10px] w-[216.75px] cursor-pointer animate-border">
                 <span>
                   <Image
                     src={"/images/instructordasbord/Vector (13).png"}
@@ -471,7 +471,7 @@ export default function InstructorDashboard() {
                     height={17.73}
                   />
                 </span>
-                Launch New Mission
+                New Mission
               </button>
             </Link>
           </div>

@@ -152,12 +152,13 @@ export default function TheVault() {
         setKycStatus({ status: "not_submitted" });
       }
     } catch (error) {
-      console.error("Error fetching KYC status:", error);
-      // If endpoint doesn't exist or returns 404, assume no KYC submitted
+      // If endpoint doesn't exist or returns 404, assume no KYC submitted (this is expected)
       if (error.response?.status === 404) {
         setKycStatus({ status: "not_submitted" });
+        // Don't log 404 errors as they're expected when no KYC exists
       } else {
-        // For other errors, keep current status or set to not_submitted
+        // Only log non-404 errors
+        console.error("Error fetching KYC status:", error);
         setKycStatus({ status: "not_submitted" });
       }
     } finally {

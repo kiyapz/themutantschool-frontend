@@ -421,19 +421,11 @@ export default function MissionDetails() {
       <div className="w-full xl:flex items-center justify-between ">
         <p
           style={{ marginBottom: "30px" }}
-          className="font-[600] text-[28px] leading-[150%] "
+          className="font-[600] text-[18px] md:text-[20px] xl:text-[28px] leading-[150%] "
         >
           Launch New Mission
         </p>
         <div className="flex items-center gap-2">
-          <button
-            style={{ padding: "0 15px" }}
-            className="bg-[#1D132E] text-[#8660C7] font-[600] text-[18px] leading-[40px] cursor-pointer rounded"
-            onClick={CreateNewMission}
-            disabled={loading}
-          >
-            {loading ? "Creating..." : "Create Mission"}
-          </button>
           <div className="flex items-center gap-2">
             <button
               style={{ padding: "15px" }}
@@ -814,6 +806,18 @@ export default function MissionDetails() {
             style={{ display: "none" }}
           />
         </div>
+      </div>
+
+      {/* Create Mission Button - At the bottom after all form fields */}
+      <div className="w-full flex justify-end mt-8 mb-4">
+        <button
+          style={{ padding: "15px 30px" }}
+          className="bg-[#1D132E] text-[#8660C7] font-[600] text-[18px] leading-[40px] cursor-pointer rounded hover:bg-[#2a1a3e] transition-colors"
+          onClick={CreateNewMission}
+          disabled={loading}
+        >
+          {loading ? "Creating..." : "Create Mission"}
+        </button>
       </div>
     </div>
   );

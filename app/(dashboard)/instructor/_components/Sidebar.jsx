@@ -56,18 +56,6 @@ export default function Sidebar() {
                     active={pathname === "/instructor/recruits"}
                   />
                 </Link>
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Group (7).png"
-                  text="Comms Center"
-                  active={pathname === "/instructor/comms"}
-                />
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Vector (10).png"
-                  text="Squad Discussions"
-                  active={pathname === "/instructor/discussions"}
-                />
               </div>
 
               {/* Performance */}
@@ -83,18 +71,6 @@ export default function Sidebar() {
                     active={pathname === "/instructor/analytics"}
                   />
                 </Link>
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Group (5).png"
-                  text="Field Reports"
-                  active={pathname === "/instructor/reports"}
-                />
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Group (5).png"
-                  text="Achievements"
-                  active={pathname === "/instructor/achievements"}
-                />
               </div>
 
               {/* Monetization */}
@@ -112,24 +88,6 @@ export default function Sidebar() {
                 </Link>
               </div>
 
-              {/* Support */}
-              <div>
-                <p className="font-semibold text-[15px] text-[var(--side-textcolor)] mb-2">
-                  SUPPORT ROOM
-                </p>
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Group (4).png"
-                  text="Knowledge Codex"
-                  active={pathname === "/instructor/codex"}
-                />
-                <Sidebarbtn
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  image="/images/sidebaricons/Vector (10).png"
-                  text="Contact Command"
-                  active={pathname === "/instructor/contact"}
-                />
-              </div>
             </div>
           </div>
         </div>
