@@ -607,17 +607,26 @@ export default function IdentifyRole() {
                   Passwords do not match
                 </p>
               )}
-              <button
-                disabled={isValidEmail}
-                onClick={handleEmailVerification}
-                className={`text-white font-bold py-2 px-4 rounded-[10px] w-full h-[57px] text-[18px] leading-[57px] transition-all duration-200 ${
-                  isValidEmail
-                    ? "bg-[var(--disabled-button-bg)] cursor-not-allowed"
-                    : "btn cursor-pointer hover:opacity-90"
-                }`}
-              >
-                {buttonDisabledtext}
-              </button>
+              <div className="flex justify-center w-full">
+                <button
+                  disabled={isValidEmail}
+                  onClick={handleEmailVerification}
+                  className={`rounded-[10px] w-full h-[60.5px] sm:h-[57px] flex items-center justify-center gap-2 transition-all ease-in text-[18px] font-[700] ${
+                    isValidEmail
+                      ? "bg-[#404040] cursor-not-allowed"
+                      : "btn cursor-pointer"
+                  }`}
+                >
+                  {buttonDisabledtext}
+                  <Image
+                    src="/images/Arrowright.png"
+                    alt="arrow-right"
+                    width={20}
+                    height={20}
+                    className="sm:hidden"
+                  />
+                </button>
+              </div>
               {errormessage && (
                 <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">
                   {errormessage}

@@ -59,7 +59,23 @@ export default function Authnav() {
 
           <div
             className={`h-[2px] w-full ${
-              registerStep == 4 ? "bg-[var(--secondary)]" : "bg-[var(--text)]"
+              registerStep >= 4 ? "bg-[var(--secondary)]" : "bg-[var(--text)]"
+            }`}
+          ></div>
+
+          <div
+            className={`h-[30px] w-[30px] aspect-square flex items-center justify-center rounded-full ibm-plex-mono-thin font-[700] text-[13px] leading-[57px] text-center ${
+              registerStep >= 4
+                ? "bg-[var(--secondary)] text-[var(--background)]"
+                : "bg-[var(--text)] text-[var(--blackcolor)]"
+            }`}
+          >
+            3
+          </div>
+
+          <div
+            className={`h-[2px] w-full ${
+              registerStep === 4 ? "bg-[var(--secondary)]" : "bg-[var(--text)]"
             }`}
           ></div>
 
@@ -70,7 +86,7 @@ export default function Authnav() {
                 : "bg-[var(--text)] text-[var(--blackcolor)]"
             }`}
           >
-            3
+            4
           </div>
         </div>
       )}
