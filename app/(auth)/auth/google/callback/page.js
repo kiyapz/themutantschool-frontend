@@ -154,7 +154,7 @@ function GoogleCallbackContent() {
         // Call backend callback endpoint
         // API Documentation: Production URL: https://themutantschool-backend.onrender.com/api/auth/google/callback
         // Note: Docs show /api/auth/google but callback endpoint should be /api/auth/google/callback
-        const backendCallbackUrl = `${BACKEND_BASE_URL}/auth/google/callback?${queryParams.toString()}`;
+        const backendCallbackUrl = `${BACKEND_BASE_URL}/callback?${queryParams.toString()}`;
         console.log("=== Calling Backend Callback ===");
         console.log("URL:", backendCallbackUrl);
         console.log("Method: GET");

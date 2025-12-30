@@ -284,15 +284,9 @@ export default function IdentifyRole() {
         const errorMessage =
           error.response.data.message || "Something went wrong.";
         setErrormessage(errorMessage);
-        setTimeout(() => {
-          setErrormessage("");
-        }, 3000);
       } else {
         console.error("Unexpected error:", error);
         setErrormessage("An unexpected error occurred.");
-        setTimeout(() => {
-          setErrormessage("");
-        }, 3000);
       }
     }
   };
@@ -315,16 +309,23 @@ export default function IdentifyRole() {
 
     if (getUserData) {
       const user = JSON.parse(getUserData);
-      
-      // Redirect directly to dashboard based on user role
+      // Check if email is verified
+      const isVerified =
+        user.emailVerified ||
+        user.isEmailVerified ||
+        user.verified ||
+        user.isVerified ||
+        user.email_verified;
+
+      if (!isVerified) {
+        // Redirect to verify email page if not verified
+        router.push("/auth/verify-email");
+        return;
+      }
+
       if (user.role === "student") {
-        router.push("/student/dashboard");
-      } else if (user.role === "instructor") {
-        router.push("/instructor");
-      } else if (user.role === "affiliate") {
-        router.push("/affiliate");
+        router.push("/student");
       } else {
-        // Fallback to login if role is not recognized
         router.push("/auth/login");
       }
     } else {
@@ -609,31 +610,13 @@ export default function IdentifyRole() {
               <button
                 disabled={isValidEmail}
                 onClick={handleEmailVerification}
-                className={`w-full h-[60.5px] sm:h-[57px] flex gap-2 items-center justify-center transition-all duration-300 ease-in-out rounded-[10px] text-[18px] font-[700] leading-[57px] relative overflow-hidden group ${
+                className={`text-white font-bold py-2 px-4 rounded-[10px] w-full h-[57px] text-[18px] leading-[57px] transition-all duration-200 ${
                   isValidEmail
-                    ? "bg-[#404040] cursor-not-allowed text-gray-400"
-                    : "btn cursor-pointer text-white hover:scale-[1.02] active:scale-[0.98] shadow-lg hover:shadow-xl"
+                    ? "bg-[var(--disabled-button-bg)] cursor-not-allowed"
+                    : "btn cursor-pointer hover:opacity-90"
                 }`}
               >
-                {buttonDisabledtext === "Loading..." ? (
-                  <div className="flex items-center gap-2">
-                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    <span>Loading...</span>
-                  </div>
-                ) : (
-                  <>
-                    <span>{buttonDisabledtext}</span>
-                    {!isValidEmail && (
-                      <Image
-                        src="/images/Arrowright.png"
-                        alt="arrow-right"
-                        width={20}
-                        height={20}
-                        className="sm:hidden transition-transform duration-300 group-hover:translate-x-1"
-                      />
-                    )}
-                  </>
-                )}
+                {buttonDisabledtext}
               </button>
               {errormessage && (
                 <p className="text-[var(--error-text-color)] font-[300] leading-[20px] text-[16px] text-center">

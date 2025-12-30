@@ -307,17 +307,9 @@ export default function LevelsPath({
     const levelData = watchedData.levels.find(
       (level) => level.levelId === levelId
     );
-    return levelData ? levelData.completedCapsules || [] : [];
-  };
-
-  // Helper function to get viewed capsules for a specific level
-  const getViewedCapsulesForLevel = (levelId) => {
-    if (!watchedData || !watchedData.levels) return [];
-
-    const levelData = watchedData.levels.find(
-      (level) => level.levelId === levelId
-    );
-    return levelData ? levelData.viewedCapsules || [] : [];
+    return levelData
+      ? levelData.completedCapsules || levelData.viewedCapsules || []
+      : [];
   };
 
   // Helper function to check if a capsule is completed
@@ -328,51 +320,8 @@ export default function LevelsPath({
     );
   };
 
-  // Helper function to check if a capsule is viewed (has an entry in viewedCapsules)
-  const isCapsuleViewed = (capsuleId, levelId) => {
-    const viewedCapsules = getViewedCapsulesForLevel(levelId);
-    return viewedCapsules.some(
-      (viewed) => viewed.capsuleId === capsuleId
-    );
-  };
-
-  // Helper function to check if a capsule is completed based on its status in the viewedCapsules list
-  const isCapsuleCompletedInViewedList = (capsuleId, levelId) => {
-    const viewedCapsules = getViewedCapsulesForLevel(levelId);
-    const capsule = viewedCapsules.find((v) => v.capsuleId === capsuleId);
-    return capsule ? capsule.completed : false;
-  };
-
-  // Helper function to check if a level is fully completed (all capsules + quiz passed)
-  const isLevelFullyCompleted = (levelId) => {
-    if (!levelId || !watchedData || !watchedData.levels) return false;
-
-    // Find the level in the level array
-    const currentLevel = level.find((lvl) => lvl._id === levelId);
-    if (!currentLevel || !currentLevel.capsules) return false;
-
-    // Check if all capsules are completed
-    const completedCapsules = getCompletedCapsulesForLevel(levelId);
-    const totalCapsules = currentLevel.capsules.length;
-    const allCapsulesCompleted =
-      completedCapsules.length === totalCapsules && totalCapsules > 0;
-
-    if (!allCapsulesCompleted) return false;
-
-    // Check if quiz has been passed
-    const quizId = currentLevel.quiz?._id;
-    if (!quizId) return false;
-
-    const quizPassed = quizHistory.some(
-      (attempt) => attempt.quizId === quizId && attempt.passed === true
-    );
-
-    return quizPassed;
-  };
-
   // Function to check if capsule should be enabled
   const isCapsuleEnabled = (containerIndex, levelIndex, capsuleId) => {
-    // Always enable the very first capsule of the very first level
     if (containerIndex === 0 && levelIndex === 0) {
       return true;
     }
@@ -380,8 +329,22 @@ export default function LevelsPath({
     const currentLevel = level[containerIndex];
     if (!currentLevel) return false;
 
-    // Enable if the current capsule is in the viewedCapsules list
-    return isCapsuleViewed(capsuleId, currentLevel._id);
+    if (levelIndex > 0) {
+      const prevCapsule = currentLevel.capsules[levelIndex - 1];
+      return isCapsuleCompleted(prevCapsule._id, currentLevel._id);
+    }
+
+    if (containerIndex > 0) {
+      const prevLevel = level[containerIndex - 1];
+      if (!prevLevel || !prevLevel.capsules) return false;
+
+      const allPrevCapsulesDone = prevLevel.capsules.every((capsule) =>
+        isCapsuleCompleted(capsule._id, prevLevel._id)
+      );
+      return allPrevCapsulesDone;
+    }
+
+    return false;
   };
 
   // Updated function to check if quiz should be enabled
@@ -519,7 +482,7 @@ export default function LevelsPath({
           </svg>
         </Link>
         <div>
-          <h1 className="text-lg sm:text-xl font-bold text-white">
+          <h1 className="text-2xl font-bold text-white">
             {missionTitle || "Mission"}
           </h1>
           <p className="text-gray-400 text-sm">{level?.length || 0} Levels</p>
@@ -541,15 +504,15 @@ export default function LevelsPath({
                   <div className="flex flex-col gap-5 sm:gap-0 justify-between order-2 sm:order-1">
                     <div className="flex flex-col gap-10">
                       <div>
-                        <p className="font-[800] text-[16px] leading-[24px] xl:text-[24px] leading-[30px]">
+                        <p className="font-[800] text-[21px] leading-[39px] xl:text-[38px] leading-[39px]">
                           {currentlevel.title}
                         </p>
-                        <p className="font-[400] text-[12px] leading-[16px] xl:text-[14px] leading-[18px]">
+                        <p className="font-[400] text-[15px] leading-[18px] xl:text-[18px] leading-[18px]">
                           {currentlevel.summary}
                         </p>
                       </div>
 
-                      <p className="font-[300] text-[12px] xl:text-[16px] leading-[18px]">
+                      <p className="font-[300] text-[15px] xl:text-[23px] leading-[20px]">
                         {currentlevel.capsules?.length} Capsules • 1 Quiz
                       </p>
                     </div>
@@ -575,7 +538,7 @@ export default function LevelsPath({
                     levelIndex,
                     capsule._id
                   );
-                  const isCompletedInViewedList = isCapsuleCompletedInViewedList(
+                  const isCompleted = isCapsuleCompleted(
                     capsule._id,
                     currentlevel._id
                   );
@@ -595,7 +558,11 @@ export default function LevelsPath({
                       {/* shadow layer */}
                       <div
                         className={`${
-                          isEnabled ? "bg-[#231926]" : "bg-[#2a2a2a]"
+                          isSelected && isEnabled
+                            ? "bg-[#231926]"
+                            : isEnabled
+                            ? "bg-[#4f4f4e]"
+                            : "bg-[#2a2a2a]"
                         } absolute w-full h-[15px] bottom-[-10px] rounded-b-lg`}
                       ></div>
 
@@ -620,13 +587,17 @@ export default function LevelsPath({
                         }
                         style={{ padding: "0 20px" }}
                         className={`${
-                          isEnabled
+                          isSelected && isEnabled
                             ? "bg-[#840B94] text-white hover:shadow-[0_0_15px_rgba(132,11,148,0.7)] hover:scale-105"
+                            : isCompleted
+                            ? "bg-[#840B94] text-white hover:shadow-[0_0_15px_rgba(132,11,148,0.7)] hover:scale-105"
+                            : isEnabled
+                            ? "bg-[#9E9E9E] text-black cursor-pointer hover:bg-[#ABABAB] hover:scale-105"
                             : "bg-[#5A5A5A] text-[#8A8A8A] cursor-not-allowed"
                         } relative z-10 w-fit h-[37.91px] flex items-center justify-center rounded-lg font-bold px-5 transition-all duration-300 group`}
                       >
                         {levelIndex + 1}
-                        {isCompletedInViewedList && <span className="ml-2 text-xs">✓</span>}
+                        {isCompleted && <span className="ml-2 text-xs">✓</span>}
                         {!isEnabled && <span className="ml-2 text-xs">🔒</span>}
 
                         {/* Hover Tooltip */}
@@ -644,19 +615,19 @@ export default function LevelsPath({
 
                             {/* Step indicator */}
                             <div className="flex items-center gap-2 p-2">
-                              <span className="text-gray-400 text-[10px]">
+                              <span className="text-gray-400 text-xs">
                                 Enter the lab
                               </span>
                             </div>
 
                             <div className="px-4 pb-4 flex flex-col gap-2">
-                              <h3 className="font-bold text-[#840B94] text-sm mb-1">
+                              <h3 className="font-bold text-[#840B94] text-lg mb-1">
                                 {capsule.title || "Untitled"}
                               </h3>
-                              <p className="text-gray-400 text-[10px] mb-2">
+                              <p className="text-gray-400 text-xs mb-2">
                                 {capsule.duration || "15 mins"}
                               </p>
-                              <p className="text-gray-300 text-[10px] mb-3 leading-relaxed">
+                              <p className="text-gray-300 text-xs mb-3 leading-relaxed">
                                 {capsule.description ||
                                   "No description available"}
                               </p>
@@ -664,11 +635,11 @@ export default function LevelsPath({
                               <div className="flex items-center justify-between">
                                 <button
                                   style={{ padding: "5px 10px" }}
-                                  className="bg-[#840B94] hover:bg-[#9A0DAF] text-white px-4 py-2 rounded-md font-semibold text-[10px] transition-colors duration-200"
+                                  className="bg-[#840B94] hover:bg-[#9A0DAF] text-white px-4 py-2 rounded-md font-semibold text-xs transition-colors duration-200"
                                 >
                                   Start Mission
                                 </button>
-                                <span className="text-[#840B94] text-[10px] font-bold">
+                                <span className="text-[#840B94] text-xs font-bold">
                                   5XP
                                 </span>
                               </div>
