@@ -325,6 +325,10 @@ export default function IdentifyRole() {
 
       if (user.role === "student") {
         router.push("/student");
+      } else if (user.role === "affiliate") {
+        router.push("/affiliate");
+      } else if (user.role === "instructor") {
+        router.push("/instructor");
       } else {
         router.push("/auth/login");
       }
